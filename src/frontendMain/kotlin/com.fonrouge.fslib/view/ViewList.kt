@@ -25,9 +25,9 @@ import io.kvision.toast.ToastPosition
 import kotlinx.serialization.json.JsonObject
 
 @Suppress("unused")
-abstract class ViewList<T : BaseModel, U : BaseContainerList<T>>(
+abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
     name: String,
-    val listNameFunc: ((U) -> String) = { it.list?.getOrNull(0)?.id.toString() },
+    val listNameFunc: ((U) -> String) = { it.list.getOrNull(0)?.id.toString() },
     val configViewList: ConfigViewList<ViewList<*, *>> = configViewListMap[name]!!,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
@@ -79,13 +79,13 @@ abstract class ViewList<T : BaseModel, U : BaseContainerList<T>>(
             field = value
             if (value?.listCRC32 != listCRC32) {
                 listCRC32 = value?.listCRC32
-                tabulator?.update(value?.list)
+                tabulator?.update(value?.list?.toList())
                 onUpdateContainerList?.invoke(value)
                 pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
             }
         }
 
-    val actionParamMap = mapOf<ActionParam, (BaseModel?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
+    val actionParamMap = mapOf<ActionParam, (BaseModel<*>?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
         ActionParam.Insert to { item, block ->
             val urlParams = UrlParams(
                 "action" to ActionParam.Insert.name,

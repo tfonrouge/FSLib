@@ -22,8 +22,8 @@ class UserLogged(
     var image: String? = null,
     @Contextual
     var lastLogin: LocalDateTime? = null,
-) : BaseModel() {
-    override var upsertInfo: UpsertInfo? = null
+) : BaseModel<String>() {
+//    override var upsertInfo: UpsertInfo = UpsertInfo("","", "", "", "")
 }
 
 @Serializable

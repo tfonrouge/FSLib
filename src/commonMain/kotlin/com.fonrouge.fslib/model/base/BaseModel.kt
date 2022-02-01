@@ -2,12 +2,10 @@
 
 package com.fonrouge.fslib.model.base
 
-import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
 
-@Serializable
 @JsExport
-abstract class BaseModel {
-    abstract val id: Any
-    abstract val upsertInfo: UpsertInfo?
+abstract class BaseModel<T> {
+    abstract var id: T
+//    abstract val upsertInfo: UpsertInfo
 }

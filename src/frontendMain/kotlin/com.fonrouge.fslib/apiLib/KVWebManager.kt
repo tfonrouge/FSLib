@@ -142,7 +142,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         } ?: listOf("unknown error")
     }
 
-    fun getMediaList(item: Pair<String, Any>, context: String, f: (List<MediaItem>?) -> Unit) {
+    fun getMediaList(item: Pair<String, *>, context: String, f: (List<MediaItem>?) -> Unit) {
         withProgress {
             val list = restCall<List<MediaItem>>(
                 url = "${API_BASE_URL}media/url/${item.first}/${item.second}/$context",
@@ -155,7 +155,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         }
     }
 
-    inline fun <reified T : BaseModel> restContainerItem(
+    inline fun <reified T : BaseModel<*>> restContainerItem(
         kClass: KClass<T>,
         id: String?,
         crossinline function: ((T?) -> Unit),
@@ -163,7 +163,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         restContainerItem(kClass.simpleName, id, function)
     }
 
-    inline fun <reified T : BaseModel> restContainerItem(
+    inline fun <reified T : BaseModel<*>> restContainerItem(
         itemClassName: String?,
         id: String?,
         crossinline function: ((T?) -> Unit),
@@ -188,7 +188,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         }
     }
 
-    inline fun <reified T : BaseModel> restContainerList(
+    inline fun <reified T : BaseModel<*>> restContainerList(
         kClass: KClass<T>,
         crossinline function: ((List<T>?) -> Unit),
     ) {
@@ -336,7 +336,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         callBlock()
     }
 
-    fun <T : BaseModel> updateItem(
+    fun <T : BaseModel<*>> updateItem(
         item: T,
         vararg fieldSet: KPair<T, *>,
         block: ((Boolean?) -> Unit)? = null,
@@ -412,7 +412,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
             upsertCmd.add(query)
             val update = if (customUpdate == null) {
                 val update1 = obj { }
-                viewItem.formPanel?.let { itemFormPanel: ItemFormPanel<out BaseModel> ->
+                viewItem.formPanel?.let { itemFormPanel: ItemFormPanel<out BaseModel<*>> ->
                     itemFormPanel.form.fields.forEach { entry ->
                         val name = entry.key.asDynamic()
                         val origValue = viewItem.origObjItem[name]
@@ -426,8 +426,8 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
                                 o._set("\$date", d2)
                                 o
                             } else null
-                        } else if (origValue is BaseModel) {
-                            val o1 = origValue as? BaseModel
+                        } else if (origValue is BaseModel<*>) {
+                            val o1 = origValue as? BaseModel<*>
                             if (o1?.id != curValue) {
                                 curValue
                             } else null
@@ -465,7 +465,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         }
     }
 
-    fun <T : BaseModel> deleteItem(item: T, block: ((Boolean?) -> Unit)? = null) {
+    fun <T : BaseModel<*>> deleteItem(item: T, block: ((Boolean?) -> Unit)? = null) {
         configViewItemMap[item::class.simpleName]?.let { configViewItem: ConfigViewItem<ViewItem<*, *>> ->
             withProgress {
                 restCall<Boolean>(

@@ -31,7 +31,7 @@ import org.w3c.dom.events.MouseEvent
 import kotlin.js.Date
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseModel, U : BaseContainerItem<T>>(
+abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
     name: String,
     val itemNameFunc: ((U) -> String) = { it.item?.id.toString() },
     val configViewItem: ConfigViewItem<ViewItem<*, *>> = configViewItemMap[name]!!,

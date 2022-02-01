@@ -1,12 +1,10 @@
 package com.fonrouge.fslib.model.base
 
-import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
 
-@Serializable
+//@Serializable
 @JsExport
-abstract class BaseContainerList<T : BaseModel> : BaseContainer() {
-    abstract var list: List<T>?
-    var listCRC32: String? = null
-    var listSize: Int = 0
+abstract class BaseContainerList<T : BaseModel<*>> : BaseContainer() {
+    abstract var list: Array<T>
+    var listCRC32: String = ""
 }

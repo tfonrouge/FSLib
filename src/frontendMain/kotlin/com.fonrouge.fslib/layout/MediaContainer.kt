@@ -23,7 +23,7 @@ import io.kvision.utils.vh
 import io.kvision.utils.vw
 import kotlinx.browser.window
 
-fun <T : BaseModel, U : BaseContainerItem<T>> Container.mediaContainer(viewItem: ViewItem<T, U>, context: String) {
+fun <T : BaseModel<*>, U : BaseContainerItem<T>> Container.mediaContainer(viewItem: ViewItem<T, U>, context: String) {
 
     val item = viewItem.dataContainer?.item ?: return
 
