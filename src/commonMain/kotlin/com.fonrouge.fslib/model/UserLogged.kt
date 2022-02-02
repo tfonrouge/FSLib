@@ -3,7 +3,6 @@
 package com.fonrouge.fslib.model
 
 import com.fonrouge.fslib.model.base.BaseModel
-import com.fonrouge.fslib.model.base.UpsertInfo
 import io.kvision.types.LocalDateTime
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
