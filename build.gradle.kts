@@ -21,6 +21,9 @@ val coroutinesVersion: String by project
 val exposedVersion: String by project
 val ktorVersion: String by project
 
+val webDir = file("src/frontendMain/web")
+val mainClassName = "io.ktor.server.netty.EngineMain"
+
 kotlin {
     jvm("backend") {
         compilations.all {
