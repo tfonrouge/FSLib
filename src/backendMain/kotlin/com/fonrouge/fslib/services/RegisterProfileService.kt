@@ -7,7 +7,7 @@ actual class RegisterProfileService : IRegisterProfileService {
 
     override suspend fun registerProfile(profile: Profile, password: String): Boolean {
         try {
-            val user = User(
+            val userProfile = UserProfile(
                 _id = ObjectId(),
                 enabled = true,
                 password2 = DigestUtils.sha256Hex(password),
@@ -15,7 +15,7 @@ actual class RegisterProfileService : IRegisterProfileService {
                 userName = profile.username ?: "",
                 name = profile.name ?: ""
             )
-            userColl.insertOne(user)
+            userProfileColl.insertOne(userProfile)
         } catch (e: Exception) {
             throw Exception("Register operation failed!")
         }

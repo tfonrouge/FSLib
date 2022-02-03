@@ -1,5 +1,7 @@
 package com.fonrouge.fslib.mongoDb
 
+import com.mongodb.client.model.Collation
+import com.mongodb.client.model.CollationStrength
 import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.application.*
 import io.ktor.features.*
@@ -16,6 +18,10 @@ val mongoClient by lazy {
 
 val mongoDatabase: MongoDatabase by lazy {
     mongoClient.getDatabase(database)
+}
+
+val collation by lazy {
+    Collation.builder().locale("en").collationStrength(CollationStrength.PRIMARY).build()
 }
 
 class MongoConnection(configuration: Configuration) {

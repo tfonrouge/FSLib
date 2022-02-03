@@ -8,7 +8,7 @@ import org.litote.kmongo.coroutine.coroutine
 import java.time.LocalDateTime
 
 @Serializable
-data class User(
+data class UserProfile(
     @Contextual
     val _id: ObjectId,
     val enabled: Boolean?,
@@ -20,6 +20,6 @@ data class User(
     val lastLogin: LocalDateTime? = null,
 )
 
-val userColl by lazy {
-    mongoDatabase.getCollection("users", User::class.java).coroutine
+val userProfileColl by lazy {
+    mongoDatabase.getCollection("users", UserProfile::class.java).coroutine
 }
