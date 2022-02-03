@@ -47,7 +47,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api("io.kvision:kvision-server-ktor:$kvisionVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+                api("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
             }
         }
         val commonTest by getting {
@@ -60,11 +60,11 @@ kotlin {
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
 //                implementation("org.jetbrains.exposed:exposed:$exposedVersion")
-                implementation("commons-codec:commons-codec:$commonsCodecVersion")
-                implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.4.0")
-                implementation("io.ktor:ktor-auth:$ktorVersion")
-                implementation("io.ktor:ktor-server-core:$ktorVersion")
-                implementation("io.ktor:ktor-server-netty:$ktorVersion")
+                api("commons-codec:commons-codec:$commonsCodecVersion")
+                api("io.ktor:ktor-auth:$ktorVersion")
+                api("io.ktor:ktor-server-core:$ktorVersion")
+                api("io.ktor:ktor-server-netty:$ktorVersion")
+                api("org.litote.kmongo:kmongo-coroutine-serialization:4.4.0")
             }
         }
         val backendTest by getting
