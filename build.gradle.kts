@@ -20,6 +20,7 @@ val serializationVersion: String by project
 val coroutinesVersion: String by project
 val exposedVersion: String by project
 val ktorVersion: String by project
+val commonsCodecVersion: String by project
 
 val webDir = file("src/frontendMain/web")
 val mainClassName = "io.ktor.server.netty.EngineMain"
@@ -59,10 +60,11 @@ kotlin {
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
 //                implementation("org.jetbrains.exposed:exposed:$exposedVersion")
+                implementation("commons-codec:commons-codec:$commonsCodecVersion")
+                implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.4.0")
+                implementation("io.ktor:ktor-auth:$ktorVersion")
                 implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.ktor:ktor-server-netty:$ktorVersion")
-                implementation("io.ktor:ktor-auth:$ktorVersion")
-                implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.4.0")
             }
         }
         val backendTest by getting
@@ -74,6 +76,7 @@ kotlin {
                 implementation("io.kvision:kvision:$kvisionVersion")
                 implementation("io.kvision:kvision-bootstrap:$kvisionVersion")
                 implementation("io.kvision:kvision-bootstrap-datetime:$kvisionVersion")
+                implementation("io.kvision:kvision-bootstrap-dialog:$kvisionVersion")
                 implementation("io.kvision:kvision-bootstrap-select:$kvisionVersion")
                 implementation("io.kvision:kvision-bootstrap-upload:$kvisionVersion")
                 implementation("io.kvision:kvision-redux-kotlin:$kvisionVersion")
