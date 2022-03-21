@@ -17,6 +17,11 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.2.tgz#830beaec4b4091a9e9398ac50f865ddea52186b9"
   integrity sha512-92FRmppjjqz29VMJ2dn+xdyXZBrMlE42AV6Kq6BwjWV7CNUW1hs2FtxSNLQE+gJhaZ6AAmYuO9y8dshhcBl7vA==
 
+"@rjaros/bootstrap-select@^1.14.0-beta3":
+  version "1.14.0-beta3"
+  resolved "https://registry.yarnpkg.com/@rjaros/bootstrap-select/-/bootstrap-select-1.14.0-beta3.tgz#64d5a7aee8d6ec8d615a2e7cc4c893ce43189f81"
+  integrity sha512-Taaier2J5Uhkm2xquWAoaOpIfndEOocaVnmvxVyUkPPVjwuK0sq1e7YignfN4xAQlfklPb2nR/p9JSvPMn/cKA==
+
 "@rjaros/gettext.js@^1.1.3":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@rjaros/gettext.js/-/gettext.js-1.1.3.tgz#8d1109f4a6f8e0c4dadba26281c7fe83de8ab18f"
@@ -386,11 +391,6 @@ bootstrap-fileinput@^5.2.7:
     bootstrap ">= 3.4.1"
     jquery ">= 1.9.0"
     opencollective-postinstall "^2.0.2"
-
-bootstrap-select@^1.14.0-beta2:
-  version "1.14.0-beta2"
-  resolved "https://registry.yarnpkg.com/bootstrap-select/-/bootstrap-select-1.14.0-beta2.tgz#3abc9f778435238669f70d0af3615d0198ec4291"
-  integrity sha512-Q63QUbConUwA+/Te7tCJcv0nE3SI/J+rNI5A1mdX1KxP6lW0pFQy+4KVP6VwgZEcwkoPfrwjvAo6WT7fdl+Sdg==
 
 "bootstrap@>= 3.4.1", bootstrap@^5.1.3:
   version "5.1.3"
@@ -1922,7 +1922,7 @@ signal-exit@^3.0.3:
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.6.tgz#24e630c4b0f03fea446a2bd299e62b4a6ca8d0af"
   integrity sha512-sDl4qMFpijcGw22U5w63KmD3cZJfBuFlVNbVMKje2keoKML7X2UzWbc4XrmEbDwg0NXJc3yv4/ox7b+JWb57kQ==
 
-snabbdom@^3.2.0:
+snabbdom@^3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/snabbdom/-/snabbdom-3.3.1.tgz#a2fb9a1c85cc19d6dc11c4c5e4c78cbbbaafff1f"
   integrity sha512-FR9u20dCkktPd+qbedqwYNjMXzYhizhqlKTQzYZimLNeCJY0/5qgs0DtLVSmzIEL1bN3Dyb9sQpiHGCxUjyLnQ==
@@ -2079,10 +2079,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-tabulator-tables@^5.0.10:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.1.0.tgz#bb647f6ba3e63fb22b07397d0813c58e47d52c01"
-  integrity sha512-R7/pjfsTGaxaXvYUWhMe0L6HhkaguOCisBi5pMfdrKhOM0XTV/shc0yZ7+YBkOHSEteaQV0jaC6ylfabykmgRA==
+tabulator-tables@^5.1.0:
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.1.2.tgz#ec48c8f3644cefd7c9d7b3692cc58532fa336099"
+  integrity sha512-siAFrju7+WozQoT/fcJeYREhjc5lIVVMXoZNRoFNn0UOe65XeCKAActeUIx9X2vnGWk/4mPU0QK+dVn3DiSLPg==
 
 tapable@^2.1.1, tapable@^2.2.0:
   version "2.2.1"
