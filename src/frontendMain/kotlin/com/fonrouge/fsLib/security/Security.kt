@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.security
 
-import com.fonrouge.fsLib.Model
+import com.fonrouge.fsLib.FSLibModel
 import com.fonrouge.fsLib.services.Profile
 import io.kvision.core.onEvent
 import io.kvision.form.FormPanel
@@ -123,7 +123,7 @@ class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, ani
         if (registerPanel.validate()) {
             val userData = registerPanel.getData()
             AppScope.launch {
-                if (Model.registerProfile(userData, userData.password!!)
+                if (FSLibModel.registerProfile(userData, userData.password!!)
                 ) {
                     Alert.show(text = I18n.tr("User registered. You can now log in.")) {
                         hideRegisterForm()
@@ -147,6 +147,6 @@ object Security : SecurityMgr() {
     }
 
     override suspend fun afterLogin() {
-        Model.readProfile()
+        FSLibModel.readProfile()
     }
 }

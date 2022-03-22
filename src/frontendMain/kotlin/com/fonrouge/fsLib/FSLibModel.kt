@@ -9,7 +9,7 @@ import io.kvision.state.ObservableList
 import io.kvision.state.observableListOf
 import io.kvision.toast.Toast
 
-object Model {
+object FSLibModel {
 
     private val pingService = PingService()
     private val profileService = ProfileService()
