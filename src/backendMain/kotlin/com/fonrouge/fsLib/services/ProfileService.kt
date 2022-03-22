@@ -1,7 +1,12 @@
 package com.fonrouge.fsLib.services
 
+import com.google.inject.Inject
+import io.ktor.application.*
+
 actual class ProfileService : IProfileService {
-    override suspend fun getProfile(): Profile {
-        TODO("Not yet implemented")
-    }
+
+    @Inject
+    lateinit var call: ApplicationCall
+
+    override suspend fun getProfile(): Profile = call.withProfile { it }
 }
