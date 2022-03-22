@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.0.0"
+version = "1.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -26,7 +26,6 @@ val javadocJar by tasks.creating(Jar::class) {
     archiveClassifier.set("javadoc")
 //    from(tasks.named("dokkaHtml"))
 }
-
 
 val sonatypeUsername: String? = System.getenv("SONATYPE_USERNAME")
 val sonatypePassword: String? = System.getenv("SONATYPE_PASSWORD")
@@ -148,10 +147,15 @@ kotlin {
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
                 api("io.kvision:kvision:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap:$kvisionVersion")
+                api("io.kvision:kvision-bootstrap-css:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-datetime:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-dialog:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-select:$kvisionVersion")
+                api("io.kvision:kvision-bootstrap-spinner:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-upload:$kvisionVersion")
+                api("io.kvision:kvision-datacontainer:$kvisionVersion")
+                api("io.kvision:kvision-fontawesome:$kvisionVersion")
+                api("io.kvision:kvision-react:$kvisionVersion")
                 api("io.kvision:kvision-redux-kotlin:$kvisionVersion")
                 api("io.kvision:kvision-rest:$kvisionVersion")
                 api("io.kvision:kvision-routing-navigo-ng:$kvisionVersion")
