@@ -12,7 +12,6 @@ open class KVWebState(
     /* state */
     var errorMessage: String? = null,
     var loginErrors: List<String>? = null,
-    var userLogged: UserLogged? = null,
     var userItemErrors: List<String>? = null,
     var view: View = viewHomeBase,
 

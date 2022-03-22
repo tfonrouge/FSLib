@@ -57,7 +57,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     lateinit var viewHomeBase: ViewHomeBase
 
     val state get() = kvWebStore.getState()
-    val userLogged get() = state.userLogged
 
     private var authenticated = false
 
@@ -380,6 +379,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
                 key = "upsert",
                 element = Json.parseToJsonElement(js("JSON.stringify(upsertCmd)") as String)
             )
+/*
             val upsertInfo = UpsertInfo(
                 userId = state.userLogged?.id ?: "?",
                 userName = state.userLogged?.fullName ?: "?",
@@ -389,6 +389,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
             )
             val j = Json.encodeToJsonElement(upsertInfo)
             put("upsertInfo", j)
+*/
         }
         withProgress {
             restCall<Boolean, JsonElement>(
