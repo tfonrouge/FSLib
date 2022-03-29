@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.ApiParam
 import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.config.BaseConfigView
 import com.fonrouge.fsLib.lib.UrlParams
@@ -8,7 +9,6 @@ import kotlinx.browser.window
 import kotlinx.serialization.json.JsonObject
 
 abstract class ViewDataContainer<U : BaseContainer>(
-    val name: String,
     configView: BaseConfigView,
     loading: Boolean = false,
     editable: Boolean = true,
@@ -27,6 +27,9 @@ abstract class ViewDataContainer<U : BaseContainer>(
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
 ) {
+
+    val name get() = configView.name
+
     open var dataContainer: U? = null
 
     var displayBlock: (() -> Unit)? = null
@@ -65,6 +68,11 @@ abstract class ViewDataContainer<U : BaseContainer>(
             handleIntervalStack.add(null)
         }
     }
+
+    fun getApiParam() : ApiParam {
+        return ApiParam()
+    }
+
 /*
     inline fun <reified W : BaseModel> getContextItem(crossinline block: (W?) -> Unit) {
         urlParams?.contextPair?.let { contextPair ->

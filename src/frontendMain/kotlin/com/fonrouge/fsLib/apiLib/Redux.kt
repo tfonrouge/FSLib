@@ -16,7 +16,7 @@ open class KVWebState(
     var view: View = viewHomeBase,
 
     /* loading */
-    var appLoading: Boolean = true,
+    var appLoading: Boolean = false,
 ) {
     fun copy(block: KVWebState.() -> Unit): KVWebState {
         block(this)

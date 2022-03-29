@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.KVWebManager
-import com.fonrouge.fsLib.apiLib.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.apiLib.KVWebManager.pageContainerWidth
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
@@ -33,9 +32,8 @@ import kotlin.js.Date
 
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
-    name: String,
     val itemNameFunc: ((U) -> String) = { it.item?.id.toString() },
-    val configViewItem: ConfigViewItem<ViewItem<*, *>> = configViewItemMap[name]!!,
+    val configViewItem: ConfigViewItem<ViewItem<*, *>>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
@@ -44,7 +42,6 @@ abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<U>(
-    name = name,
     configView = configViewItem,
     loading = loading,
     editable = editable,

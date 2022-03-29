@@ -27,8 +27,8 @@ inline fun <reified T : BaseModel<*>, reified U : BaseContainerList<T>> Containe
     var item: T? = null
 
     val nav = toolBarList(viewList = viewList, minToolbarSize)
-    viewList.blockRefresh = { KVWebManager.updateViewDataContainer(viewList) }
-    nav.onClickRefresh = { KVWebManager.updateViewDataContainer(viewList) }
+//    viewList.blockRefresh = { KVWebManager.updateViewDataContainer(viewList) }
+//    nav.onClickRefresh = { KVWebManager.updateViewDataContainer(viewList) }
 
     val updateLinks: () -> Unit = {
         nav.item = item

@@ -12,6 +12,8 @@ import org.litote.kmongo.reactivestreams.KMongo
 var connectionString: String = "mongodb://localhost"
 private var database: String = "test"
 
+var locale = "en"
+
 val mongoClient by lazy {
     connectionString.let { KMongo.createClient(it) }
 }
@@ -21,7 +23,7 @@ val mongoDatabase: MongoDatabase by lazy {
 }
 
 val collation by lazy {
-    Collation.builder().locale("en").collationStrength(CollationStrength.PRIMARY).build()
+    Collation.builder().locale(locale).collationStrength(CollationStrength.PRIMARY).build()
 }
 
 class MongoConnection(configuration: Configuration) {

@@ -3,8 +3,16 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.config.BaseConfigView
+import com.fonrouge.fsLib.lib.UrlParams
+import io.kvision.core.Container
 
-abstract class ViewHomeBase : View(
+open class ViewHomeBase(
+    override var urlParams: UrlParams? = null
+) : View(
     configView = BaseConfigView(name = "HomeBase", url = "", label = "Home", typeView = TypeView.None),
     actionPage = { view -> IfceWebAction.HomePage(view as ViewHomeBase) }
-)
+) {
+    override fun displayPage(container: Container) {
+//        TODO("Not yet implemented")
+    }
+}

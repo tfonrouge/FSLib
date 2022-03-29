@@ -12,6 +12,7 @@ import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.security.AppScope
 import io.kvision.core.Container
 import io.kvision.dropdown.ContextMenu
 import io.kvision.html.Align
@@ -22,14 +23,14 @@ import io.kvision.tabulator.Tabulator
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KProperty
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
-    name: String,
     val listNameFunc: ((U) -> String) = { it.list.getOrNull(0)?.id.toString() },
-    val configViewList: ConfigViewList<ViewList<*, *>> = configViewListMap[name]!!,
+    val configViewList: ConfigViewList<ViewList<BaseModel<*>, BaseContainerList<BaseModel<*>>>, BaseModel<*>, BaseContainerList<BaseModel<*>>>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
@@ -38,7 +39,6 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<U>(
-    name = name,
     configView = configViewList,
     loading = loading,
     editable = editable,
@@ -172,7 +172,10 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
         displayPage(container)
         if (!updateDispatched) {
             updateDispatched = true
-            configViewList.updateData?.let { it(this) }
+//            configViewList.updateData?.let { it(this) }
+            AppScope.launch {
+                configViewList.updateData(urlParams = urlParams)
+            }
 //            KVWebManager.dispatchPage(this)
         }
     }
@@ -180,6 +183,8 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
     final override fun displayPage(container: Container) {
 
         this.container = container
+
+        console.warn("...displayPage...")
 
         container.apply {
             pageBanner(this@ViewList)

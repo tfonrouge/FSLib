@@ -1,28 +1,18 @@
 package com.fonrouge.fsLib
 
 import com.fonrouge.fsLib.security.Security
-import com.fonrouge.fsLib.services.PingService
 import com.fonrouge.fsLib.services.Profile
 import com.fonrouge.fsLib.services.ProfileService
 import com.fonrouge.fsLib.services.RegisterProfileService
 import io.kvision.state.ObservableList
 import io.kvision.state.observableListOf
-import io.kvision.toast.Toast
 
 object FSLibModel {
 
-    private val pingService = PingService()
     private val profileService = ProfileService()
     private val registerProfileService = RegisterProfileService()
 
     val profile: ObservableList<Profile> = observableListOf(Profile())
-
-    suspend fun ping(message: String) {
-        Security.withAuth {
-            val s = pingService.ping(message)
-            Toast.info(s)
-        }
-    }
 
     suspend fun readProfile() {
         Security.withAuth {

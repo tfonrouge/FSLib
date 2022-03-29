@@ -56,7 +56,9 @@ private fun Navigo.onViewListPage(): Navigo {
     on("$dataUrlPrefix/:dataClass/clist",
         { match: Match ->
             configViewListMap[match.data.dataClass as String].let { listConfigView ->
-                listConfigView?.let { KVWebManager.dispatchViewListPage(it, match) }
+                listConfigView?.let {
+                    KVWebManager.dispatchViewListPage(it, match)
+                }
             }
         })
     return this

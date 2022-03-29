@@ -139,7 +139,11 @@ class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, ani
 object Security : SecurityMgr() {
 
     private val loginService = LoginService("/login")
-    private val loginWindow = LoginWindow()
+
+    //    private val loginWindow = LoginWindow()
+    private val loginWindow by lazy {
+        LoginWindow()
+    }
 
     override suspend fun login(): Boolean {
         console.warn("calling login()")

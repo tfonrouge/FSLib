@@ -2,6 +2,7 @@
 
 package com.fonrouge.fsLib.apiLib
 
+import com.fonrouge.fsLib.ApiParam
 import com.fonrouge.fsLib.apiLib.Api.API_BASE_URL
 import com.fonrouge.fsLib.apiLib.Api.headers
 import com.fonrouge.fsLib.apiLib.Api.restCall
@@ -13,8 +14,8 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.withProgress
 import com.fonrouge.fsLib.model.MediaItem
 import com.fonrouge.fsLib.model.base.BaseContainer
+import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
-import com.fonrouge.fsLib.model.base.UpsertInfo
 import com.fonrouge.fsLib.view.*
 import com.fonrouge.fsLib.view.ViewDataContainer.Companion.handleInterval
 import io.kvision.jquery.JQueryAjaxSettings
@@ -52,8 +53,9 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var pageContainerWidth = "md"
 
     lateinit var kvWebStore: ReduxStore<KVWebState, IfceWebAction>
-    lateinit var configViewItemMap: Map<String?, ConfigViewItem<ViewItem<*, *>>>
-    lateinit var configViewListMap: Map<String?, ConfigViewList<ViewList<*, *>>>
+    var configViewItemMap: Map<String?, ConfigViewItem<ViewItem<*, *>>> = mapOf()
+    var configViewListMap: Map<String?, ConfigViewList<ViewList<BaseModel<*>, BaseContainerList<BaseModel<*>>>, BaseModel<*>, BaseContainerList<BaseModel<*>>>> =
+        mapOf()
     lateinit var viewHomeBase: ViewHomeBase
 
     val state get() = kvWebStore.getState()
@@ -111,6 +113,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     }
 
     private fun afterInitialize() {
+        console.warn("afterInitialize")
         kvWebStore.dispatch(IfceWebAction.AppLoaded)
         if (kvWebStore.getState().view is ViewHomeBase) {
             loadHome()
@@ -191,7 +194,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         kClass: KClass<T>,
         crossinline function: ((List<T>?) -> Unit),
     ) {
-        configViewListMap[kClass.simpleName]?.let { configViewList: ConfigViewList<ViewList<*, *>> ->
+        configViewListMap[kClass.simpleName]?.let { configViewList ->
             val data = buildJsonObject {
                 configViewList.lookupParam?.let { put("lookup", it) }
             }
@@ -277,6 +280,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     inline fun <reified T : BaseContainer> updateViewDataContainer(
         view: ViewDataContainer<T>,
+        crossinline callFunc: (ApiParam) -> T?,
         lookup: JsonObject? = null,
         matchFilter: JsonObject? = null,
         sort: JsonObject? = null,
@@ -565,11 +569,15 @@ The resource requires authentication which was not supplied with the request<br>
         )
     }
 
-    fun dispatchViewListPage(configViewList: ConfigViewList<ViewList<*, *>>, match: Match) {
+    fun dispatchViewListPage(
+        configViewList: ConfigViewList<ViewList<BaseModel<*>, BaseContainerList<BaseModel<*>>>, BaseModel<*>, BaseContainerList<BaseModel<*>>>,
+        match: Match
+    ) {
         configViewList.viewFunc?.let { it(UrlParams(match)) }?.let { viewList ->
             withProgress {
                 viewList.dispatchActionPage()
-                configViewList.updateData?.let { it(viewList) }
+//                configViewList.updateData?.let { it(viewList) }
+                configViewList.updateData(UrlParams(match = match))
             }
         }
     }

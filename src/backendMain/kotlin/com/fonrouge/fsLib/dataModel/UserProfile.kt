@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.services
+package com.fonrouge.fsLib.dataModel
 
 import com.fonrouge.fsLib.mongoDb.connectionString
 import com.fonrouge.fsLib.mongoDb.mongoDatabase
