@@ -14,7 +14,6 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.withProgress
 import com.fonrouge.fsLib.model.MediaItem
 import com.fonrouge.fsLib.model.base.BaseContainer
-import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.*
 import com.fonrouge.fsLib.view.ViewDataContainer.Companion.handleInterval
@@ -53,9 +52,8 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var pageContainerWidth = "md"
 
     lateinit var kvWebStore: ReduxStore<KVWebState, IfceWebAction>
-    var configViewItemMap: Map<String?, ConfigViewItem<ViewItem<*, *>>> = mapOf()
-    var configViewListMap: Map<String?, ConfigViewList<ViewList<BaseModel<*>, BaseContainerList<BaseModel<*>>>, BaseModel<*>, BaseContainerList<BaseModel<*>>>> =
-        mapOf()
+    var configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *>>()
+    var configViewListMap = mutableMapOf<String?, ConfigViewList<*, *, *>>()
     lateinit var viewHomeBase: ViewHomeBase
 
     val state get() = kvWebStore.getState()
@@ -113,7 +111,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     }
 
     private fun afterInitialize() {
-        console.warn("afterInitialize")
         kvWebStore.dispatch(IfceWebAction.AppLoaded)
         if (kvWebStore.getState().view is ViewHomeBase) {
             loadHome()
@@ -170,7 +167,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         id: String?,
         crossinline function: ((T?) -> Unit),
     ) {
-        configViewItemMap[itemClassName]?.let { configViewItem: ConfigViewItem<ViewItem<*, *>> ->
+        configViewItemMap[itemClassName]?.let { configViewItem: ConfigViewItem<*, *, *> ->
             val data = buildJsonObject {
                 configViewItem.lookupParam?.let { put("lookup", it) }
             }
@@ -213,7 +210,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     }
 
     fun restCustomJsonCall(
-        configViewItem: ConfigViewItem<*>,
+        configViewItem: ConfigViewItem<*, *, *>,
         map: String,
         data: JsonObject,
         httpMethod: HttpMethod = HttpMethod.POST,
@@ -232,7 +229,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     }
 
     inline fun <reified T : Any, reified U : Any> restCustomCall(
-        configViewItem: ConfigViewItem<*>,
+        configViewItem: ConfigViewItem<*, *, *>,
         map: String,
         data: U,
         httpMethod: HttpMethod = HttpMethod.POST,
@@ -370,7 +367,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         action: String,
         update: dynamic,
         origItem: dynamic,
-        configViewItem: ConfigViewItem<*>,
+        configViewItem: ConfigViewItem<*, *, *>,
         block: ((Boolean?) -> Unit)? = null,
     ) {
         val o = obj { }
@@ -483,7 +480,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     }
 
     fun <T : BaseModel<*>> deleteItem(item: T, block: ((Boolean?) -> Unit)? = null) {
-        configViewItemMap[item::class.simpleName]?.let { configViewItem: ConfigViewItem<ViewItem<*, *>> ->
+        configViewItemMap[item::class.simpleName]?.let { configViewItem: ConfigViewItem<*, *, *> ->
             withProgress {
                 restCall<Boolean>(
                     url = configViewItem.restUrlTyped(TypeView.Item) + UrlParams(
@@ -505,7 +502,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
             Api.login(userName, password)?.let { user ->
                 kvWebStore.dispatch(IfceWebAction.Login(user))
                 saveJwtToken(user.token!!)
-                routing.navigate(viewHomeBase.configView.url)
+                routing.navigate("")
                 val lastLogin = obj {}
                 lastLogin["lastLogin"] = Date()
             } ?: kvWebStore.dispatch(IfceWebAction.LoginError(parseErrors("login error message")))
@@ -515,7 +512,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     fun logout() {
         deleteJwtToken()
         kvWebStore.dispatch(IfceWebAction.Logout)
-        routing.navigate(viewHomeBase.configView.url)
+        routing.navigate("logout")
     }
 
     fun userItem(image: String?, nombreCorto: String?, nombre: String?, email: String?, password: String?) {
@@ -570,15 +567,13 @@ The resource requires authentication which was not supplied with the request<br>
     }
 
     fun dispatchViewListPage(
-        configViewList: ConfigViewList<ViewList<BaseModel<*>, BaseContainerList<BaseModel<*>>>, BaseModel<*>, BaseContainerList<BaseModel<*>>>,
+        configViewList: ConfigViewList<*, *, *>,
         match: Match
     ) {
         configViewList.viewFunc?.let { it(UrlParams(match)) }?.let { viewList ->
-            withProgress {
-                viewList.dispatchActionPage()
-//                configViewList.updateData?.let { it(viewList) }
-                configViewList.updateData(UrlParams(match = match))
-            }
+            viewList.dispatchActionPage()
+            console.warn("viewList.dispatchActionPage()")
+            configViewList.updateData(UrlParams(match = match))
         }
     }
 }

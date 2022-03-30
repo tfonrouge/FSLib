@@ -9,8 +9,6 @@ import com.fonrouge.fsLib.config.dataUrlPrefix
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.ViewDataContainer.Companion.clearHandleIntervalStack
-import com.fonrouge.fsLib.view.ViewItem
-import com.fonrouge.fsLib.view.ViewLogin
 import io.kvision.navigo.Match
 import io.kvision.navigo.Navigo
 
@@ -18,17 +16,17 @@ fun Navigo.initialize(): Navigo {
     return this
         .onViewItemPage()
         .onViewListPage()
-        .on(viewHomeBase.configView.url, {
+        .on("", {
             clearHandleIntervalStack()
             viewHomeBase.dispatchActionPage()
         })
-        .on(ViewLogin.configView.url, { runLoginPage() })
+        .on("login", { runLoginPage() })
 }
 
 private fun Navigo.onViewItemPage(): Navigo {
     on("$dataUrlPrefix/:dataClass/citem",
         { match ->
-            configViewItemMap[match.data.dataClass as? String]?.let { configViewItem: ConfigViewItem<ViewItem<*, *>> ->
+            configViewItemMap[match.data.dataClass as? String]?.let { configViewItem: ConfigViewItem<*, *, *> ->
                 configViewItem.viewFunc?.invoke(UrlParams(match))?.let { viewItem ->
                     val urlParams = viewItem.urlParams
                     when (urlParams?.action) {
@@ -36,13 +34,9 @@ private fun Navigo.onViewItemPage(): Navigo {
                             viewItem.dataContainer = null
                             viewItem.dispatchActionPage()
                         }
-                        ActionParam.Update -> {
-                            viewItem.dispatchActionPage()
-                            configViewItem.updateData?.let { it(viewItem) }
-                        }
                         else -> {
                             viewItem.dispatchActionPage()
-                            configViewItem.updateData?.let { it(viewItem) }
+                            configViewItem.updateData(urlParams)
                         }
                     }
                 }

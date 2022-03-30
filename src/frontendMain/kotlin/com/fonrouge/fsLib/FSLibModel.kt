@@ -6,6 +6,11 @@ import com.fonrouge.fsLib.services.ProfileService
 import com.fonrouge.fsLib.services.RegisterProfileService
 import io.kvision.state.ObservableList
 import io.kvision.state.observableListOf
+import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+
+val AppScope = CoroutineScope(window.asCoroutineDispatcher())
 
 object FSLibModel {
 

@@ -2,8 +2,6 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.KVWebManager
-import com.fonrouge.fsLib.apiLib.TypeView
-import com.fonrouge.fsLib.config.BaseConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.ViewDataContainer.Companion.clearHandleIntervalStack
 import io.kvision.core.Container
@@ -15,7 +13,7 @@ import io.kvision.form.text.textInput
 import io.kvision.html.*
 
 object ViewLogin : View(
-    configView = BaseConfigView(name = "login", label = "Login", typeView = TypeView.None),
+    configView = null,
     actionPage = { IfceWebAction.LoginPage },
     modal = true
 ) {

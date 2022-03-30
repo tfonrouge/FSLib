@@ -33,7 +33,7 @@ import kotlin.js.Date
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
     val itemNameFunc: ((U) -> String) = { it.item?.id.toString() },
-    val configViewItem: ConfigViewItem<ViewItem<*, *>>,
+    val configViewItem: ConfigViewItem<*,*,*>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,

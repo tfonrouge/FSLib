@@ -14,7 +14,7 @@ import io.kvision.panel.flexPanel
 import kotlinx.serialization.json.JsonObject
 
 abstract class View(
-    val configView: BaseConfigView,
+    val configView: BaseConfigView<*, *>?,
     var loading: Boolean = false,
     val editable: Boolean = true,
     val icon: String? = null,
@@ -39,12 +39,12 @@ abstract class View(
 
     val navigoUrlWithParams: String
         get() {
-            return configView.navigoUrl + if (urlParams != null) urlParams else ""
+            return configView?.navigoUrl + if (urlParams != null) urlParams else ""
         }
 
     val urlWithParams: String
         get() {
-            return configView.url + if (urlParams != null) urlParams else ""
+            return configView?.url + if (urlParams != null) urlParams else ""
         }
 
     val restUrl: String
@@ -55,12 +55,12 @@ abstract class View(
             if (this is ViewList<*, *>) {
                 this.masterViewItem?.item?.let { u.add("contextId" to it.id) }
             }
-            return configView.restUrl + u.toString()
+            return configView?.restUrl + u.toString()
         }
 
-    val restUrlNew get() = configView.restUrl + ActionParam.Insert
+    val restUrlNew get() = configView?.restUrl + ActionParam.Insert
 
-    val lookupParam get() = configView.lookupParam
+    val lookupParam get() = configView?.lookupParam
 
     var caption: String? = null
 
@@ -70,7 +70,7 @@ abstract class View(
             ActionParam.Update -> "[${ActionParam.Update}] "
             else -> ""
         }.let {
-            it + configView.label +
+            it + configView?.label +
                     if (this@View is ViewItem<*, *>) {
                         getName().let { it1 ->
                             if (it1 == null) "" else ": $it1"
@@ -80,8 +80,8 @@ abstract class View(
     }
 
     fun updateMainBannerLink(text: String, url: String) {
-        pageBannerLink?.label = "${configView.label}: $text"
-        pageBannerLink?.url = "${configView.navigoUrl}/$url"
+        pageBannerLink?.label = "${configView?.label}: $text"
+        pageBannerLink?.url = "${configView?.navigoUrl}/$url"
     }
 
     open fun getName(): String? {

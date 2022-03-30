@@ -29,7 +29,7 @@ fun <T : BaseModel<*>, U : BaseContainerItem<T>> Container.mediaContainer(viewIt
 
     val pairClassId = item::class.simpleName!! to item.id
 
-    val modal = Modal(I18n.tr("Agregar PDF's a ${viewItem.configView.label}"))
+    val modal = Modal(I18n.tr("Agregar PDF's a ${viewItem.configView?.label}"))
 
     modal.apply {
         upload(
@@ -68,7 +68,7 @@ fun <T : BaseModel<*>, U : BaseContainerItem<T>> Container.mediaContainer(viewIt
 
         lateinit var tabPanel: TabPanel
 
-        formRow("PDF's for ${viewItem.configView.label} with context '$context'") {
+        formRow("PDF's for ${viewItem.configView?.label} with context '$context'") {
             formColumn(12) {
                 alignContent = AlignContent.CENTER
                 tabPanel = tabPanel {
@@ -113,7 +113,7 @@ fun <T : BaseModel<*>, U : BaseContainerItem<T>> Container.mediaContainer(viewIt
                         }
                     }
                 }
-                button(I18n.tr("Agregar PDF's a ${viewItem.configView.label}"), style = ButtonStyle.OUTLINESUCCESS) {
+                button(I18n.tr("Agregar PDF's a ${viewItem.configView?.label}"), style = ButtonStyle.OUTLINESUCCESS) {
                     style {
                         marginLeft = 20.px
                         marginBottom = 20.px

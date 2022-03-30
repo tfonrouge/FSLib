@@ -9,7 +9,7 @@ import kotlinx.browser.window
 import kotlinx.serialization.json.JsonObject
 
 abstract class ViewDataContainer<U : BaseContainer>(
-    configView: BaseConfigView,
+    configView: BaseConfigView<*, *>,
     loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
@@ -28,7 +28,7 @@ abstract class ViewDataContainer<U : BaseContainer>(
     sortParam = sortParam
 ) {
 
-    val name get() = configView.name
+    val name get() = configView?.name
 
     open var dataContainer: U? = null
 
@@ -69,7 +69,7 @@ abstract class ViewDataContainer<U : BaseContainer>(
         }
     }
 
-    fun getApiParam() : ApiParam {
+    fun getApiParam(): ApiParam {
         return ApiParam()
     }
 

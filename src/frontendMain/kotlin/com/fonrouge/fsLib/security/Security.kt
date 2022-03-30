@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.security
 
+import com.fonrouge.fsLib.AppScope
 import com.fonrouge.fsLib.FSLibModel
 import com.fonrouge.fsLib.services.Profile
 import io.kvision.core.onEvent
@@ -16,12 +17,7 @@ import io.kvision.remote.Credentials
 import io.kvision.remote.LoginService
 import io.kvision.remote.SecurityMgr
 import io.kvision.utils.ENTER_KEY
-import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
-
-val AppScope = CoroutineScope(window.asCoroutineDispatcher())
 
 class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, animation = false) {
 
@@ -33,7 +29,6 @@ class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, ani
     private val cancelButton: Button
 
     init {
-        console.warn("entering LoginWindow")
         loginPanel = formPanel {
             add(Credentials::username, Text(label = "Login:"), required = true)
             add(Credentials::password, Password(label = "Password:"), required = true)
@@ -90,7 +85,6 @@ class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, ani
         addButton(cancelButton)
         addButton(registerButton)
         hideRegisterForm()
-        console.warn("leaving LoginWindow")
     }
 
     private fun showRegisterForm() {
@@ -146,7 +140,6 @@ object Security : SecurityMgr() {
     }
 
     override suspend fun login(): Boolean {
-        console.warn("calling login()")
         return loginService.login(loginWindow.getResult())
     }
 

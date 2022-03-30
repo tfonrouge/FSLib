@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.KVWebManager.configViewItemMap
-import com.fonrouge.fsLib.apiLib.KVWebManager.configViewListMap
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.layout.centeredMessage
@@ -12,7 +11,6 @@ import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
-import com.fonrouge.fsLib.security.AppScope
 import io.kvision.core.Container
 import io.kvision.dropdown.ContextMenu
 import io.kvision.html.Align
@@ -23,14 +21,13 @@ import io.kvision.tabulator.Tabulator
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KProperty
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
     val listNameFunc: ((U) -> String) = { it.list.getOrNull(0)?.id.toString() },
-    val configViewList: ConfigViewList<ViewList<BaseModel<*>, BaseContainerList<BaseModel<*>>>, BaseModel<*>, BaseContainerList<BaseModel<*>>>,
+    val configViewList: ConfigViewList<*, *, *>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
@@ -51,7 +48,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
 
     var blockRefresh: (() -> Unit)? = null
 
-    val configViewItem: ConfigViewItem<*> by lazy { configViewItemMap[name]!! }
+    val configViewItem: ConfigViewItem<*, *, *> by lazy { configViewItemMap[name]!! }
 
     override var repeatRefreshView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewListPeriodic
@@ -122,7 +119,8 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
                             centered = true
                         )
                     }
-                    viewItem.configViewItem.updateData?.let { it1 -> it1(viewItem) }
+//                    viewItem.configViewItem.updateData.let { it1 -> it1(viewItem) }
+                    viewItem.configViewItem.updateData(urlParams)
                 }
             }
         },
@@ -172,19 +170,13 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
         displayPage(container)
         if (!updateDispatched) {
             updateDispatched = true
-//            configViewList.updateData?.let { it(this) }
-            AppScope.launch {
-                configViewList.updateData(urlParams = urlParams)
-            }
-//            KVWebManager.dispatchPage(this)
+            configViewList.updateData(urlParams = urlParams)
         }
     }
 
     final override fun displayPage(container: Container) {
 
         this.container = container
-
-        console.warn("...displayPage...")
 
         container.apply {
             pageBanner(this@ViewList)
