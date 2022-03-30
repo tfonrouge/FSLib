@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.KVWebManager.pageContainerWidth
 import com.fonrouge.fsLib.config.ConfigViewItem
@@ -33,12 +32,12 @@ import kotlin.js.Date
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
     val itemNameFunc: ((U) -> String) = { it.item?.id.toString() },
-    val configViewItem: ConfigViewItem<*,*,*>,
+    val configViewItem: ConfigViewItem<*, *, *>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
-    actionPage: (View) -> IfceWebAction?,
+//    actionPage: (View) -> IfceWebAction?,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<U>(
@@ -46,7 +45,7 @@ abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
     loading = loading,
     editable = editable,
     icon = icon,
-    actionPage = actionPage,
+//    actionPage = actionPage,
     restUrlParams = configViewItem.restUrlParams,
     matchFilterParam = matchFilterParam,
     sortParam = sortParam

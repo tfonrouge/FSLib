@@ -21,6 +21,7 @@ import io.kvision.jquery.JQueryAjaxSettings
 import io.kvision.jquery.JQueryXHR
 import io.kvision.navigo.Match
 import io.kvision.redux.ReduxStore
+import io.kvision.redux.createReduxStore
 import io.kvision.rest.HttpMethod
 import io.kvision.routing.Routing
 import io.kvision.routing.Strategy
@@ -51,7 +52,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var motto = "<motto>"
     var pageContainerWidth = "md"
 
-    lateinit var kvWebStore: ReduxStore<KVWebState, IfceWebAction>
+    lateinit var kvWebStore: ReduxStore<KVWebState, KVAction>
     var configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *>>()
     var configViewListMap = mutableMapOf<String?, ConfigViewList<*, *, *>>()
     lateinit var viewHomeBase: ViewHomeBase
@@ -69,6 +70,8 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     fun initialize() {
 
         setup?.invoke(this)
+
+        kvWebStore = createReduxStore(::reducer, KVWebState())
 
         Routing.init(root = null, useHash = true, strategy = Strategy.ONE)
         routing.initialize().resolve()

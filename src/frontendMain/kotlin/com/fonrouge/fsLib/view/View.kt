@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.BaseConfigView
 import com.fonrouge.fsLib.lib.ActionParam
@@ -18,7 +17,7 @@ abstract class View(
     var loading: Boolean = false,
     val editable: Boolean = true,
     val icon: String? = null,
-    val actionPage: (View) -> IfceWebAction?,
+//    val actionPage: (View) -> IfceWebAction?,
     val restUrlParams: UrlParams? = null,
     var matchFilterParam: JsonObject? = null,
     var sortParam: JsonObject? = null,
@@ -89,8 +88,9 @@ abstract class View(
     }
 
     fun dispatchActionPage(): View {
-        val action = actionPage.invoke(this)
-        action.let { it?.let { it1 -> KVWebManager.kvWebStore.dispatch(it1) } }
+        configView?.let {
+            KVWebManager.kvWebStore.dispatch(it)
+        }
         return this
     }
 

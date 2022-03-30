@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.ViewDataContainer.Companion.clearHandleIntervalStack
@@ -14,7 +13,7 @@ import io.kvision.html.*
 
 object ViewLogin : View(
     configView = null,
-    actionPage = { IfceWebAction.LoginPage },
+//    actionPage = { IfceWebAction.LoginPage },
     modal = true
 ) {
     override var urlParams: UrlParams? = null

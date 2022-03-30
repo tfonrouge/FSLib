@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.ApiParam
-import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.config.BaseConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseContainer
@@ -13,7 +12,7 @@ abstract class ViewDataContainer<U : BaseContainer>(
     loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
-    actionPage: (View) -> IfceWebAction?,
+//    actionPage: (View) -> IfceWebAction?,
     restUrlParams: UrlParams? = null,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
@@ -22,7 +21,7 @@ abstract class ViewDataContainer<U : BaseContainer>(
     loading = loading,
     editable = editable,
     icon = icon,
-    actionPage = actionPage,
+//    actionPage = actionPage,
     restUrlParams = restUrlParams,
     matchFilterParam = matchFilterParam,
     sortParam = sortParam

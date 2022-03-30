@@ -1,10 +1,7 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.AppScope
-import com.fonrouge.fsLib.apiLib.Api
-import com.fonrouge.fsLib.apiLib.IfceWebAction
-import com.fonrouge.fsLib.apiLib.KVWebManager
-import com.fonrouge.fsLib.apiLib.TypeView
+import com.fonrouge.fsLib.apiLib.*
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseContainer
 import com.fonrouge.fsLib.view.ViewDataContainer
@@ -33,8 +30,10 @@ open class BaseConfigView<U : BaseContainer, V : ViewDataContainer<U>>(
     val lookupParam: JsonObject? = null,
     val viewFunc: ((UrlParams?) -> V)? = null,
     val dataFunc: KSuspendFunction1<V, U?>,
-) {
+) : KVAction() {
+
     val navigoUrl: String = navigoPrefix + url
+
     val restUrl = Api.API_BASE_URL + (_restUrl?.let { dataUrlPrefix + "/" + it + typeView.label } ?: url)
 
     fun urlTyped(typeView: TypeView): String {
@@ -77,7 +76,9 @@ open class BaseConfigView<U : BaseContainer, V : ViewDataContainer<U>>(
             val callBlock: () -> Unit = {
                 try {
                     AppScope.launch {
+                        console.warn("before dataFunc()")
                         dataFunc(view).let {
+                            console.warn("after dataFunc()", it)
                             view.dataContainer = it
                             if (loading) {
                                 loading = false

@@ -9,7 +9,7 @@ import com.fonrouge.fsLib.view.ViewList
 import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KSuspendFunction1
 
-class ConfigViewList<T : BaseModel<*>, U : BaseContainerList<T>, V : ViewList<T, U>>(
+open class ConfigViewList<T : BaseModel<*>, U : BaseContainerList<T>, V : ViewList<T, U>>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V)? = null,

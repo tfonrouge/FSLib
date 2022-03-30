@@ -10,7 +10,7 @@ import com.fonrouge.fsLib.view.ViewItem
 import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KSuspendFunction1
 
-class ConfigViewItem<T : BaseModel<*>, U : BaseContainerItem<T>, V : ViewItem<T, U>>(
+open class ConfigViewItem<T : BaseModel<*>, U : BaseContainerItem<T>, V : ViewItem<T, U>>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V)? = null,

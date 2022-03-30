@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewItem
@@ -32,7 +31,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
     loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
-    actionPage: (View) -> IfceWebAction,
+//    actionPage: (View) -> IfceWebAction,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<U>(
@@ -40,7 +39,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
     loading = loading,
     editable = editable,
     icon = icon,
-    actionPage = actionPage,
+//    actionPage = actionPage,
     restUrlParams = configViewList.restUrlParams,
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
@@ -75,10 +74,13 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
 
     override var dataContainer: U? = null
         set(value) {
+            console.warn("dataContainer...", value)
             field = value
             onUpdateContainerList?.invoke(value)
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
+            console.warn("CRC32 dataContainer...", value?.listCRC32, listCRC32)
             if (value?.listCRC32 != listCRC32) {
+                console.warn("assigning dataContainer...", value)
                 listCRC32 = value?.listCRC32
                 tabulator?.update(value?.list?.toList())
             }
