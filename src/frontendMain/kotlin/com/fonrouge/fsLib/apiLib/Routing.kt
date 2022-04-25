@@ -27,19 +27,7 @@ private fun Navigo.onViewItemPage(): Navigo {
     on("$dataUrlPrefix/:dataClass/citem",
         { match ->
             configViewItemMap[match.data.dataClass as? String]?.let { configViewItem: ConfigViewItem<*, *, *> ->
-                configViewItem.viewFunc?.invoke(UrlParams(match))?.let { viewItem ->
-                    val urlParams = viewItem.urlParams
-                    when (urlParams?.action) {
-                        ActionParam.Insert -> {
-                            viewItem.dataContainer = null
-                            viewItem.dispatchActionPage()
-                        }
-                        else -> {
-                            viewItem.dispatchActionPage()
-                            configViewItem.updateData(urlParams)
-                        }
-                    }
-                }
+                configViewItem.dispatchViewPage(urlParams = UrlParams(match = match))
             }
         }
     )

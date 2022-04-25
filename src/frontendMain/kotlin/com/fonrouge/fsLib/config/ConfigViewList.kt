@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.config
 
+import com.fonrouge.fsLib.ApiParam
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.lib.UrlParams
@@ -13,7 +14,7 @@ open class ConfigViewList<T : BaseModel<*>, U : BaseContainerList<T>, V : ViewLi
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V)? = null,
-    dataFunc: KSuspendFunction1<V, U?>,
+    dataFunc: KSuspendFunction1<ApiParam, U?>,
     restUrl: String? = null,
     restUrlParams: UrlParams? = null,
     lookupParam: JsonObject? = null,

@@ -25,7 +25,7 @@ import kotlinx.browser.window
 
 fun <T : BaseModel<*>, U : BaseContainerItem<T>> Container.mediaContainer(viewItem: ViewItem<T, U>, context: String) {
 
-    val item = viewItem.dataContainer?.item ?: return
+    val item = (viewItem.dataContainer as? BaseContainerItem<*>)?.item ?: return
 
     val pairClassId = item::class.simpleName!! to item.id
 

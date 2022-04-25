@@ -8,6 +8,7 @@ import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.base.BaseContainer
 import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
@@ -45,6 +46,10 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
     sortParam = sortParam
 ) {
 
+    companion object {
+        var checkItemListCRC32 = false
+    }
+
     var blockRefresh: (() -> Unit)? = null
 
     val configViewItem: ConfigViewItem<*, *, *> by lazy { configViewItemMap[name]!! }
@@ -74,15 +79,16 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
 
     override var dataContainer: U? = null
         set(value) {
-            console.warn("dataContainer...", value)
             field = value
             onUpdateContainerList?.invoke(value)
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
-            console.warn("CRC32 dataContainer...", value?.listCRC32, listCRC32)
-            if (value?.listCRC32 != listCRC32) {
-                console.warn("assigning dataContainer...", value)
-                listCRC32 = value?.listCRC32
-                tabulator?.update(value?.list?.toList())
+            if (!checkItemListCRC32 || value?.listCRC32 != listCRC32) {
+                if (!checkItemListCRC32) {
+                    listCRC32 = value?.listCRC32
+                }
+                val list = value?.list?.toList()
+                console.warn("assigning tabulator ", objId, tabulator, list)
+                tabulator?.update(list)
             }
         }
 
@@ -112,18 +118,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
                     urlParams.add("contextId" to it.id)
                     urlParams.add("contextName" to masterItemProp?.name)
                 }
-                configViewItem.viewFunc?.let { it1 -> it1(urlParams) }?.let { viewItem: ViewItem<*, *> ->
-                    block?.let { block.invoke(viewItem) }
-                    viewItem.displayBlock = {
-                        viewItem.displayModal(
-                            caption = "Updating this...",
-                            size = ModalSize.XLARGE,
-                            centered = true
-                        )
-                    }
-//                    viewItem.configViewItem.updateData.let { it1 -> it1(viewItem) }
-                    viewItem.configViewItem.updateData(urlParams)
-                }
+                configViewItem.displayModal(urlParams, block)
             }
         },
         ActionParam.Delete to { item, block ->
@@ -172,7 +167,9 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
         displayPage(container)
         if (!updateDispatched) {
             updateDispatched = true
-            configViewList.updateData(urlParams = urlParams)
+//            configView?.updateData()
+            updateData()
+//            configViewList.updateData(this as Nothing)
         }
     }
 
@@ -185,6 +182,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
             if (loading) {
                 centeredMessage("loading...")
             } else {
+                console.warn("calling pageListBody()")
                 pageListBody(this)
             }
         }

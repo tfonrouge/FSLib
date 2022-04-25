@@ -573,10 +573,6 @@ The resource requires authentication which was not supplied with the request<br>
         configViewList: ConfigViewList<*, *, *>,
         match: Match
     ) {
-        configViewList.viewFunc?.let { it(UrlParams(match)) }?.let { viewList ->
-            viewList.dispatchActionPage()
-            console.warn("viewList.dispatchActionPage()")
-            configViewList.updateData(UrlParams(match = match))
-        }
+        configViewList.dispatchViewPage(urlParams = UrlParams(match = match))
     }
 }

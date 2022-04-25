@@ -129,6 +129,7 @@ inline fun <reified T : BaseModel<*>, reified U : BaseContainerList<T>> Containe
             }
         }
     }
+    console.warn("viewList.tabulator =", viewList.objId, viewList.tabulator)
     return this
 }
 

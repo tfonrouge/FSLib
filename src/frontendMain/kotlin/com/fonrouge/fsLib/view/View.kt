@@ -24,6 +24,13 @@ abstract class View(
     var upsertData: JsonObject? = null,
     val modal: Boolean = false,
 ) {
+
+    var objId: Int = -1
+
+    companion object {
+        var objId = 0
+    }
+
     open val repeatRefreshView: Boolean? = null
     abstract var urlParams: UrlParams?
 
@@ -88,8 +95,8 @@ abstract class View(
     }
 
     fun dispatchActionPage(): View {
-        configView?.let {
-            KVWebManager.kvWebStore.dispatch(it)
+        configView?.let { baseConfigView ->
+            KVWebManager.kvWebStore.dispatch(baseConfigView)
         }
         return this
     }
@@ -131,5 +138,10 @@ abstract class View(
                 view.pageBannerLink?.let { link -> onUpdatePageBannerLink(link) }
             }
         }
+    }
+
+    init {
+        ++View.objId
+        objId = View.objId
     }
 }

@@ -1,7 +1,9 @@
 package com.fonrouge.fsLib.config
 
+import com.fonrouge.fsLib.ApiParam
 import com.fonrouge.fsLib.AppScope
 import com.fonrouge.fsLib.apiLib.*
+import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseContainer
 import com.fonrouge.fsLib.view.ViewDataContainer
@@ -20,7 +22,7 @@ const val dataUrlPrefix = "data"
 
 private const val navigoPrefix = "#/"
 
-open class BaseConfigView<U : BaseContainer, V : ViewDataContainer<U>>(
+abstract class BaseConfigView<U : BaseContainer, V : ViewDataContainer<U>>(
     val name: String,
     val label: String,
     val typeView: TypeView,
@@ -29,7 +31,7 @@ open class BaseConfigView<U : BaseContainer, V : ViewDataContainer<U>>(
     val restUrlParams: UrlParams? = null,
     val lookupParam: JsonObject? = null,
     val viewFunc: ((UrlParams?) -> V)? = null,
-    val dataFunc: KSuspendFunction1<V, U?>,
+    val dataFunc: KSuspendFunction1<ApiParam, U?>,
 ) : KVAction() {
 
     val navigoUrl: String = navigoPrefix + url
@@ -64,53 +66,12 @@ open class BaseConfigView<U : BaseContainer, V : ViewDataContainer<U>>(
         )
     }
 
-    fun updateData(urlParams: UrlParams?) {
-        viewFunc?.invoke(urlParams)?.let { view ->
-            var loading = if (!view.skipLoading) {
-                KVWebManager.kvWebStore.dispatch(IfceWebAction.Loading(view))
-                true
-            } else {
-                view.skipLoading = false
-                false
+    fun dispatchViewPage(urlParams: UrlParams?) {
+        viewFunc?.invoke(urlParams)?.let { viewDataContainer: V ->
+            viewDataContainer.dispatchActionPage()
+            if (this !is ConfigViewItem<*, *, *> && urlParams?.action != ActionParam.Insert) {
+                viewDataContainer.updateData()
             }
-            val callBlock: () -> Unit = {
-                try {
-                    AppScope.launch {
-                        console.warn("before dataFunc()")
-                        dataFunc(view).let {
-                            console.warn("after dataFunc()", it)
-                            view.dataContainer = it
-                            if (loading) {
-                                loading = false
-                                KVWebManager.kvWebStore.dispatch(IfceWebAction.Loaded(view))
-                            }
-//                            block?.invoke(it)
-                            view.displayBlock?.let { it() }
-                        }
-                    }
-                } catch (e: Exception) {
-                    console.warn("Error on interval =", e)
-                }
-            }
-            if (view.repeatRefreshView == true) {
-                var lastTime: Int? = null
-                var lock = false
-                ViewDataContainer.handleInterval = window.setInterval(
-                    handler = {
-                        val time = Date().getUTCSeconds()
-                        if (lastTime != Date().getSeconds() && (time % KVWebManager.intervalTimeout == 0)) {
-                            lastTime = Date().getUTCSeconds()
-                            if (!lock) {
-                                lock = true
-                                callBlock()
-                                lock = false
-                            }
-                        }
-                    },
-                    timeout = 250
-                )
-            }
-            callBlock()
         }
     }
 }

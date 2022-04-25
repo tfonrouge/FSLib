@@ -6,6 +6,7 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.KPair
+import com.fonrouge.fsLib.model.base.BaseContainer
 import com.fonrouge.fsLib.model.base.BaseContainerItem
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
@@ -57,6 +58,8 @@ abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
     override fun getName(): String? {
         return dataContainer?.let { itemNameFunc.invoke(it) }
     }
+
+    override var dataContainer: U? = null
 
     var formPanel: ItemFormPanel<T>? = null
     var origObjItem: dynamic = null
