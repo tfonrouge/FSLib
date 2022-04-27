@@ -23,45 +23,47 @@ fun <T : BaseModel<*>, U : BaseContainerList<T>> Container.toolBarList(
     return navbarTabulator(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
         nav {
             if (viewList.editable) {
-                navLink(
-                    label = if (minToolbarSize) "" else "Agregar",
-                    icon = "fas fa-plus",
-                ) {
-                    id = ActionParam.Insert.name
-                    enableTooltip(TooltipOptions(viewList.configViewItem.labelInsert, animation = true, delay = delay))
-                    onClick {
-                        viewList.actionParamMap[ActionParam.Insert]?.invoke(item, null)
+                viewList.configViewItem?.let { configViewItem ->
+                    navLink(
+                        label = if (minToolbarSize) "" else "Agregar",
+                        icon = "fas fa-plus",
+                    ) {
+                        id = ActionParam.Insert.name
+                        enableTooltip(TooltipOptions(configViewItem.labelInsert, animation = true, delay = delay))
+                        onClick {
+                            viewList.actionParamMap[ActionParam.Insert]?.invoke(item, null)
+                        }
                     }
-                }
-                navLink(
-                    label = if (minToolbarSize) "" else "Modificar",
-                    icon = "fas fa-edit"
-                ) {
-                    id = ActionParam.Update.name
-                    enableTooltip(TooltipOptions(viewList.configViewItem.labelUpdate, animation = true, delay = delay))
-                    onClick {
-                        viewList.actionParamMap[ActionParam.Update]?.invoke(item, null)
+                    navLink(
+                        label = if (minToolbarSize) "" else "Modificar",
+                        icon = "fas fa-edit"
+                    ) {
+                        id = ActionParam.Update.name
+                        enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
+                        onClick {
+                            viewList.actionParamMap[ActionParam.Update]?.invoke(item, null)
+                        }
                     }
-                }
-                navLink(
-                    label = if (minToolbarSize) "" else "Eliminar",
-                    icon = "fas fa-trash-alt"
-                ) {
-                    id = ActionParam.Delete.name
-                    enableTooltip(TooltipOptions(viewList.configViewItem.labelDelete, animation = true, delay = delay))
-                    onClick {
-                        viewList.actionParamMap[ActionParam.Delete]?.invoke(item, null)
+                    navLink(
+                        label = if (minToolbarSize) "" else "Eliminar",
+                        icon = "fas fa-trash-alt"
+                    ) {
+                        id = ActionParam.Delete.name
+                        enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
+                        onClick {
+                            viewList.actionParamMap[ActionParam.Delete]?.invoke(item, null)
+                        }
                     }
-                }
-                navLink(
-                    label = if (minToolbarSize) "" else "Ver detalle",
-                    icon = "fas fa-eye"
-                ) {
-                    id = ActionParam.Delete.name
-                    enableTooltip(TooltipOptions(viewList.configViewItem.labelDetail, animation = true, delay = delay))
-                    onClick {
-                        val url = item?.id?.let { "/${viewList.configViewItem.url}?id=${it}" }
-                        url?.let { it1 -> routing.navigate(it1) }
+                    navLink(
+                        label = if (minToolbarSize) "" else "Ver detalle",
+                        icon = "fas fa-eye"
+                    ) {
+                        id = ActionParam.Delete.name
+                        enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
+                        onClick {
+                            val url = item?.id?.let { "/${configViewItem.url}?id=${it}" }
+                            url?.let { it1 -> routing.navigate(it1) }
+                        }
                     }
                 }
                 navLink(label = "", icon = "fas fa-ellipsis-v")

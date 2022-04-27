@@ -8,7 +8,6 @@ import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.base.BaseContainer
 import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
@@ -52,7 +51,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
 
     var blockRefresh: (() -> Unit)? = null
 
-    val configViewItem: ConfigViewItem<*, *, *> by lazy { configViewItemMap[name]!! }
+    val configViewItem: ConfigViewItem<*, *, *>? by lazy { configViewItemMap[name] }
 
     override var repeatRefreshView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewListPeriodic
@@ -102,7 +101,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
                 urlParams.add("contextId" to it.id)
                 urlParams.add("contextName" to masterItemProp?.name)
             }
-            configViewItem.viewFunc?.let { it(urlParams) }?.let { viewItem: ViewItem<*, *> ->
+            configViewItem?.viewFunc?.let { it(urlParams) }?.let { viewItem: ViewItem<*, *> ->
                 block?.let { block.invoke(viewItem) }
                 viewItem.displayModal(caption = "Inserting this...", size = ModalSize.XLARGE, centered = true)
             }
@@ -118,7 +117,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
                     urlParams.add("contextId" to it.id)
                     urlParams.add("contextName" to masterItemProp?.name)
                 }
-                configViewItem.displayModal(urlParams, block)
+                configViewItem?.displayModal(urlParams, block)
             }
         },
         ActionParam.Delete to { item, block ->
@@ -126,7 +125,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
                 val itemConfigView = configViewItem
                 Confirm.show(
                     caption = "Please confirm",
-                    text = "Delete selected item: '${itemConfigView.label}' ?",
+                    text = "Delete selected item: '${itemConfigView?.label}' ?",
                     align = Align.CENTER,
                     yesTitle = "Yes",
                     noTitle = "No",
@@ -137,7 +136,7 @@ abstract class ViewList<T : BaseModel<*>, U : BaseContainerList<T>>(
                             Toast.info("Item deleted", "Info")
                         } else {
                             Toast.warning(
-                                message = "Item '${itemConfigView.label}' id '${item.id}' not deleted",
+                                message = "Item '${itemConfigView?.label}' id '${item.id}' not deleted",
                                 title = "Warning",
                                 options = ToastOptions(
                                     positionClass = ToastPosition.BOTTOMFULLWIDTH,

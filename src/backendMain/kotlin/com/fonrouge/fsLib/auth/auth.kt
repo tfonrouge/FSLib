@@ -5,12 +5,12 @@ import com.fonrouge.fsLib.dataModel.userProfileColl
 import com.fonrouge.fsLib.mongoDb.collation
 import com.fonrouge.fsLib.services.Profile
 import com.fonrouge.fsLib.services.ProfileServiceManager
-import io.ktor.application.*
-import io.ktor.auth.*
 import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.sessions.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.kvision.remote.applyRoutes
 import org.apache.commons.codec.digest.DigestUtils
 import org.litote.kmongo.eq

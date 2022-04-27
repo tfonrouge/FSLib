@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.apiLib
+package com.fonrouge.fsLib.routing
 
 import com.fonrouge.fsLib.apiLib.KVWebManager.viewHomeBase
 import com.fonrouge.fsLib.config.BaseConfigView

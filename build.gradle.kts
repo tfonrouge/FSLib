@@ -17,6 +17,7 @@ version = "1.0.3-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    jcenter()
     gradlePluginPortal()
 }
 
@@ -133,8 +134,11 @@ kotlin {
                 implementation(kotlin("reflect"))
 //                implementation("org.jetbrains.exposed:exposed:$exposedVersion")
                 api("commons-codec:commons-codec:$commonsCodecVersion")
-                api("io.ktor:ktor-auth:$ktorVersion")
+                api("io.ktor:ktor-server-auth:$ktorVersion")
+                api("io.ktor:ktor-server-call-logging:$ktorVersion")
+                api("io.ktor:ktor-server-compression:$ktorVersion")
                 api("io.ktor:ktor-server-core:$ktorVersion")
+                api("io.ktor:ktor-server-default-headers:$ktorVersion")
                 api("io.ktor:ktor-server-netty:$ktorVersion")
                 api("org.litote.kmongo:kmongo-coroutine-serialization:4.4.0")
             }

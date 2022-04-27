@@ -2,11 +2,11 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.ApiParam
 import com.fonrouge.fsLib.AppScope
-import com.fonrouge.fsLib.apiLib.IfceWebAction
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.BaseConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseContainer
+import com.fonrouge.fsLib.routing.IfceWebAction
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -107,7 +107,7 @@ abstract class ViewDataContainer<U : BaseContainer>(
         if (repeatRefreshView == true) {
             var lastTime: Int? = null
             var lock = false
-            ViewDataContainer.handleInterval = window.setInterval(
+            handleInterval = window.setInterval(
                 handler = {
                     val time = Date().getUTCSeconds()
                     if (lastTime != Date().getSeconds() && (time % KVWebManager.intervalTimeout == 0)) {

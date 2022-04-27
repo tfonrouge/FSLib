@@ -30,23 +30,26 @@ inline fun <reified T : BaseModel<*>, reified U : BaseContainerList<T>> Containe
 //    nav.onClickRefresh = { KVWebManager.updateViewDataContainer(viewList) }
 
     val updateLinks: () -> Unit = {
-        nav.item = item
-        linkItemPage.url = item?.id?.let { "${viewList.configViewItem.navigoUrl}?id=${it}" }
-        nav.getChildren().forEach { component ->
-            if (component is Link) {
-                when (component.id) {
-                    ActionParam.Insert.name -> component.url = item?.id?.let {
-                        viewList.configViewItem.urlWithInsert + viewList.parentContextUrlParams
-                    }
-                    ActionParam.Update.name -> component.url = item?.id?.let {
-                        viewList.configViewItem.urlWithUpdate(it) + viewList.parentContextUrlParams
-                    }
-                    ActionParam.Delete.name -> component.url = item?.id?.let {
-                        viewList.configViewItem.urlWithDelete(it)
+        viewList.configViewItem?.let { configViewItem ->
+            nav.item = item
+            linkItemPage.url = item?.id?.let { "${configViewItem.navigoUrl}?id=${it}" }
+            nav.getChildren().forEach { component ->
+                if (component is Link) {
+                    when (component.id) {
+                        ActionParam.Insert.name -> component.url = item?.id?.let {
+                            configViewItem.urlWithInsert + viewList.parentContextUrlParams
+                        }
+                        ActionParam.Update.name -> component.url = item?.id?.let {
+                            configViewItem.urlWithUpdate(it) + viewList.parentContextUrlParams
+                        }
+                        ActionParam.Delete.name -> component.url = item?.id?.let {
+                            configViewItem.urlWithDelete(it)
+                        }
                     }
                 }
             }
         }
+
     }
 
     val blockRowSelected: (RowSelectedType) -> Unit =
@@ -98,34 +101,36 @@ inline fun <reified T : BaseModel<*>, reified U : BaseContainerList<T>> Containe
             }
         }
 
-        contextMenu {
-            header("Menu Opciones")
-            linkItemPage = cmLink(label = "Ver detalle de ${viewList.configViewItem.label}", url = "")
-            if (viewList.editable) {
-                dropDown("Edit", forDropDown = true, icon = "fas fa-pen") {
-                    ddLink(
-                        label = viewList.configViewItem.labelInsert,
-                        icon = "fas fa-plus",
-                    ) {
-                        onClick { viewList.actionParamMap[ActionParam.Insert]?.invoke(item, null) }
-                    }
-                    ddLink(
-                        label = viewList.configViewItem.labelUpdate,
-                        icon = "fas fa-edit",
-                    ) {
-                        onClick { viewList.actionParamMap[ActionParam.Update]?.invoke(item, null) }
-                    }
-                    ddLink(
-                        label = viewList.configViewItem.labelDelete,
-                        icon = "fas fa-trash-alt",
-                    ) {
-                        onClick { viewList.actionParamMap[ActionParam.Delete]?.invoke(item, null) }
+        viewList.configViewItem?.let { configViewItem ->
+            contextMenu {
+                header("Menu Opciones")
+                linkItemPage = cmLink(label = "Ver detalle de ${configViewItem.label}", url = "")
+                if (viewList.editable) {
+                    dropDown("Edit", forDropDown = true, icon = "fas fa-pen") {
+                        ddLink(
+                            label = configViewItem.labelInsert,
+                            icon = "fas fa-plus",
+                        ) {
+                            onClick { viewList.actionParamMap[ActionParam.Insert]?.invoke(item, null) }
+                        }
+                        ddLink(
+                            label = configViewItem.labelUpdate,
+                            icon = "fas fa-edit",
+                        ) {
+                            onClick { viewList.actionParamMap[ActionParam.Update]?.invoke(item, null) }
+                        }
+                        ddLink(
+                            label = configViewItem.labelDelete,
+                            icon = "fas fa-trash-alt",
+                        ) {
+                            onClick { viewList.actionParamMap[ActionParam.Delete]?.invoke(item, null) }
+                        }
                     }
                 }
-            }
-            viewList.contextMenu?.let {
-                separator()
-                it(this)
+                viewList.contextMenu?.let {
+                    separator()
+                    it(this)
+                }
             }
         }
     }

@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.services
 
 import com.google.inject.Inject
-import io.ktor.application.*
+import io.ktor.server.application.*
 
 actual class ProfileService : IProfileService {
 
