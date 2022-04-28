@@ -6,3 +6,4 @@
 /.kotlin-js-store/yarn.lock
 .idea/misc.xml
 .idea/jarRepositories.xml
+.DS_Store
