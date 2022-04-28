@@ -4,3 +4,5 @@
 /build/classes/kotlin/backend/main/
 /.idea/
 /.kotlin-js-store/yarn.lock
+.idea/misc.xml
+.idea/jarRepositories.xml
