@@ -6,17 +6,17 @@ import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
 import org.litote.kmongo.reactivestreams.KMongo
 
-var connectionString: String = "mongodb://localhost"
-private var database: String = "test"
+private var database: String? = "test"
+private var plugin: MongoDbPluginConfiguration? = null
 
 var locale = "en"
 
 val mongoClient by lazy {
-    connectionString.let { KMongo.createClient(it) }
+    plugin?.let { KMongo.createClient(it.connectionString) }
 }
 
-val mongoDatabase: MongoDatabase by lazy {
-    mongoClient.getDatabase(database)
+val mongoDatabase: MongoDatabase? by lazy {
+    mongoClient?.getDatabase(database)
 }
 
 val collation by lazy {
@@ -27,16 +27,17 @@ val MongoDbPlugin = createApplicationPlugin(
     name = "MongoDbPlugin",
     createConfiguration = ::MongoDbPluginConfiguration
 ) {
-
+    database = pluginConfig.database
+    plugin = pluginConfig
 }
 
 class MongoDbPluginConfiguration {
-    var serverUrl: String? = null
+    var serverUrl: String? = "localhost"
     var serverPort: Int = 27017
     var authSource: String? = null
     var user: String? = null
     var password: String? = null
-    var database: String? = null
+    var database: String = "test"
 
     val connectionString
         get() = "mongodb://" + if (user != null || password != null) {

@@ -22,10 +22,10 @@ fun Application.installDefaultAuthentication() {
             userParamName = "username"
             passwordParamName = "password"
             validate { credentials ->
-                userProfileColl.find(
+                userProfileColl?.find(
                     UserProfile::userName eq credentials.name,
                     UserProfile::password2 eq DigestUtils.sha256Hex(credentials.password)
-                ).collation(collation = collation).first()?.let {
+                )?.collation(collation = collation)?.first()?.let {
                     UserIdPrincipal(credentials.name)
                 }
             }
@@ -49,7 +49,7 @@ fun Application.installDefaultSessions() {
 fun Route.applyLogin() {
     post("login") {
         val result = call.principal<UserIdPrincipal>()?.let { userIdPrincipal ->
-            userProfileColl.find(UserProfile::userName eq userIdPrincipal.name).collation(collation).first()
+            userProfileColl?.find(UserProfile::userName eq userIdPrincipal.name)?.collation(collation)?.first()
                 ?.let { userProfile ->
                     val profile = Profile(
                         id = userProfile._id.toHexString(),
