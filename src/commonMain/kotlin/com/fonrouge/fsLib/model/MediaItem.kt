@@ -1,7 +1,5 @@
 package com.fonrouge.fsLib.model
 
-import com.fonrouge.fsLib.model.base.BaseContainerItem
-import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.types.LocalDateTime
 import kotlinx.serialization.Contextual
@@ -28,27 +26,4 @@ class MediaItem(
     var url: String? = null,
 ) : BaseModel<String>() {
 //    override var upsertInfo: UpsertInfo? = null
-}
-
-@Serializable
-//@JsExport
-class MediaItemContainerItem(
-    override var item: MediaItem?,
-) : BaseContainerItem<MediaItem>() {
-    override var version: String? = null
-
-    @Contextual
-    override var date: LocalDateTime? = null
-}
-
-@Serializable
-//@JsExport
-class MediaItemContainerList(
-    override var list: Array<MediaItem>,
-) : BaseContainerList<MediaItem>() {
-    override var listCRC32: String? = null
-    override var version: String? = null
-
-    @Contextual
-    override var date: LocalDateTime? = null
 }

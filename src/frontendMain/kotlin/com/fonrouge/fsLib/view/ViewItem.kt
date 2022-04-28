@@ -6,7 +6,6 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.KPair
-import com.fonrouge.fsLib.model.base.BaseContainerItem
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.core.FlexDirection
@@ -30,9 +29,8 @@ import org.w3c.dom.events.MouseEvent
 import kotlin.js.Date
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
-    val itemNameFunc: ((U) -> String) = { it.item?.id.toString() },
-    val configViewItem: ConfigViewItem<*, *, *>,
+abstract class ViewItem<T : BaseModel<*>>(
+    val configViewItem: ConfigViewItem<*, *>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
@@ -40,7 +38,7 @@ abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
 //    actionPage: (View) -> IfceWebAction?,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
-) : ViewDataContainer<U>(
+) : ViewDataContainer<T>(
     configView = configViewItem,
     loading = loading,
     editable = editable,
@@ -51,6 +49,8 @@ abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
     sortParam = sortParam
 ) {
 
+    val itemNameFunc: ((T) -> String) = { it.id.toString() }
+
     override var repeatRefreshView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
@@ -58,14 +58,14 @@ abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
         return dataContainer?.let { itemNameFunc.invoke(it) }
     }
 
-    override var dataContainer: U? = null
+    override var dataContainer: T? = null
 
     var formPanel: ItemFormPanel<T>? = null
     var origObjItem: dynamic = null
 
     val item: T?
         get() {
-            val item = dataContainer?.item
+            val item = dataContainer
             origObjItem = item?.asDynamic() ?: obj { }
             return item
         }
@@ -102,7 +102,7 @@ abstract class ViewItem<T : BaseModel<*>, U : BaseContainerItem<T>>(
     abstract fun pageItemBody(container: Container, item: T?): ItemFormPanel<T>?
 
     fun upsertItem(customUpdate: dynamic = null, block: ((Boolean?) -> Unit)? = null) {
-        KVWebManager.upsertItem(viewItem = this@ViewItem, customUpdate = customUpdate, block = block)
+//        KVWebManager.upsertItem(viewItem = this@ViewItem, customUpdate = customUpdate, block = block)
     }
 
     final override fun displayPage(container: Container) {

@@ -3,9 +3,7 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.lib.ActionParam
-import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
-import com.fonrouge.fsLib.services.IRowDataService
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
@@ -18,13 +16,13 @@ import io.kvision.remote.RemoteSorter
 import io.kvision.tabulator.*
 import io.kvision.utils.px
 
-inline fun <reified T : BaseModel<*>, U : BaseContainerList<T>, E : IRowDataService> Container.tabulatorCommon(
-    viewList: ViewList<T, U>,
+inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorCommon(
+    viewList: ViewList<T>,
     columnDefinitionList: List<ColumnDefinition<T>>,
-    minToolbarSize: Boolean = true,
-    noinline rowSelect: ((T?) -> Unit)? = null,
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
+    minToolbarSize: Boolean = true,
+    noinline rowSelect: ((T?) -> Unit)? = null,
 ): Container {
 
     lateinit var linkItemPage: Link
@@ -71,7 +69,6 @@ inline fun <reified T : BaseModel<*>, U : BaseContainerList<T>, E : IRowDataServ
     viewList.tabulator = tabulatorRemote(
         serviceManager = serviceManager,
         function = function,
-//        data = viewList.dataContainer?.list?.toList() ?: listOf(),
         options = TabulatorOptions(
 //            height = "calc(100vh - 30vh)",
             layout = Layout.FITDATASTRETCH,

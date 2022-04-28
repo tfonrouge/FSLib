@@ -1,15 +1,10 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.apiLib.KVWebManager.configViewListMap
-import com.fonrouge.fsLib.apiLib.KVWebManager.restContainerItem
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.core.onEvent
 import io.kvision.form.*
 import io.kvision.form.select.Select
-import io.kvision.toast.Toast
-import io.kvision.toast.ToastOptions
-import io.kvision.toast.ToastPosition
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
@@ -57,13 +52,16 @@ class ItemFormPanel<T : BaseModel<*>>(
             }
 
             if (selectedItemId != null) {
+/*
                 restContainerItem(selectKClass, selectedItemId) { selectItem ->
                     selectItem?.let {
                         selectAjax.selectedPair = it.id.toString() to selectKPropText.get(it)
                     }
                 }
+*/
             }
 
+/*
             ajaxOptions = configViewListMap[selectKClass.simpleName]?.ajaxOptions(selectKPropText).also {
                 if (it == null) {
                     Toast.error(
@@ -73,9 +71,11 @@ class ItemFormPanel<T : BaseModel<*>>(
                     )
                 }
             }
+*/
 
             onEvent {
                 change = {
+/*
                     restContainerItem(selectKClass, self.value) { k ->
                         selectAjax.selectedPair = self.value to k.asDynamic()[selectKPropText.name]
                         onChange?.let { it(k) }
@@ -91,6 +91,7 @@ class ItemFormPanel<T : BaseModel<*>>(
                             }
                         }
                     }
+*/
                 }
             }
         }

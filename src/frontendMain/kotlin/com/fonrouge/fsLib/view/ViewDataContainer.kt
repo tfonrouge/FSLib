@@ -5,14 +5,13 @@ import com.fonrouge.fsLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.BaseConfigView
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.base.BaseContainer
 import com.fonrouge.fsLib.routing.IfceWebAction
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlin.js.Date
 
-abstract class ViewDataContainer<U : BaseContainer>(
+abstract class ViewDataContainer<U : Any>(
     configView: BaseConfigView<*, *>,
     loading: Boolean = false,
     editable: Boolean = true,

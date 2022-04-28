@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.lib.ActionParam
-import com.fonrouge.fsLib.model.base.BaseContainerList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewDataContainer.Companion.clearHandleIntervalStack
 import com.fonrouge.fsLib.view.ViewList
@@ -13,8 +12,8 @@ import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
 import io.kvision.routing.routing
 
-fun <T : BaseModel<*>, U : BaseContainerList<T>> Container.toolBarList(
-    viewList: ViewList<T, U>,
+fun <T : BaseModel<*>> Container.toolBarList(
+    viewList: ViewList<T>,
     minToolbarSize: Boolean = true,
 ): NavbarTabulator {
 

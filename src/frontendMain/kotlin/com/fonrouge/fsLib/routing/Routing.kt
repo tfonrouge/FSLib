@@ -26,7 +26,7 @@ fun Navigo.initialize(): Navigo {
 private fun Navigo.onViewItemPage(): Navigo {
     on("$dataUrlPrefix/:dataClass/citem",
         { match ->
-            configViewItemMap[match.data.dataClass as? String]?.let { configViewItem: ConfigViewItem<*, *, *> ->
+            configViewItemMap[match.data.dataClass as? String]?.let { configViewItem: ConfigViewItem<*, *> ->
                 configViewItem.dispatchViewPage(urlParams = UrlParams(match = match))
             }
         }

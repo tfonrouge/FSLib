@@ -60,7 +60,7 @@ object ViewLogin : View(
                             }.onEvent {
                                 submit = { ev ->
                                     ev.preventDefault()
-                                    KVWebManager.login(userNameInput.value, passwordInput.value)
+//                                    KVWebManager.login(userNameInput.value, passwordInput.value)
                                 }
                             }
                         }

@@ -5,23 +5,22 @@ import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.base.BaseContainerItem
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewItem
 import io.kvision.modal.ModalSize
 import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KSuspendFunction1
 
-open class ConfigViewItem<T : BaseModel<*>, U : BaseContainerItem<T>, V : ViewItem<T, U>>(
+open class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T>>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V)? = null,
-    dataFunc: KSuspendFunction1<ApiParam, U?>,
+    dataFunc: KSuspendFunction1<ApiParam, T?>,
     val windowModal: Boolean = false,
     restUrl: String? = null,
     restUrlParams: UrlParams? = null,
     lookupParam: JsonObject? = null,
-) : BaseConfigView<U, V>(
+) : BaseConfigView<T, V>(
     name = name,
     label = label,
     _restUrl = restUrl,

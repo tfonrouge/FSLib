@@ -58,7 +58,7 @@ abstract class View(
             val u = UrlParams()
             restUrlParams?.let { u.addAll(it) }
             urlParams?.let { u.addAll(it) }
-            if (this is ViewList<*, *>) {
+            if (this is ViewList<*>) {
                 this.masterViewItem?.item?.let { u.add("contextId" to it.id) }
             }
             return configView?.restUrl + u.toString()
@@ -77,7 +77,7 @@ abstract class View(
             else -> ""
         }.let {
             it + configView?.label +
-                    if (this@View is ViewItem<*, *>) {
+                    if (this@View is ViewItem<*>) {
                         getName().let { it1 ->
                             if (it1 == null) "" else ": $it1"
                         }

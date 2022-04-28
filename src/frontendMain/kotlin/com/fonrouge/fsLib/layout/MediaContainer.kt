@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.layout
 import com.fonrouge.fsLib.apiLib.Api
 import com.fonrouge.fsLib.apiLib.KVWebManager.getMediaList
 import com.fonrouge.fsLib.apiLib.KVWebManager.pageContainerWidth
-import com.fonrouge.fsLib.model.base.BaseContainerItem
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewItem
 import io.kvision.core.AlignContent
@@ -23,9 +22,9 @@ import io.kvision.utils.vh
 import io.kvision.utils.vw
 import kotlinx.browser.window
 
-fun <T : BaseModel<*>, U : BaseContainerItem<T>> Container.mediaContainer(viewItem: ViewItem<T, U>, context: String) {
+fun <T : BaseModel<*>> Container.mediaContainer(viewItem: ViewItem<T>, context: String) {
 
-    val item = (viewItem.dataContainer as? BaseContainerItem<*>)?.item ?: return
+    val item = viewItem.dataContainer ?: return
 
     val pairClassId = item::class.simpleName!! to item.id
 
