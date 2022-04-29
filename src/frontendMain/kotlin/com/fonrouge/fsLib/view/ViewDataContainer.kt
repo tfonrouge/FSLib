@@ -16,7 +16,6 @@ abstract class ViewDataContainer<U : Any>(
     loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
-//    actionPage: (View) -> IfceWebAction?,
     restUrlParams: UrlParams? = null,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
@@ -87,9 +86,10 @@ abstract class ViewDataContainer<U : Any>(
         val callBlock: () -> Unit = {
             try {
                 AppScope.launch {
-                    configView?.dataFunc?.invoke(getApiParam()).let {
+//                    configView?.dataFunc?.invoke(getApiParam()).let {
+/*
+                    configView?.dataFunc?.invoke().let {
                         console.warn("dataFunc() view =", objId)
-//                        dataContainer = it.unsafeCast<U?>()
                         dataContainer = it as U?
                         if (loading) {
                             loading = false
@@ -98,6 +98,7 @@ abstract class ViewDataContainer<U : Any>(
                         //                            block?.invoke(it)
                         displayBlock?.let { it() }
                     }
+*/
                 }
             } catch (e: Exception) {
                 console.warn("Error on interval =", e)

@@ -17,7 +17,6 @@ abstract class View(
     var loading: Boolean = false,
     val editable: Boolean = true,
     val icon: String? = null,
-//    val actionPage: (View) -> IfceWebAction?,
     val restUrlParams: UrlParams? = null,
     var matchFilterParam: JsonObject? = null,
     var sortParam: JsonObject? = null,
@@ -52,19 +51,6 @@ abstract class View(
         get() {
             return configView?.url + if (urlParams != null) urlParams else ""
         }
-
-    val restUrl: String
-        get() {
-            val u = UrlParams()
-            restUrlParams?.let { u.addAll(it) }
-            urlParams?.let { u.addAll(it) }
-            if (this is ViewList<*>) {
-                this.masterViewItem?.item?.let { u.add("contextId" to it.id) }
-            }
-            return configView?.restUrl + u.toString()
-        }
-
-    val restUrlNew get() = configView?.restUrl + ActionParam.Insert
 
     val lookupParam get() = configView?.lookupParam
 

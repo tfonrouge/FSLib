@@ -1,46 +1,31 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.ApiParam
-import com.fonrouge.fsLib.apiLib.Api
 import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.routing.KVAction
 import com.fonrouge.fsLib.view.ViewDataContainer
 import kotlinx.serialization.json.JsonObject
-import kotlin.reflect.KSuspendFunction1
 
 const val dataUrlPrefix = "data"
 
 private const val navigoPrefix = "#/"
 
-abstract class BaseConfigView<U : Any, V : ViewDataContainer<U>>(
+abstract class BaseConfigView<T : BaseModel<*>, V : ViewDataContainer<*>>(
     val name: String,
     val label: String,
     val typeView: TypeView,
     val url: String = "$dataUrlPrefix/$name${typeView.label}",
-    private val _restUrl: String? = null,
     val restUrlParams: UrlParams? = null,
     val lookupParam: JsonObject? = null,
     val viewFunc: ((UrlParams?) -> V)? = null,
-    val dataFunc: KSuspendFunction1<ApiParam, U?>,
 ) : KVAction() {
 
     val navigoUrl: String = navigoPrefix + url
 
-    val restUrl = Api.API_BASE_URL + (_restUrl?.let { dataUrlPrefix + "/" + it + typeView.label } ?: url)
-
     fun urlTyped(typeView: TypeView): String {
         return dataUrlPrefix + "/" + name + typeView.label
-    }
-
-    fun restUrlCustom(map: String): String {
-        return Api.API_BASE_URL + (_restUrl?.let { "$dataUrlPrefix/$it/$map" }
-            ?: ("$dataUrlPrefix/$name/$map"))
-    }
-
-    fun restUrlTyped(typeView: TypeView): String {
-        return Api.API_BASE_URL + (_restUrl?.let { dataUrlPrefix + "/" + it + typeView.label } ?: urlTyped(typeView))
     }
 
     fun dispatchViewPage(urlParams: UrlParams?) {

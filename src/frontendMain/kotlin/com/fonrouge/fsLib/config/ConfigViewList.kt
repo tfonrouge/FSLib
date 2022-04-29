@@ -1,31 +1,25 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.ApiParam
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
 import kotlinx.serialization.json.JsonObject
-import kotlin.reflect.KSuspendFunction1
 
-open class ConfigViewList<T : BaseModel<*>, V : ViewList<T>>(
+open class ConfigViewList<T : BaseModel<*>, V : ViewList<T, *>>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V)? = null,
-    dataFunc: KSuspendFunction1<ApiParam, List<T>?>,
-    restUrl: String? = null,
     restUrlParams: UrlParams? = null,
     lookupParam: JsonObject? = null,
-) : BaseConfigView<List<T>, V>(
+) : BaseConfigView<T, V>(
     name = name,
     label = label,
-    _restUrl = restUrl,
     restUrlParams = restUrlParams,
     lookupParam = lookupParam,
     typeView = TypeView.CList,
     viewFunc = viewFunc,
-    dataFunc = dataFunc,
 ) {
 
     init {

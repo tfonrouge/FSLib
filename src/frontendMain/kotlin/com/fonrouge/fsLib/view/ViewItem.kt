@@ -30,12 +30,11 @@ import kotlin.js.Date
 
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<*>>(
-    val configViewItem: ConfigViewItem<*, *>,
+    val configViewItem: ConfigViewItem<T, *>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
-//    actionPage: (View) -> IfceWebAction?,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<T>(

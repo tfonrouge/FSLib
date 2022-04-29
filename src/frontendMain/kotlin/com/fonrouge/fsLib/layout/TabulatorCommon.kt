@@ -9,18 +9,12 @@ import io.kvision.core.Container
 import io.kvision.core.onEvent
 import io.kvision.dropdown.*
 import io.kvision.html.Link
-import io.kvision.remote.KVServiceManager
-import io.kvision.remote.RemoteData
-import io.kvision.remote.RemoteFilter
-import io.kvision.remote.RemoteSorter
 import io.kvision.tabulator.*
 import io.kvision.utils.px
 
 inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorCommon(
-    viewList: ViewList<T>,
+    viewList: ViewList<T, E>,
     columnDefinitionList: List<ColumnDefinition<T>>,
-    serviceManager: KVServiceManager<E>,
-    noinline function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
     minToolbarSize: Boolean = true,
     noinline rowSelect: ((T?) -> Unit)? = null,
 ): Container {
@@ -67,8 +61,8 @@ inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorCommon(
         }
 
     viewList.tabulator = tabulatorRemote(
-        serviceManager = serviceManager,
-        function = function,
+        serviceManager = viewList.serverManager,
+        function = viewList.function,
         options = TabulatorOptions(
 //            height = "calc(100vh - 30vh)",
             layout = Layout.FITDATASTRETCH,
@@ -78,7 +72,11 @@ inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorCommon(
 //            rowSelected = { blockRowSelected(it, RowSelectedType.Selected) },
 //            rowDeselected = { blockRowSelected(it, RowSelectedType.Deselected) },
             pagination = true,
-            paginationMode = PaginationMode.LOCAL,
+            paginationMode = PaginationMode.REMOTE,
+            filterMode = FilterMode.REMOTE,
+            sortMode = SortMode.REMOTE,
+            dataLoader = false,
+            dataLoaderLoading = "Loading.........",
             paginationSize = 10,
             paginationSizeSelector = true,
             autoResize = true,

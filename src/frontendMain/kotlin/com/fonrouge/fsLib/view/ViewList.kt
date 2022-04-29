@@ -14,19 +14,24 @@ import io.kvision.dropdown.ContextMenu
 import io.kvision.html.Align
 import io.kvision.modal.Confirm
 import io.kvision.modal.ModalSize
+import io.kvision.remote.KVServiceManager
+import io.kvision.remote.RemoteData
+import io.kvision.remote.RemoteFilter
+import io.kvision.remote.RemoteSorter
 import io.kvision.tabulator.ColumnDefinition
-import io.kvision.tabulator.Tabulator
+import io.kvision.tabulator.TabulatorRemote
 import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KProperty
 
 @Suppress("unused")
-abstract class ViewList<T : BaseModel<*>>(
-    val configViewList: ConfigViewList<*, *>,
+abstract class ViewList<T : BaseModel<*>, E : Any>(
+    val configViewList: ConfigViewList<T, *>,
+    val serverManager: KVServiceManager<E>,
+    val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
-//    actionPage: (View) -> IfceWebAction,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<List<T>>(
@@ -53,9 +58,7 @@ abstract class ViewList<T : BaseModel<*>>(
 
     var onUpdateContainerList: ((List<T>?) -> Unit)? = null
 
-    var tabulator: Tabulator<T>? = null
-
-    var tabulatorDataSource: (() -> List<T>)? = null
+    var tabulator: TabulatorRemote<T, E>? = null
 
     var masterViewItem: ViewItem<*>? = null
     var masterItemProp: KProperty<*>? = null
@@ -167,6 +170,7 @@ abstract class ViewList<T : BaseModel<*>>(
 
         container.apply {
             pageBanner(this@ViewList)
+            loading = false
             if (loading) {
                 centeredMessage("loading...")
             } else {
