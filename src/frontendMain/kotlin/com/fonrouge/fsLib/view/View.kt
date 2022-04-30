@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.apiLib.KVWebManager
-import com.fonrouge.fsLib.config.BaseConfigView
+import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
 import io.kvision.core.*
@@ -13,7 +13,7 @@ import io.kvision.panel.flexPanel
 import kotlinx.serialization.json.JsonObject
 
 abstract class View(
-    val configView: BaseConfigView<*, *>?,
+    val configView: ConfigView<*>?,
     var loading: Boolean = false,
     val editable: Boolean = true,
     val icon: String? = null,
@@ -51,8 +51,6 @@ abstract class View(
         get() {
             return configView?.url + if (urlParams != null) urlParams else ""
         }
-
-    val lookupParam get() = configView?.lookupParam
 
     var caption: String? = null
 

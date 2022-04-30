@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.ApiParam
 import com.fonrouge.fsLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
-import com.fonrouge.fsLib.config.BaseConfigView
+import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.routing.IfceWebAction
 import kotlinx.browser.window
@@ -12,7 +12,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlin.js.Date
 
 abstract class ViewDataContainer<U : Any>(
-    configView: BaseConfigView<*, *>,
+    configView: ConfigViewContainer<*, *>,
     loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
@@ -32,7 +32,11 @@ abstract class ViewDataContainer<U : Any>(
 
     val name get() = configView?.name
 
+    val lookupParam get() = configView?.lookupParam
+
     abstract var dataContainer: U?
+
+    var onUpdateDataContainer: ((U?) -> Unit)? = null
 
     var displayBlock: (() -> Unit)? = null
 

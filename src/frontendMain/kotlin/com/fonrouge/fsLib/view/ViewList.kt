@@ -56,8 +56,6 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
     override var repeatRefreshView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewListPeriodic
 
-    var onUpdateContainerList: ((List<T>?) -> Unit)? = null
-
     var tabulator: TabulatorRemote<T, E>? = null
 
     var masterViewItem: ViewItem<*>? = null
@@ -75,7 +73,7 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
     override var dataContainer: List<T>? = null
         set(value) {
             field = value
-            onUpdateContainerList?.invoke(value)
+            onUpdateDataContainer?.invoke(value)
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
             console.warn("assigning tabulator ", objId, tabulator, dataContainer)
             tabulator?.update(dataContainer)

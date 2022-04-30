@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.routing
 
 import com.fonrouge.fsLib.apiLib.KVWebManager.viewHomeBase
-import com.fonrouge.fsLib.config.BaseConfigView
+import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.model.UserLogged
 import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewHomeBase
@@ -32,10 +32,10 @@ fun reducer(state: KVWebState, kvAction: KVAction): KVWebState {
         is IfceWebAction.Loaded -> state.apply { view.loading = false }
         is IfceWebAction.AppLoaded -> state.copy { appLoading = false }
         is IfceWebAction.Logout -> KVWebState(appLoading = false)
-        is BaseConfigView<*, *> -> {
-            kvAction.viewFunc?.invoke(null)?.let { viewDataContainer ->
+        is ConfigViewContainer<*, *> -> {
+            kvAction.viewFunc.invoke(null).let { viewDataContainer ->
                 state.copy { view = viewDataContainer }
-            } ?: KVWebState()
+            }
         }
         else -> KVWebState()
     }

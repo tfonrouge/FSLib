@@ -10,10 +10,10 @@ import kotlinx.serialization.json.JsonObject
 open class ConfigViewList<T : BaseModel<*>, V : ViewList<T, *>>(
     name: String,
     label: String,
-    viewFunc: ((UrlParams?) -> V)? = null,
+    viewFunc: ((UrlParams?) -> V),
     restUrlParams: UrlParams? = null,
     lookupParam: JsonObject? = null,
-) : BaseConfigView<T, V>(
+) : ConfigViewContainer<T, V>(
     name = name,
     label = label,
     restUrlParams = restUrlParams,

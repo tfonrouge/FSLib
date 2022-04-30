@@ -12,11 +12,11 @@ import kotlinx.serialization.json.JsonObject
 open class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T>>(
     name: String,
     label: String,
-    viewFunc: ((UrlParams?) -> V)? = null,
+    viewFunc: ((UrlParams?) -> V),
     val windowModal: Boolean = false,
     restUrlParams: UrlParams? = null,
     lookupParam: JsonObject? = null,
-) : BaseConfigView<T, V>(
+) : ConfigViewContainer<T, V>(
     name = name,
     label = label,
     restUrlParams = restUrlParams,
@@ -45,7 +45,7 @@ open class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T>>(
     }
 
     fun displayModal(urlParams: UrlParams?, block: (V.() -> Unit)?) {
-        viewFunc?.invoke(urlParams)?.let { viewItem ->
+        viewFunc(urlParams).let { viewItem ->
             block?.let { block.invoke(viewItem) }
             viewItem.displayBlock = {
                 viewItem.displayModal(

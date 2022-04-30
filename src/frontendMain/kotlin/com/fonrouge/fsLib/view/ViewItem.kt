@@ -58,6 +58,10 @@ abstract class ViewItem<T : BaseModel<*>>(
     }
 
     override var dataContainer: T? = null
+        set(value) {
+            field = value
+            onUpdateDataContainer?.invoke(value)
+        }
 
     var formPanel: ItemFormPanel<T>? = null
     var origObjItem: dynamic = null
