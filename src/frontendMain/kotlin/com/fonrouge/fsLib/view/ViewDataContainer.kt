@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.ApiParam
-import com.fonrouge.fsLib.AppScope
+import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.lib.UrlParams

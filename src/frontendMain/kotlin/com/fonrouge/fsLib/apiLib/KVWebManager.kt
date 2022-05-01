@@ -18,9 +18,13 @@ import io.kvision.routing.routing
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+
+val AppScope = CoroutineScope(window.asCoroutineDispatcher())
 
 object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
 
