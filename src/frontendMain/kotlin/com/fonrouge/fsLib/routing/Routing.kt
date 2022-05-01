@@ -1,11 +1,11 @@
 package com.fonrouge.fsLib.routing
 
 import com.fonrouge.fsLib.apiLib.KVWebManager
+import com.fonrouge.fsLib.apiLib.KVWebManager.configViewHome
 import com.fonrouge.fsLib.apiLib.KVWebManager.configViewItemMap
-import com.fonrouge.fsLib.apiLib.KVWebManager.configViewListMap
 import com.fonrouge.fsLib.apiLib.KVWebManager.runLoginPage
-import com.fonrouge.fsLib.apiLib.KVWebManager.viewHomeBase
 import com.fonrouge.fsLib.config.ConfigViewItem
+import com.fonrouge.fsLib.config.ConfigViewList.Companion.configViewListMap
 import com.fonrouge.fsLib.config.dataUrlPrefix
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.ViewDataContainer.Companion.clearHandleIntervalStack
@@ -18,13 +18,13 @@ fun Navigo.initialize(): Navigo {
         .onViewListPage()
         .on("", {
             clearHandleIntervalStack()
-            viewHomeBase.dispatchActionPage()
+            configViewHome?.viewFunc?.invoke(null)?.dispatchActionPage()
         })
         .on("login", { runLoginPage() })
 }
 
 private fun Navigo.onViewItemPage(): Navigo {
-    on("$dataUrlPrefix/:dataClass/citem",
+    on("$dataUrlPrefix/:dataClass/item",
         { match ->
             configViewItemMap[match.data.dataClass as? String]?.let { configViewItem: ConfigViewItem<*, *> ->
                 configViewItem.dispatchViewPage(urlParams = UrlParams(match = match))
@@ -35,10 +35,16 @@ private fun Navigo.onViewItemPage(): Navigo {
 }
 
 private fun Navigo.onViewListPage(): Navigo {
-    on("$dataUrlPrefix/:dataClass/clist",
+    on("$dataUrlPrefix/:dataClass/list",
         { match: Match ->
+            console.warn("onViewListPage match", match, configViewListMap, configViewListMap.size)
+            configViewListMap.forEach {
+                console.warn("${it.key} -> ${it.value}")
+            }
+            console.warn("onViewListPage match 2", match, configViewListMap, configViewListMap.size)
             configViewListMap[match.data.dataClass as String].let { listConfigView ->
                 listConfigView?.let {
+                    console.warn("dispatchViewListPage onViewListPage match", match)
                     KVWebManager.dispatchViewListPage(it, match)
                 }
             }

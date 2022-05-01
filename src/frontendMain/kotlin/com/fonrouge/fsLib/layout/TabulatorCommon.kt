@@ -139,7 +139,6 @@ inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorCommon(
             }
         }
     }
-    console.warn("viewList.tabulator =", viewList.objId, viewList.tabulator)
     return this
 }
 

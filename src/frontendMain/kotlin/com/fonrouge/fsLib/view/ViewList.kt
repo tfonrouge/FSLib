@@ -25,7 +25,7 @@ import kotlin.reflect.KProperty
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<*>, E : Any>(
-    val configViewList: ConfigViewList<T, *>,
+    override val configView: ConfigViewList<T, *>,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
     repeatRefreshView: Boolean? = null,
@@ -35,12 +35,11 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<List<T>>(
-    configView = configViewList,
+    configView = configView,
     loading = loading,
     editable = editable,
     icon = icon,
-//    actionPage = actionPage,
-    restUrlParams = configViewList.restUrlParams,
+    restUrlParams = configView.restUrlParams,
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
 ) {
@@ -75,7 +74,6 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
             field = value
             onUpdateDataContainer?.invoke(value)
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
-            console.warn("assigning tabulator ", objId, tabulator, dataContainer)
             tabulator?.update(dataContainer)
         }
 
@@ -172,7 +170,6 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
             if (loading) {
                 centeredMessage("loading...")
             } else {
-                console.warn("calling pageListBody()")
                 pageListBody(this)
             }
         }

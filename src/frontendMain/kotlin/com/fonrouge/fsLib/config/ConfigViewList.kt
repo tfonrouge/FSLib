@@ -1,13 +1,12 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
 import kotlinx.serialization.json.JsonObject
 
-open class ConfigViewList<T : BaseModel<*>, V : ViewList<T, *>>(
+abstract class ConfigViewList<T : BaseModel<*>, V : ViewList<T, *>>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V),
@@ -18,11 +17,16 @@ open class ConfigViewList<T : BaseModel<*>, V : ViewList<T, *>>(
     label = label,
     restUrlParams = restUrlParams,
     lookupParam = lookupParam,
-    typeView = TypeView.CList,
+    typeView = TypeView.List,
     viewFunc = viewFunc,
 ) {
 
+    companion object {
+        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *>>()
+    }
+
     init {
-        KVWebManager.configViewListMap[name] = this
+        configViewListMap[name] = this
+        console.warn("adding configViewListMap item", name, configViewListMap.map { it.key })
     }
 }

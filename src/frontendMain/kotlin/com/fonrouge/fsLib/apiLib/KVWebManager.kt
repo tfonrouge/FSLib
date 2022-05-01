@@ -2,13 +2,13 @@
 
 package com.fonrouge.fsLib.apiLib
 
+import com.fonrouge.fsLib.config.ConfigViewHome
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.withProgress
 import com.fonrouge.fsLib.model.MediaItem
 import com.fonrouge.fsLib.routing.*
-import com.fonrouge.fsLib.view.ViewHomeBase
 import io.kvision.navigo.Match
 import io.kvision.redux.ReduxStore
 import io.kvision.redux.createReduxStore
@@ -24,19 +24,19 @@ import kotlinx.coroutines.SupervisorJob
 
 object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
 
-    var API_SERVER = ""
-
-    private const val JWT_TOKEN = "jwtToken"
-
     lateinit var frontEndVersion: String
     lateinit var frontEndAppName: String
     var motto = "<motto>"
     var pageContainerWidth = "md"
 
     lateinit var kvWebStore: ReduxStore<KVWebState, KVAction>
-    var configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *>>()
-    var configViewListMap = mutableMapOf<String?, ConfigViewList<*, *>>()
-    lateinit var viewHomeBase: ViewHomeBase
+    var configViewHome: ConfigViewHome<*>? = null
+        set(value) {
+            field = value
+            value?.viewFunc?.invoke(null)?.dispatchActionPage()
+        }
+
+    val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *>>()
 
     val state get() = kvWebStore.getState()
 
@@ -63,16 +63,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     private fun afterInitialize() {
         kvWebStore.dispatch(IfceWebAction.AppLoaded)
-        if (kvWebStore.getState().view is ViewHomeBase) {
-            loadHome()
-        }
-    }
-
-    private fun loadHome() {
-        kvWebStore.dispatch(IfceWebAction.Loaded(viewHomeBase))
-        withProgress {
-//            val home = Api.home()
-        }
     }
 
     fun getMediaList(item: Pair<String, *>, context: String, f: (List<MediaItem>?) -> Unit) {

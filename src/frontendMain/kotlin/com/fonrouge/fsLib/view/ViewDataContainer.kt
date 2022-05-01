@@ -24,15 +24,14 @@ abstract class ViewDataContainer<U : Any>(
     loading = loading,
     editable = editable,
     icon = icon,
-//    actionPage = actionPage,
     restUrlParams = restUrlParams,
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
 ) {
 
-    val name get() = configView?.name
+    val name get() = configView.name
 
-    val lookupParam get() = configView?.lookupParam
+    val lookupParam get() = configView.lookupParam
 
     abstract var dataContainer: U?
 

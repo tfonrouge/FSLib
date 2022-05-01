@@ -13,7 +13,7 @@ import io.kvision.panel.flexPanel
 import kotlinx.serialization.json.JsonObject
 
 abstract class View(
-    val configView: ConfigView<*>?,
+    open val configView: ConfigView<*>,
     var loading: Boolean = false,
     val editable: Boolean = true,
     val icon: String? = null,
@@ -44,12 +44,12 @@ abstract class View(
 
     val navigoUrlWithParams: String
         get() {
-            return configView?.navigoUrl + if (urlParams != null) urlParams else ""
+            return configView.navigoUrl + if (urlParams != null) urlParams else ""
         }
 
     val urlWithParams: String
         get() {
-            return configView?.url + if (urlParams != null) urlParams else ""
+            return configView.url + if (urlParams != null) urlParams else ""
         }
 
     var caption: String? = null
@@ -60,7 +60,7 @@ abstract class View(
             ActionParam.Update -> "[${ActionParam.Update}] "
             else -> ""
         }.let {
-            it + configView?.label +
+            it + configView.label +
                     if (this@View is ViewItem<*>) {
                         getName().let { it1 ->
                             if (it1 == null) "" else ": $it1"
@@ -70,8 +70,8 @@ abstract class View(
     }
 
     fun updateMainBannerLink(text: String, url: String) {
-        pageBannerLink?.label = "${configView?.label}: $text"
-        pageBannerLink?.url = "${configView?.navigoUrl}/$url"
+        pageBannerLink?.label = "${configView.label}: $text"
+        pageBannerLink?.url = "${configView.navigoUrl}/$url"
     }
 
     open fun getName(): String? {
@@ -79,8 +79,8 @@ abstract class View(
     }
 
     fun dispatchActionPage(): View {
-        configView?.let { baseConfigView ->
-            KVWebManager.kvWebStore.dispatch(baseConfigView)
+        configView.let {
+            KVWebManager.kvWebStore.dispatch(it)
         }
         return this
     }

@@ -30,7 +30,7 @@ import kotlin.js.Date
 
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<*>>(
-    val configViewItem: ConfigViewItem<T, *>,
+    override val configView: ConfigViewItem<T, *>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
@@ -38,12 +38,11 @@ abstract class ViewItem<T : BaseModel<*>>(
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<T>(
-    configView = configViewItem,
+    configView = configView,
     loading = loading,
     editable = editable,
     icon = icon,
-//    actionPage = actionPage,
-    restUrlParams = configViewItem.restUrlParams,
+    restUrlParams = configView.restUrlParams,
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
 ) {

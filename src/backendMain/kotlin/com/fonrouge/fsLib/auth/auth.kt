@@ -16,36 +16,6 @@ import org.apache.commons.codec.digest.DigestUtils
 import org.litote.kmongo.eq
 
 @Suppress("unused")
-fun Application.installDefaultAuthentication() {
-    install(Authentication) {
-        form {
-            userParamName = "username"
-            passwordParamName = "password"
-            validate { credentials ->
-                userProfileColl?.find(
-                    UserProfile::userName eq credentials.name,
-                    UserProfile::password2 eq DigestUtils.sha256Hex(credentials.password)
-                )?.collation(collation = collation)?.first()?.let {
-                    UserIdPrincipal(credentials.name)
-                }
-            }
-            skipWhen { call ->
-                call.sessions.get<Profile>() != null
-            }
-        }
-    }
-}
-
-fun Application.installDefaultSessions() {
-    install(Sessions) {
-        cookie<Profile>("KTSESSION", storage = SessionStorageMemory()) {
-            cookie.path = "/"
-            cookie.extensions["SameSite"] = "strict"
-        }
-    }
-}
-
-@Suppress("unused")
 fun Route.applyLogin() {
     post("login") {
         val result = call.principal<UserIdPrincipal>()?.let { userIdPrincipal ->
