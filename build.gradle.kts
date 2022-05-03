@@ -9,7 +9,7 @@ plugins {
 
 //    id("org.jetbrains.dokka") version kotlinVersion
 
-    signing
+//    signing
 }
 
 group = "com.fonrouge.fsLib"
@@ -78,6 +78,7 @@ publishing {
     }
 }
 
+/*
 signing {
     val file = File("/Users/teo/teo_fonrouge_com_gpg.key")
     useInMemoryPgpKeys(
@@ -86,6 +87,7 @@ signing {
     )
     sign(publishing.publications)
 }
+*/
 
 val kvisionVersion: String by System.getProperties()
 val serializationVersion: String by project
