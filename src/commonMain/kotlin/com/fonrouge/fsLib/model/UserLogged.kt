@@ -19,7 +19,7 @@ class UserLogged(
     var email: String? = null,
     var image: String? = null,
     var lastLogin: Instant? = null,
-) : BaseModel<String>() {
+) : BaseModel<String> {
 //    override var upsertInfo: UpsertInfo? = null
 }
 
