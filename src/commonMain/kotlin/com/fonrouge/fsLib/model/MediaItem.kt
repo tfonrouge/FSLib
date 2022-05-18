@@ -24,6 +24,6 @@ class MediaItem(
     var checksum: Long,
     var user: String,
     var url: String? = null,
-) : BaseModel<String>() {
+) : BaseModel<String> {
 //    override var upsertInfo: UpsertInfo? = null
 }

@@ -1,12 +1,12 @@
-@file:Suppress("EXPERIMENTAL_API_USAGE")
-
 package com.fonrouge.fsLib.model.base
 
+import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 
 //@Serializable
+@OptIn(ExperimentalJsExport::class)
 @JsExport
-abstract class BaseModel<T> {
-    abstract var id: T
+interface BaseModel<T> {
+    var id: T
 //    abstract val upsertInfo: UpsertInfo?
 }
