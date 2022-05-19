@@ -94,6 +94,7 @@ val serializationVersion: String by project
 val coroutinesVersion: String by project
 val exposedVersion: String by project
 val ktorVersion: String by project
+val kmongoVersion: String by project
 val commonsCodecVersion: String by project
 
 val webDir = file("src/frontendMain/web")
@@ -142,7 +143,7 @@ kotlin {
                 api("io.ktor:ktor-server-core:$ktorVersion")
                 api("io.ktor:ktor-server-default-headers:$ktorVersion")
                 api("io.ktor:ktor-server-netty:$ktorVersion")
-                api("org.litote.kmongo:kmongo-coroutine-serialization:4.4.0")
+                api("org.litote.kmongo:kmongo-coroutine-serialization:$kmongoVersion")
             }
         }
         val backendTest by getting
