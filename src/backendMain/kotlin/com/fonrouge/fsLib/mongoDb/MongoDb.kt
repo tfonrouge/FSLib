@@ -6,28 +6,31 @@ import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
 import org.litote.kmongo.reactivestreams.KMongo
 
-private var database: String? = "test"
-private var plugin: MongoDbPluginConfiguration? = null
+//private var database: String? = "test"
+private var plugin: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
 
 var locale = "en"
 
 val mongoClient by lazy {
-    plugin?.let { KMongo.createClient(it.connectionString) }
+    plugin.let { KMongo.createClient(it.connectionString) }
 }
 
-val mongoDatabase: MongoDatabase? by lazy {
-    mongoClient?.getDatabase(database)
+@Suppress("unused")
+val mongoDatabase: MongoDatabase by lazy {
+    mongoClient.getDatabase(plugin.database)
 }
 
-val collation by lazy {
+@Suppress("unused")
+val collation: Collation by lazy {
     Collation.builder().locale(locale).collationStrength(CollationStrength.PRIMARY).build()
 }
 
+@Suppress("unused")
 val MongoDbPlugin = createApplicationPlugin(
     name = "MongoDbPlugin",
     createConfiguration = ::MongoDbPluginConfiguration
 ) {
-    database = pluginConfig.database
+//    database = pluginConfig.database
     plugin = pluginConfig
 }
 

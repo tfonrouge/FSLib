@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.routing.KVAction
 import com.fonrouge.fsLib.view.View
 import kotlinx.serialization.json.JsonObject
 
@@ -16,7 +15,7 @@ abstract class ConfigView<V : View>(
     val restUrlParams: UrlParams? = null,
     val viewFunc: ((UrlParams?) -> V),
     val lookupParam: JsonObject? = null
-) : KVAction() {
+) {
 
     val navigoUrl: String = navigoPrefix + url
 

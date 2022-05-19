@@ -4,17 +4,13 @@ package com.fonrouge.fsLib.apiLib
 
 import com.fonrouge.fsLib.config.ConfigViewHome
 import com.fonrouge.fsLib.config.ConfigViewItem
-import com.fonrouge.fsLib.config.ConfigViewList
-import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.withProgress
 import com.fonrouge.fsLib.model.MediaItem
-import com.fonrouge.fsLib.routing.*
-import io.kvision.navigo.Match
-import io.kvision.redux.ReduxStore
-import io.kvision.redux.createReduxStore
+import com.fonrouge.fsLib.routing.initialize
 import io.kvision.routing.Routing
 import io.kvision.routing.Strategy
 import io.kvision.routing.routing
+import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
@@ -33,16 +29,9 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var motto = "<motto>"
     var pageContainerWidth = "md"
 
-    lateinit var kvWebStore: ReduxStore<KVWebState, KVAction>
     var configViewHome: ConfigViewHome<*>? = null
-        set(value) {
-            field = value
-            value?.viewFunc?.invoke(null)?.dispatchActionPage()
-        }
 
     val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *>>()
-
-    val state get() = kvWebStore.getState()
 
     private var authenticated = false
 
@@ -52,21 +41,19 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var setup: (KVWebManager.() -> Unit)? = null
 
+    var observableConfigView = ObservableValue<ViewState?>(null)
+
+    var afterInitialize: (() -> Unit)? = null
+
     fun initialize() {
 
         setup?.invoke(this)
-
-        kvWebStore = createReduxStore(::reducer, KVWebState())
 
         Routing.init(root = null, useHash = true, strategy = Strategy.ONE)
 
         routing.initialize().resolve()
 
-        afterInitialize()
-    }
-
-    private fun afterInitialize() {
-        kvWebStore.dispatch(IfceWebAction.AppLoaded)
+        afterInitialize?.invoke()
     }
 
     fun getMediaList(item: Pair<String, *>, context: String, f: (List<MediaItem>?) -> Unit) {
@@ -82,10 +69,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
             }
 */
         }
-    }
-
-    fun runLoginPage() {
-        kvWebStore.dispatch(IfceWebAction.LoginPage)
     }
 
     internal fun showToastApiRemoteRequest(code: Int, title: String, message: String) {
@@ -122,10 +105,10 @@ The resource requires authentication which was not supplied with the request<br>
         )
     }
 
-    fun dispatchViewListPage(
-        configViewList: ConfigViewList<*, *>,
-        match: Match
-    ) {
-        configViewList.dispatchViewPage(urlParams = UrlParams(match = match))
-    }
+//    fun dispatchViewListPage(
+//        configViewList: ConfigViewList<*, *>,
+//        match: Match
+//    ) {
+//        configViewList.dispatchViewPage(urlParams = UrlParams(match = match))
+//    }
 }

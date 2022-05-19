@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
@@ -76,13 +75,6 @@ abstract class View(
 
     open fun getName(): String? {
         return null
-    }
-
-    fun dispatchActionPage(): View {
-        configView.let {
-            KVWebManager.kvWebStore.dispatch(it)
-        }
-        return this
     }
 
     fun displayModal(

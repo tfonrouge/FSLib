@@ -27,6 +27,5 @@ abstract class ConfigViewList<T : BaseModel<*>, V : ViewList<T, *>>(
 
     init {
         configViewListMap[name] = this
-        console.warn("adding configViewListMap item", name, configViewListMap.map { it.key })
     }
 }

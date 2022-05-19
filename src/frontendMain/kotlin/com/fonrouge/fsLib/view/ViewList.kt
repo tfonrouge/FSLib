@@ -176,7 +176,6 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
     }
 
     fun refreshList() {
-        skipLoading = true
         blockRefresh?.invoke()
     }
 }

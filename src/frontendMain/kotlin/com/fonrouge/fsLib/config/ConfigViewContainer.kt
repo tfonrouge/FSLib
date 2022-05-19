@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.apiLib.TypeView
-import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewDataContainer
@@ -31,12 +30,12 @@ abstract class ConfigViewContainer<T : BaseModel<*>, V : ViewDataContainer<*>>(
         return "$dataUrlPrefix/$name${typeView.label}"
     }
 
-    fun dispatchViewPage(urlParams: UrlParams?) {
-        viewFunc.invoke(urlParams).let { viewDataContainer: V ->
-            viewDataContainer.dispatchActionPage()
-            if (this !is ConfigViewItem<*, *> && urlParams?.action != ActionParam.Insert) {
-                viewDataContainer.updateData()
-            }
-        }
-    }
+//    fun dispatchViewPage(urlParams: UrlParams?) {
+//        viewFunc.invoke(urlParams).let { viewDataContainer: V ->
+//            viewDataContainer.dispatchActionPage()
+//            if (this !is ConfigViewItem<*, *> && urlParams?.action != ActionParam.Insert) {
+//                viewDataContainer.updateData()
+//            }
+//        }
+//    }
 }

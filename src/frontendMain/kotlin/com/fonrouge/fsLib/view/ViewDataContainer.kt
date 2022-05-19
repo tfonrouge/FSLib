@@ -5,7 +5,6 @@ import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.routing.IfceWebAction
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -40,8 +39,6 @@ abstract class ViewDataContainer<U : Any>(
     var displayBlock: (() -> Unit)? = null
 
     val contextClassId get() = urlParams?.contextClassId
-
-    var skipLoading = false
 
     companion object {
         private val handleIntervalStack = mutableListOf<Int?>(null)
@@ -79,13 +76,6 @@ abstract class ViewDataContainer<U : Any>(
     }
 
     fun updateData() {
-        var loading = if (!skipLoading) {
-            KVWebManager.kvWebStore.dispatch(IfceWebAction.Loading(this))
-            true
-        } else {
-            skipLoading = false
-            false
-        }
         val callBlock: () -> Unit = {
             try {
                 AppScope.launch {
