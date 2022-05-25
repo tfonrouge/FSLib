@@ -55,6 +55,10 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
         routing.initialize().resolve()
 
+        if (iConfigView == null) {
+            Toast.warning("${this::iConfigView.name} not implemented...")
+        }
+
         afterInitialize?.invoke()
     }
 
