@@ -165,7 +165,7 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
         this.container = container
 
         container.apply {
-            pageBanner(this@ViewList)
+            pageBanner()
             loading = false
             if (loading) {
                 centeredMessage("loading...")

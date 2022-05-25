@@ -8,7 +8,6 @@ import com.fonrouge.fsLib.lib.withProgress
 import com.fonrouge.fsLib.model.MediaItem
 import com.fonrouge.fsLib.routing.initialize
 import io.kvision.routing.Routing
-import io.kvision.routing.Strategy
 import io.kvision.routing.routing
 import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
@@ -43,13 +42,16 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var observableConfigView = ObservableValue<ViewState?>(null)
 
+    var iConfigView: IConfigView? = null
+
     var afterInitialize: (() -> Unit)? = null
 
     fun initialize() {
 
         setup?.invoke(this)
 
-        Routing.init(root = null, useHash = true, strategy = Strategy.ONE)
+//        Routing.init(root = null, useHash = true, strategy = Strategy.ONE)
+        Routing.init()
 
         routing.initialize().resolve()
 

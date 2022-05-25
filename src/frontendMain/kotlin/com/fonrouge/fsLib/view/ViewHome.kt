@@ -24,4 +24,8 @@ abstract class ViewHome(
     sortParam = sortParam,
     upsertData = upsertData,
     modal = modal
-)
+) {
+    init {
+        caption = "Home"
+    }
+}

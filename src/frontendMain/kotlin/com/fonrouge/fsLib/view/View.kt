@@ -98,7 +98,7 @@ abstract class View(
 
     abstract fun displayPage(container: Container)
 
-    fun Container.pageBanner(view: View, onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
+    fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         flexPanel(
             FlexDirection.ROW,
             FlexWrap.NOWRAP,
@@ -106,12 +106,12 @@ abstract class View(
             AlignItems.BASELINE,
             className = "container-fluid mainBanner"
         ) {
-            link(getCaption(), view.navigoUrlWithParams, className = "navbar-brand mainBanner") {
+            link(getCaption(), navigoUrlWithParams, className = "navbar-brand mainBanner") {
                 setStyle("color", "white")
             }
             onUpdatePageBannerLink?.let { it ->
-                view.onUpdatePageBannerLink = it
-                view.pageBannerLink?.let { link -> onUpdatePageBannerLink(link) }
+//                onUpdatePageBannerLink = it
+                pageBannerLink?.let { link -> onUpdatePageBannerLink(link) }
             }
         }
     }

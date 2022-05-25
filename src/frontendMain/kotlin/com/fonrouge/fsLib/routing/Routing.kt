@@ -37,7 +37,9 @@ private fun Navigo.onViewItemPage(): Navigo {
 private fun Navigo.onViewListPage(): Navigo {
     on("$dataUrlPrefix/:dataClass/list",
         { match: Match ->
+            console.warn("onViewListPage match", match, configViewListMap.map { it.key })
             configViewListMap[match.data.dataClass as String]?.let { configViewList ->
+                console.warn("onViewListPage configViewList", configViewList)
                 observableConfigView.value = ViewState(configViewList, UrlParams(match))
             }
         })

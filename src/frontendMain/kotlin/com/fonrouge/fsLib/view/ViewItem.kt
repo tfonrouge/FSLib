@@ -121,7 +121,7 @@ abstract class ViewItem<T : BaseModel<*>>(
                 container.caption = getCaption()
                 pushHandleInterval()
             } else {
-                pageBanner(this@ViewItem)
+                pageBanner()
             }
             if (loading) {
                 centeredMessage("loading...")
