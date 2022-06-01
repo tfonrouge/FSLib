@@ -60,7 +60,7 @@ abstract class View(
             else -> ""
         }.let {
             it + configView.label +
-                    if (this@View is ViewItem<*>) {
+                    if (this@View is ViewItem<*, *>) {
                         getName().let { it1 ->
                             if (it1 == null) "" else ": $it1"
                         }

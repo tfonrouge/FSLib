@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.ApiParam
 import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewContainer
@@ -28,52 +27,26 @@ abstract class ViewDataContainer<U : Any>(
     sortParam = sortParam
 ) {
 
+    companion object {
+        var handleInterval: Int? = null
+            set(value) {
+                if (value != null) {
+                    window.clearInterval(value)
+                }
+            }
+    }
+
     val name get() = configView.name
 
     val lookupParam get() = configView.lookupParam
 
-    abstract var dataContainer: U?
+//    abstract var dataContainer: ObservableValue<U>?
 
     var onUpdateDataContainer: ((U?) -> Unit)? = null
 
     var displayBlock: (() -> Unit)? = null
 
     val contextClassId get() = urlParams?.contextClassId
-
-    companion object {
-        private val handleIntervalStack = mutableListOf<Int?>(null)
-        var handleInterval: Int?
-            get() = handleIntervalStack.last()
-            set(value) {
-                handleIntervalStack.last()?.let {
-                    window.clearInterval(it)
-                }
-                handleIntervalStack[handleIntervalStack.lastIndex] = value
-            }
-
-        fun pushHandleInterval() {
-            handleIntervalStack.add(null)
-        }
-
-        fun pullHandleInterval() {
-            if (handleIntervalStack.size > 1) {
-                handleIntervalStack.last()?.let { window.clearInterval(it) }
-                handleIntervalStack.remove(handleIntervalStack.lastIndex)
-            }
-        }
-
-        fun clearHandleIntervalStack() {
-            handleIntervalStack.forEach {
-                it?.let { window.clearInterval(it) }
-            }
-            handleIntervalStack.clear()
-            handleIntervalStack.add(null)
-        }
-    }
-
-    fun getApiParam(): ApiParam {
-        return ApiParam()
-    }
 
     fun updateData() {
         val callBlock: () -> Unit = {

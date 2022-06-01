@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.model.base.BaseModel
-import com.fonrouge.fsLib.view.ViewDataContainer.Companion.clearHandleIntervalStack
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
@@ -60,14 +59,14 @@ fun <T : BaseModel<*>> Container.toolBarList(
                         id = ActionParam.Delete.name
                         enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                         onClick {
-                            val url = item?.id?.let { "/${configViewItem.url}?id=${it}" }
+                            val url = item?._id?.let { "/${configViewItem.url}?id=${it}" }
                             url?.let { it1 -> routing.navigate(it1) }
                         }
                     }
                 }
                 navLink(label = "", icon = "fas fa-ellipsis-v")
                 navLink(label = "", icon = "fas fa-clock").onClick {
-                    clearHandleIntervalStack()
+
                 }
                 navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
                     viewList.refreshList()

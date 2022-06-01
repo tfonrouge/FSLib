@@ -12,7 +12,7 @@ class UrlParams(match: Match? = null) : ArrayList<UrlParam>() {
     }
 
     constructor(item: BaseModel<*>) : this() {
-        add("id" to item.id)
+        add("id" to item._id)
         add("class" to item::class.simpleName)
     }
 

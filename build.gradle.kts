@@ -160,7 +160,7 @@ kotlin {
                 api("io.kvision:kvision-bootstrap-select:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-spinner:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-upload:$kvisionVersion")
-                api("io.kvision:kvision-chart2:$kvisionVersion")
+                api("io.kvision:kvision-chart:$kvisionVersion")
                 api("io.kvision:kvision-datacontainer:$kvisionVersion")
                 api("io.kvision:kvision-fontawesome:$kvisionVersion")
                 api("io.kvision:kvision-react:$kvisionVersion")

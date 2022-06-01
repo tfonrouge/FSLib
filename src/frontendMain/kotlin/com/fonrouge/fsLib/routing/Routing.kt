@@ -7,7 +7,6 @@ import com.fonrouge.fsLib.apiLib.ViewState
 import com.fonrouge.fsLib.config.ConfigViewList.Companion.configViewListMap
 import com.fonrouge.fsLib.config.dataUrlPrefix
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.view.ViewDataContainer.Companion.clearHandleIntervalStack
 import io.kvision.navigo.Match
 import io.kvision.navigo.Navigo
 
@@ -16,7 +15,6 @@ fun Navigo.initialize(): Navigo {
         .onViewItemPage()
         .onViewListPage()
         .on("", {
-            clearHandleIntervalStack()
             configViewHome?.let {
                 observableConfigView.value = ViewState(it, UrlParams())
             }

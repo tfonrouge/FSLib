@@ -3,6 +3,7 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.lib.ActionParam
+import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
@@ -12,7 +13,7 @@ import io.kvision.html.Link
 import io.kvision.tabulator.*
 import io.kvision.utils.px
 
-inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorCommon(
+inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
     viewList: ViewList<T, E>,
     columnDefinitionList: List<ColumnDefinition<T>>,
     minToolbarSize: Boolean = true,
@@ -30,17 +31,17 @@ inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorCommon(
     val updateLinks: () -> Unit = {
         viewList.configViewItem?.let { configViewItem ->
             nav.item = item
-            linkItemPage.url = item?.id?.let { "${configViewItem.navigoUrl}?id=${it}" }
+            linkItemPage.url = item?._id?.let { "${configViewItem.navigoUrl}?id=${it}" }
             nav.getChildren().forEach { component ->
                 if (component is Link) {
                     when (component.id) {
-                        ActionParam.Insert.name -> component.url = item?.id?.let {
+                        ActionParam.Insert.name -> component.url = item?._id?.let {
                             configViewItem.urlWithInsert + viewList.parentContextUrlParams
                         }
-                        ActionParam.Update.name -> component.url = item?.id?.let {
+                        ActionParam.Update.name -> component.url = item?._id?.let {
                             configViewItem.urlWithUpdate(it) + viewList.parentContextUrlParams
                         }
-                        ActionParam.Delete.name -> component.url = item?.id?.let {
+                        ActionParam.Delete.name -> component.url = item?._id?.let {
                             configViewItem.urlWithDelete(it)
                         }
                     }
@@ -152,7 +153,7 @@ fun <T : BaseModel<*>> Tabulator<T>.update(list: List<T>?) {
         clearData()
     } else {
         val selectedId = getSelectedData().let {
-            if (it.isNotEmpty()) it[0].id else null
+            if (it.isNotEmpty()) it[0]._id else null
         }
         replaceData(list.toTypedArray())
         if (selectedId != null) {

@@ -9,7 +9,7 @@ import kotlin.js.JsExport
 @Serializable
 @JsExport
 class MediaItem(
-    override var id: String,
+    override var _id: String,
     @Contextual
     var uploaded: LocalDateTime,
     @Contextual

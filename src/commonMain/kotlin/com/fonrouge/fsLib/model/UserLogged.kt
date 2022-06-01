@@ -10,7 +10,7 @@ import kotlin.js.JsExport
 @Serializable
 @JsExport
 class UserLogged(
-    override var id: String,
+    override var _id: String,
     var fullName: String? = null,
     var userId: String? = null,
     var password: String? = null,

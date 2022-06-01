@@ -47,7 +47,7 @@ class ItemFormPanel<T : BaseModel<*>>(
                 if (key is KMutableProperty1) {
                     key.setValue(item, key, selectedItem)
                 }
-                val first = key.get(item)?.id?.toString() ?: ""
+                val first = key.get(item)?._id?.toString() ?: ""
                 selectAjax.selectedPair = first to selectKPropText.get(selectedItem)
             }
 

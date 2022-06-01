@@ -6,6 +6,8 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.KPair
+import com.fonrouge.fsLib.model.IDataItem
+import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.core.FlexDirection
@@ -17,20 +19,31 @@ import io.kvision.html.button
 import io.kvision.html.div
 import io.kvision.modal.Modal
 import io.kvision.panel.flexPanel
+import io.kvision.remote.CallAgent
+import io.kvision.remote.HttpMethod
+import io.kvision.remote.JsonRpcRequest
+import io.kvision.remote.KVServiceManager
+import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
+import io.kvision.utils.Serialization
 import io.kvision.utils.em
 import io.kvision.utils.obj
 import io.kvision.utils.px
 import kotlinx.browser.window
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.Date
+import kotlin.js.Promise
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseModel<*>>(
+abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
     override val configView: ConfigViewItem<T, *>,
+    private val serverManager: KVServiceManager<E>,
+    private val function: suspend E.(String) -> ItemContainer<T>,
+    private val stateFunction: (() -> String?)? = null,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
@@ -47,19 +60,19 @@ abstract class ViewItem<T : BaseModel<*>>(
     sortParam = sortParam
 ) {
 
-    val itemNameFunc: ((T) -> String) = { it.id.toString() }
+    val itemNameFunc: ((T) -> String) = { it._id.toString() }
 
     override var repeatRefreshView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     override fun getName(): String? {
-        return dataContainer?.let { itemNameFunc.invoke(it) }
+        return dataContainer?.let { itemNameFunc.invoke(it.value) }
     }
 
-    override var dataContainer: T? = null
+    var dataContainer: ObservableValue<T>? = null
         set(value) {
             field = value
-            onUpdateDataContainer?.invoke(value)
+            onUpdateDataContainer?.invoke(value?.value)
         }
 
     var formPanel: ItemFormPanel<T>? = null
@@ -69,7 +82,7 @@ abstract class ViewItem<T : BaseModel<*>>(
         get() {
             val item = dataContainer
             origObjItem = item?.asDynamic() ?: obj { }
-            return item
+            return item?.value
         }
 
     private var pageContainer: Container? = null
@@ -85,7 +98,6 @@ abstract class ViewItem<T : BaseModel<*>>(
                 if (formPanel?.validate() == true) {
                     onAcceptButtonClick?.invoke(this, it) ?: upsertItem()
                     (pageContainer as? Modal)?.hide()
-                    pullHandleInterval()
                 } else {
                     Toast.warning(
                         message = "Datos incompletos",
@@ -107,6 +119,19 @@ abstract class ViewItem<T : BaseModel<*>>(
 //        KVWebManager.upsertItem(viewItem = this@ViewItem, customUpdate = customUpdate, block = block)
     }
 
+    private fun callServer(): Promise<Any> {
+        val (url, method) = serverManager.requireCall(function)
+        val callAgent = CallAgent()
+        val state = stateFunction?.invoke()?.let { JSON.stringify(it) }
+        val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf(state)))
+        return callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
+            .then { r: dynamic ->
+                console.warn("callServer r", r)
+                val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+                console.warn("callServer result", result)
+            }
+    }
+
     final override fun displayPage(container: Container) {
 
         this.container = container
@@ -115,11 +140,11 @@ abstract class ViewItem<T : BaseModel<*>>(
         if (action == ActionParam.Insert) {
             dataContainer = null
         }
+        callServer()
         pageContainer = container
         container.apply {
             if (container is Modal) {
                 container.caption = getCaption()
-                pushHandleInterval()
             } else {
                 pageBanner()
             }
@@ -131,6 +156,7 @@ abstract class ViewItem<T : BaseModel<*>>(
                 } else {
                     div(className = "container-$pageContainerWidth show-item") {
                         flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
+
                             formPanel = pageItemBody(container = this, item = item)
                             if (urlParams?.actionUpsert == true) {
                                 div(className = "col-$pageContainerWidth-12 text-right") {
@@ -139,7 +165,6 @@ abstract class ViewItem<T : BaseModel<*>>(
                                         onClick {
                                             if (container is Modal) {
                                                 container.hide()
-                                                pullHandleInterval()
                                             } else {
 /*
                                                 lastResolved?.let {

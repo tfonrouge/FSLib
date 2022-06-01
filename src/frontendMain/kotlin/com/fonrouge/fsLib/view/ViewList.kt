@@ -8,6 +8,8 @@ import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.IDataItem
+import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.dropdown.ContextMenu
@@ -18,13 +20,14 @@ import io.kvision.remote.KVServiceManager
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
+import io.kvision.state.ObservableList
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.TabulatorRemote
 import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KProperty
 
 @Suppress("unused")
-abstract class ViewList<T : BaseModel<*>, E : Any>(
+abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     override val configView: ConfigViewList<T, *>,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
@@ -45,7 +48,7 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
 ) {
 
     val listNameFunc: ((List<T>) -> String) = { list ->
-        list.getOrNull(0)?.id.toString()
+        list.getOrNull(0)?._id.toString()
     }
 
     var blockRefresh: (() -> Unit)? = null
@@ -57,19 +60,19 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
 
     var tabulator: TabulatorRemote<T, E>? = null
 
-    var masterViewItem: ViewItem<*>? = null
+    var masterViewItem: ViewItem<*, IDataItem>? = null
     var masterItemProp: KProperty<*>? = null
 
     val parentContextUrlParams: String
         get() {
             return masterViewItem?.item?.let {
-                "&contextClass=${it::class.simpleName}&contextId=${it.id}"
+                "&contextClass=${it::class.simpleName}&contextId=${it._id}"
             } ?: ""
         }
 
     open val contextMenu: ((ContextMenu).() -> Unit)? = null
 
-    override var dataContainer: List<T>? = null
+    var dataContainer: ObservableList<T>? = null
         set(value) {
             field = value
             onUpdateDataContainer?.invoke(value)
@@ -77,14 +80,14 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
             tabulator?.update(dataContainer)
         }
 
-    val actionParamMap = mapOf<ActionParam, (BaseModel<*>?, (ViewItem<*>.() -> Unit)?) -> Unit>(
+    val actionParamMap = mapOf<ActionParam, (BaseModel<*>?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
         ActionParam.Insert to { item, block ->
             val urlParams = UrlParams(
                 "action" to ActionParam.Insert.name,
             )
             masterViewItem?.item?.let {
                 urlParams.add("contextClass" to it::class.simpleName)
-                urlParams.add("contextId" to it.id)
+                urlParams.add("contextId" to it._id)
                 urlParams.add("contextName" to masterItemProp?.name)
             }
             configViewItem?.viewFunc?.let { it(urlParams) }?.let { viewItem ->
@@ -96,11 +99,11 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
             item?.let {
                 val urlParams = UrlParams(
                     "action" to ActionParam.Update.name,
-                    "id" to item.id,
+                    "id" to item._id,
                 )
                 masterViewItem?.item?.let {
                     urlParams.add("contextClass" to it::class.simpleName)
-                    urlParams.add("contextId" to it.id)
+                    urlParams.add("contextId" to it._id)
                     urlParams.add("contextName" to masterItemProp?.name)
                 }
                 configViewItem?.displayModal(urlParams, block)
@@ -149,16 +152,6 @@ abstract class ViewList<T : BaseModel<*>, E : Any>(
     abstract fun pageListBody(container: Container)
 
     var updateDispatched = false
-
-    fun dispatchPage(container: Container) {
-        displayPage(container)
-        if (!updateDispatched) {
-            updateDispatched = true
-//            configView?.updateData()
-            updateData()
-//            configViewList.updateData(this as Nothing)
-        }
-    }
 
     final override fun displayPage(container: Container) {
 
