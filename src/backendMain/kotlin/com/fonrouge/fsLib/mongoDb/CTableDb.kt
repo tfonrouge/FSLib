@@ -7,32 +7,33 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.json
 import kotlin.reflect.KProperty1
 
-class Lookup<T: BaseModel<*>, S: BaseModel<*>>(
+class ModelLookup<T : BaseModel<*>, S : BaseModel<*>>(
     val resultProperty: KProperty1<T, S?>,
-    val lookupList: List<Lookup<S, *>>? = null
+    val modelLookupList: List<ModelLookup<S, *>>? = null
 )
 
 abstract class CTableDb<T : BaseModel<*>>(
     val collection: CoroutineCollection<T>,
-    private val lookupBuilderList: List<LookupBuilder<*, T>>? = null
+    private val lookupBuilderList: List<LookupBuilder<*, T>>? = null,
 ) {
 
-    fun buildLookup(includeList: List<Lookup<*, *>>? = null): List<Bson> {
+    fun buildLookup(modelLookupList: List<ModelLookup<*, *>>? = null): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         lookupBuilderList?.forEach { lookupBuilder ->
-            includeList?.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }?.let {
-                lookupBuilder.addToPipeline(pipeline, it.lookupList)
-            }
+            modelLookupList?.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
+                ?.let { modelLookup: ModelLookup<*, *> ->
+                    lookupBuilder.addToPipeline(pipeline, modelLookup)
+                }
         }
         return pipeline
     }
 
     @Suppress("unused")
     inline fun <reified U : T> aggregateWithLookup(
-        lookupList: List<Lookup<*, *>>? = null,
+        modelLookupList: List<ModelLookup<*, *>>? = null,
         pipeline: MutableList<Bson> = mutableListOf()
     ): CoroutineAggregatePublisher<U> {
-        pipeline.addAll(buildLookup(lookupList))
+        pipeline.addAll(buildLookup(modelLookupList))
         println("PIPELINE:\n${pipeline.json}")
         return collection.aggregate(pipeline)
     }

@@ -8,14 +8,14 @@ import org.litote.kmongo.*
 import org.litote.kmongo.MongoOperator.eq
 import kotlin.reflect.KProperty1
 
-class LookupBuilder<T : BaseModel<*>, S: BaseModel<*>>(
+class LookupBuilder<T : BaseModel<*>, S : BaseModel<*>>(
     private val cTableDb: CTableDb<T>,
     private val localField: KProperty1<S, *>,
     private val foreignField: KProperty1<T, *>,
     val resultProperty: KProperty1<S, *>,
     private val matchFilters: List<Bson>? = null
 ) {
-    internal fun addToPipeline(pipeline: MutableList<Bson>, includeList: List<Lookup<*, *>>?) {
+    internal fun addToPipeline(pipeline: MutableList<Bson>, modelLookup: ModelLookup<*, *>) {
         val match = mutableListOf(
             expr(
                 eq from listOf(
@@ -31,7 +31,7 @@ class LookupBuilder<T : BaseModel<*>, S: BaseModel<*>>(
             match(*match.toTypedArray())
         )
 
-        pip2 += cTableDb.buildLookup(includeList)
+        pip2 += cTableDb.buildLookup(modelLookup.modelLookupList)
 
         pipeline += lookup(
             from = cTableDb.collection.namespace.collectionName,
