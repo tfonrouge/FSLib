@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.model.base.BaseModel
 import com.mongodb.client.model.UnwindOptions
 import com.mongodb.client.model.Variable
 import org.bson.conversions.Bson
@@ -7,14 +8,14 @@ import org.litote.kmongo.*
 import org.litote.kmongo.MongoOperator.eq
 import kotlin.reflect.KProperty1
 
-class LookupBuilder<T : Any, S>(
+class LookupBuilder<T : BaseModel<*>, S: BaseModel<*>>(
     private val cTableDb: CTableDb<T>,
     private val localField: KProperty1<S, *>,
     private val foreignField: KProperty1<T, *>,
     val resultProperty: KProperty1<S, *>,
     private val matchFilters: List<Bson>? = null
 ) {
-    internal fun addToPipeline(pipeline: MutableList<Bson>, includeList: List<Lookup<out Any?, out Any?>>?) {
+    internal fun addToPipeline(pipeline: MutableList<Bson>, includeList: List<Lookup<*, *>>?) {
         val match = mutableListOf(
             expr(
                 eq from listOf(

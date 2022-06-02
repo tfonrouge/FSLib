@@ -1,17 +1,18 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.model.base.BaseModel
 import org.bson.conversions.Bson
 import org.litote.kmongo.coroutine.CoroutineAggregatePublisher
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.json
 import kotlin.reflect.KProperty1
 
-class Lookup<T, S>(
+class Lookup<T: BaseModel<*>, S: BaseModel<*>>(
     val resultProperty: KProperty1<T, S?>,
     val lookupList: List<Lookup<S, *>>? = null
 )
 
-abstract class CTableDb<T : Any>(
+abstract class CTableDb<T : BaseModel<*>>(
     val collection: CoroutineCollection<T>,
     private val lookupBuilderList: List<LookupBuilder<*, T>>? = null
 ) {
