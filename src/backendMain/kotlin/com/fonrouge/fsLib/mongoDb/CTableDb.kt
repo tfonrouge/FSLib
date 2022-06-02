@@ -7,14 +7,14 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.json
 import kotlin.reflect.KProperty1
 
-class ModelLookup<T : BaseModel<*>, S : BaseModel<*>>(
-    val resultProperty: KProperty1<T, S?>,
-    val modelLookupList: List<ModelLookup<S, *>>? = null
+class ModelLookup<T : BaseModel<*>, U : BaseModel<*>>(
+    val resultProperty: KProperty1<T, U?>,
+    val modelLookupList: List<ModelLookup<U, *>>? = null
 )
 
 abstract class CTableDb<T : BaseModel<*>>(
     val collection: CoroutineCollection<T>,
-    private val lookupBuilderList: List<LookupBuilder<*, T>>? = null,
+    private val lookupBuilderList: List<LookupBuilder<T, *, *>>? = null,
 ) {
 
     fun buildLookup(modelLookupList: List<ModelLookup<*, *>>? = null): List<Bson> {
