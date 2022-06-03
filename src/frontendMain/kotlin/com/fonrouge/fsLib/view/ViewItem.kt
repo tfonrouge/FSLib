@@ -113,7 +113,7 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
         return listOf()
     }
 
-    abstract fun pageItemBody(container: Container, item: T?): ItemFormPanel<T>?
+    open fun Container.pageItemBody(item: T?): ItemFormPanel<T>? = null
 
     fun upsertItem(customUpdate: dynamic = null, block: ((Boolean?) -> Unit)? = null) {
 //        KVWebManager.upsertItem(viewItem = this@ViewItem, customUpdate = customUpdate, block = block)
@@ -156,8 +156,7 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
                 } else {
                     div(className = "container-$pageContainerWidth show-item") {
                         flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
-
-                            formPanel = pageItemBody(container = this, item = item)
+                            formPanel = container.pageItemBody(item = item)
                             if (urlParams?.actionUpsert == true) {
                                 div(className = "col-$pageContainerWidth-12 text-right") {
                                     marginTop = 1.em
