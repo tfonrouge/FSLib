@@ -41,8 +41,6 @@ abstract class ViewDataContainer<U : Any>(
 
 //    abstract var dataContainer: ObservableValue<U>?
 
-    var onUpdateDataContainer: ((U?) -> Unit)? = null
-
     var displayBlock: (() -> Unit)? = null
 
     val contextClassId get() = urlParams?.contextClassId

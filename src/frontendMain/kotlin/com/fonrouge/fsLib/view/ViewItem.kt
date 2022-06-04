@@ -81,12 +81,6 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
 
     var dataContainer: ObservableValue<ItemContainer<T>> = ObservableValue(ItemContainer(null))
 
-    init {
-        dataContainer.subscribe {
-            onUpdateDataContainer?.invoke(it.item)
-        }
-    }
-
     var formPanel: ItemFormPanel<T>? = null
     var origObjItem: dynamic = null
 

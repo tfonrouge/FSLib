@@ -75,7 +75,6 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     var dataContainer: ObservableList<T>? = null
         set(value) {
             field = value
-            onUpdateDataContainer?.invoke(value)
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
             tabulator?.update(dataContainer)
         }
