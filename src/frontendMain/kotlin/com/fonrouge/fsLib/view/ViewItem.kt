@@ -24,19 +24,25 @@ import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.KVServiceManager
 import io.kvision.state.ObservableValue
+import io.kvision.state.bind
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
 import io.kvision.utils.em
-import io.kvision.utils.obj
 import io.kvision.utils.px
 import kotlinx.browser.window
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromDynamic
+import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.Date
 import kotlin.js.Promise
+import kotlin.reflect.KClass
 
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
@@ -44,6 +50,7 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
     private val serverManager: KVServiceManager<E>,
     private val function: suspend E.(String) -> ItemContainer<T>,
     private val stateFunction: (() -> String?)? = null,
+    private val klass: KClass<T>,
     repeatRefreshView: Boolean? = null,
     loading: Boolean = false,
     editable: Boolean = true,
@@ -59,31 +66,29 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
 ) {
-
-    val itemNameFunc: ((T) -> String) = { it._id.toString() }
+    val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
 
     override var repeatRefreshView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     override fun getName(): String? {
-        return dataContainer?.let { itemNameFunc.invoke(it.value) }
+        return dataContainer.let {
+            itemNameFunc.invoke(it.value)
+        }
     }
 
-    var dataContainer: ObservableValue<T>? = null
-        set(value) {
-            field = value
-            onUpdateDataContainer?.invoke(value?.value)
+    var dc2 = ObservableValue<T?>(null)
+
+    var dataContainer: ObservableValue<ItemContainer<T>> = ObservableValue(ItemContainer(null))
+
+    init {
+        dataContainer.subscribe {
+            onUpdateDataContainer?.invoke(it.item)
         }
+    }
 
     var formPanel: ItemFormPanel<T>? = null
     var origObjItem: dynamic = null
-
-    val item: T?
-        get() {
-            val item = dataContainer
-            origObjItem = item?.asDynamic() ?: obj { }
-            return item?.value
-        }
 
     private var pageContainer: Container? = null
 
@@ -119,16 +124,18 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
 //        KVWebManager.upsertItem(viewItem = this@ViewItem, customUpdate = customUpdate, block = block)
     }
 
-    private fun callServer(): Promise<Any> {
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    private fun callServer(klass: KClass<T>): Promise<Any> {
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val state = stateFunction?.invoke()?.let { JSON.stringify(it) }
         val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf(state)))
         return callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
             .then { r: dynamic ->
-                console.warn("callServer r", r)
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-                console.warn("callServer result", result)
+                val itemContainer: ItemContainer<T> =
+                    Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
+                dataContainer.value = itemContainer
             }
     }
 
@@ -138,9 +145,8 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
 
         val action = urlParams?.action
         if (action == ActionParam.Insert) {
-            dataContainer = null
+            dataContainer.value = ItemContainer(null)
         }
-        callServer()
         pageContainer = container
         container.apply {
             if (container is Modal) {
@@ -148,41 +154,42 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
             } else {
                 pageBanner()
             }
-            if (loading) {
-                centeredMessage("loading...")
-            } else {
-                if (action == ActionParam.Update && item == null) {
+            div(className = "dataContainer").bind(dataContainer) { itemContainer ->
+                console.warn(
+                    "displaying page ... dataContainer",
+                    dataContainer,
+                    "value",
+                    dataContainer.value
+                )
+                if (action == ActionParam.Update && itemContainer.item == null) {
                     centeredMessage("Updating error: item must not be null")
                 } else {
-                    div(className = "container-$pageContainerWidth show-item") {
-                        flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
-                            formPanel = container.pageItemBody(item = item)
-                            if (urlParams?.actionUpsert == true) {
-                                div(className = "col-$pageContainerWidth-12 text-right") {
-                                    marginTop = 1.em
-                                    button("Cancelar", style = ButtonStyle.OUTLINEDANGER) {
-                                        onClick {
-                                            if (container is Modal) {
-                                                container.hide()
-                                            } else {
+                    flexPanel(direction = FlexDirection.COLUMN, spacing = 10, className = "LaCubana") {
+                        formPanel = container.pageItemBody(item = itemContainer.item)
+                        if (urlParams?.actionUpsert == true) {
+                            div(className = "col-$pageContainerWidth-12 text-right") {
+                                marginTop = 1.em
+                                button("Cancelar", style = ButtonStyle.OUTLINEDANGER) {
+                                    onClick {
+                                        if (container is Modal) {
+                                            container.hide()
+                                        } else {
 /*
-                                                lastResolved?.let {
-                                                    routing.navigate(it.last().url)
-                                                } ?: routing.navigate("")
+                                    lastResolved?.let {
+                                        routing.navigate(it.last().url)
+                                    } ?: routing.navigate("")
 */
-                                            }
                                         }
                                     }
-                                    add(buttonAccept)
-                                    buttonAccept.marginLeft = 10.px
                                 }
+                                add(buttonAccept)
+                                buttonAccept.marginLeft = 10.px
                             }
                         }
-//                    mediaContainer(this@ViewItem, "default")
                     }
                     formPanel?.let { formPanel1 ->
-                        item?.let { it1 ->
-                            formPanel1.setData(it1)
+                        itemContainer.let { it1 ->
+                            it1.item?.let { formPanel1.setData(it) }
                         }
                         formPanel1.form.fields.forEach { formControlEntry ->
                             if (urlParams?.actionUpsert != true || formControlEntry.key == "id" || disableEdit) {
@@ -203,7 +210,7 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
                                 }
                             }
                             if (urlParams?.actionUpsert == true) {
-                                defaultUpsertValueList(item).firstOrNull { it.kProp.name == formControlEntry.key }
+                                defaultUpsertValueList(itemContainer.item).firstOrNull { it.kProp.name == formControlEntry.key }
                                     ?.let {
                                         val value = it.value
                                         if (formControlEntry.value.getValue() == null && value != null) {
@@ -239,9 +246,12 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
                 }
             }
         }
+
         if (container is Modal) {
             container.show()
         }
+
+        klass?.let { callServer(it) }
     }
 
     open fun beforeUpdate(updateData: dynamic) {}

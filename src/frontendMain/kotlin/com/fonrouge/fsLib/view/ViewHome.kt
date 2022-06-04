@@ -16,7 +16,6 @@ abstract class ViewHome(
     modal: Boolean = false
 ) : View(
     configView = configView,
-    loading = loading,
     editable = editable,
     icon = icon,
     restUrlParams = restUrlParams,

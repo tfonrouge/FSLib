@@ -13,7 +13,6 @@ import kotlinx.serialization.json.JsonObject
 
 abstract class View(
     open val configView: ConfigView<*>,
-    var loading: Boolean = false,
     val editable: Boolean = true,
     val icon: String? = null,
     val restUrlParams: UrlParams? = null,
@@ -37,7 +36,6 @@ abstract class View(
 //    val eViewUrl: String = navigoPrefix + configView.url
 
     var pageBannerLink: Link? = null
-    val loaded: Boolean get() = !loading
 
     var onUpdatePageBannerLink: ((Link) -> Unit)? = null
 

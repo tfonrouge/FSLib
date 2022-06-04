@@ -65,8 +65,8 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
 
     val parentContextUrlParams: String
         get() {
-            return masterViewItem?.item?.let {
-                "&contextClass=${it::class.simpleName}&contextId=${it._id}"
+            return masterViewItem?.dataContainer?.value?.let {
+                "&contextClass=${it::class.simpleName}&contextId=${it.item?._id}"
             } ?: ""
         }
 
@@ -85,9 +85,9 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             val urlParams = UrlParams(
                 "action" to ActionParam.Insert.name,
             )
-            masterViewItem?.item?.let {
+            masterViewItem?.dataContainer?.value?.let {
                 urlParams.add("contextClass" to it::class.simpleName)
-                urlParams.add("contextId" to it._id)
+                urlParams.add("contextId" to it.item?._id)
                 urlParams.add("contextName" to masterItemProp?.name)
             }
             configViewItem?.viewFunc?.let { it(urlParams) }?.let { viewItem ->
@@ -101,9 +101,9 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                     "action" to ActionParam.Update.name,
                     "id" to item._id,
                 )
-                masterViewItem?.item?.let {
+                masterViewItem?.dataContainer?.value?.let {
                     urlParams.add("contextClass" to it::class.simpleName)
-                    urlParams.add("contextId" to it._id)
+                    urlParams.add("contextId" to it.item?._id)
                     urlParams.add("contextName" to masterItemProp?.name)
                 }
                 configViewItem?.displayModal(urlParams, block)
@@ -159,12 +159,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
 
         container.apply {
             pageBanner()
-            loading = false
-            if (loading) {
-                centeredMessage("loading...")
-            } else {
-                pageListBody(this)
-            }
+            pageListBody(this)
         }
     }
 

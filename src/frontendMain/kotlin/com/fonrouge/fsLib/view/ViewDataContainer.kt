@@ -19,7 +19,6 @@ abstract class ViewDataContainer<U : Any>(
     sortParam: JsonObject? = null,
 ) : View(
     configView = configView,
-    loading = loading,
     editable = editable,
     icon = icon,
     restUrlParams = restUrlParams,
