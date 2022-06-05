@@ -34,7 +34,6 @@ abstract class CTableDb<T : BaseModel<*>>(
         pipeline: MutableList<Bson> = mutableListOf()
     ): CoroutineAggregatePublisher<U> {
         pipeline.addAll(buildLookup(modelLookupList))
-        println("PIPELINE:\n${pipeline.json}")
         return collection.aggregate(pipeline)
     }
 }
