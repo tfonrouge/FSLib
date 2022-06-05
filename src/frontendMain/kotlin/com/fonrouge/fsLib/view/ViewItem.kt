@@ -143,98 +143,102 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
         }
         pageContainer = container
         container.apply {
+
+/*
             if (container is Modal) {
                 container.caption = getCaption()
             } else {
+                console.warn("PAGEBANNER 1")
                 pageBanner()
+                console.warn("PAGEBANNER 2")
             }
-            div(className = "dataContainer").bind(dataContainer) { itemContainer ->
-                console.warn(
-                    "displaying page ... dataContainer",
-                    dataContainer,
-                    "value",
-                    dataContainer.value
-                )
-                if (action == ActionParam.Update && itemContainer.item == null) {
-                    centeredMessage("Updating error: item must not be null")
-                } else {
-                    flexPanel(direction = FlexDirection.COLUMN, spacing = 10, className = "LaCubana") {
-                        formPanel = container.pageItemBody(item = itemContainer.item)
-                        if (urlParams?.actionUpsert == true) {
-                            div(className = "col-$pageContainerWidth-12 text-right") {
-                                marginTop = 1.em
-                                button("Cancelar", style = ButtonStyle.OUTLINEDANGER) {
-                                    onClick {
-                                        if (container is Modal) {
-                                            container.hide()
-                                        } else {
-/*
-                                    lastResolved?.let {
-                                        routing.navigate(it.last().url)
-                                    } ?: routing.navigate("")
 */
-                                        }
-                                    }
-                                }
-                                add(buttonAccept)
-                                buttonAccept.marginLeft = 10.px
-                            }
-                        }
-                    }
-                    formPanel?.let { formPanel1 ->
-                        itemContainer.let { it1 ->
-                            it1.item?.let { formPanel1.setData(it) }
-                        }
-                        formPanel1.form.fields.forEach { formControlEntry ->
-                            if (urlParams?.actionUpsert != true || formControlEntry.key == "id" || disableEdit) {
-                                formControlEntry.value.disabled = true
-                            }
-                            if (urlParams?.action != ActionParam.Insert) {
-                                when (val formControl = formControlEntry.value) {
-                                    is DateFormControl -> {
-                                        (origObjItem[formControlEntry.key] as? Date)?.let {
-                                            formControl.value = it
-                                        }
-                                    }
-                                    is StringFormControl -> {
-                                        (origObjItem[formControlEntry.key] as? String)?.let {
-                                            formControl.value = it
-                                        }
-                                    }
-                                }
-                            }
+
+            div().bind(dataContainer) { itemContainer ->
+                singleRender {
+                    container.disposeAll()
+                    container.pageBanner()
+                    if (action == ActionParam.Update && itemContainer.item == null) {
+                        container.centeredMessage("Updating error: item must not be null")
+                    } else {
+                        container.flexPanel(direction = FlexDirection.COLUMN, spacing = 10, className = "LaCubana") {
+                            formPanel = container.pageItemBody(item = itemContainer.item)
                             if (urlParams?.actionUpsert == true) {
-                                defaultUpsertValueList(itemContainer.item).firstOrNull { it.kProp.name == formControlEntry.key }
-                                    ?.let {
-                                        val value = it.value
-                                        if (formControlEntry.value.getValue() == null && value != null) {
-                                            formControlEntry.value.setValue(value)
+                                div(className = "col-$pageContainerWidth-12 text-right") {
+                                    marginTop = 1.em
+                                    button("Cancelar", style = ButtonStyle.OUTLINEDANGER) {
+                                        onClick {
+                                            if (container is Modal) {
+                                                container.hide()
+                                            } else {
+/*
+                        lastResolved?.let {
+                            routing.navigate(it.last().url)
+                        } ?: routing.navigate("")
+*/
+                                            }
                                         }
                                     }
+                                    add(buttonAccept)
+                                    buttonAccept.marginLeft = 10.px
+                                }
                             }
                         }
-                        /* when more than one selector points to the same data */
-                        if (urlParams?.actionUpsert != true || disableEdit) {
-                            formPanel1.selectAjaxList.forEach { selCont ->
-                                selCont.select.disabled = true
+                        formPanel?.let { formPanel1 ->
+                            itemContainer.let { it1 ->
+                                it1.item?.let { formPanel1.setData(it) }
                             }
-                        }
-                        val block: () -> Unit = {
-                            formPanel1.selectAjaxList.forEach { selCont ->
-                                selCont.select.value = selCont.selectedPair?.first
-                                selCont.select.selectedLabel = selCont.selectedPair?.second
+                            formPanel1.form.fields.forEach { formControlEntry ->
+                                if (urlParams?.actionUpsert != true || formControlEntry.key == "id" || disableEdit) {
+                                    formControlEntry.value.disabled = true
+                                }
+                                if (urlParams?.action != ActionParam.Insert) {
+                                    when (val formControl = formControlEntry.value) {
+                                        is DateFormControl -> {
+                                            (origObjItem[formControlEntry.key] as? Date)?.let {
+                                                formControl.value = it
+                                            }
+                                        }
+                                        is StringFormControl -> {
+                                            (origObjItem[formControlEntry.key] as? String)?.let {
+                                                formControl.value = it
+                                            }
+                                        }
+                                    }
+                                }
+                                if (urlParams?.actionUpsert == true) {
+                                    defaultUpsertValueList(itemContainer.item).firstOrNull { it.kProp.name == formControlEntry.key }
+                                        ?.let {
+                                            val value = it.value
+                                            if (formControlEntry.value.getValue() == null && value != null) {
+                                                formControlEntry.value.setValue(value)
+                                            }
+                                        }
+                                }
                             }
-                        }
-                        window.setTimeout(block, 300)
-                        var handle: Int? = null
-                        if (formPanel1.selectAjaxList.size > 0) {
-                            handle = window.setInterval(
-                                handler = block,
-                                timeout = 1000
-                            )
-                        }
-                        formPanel1.addAfterDestroyHook {
-                            handle?.let { window.clearInterval(it) }
+                            /* when more than one selector points to the same data */
+                            if (urlParams?.actionUpsert != true || disableEdit) {
+                                formPanel1.selectAjaxList.forEach { selCont ->
+                                    selCont.select.disabled = true
+                                }
+                            }
+                            val block: () -> Unit = {
+                                formPanel1.selectAjaxList.forEach { selCont ->
+                                    selCont.select.value = selCont.selectedPair?.first
+                                    selCont.select.selectedLabel = selCont.selectedPair?.second
+                                }
+                            }
+                            window.setTimeout(block, 300)
+                            var handle: Int? = null
+                            if (formPanel1.selectAjaxList.size > 0) {
+                                handle = window.setInterval(
+                                    handler = block,
+                                    timeout = 1000
+                                )
+                            }
+                            formPanel1.addAfterDestroyHook {
+                                handle?.let { window.clearInterval(it) }
+                            }
                         }
                     }
                 }
@@ -245,7 +249,7 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
             container.show()
         }
 
-        klass?.let { callServer(it) }
+        callServer(klass)
     }
 
     open fun beforeUpdate(updateData: dynamic) {}

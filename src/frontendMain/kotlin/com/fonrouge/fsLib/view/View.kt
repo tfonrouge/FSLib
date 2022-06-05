@@ -24,10 +24,6 @@ abstract class View(
 
     var objId: Int = -1
 
-    companion object {
-        var objId = 0
-    }
-
     open val repeatRefreshView: Boolean? = null
     abstract var urlParams: UrlParams?
 
@@ -96,6 +92,8 @@ abstract class View(
 
     abstract fun displayPage(container: Container)
 
+    open fun onDisplayPage() {}
+
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         flexPanel(
             FlexDirection.ROW,
@@ -112,10 +110,5 @@ abstract class View(
                 pageBannerLink?.let { link -> onUpdatePageBannerLink(link) }
             }
         }
-    }
-
-    init {
-        ++View.objId
-        objId = View.objId
     }
 }
