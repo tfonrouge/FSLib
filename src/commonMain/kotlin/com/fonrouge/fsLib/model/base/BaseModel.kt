@@ -5,6 +5,6 @@ import kotlin.js.JsExport
 
 @OptIn(ExperimentalJsExport::class)
 @JsExport
-interface BaseModel {
-    val _id: Any
+interface BaseModel<T> {
+    val _id: T
 }

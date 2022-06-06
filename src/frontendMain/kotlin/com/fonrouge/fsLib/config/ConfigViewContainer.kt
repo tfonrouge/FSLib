@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonObject
 
 const val dataUrlPrefix = "data"
 
-abstract class ConfigViewContainer<T : BaseModel, V : ViewDataContainer<*>>(
+abstract class ConfigViewContainer<T : BaseModel<*>, V : ViewDataContainer<*>>(
     name: String,
     label: String,
     typeView: TypeView,

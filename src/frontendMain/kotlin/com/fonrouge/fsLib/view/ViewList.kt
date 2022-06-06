@@ -26,7 +26,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KProperty
 
 @Suppress("unused")
-abstract class ViewList<T : BaseModel, E : IDataList>(
+abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     override val configView: ConfigViewList<T, *>,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
@@ -78,7 +78,7 @@ abstract class ViewList<T : BaseModel, E : IDataList>(
             tabulator?.update(dataContainer)
         }
 
-    val actionParamMap = mapOf<ActionParam, (BaseModel?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
+    val actionParamMap = mapOf<ActionParam, (BaseModel<*>?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
         ActionParam.Insert to { item, block ->
             val urlParams = UrlParams(
                 "action" to ActionParam.Insert.name,

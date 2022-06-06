@@ -6,7 +6,7 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
 import kotlinx.serialization.json.JsonObject
 
-abstract class ConfigViewList<T : BaseModel, V : ViewList<T, *>>(
+abstract class ConfigViewList<T : BaseModel<*>, V : ViewList<T, *>>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V),

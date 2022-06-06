@@ -9,7 +9,7 @@ import com.fonrouge.fsLib.view.ViewItem
 import io.kvision.modal.ModalSize
 import kotlinx.serialization.json.JsonObject
 
-abstract class ConfigViewItem<T : BaseModel, V : ViewItem<T, *>>(
+abstract class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T, *>>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V),

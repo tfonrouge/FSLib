@@ -29,7 +29,7 @@ class NavbarTabulator(
     className = className
 ) {
 
-    var item: BaseModel? = null
+    var item: BaseModel<*>? = null
 
     //    var onClickActionParamList: Map<ActionParam, (item: BaseModel?) -> Unit> = mapOf()
     var onClickRefresh: () -> Unit = {}

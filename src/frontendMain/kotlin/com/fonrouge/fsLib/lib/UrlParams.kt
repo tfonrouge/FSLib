@@ -11,7 +11,7 @@ class UrlParams(match: Match? = null) : ArrayList<UrlParam>() {
         addAll(urlParams)
     }
 
-    constructor(item: BaseModel) : this() {
+    constructor(item: BaseModel<*>) : this() {
         add("id" to item._id)
         add("class" to item::class.simpleName)
     }

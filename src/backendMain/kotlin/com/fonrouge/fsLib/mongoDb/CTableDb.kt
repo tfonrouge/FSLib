@@ -6,12 +6,12 @@ import org.litote.kmongo.coroutine.CoroutineAggregatePublisher
 import org.litote.kmongo.coroutine.CoroutineCollection
 import kotlin.reflect.KProperty1
 
-class ModelLookup<T : BaseModel, U : BaseModel>(
+class ModelLookup<T : BaseModel<*>, U : BaseModel<*>>(
     val resultProperty: KProperty1<T, U?>,
     val modelLookupList: List<ModelLookup<U, *>>? = null
 )
 
-abstract class CTableDb<T : BaseModel>(
+abstract class CTableDb<T : BaseModel<*>>(
     val collection: CoroutineCollection<T>,
     private val lookupBuilderList: List<LookupBuilder<T, *, *>>? = null,
 ) {
