@@ -5,7 +5,6 @@ package com.fonrouge.fsLib.apiLib
 import com.fonrouge.fsLib.config.ConfigViewHome
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.withProgress
-import com.fonrouge.fsLib.model.MediaItem
 import com.fonrouge.fsLib.routing.initialize
 import io.kvision.routing.Routing
 import io.kvision.routing.routing
@@ -60,21 +59,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         }
 
         afterInitialize?.invoke()
-    }
-
-    fun getMediaList(item: Pair<String, *>, context: String, f: (List<MediaItem>?) -> Unit) {
-        withProgress {
-/*
-            val list = restCall<List<MediaItem>>(
-                url = "${Api.API_BASE_URL}media/url/${item.first}/${item.second}/$context",
-                method = HttpMethod.GET,
-                headers = headers(true)
-            )
-            list?.let {
-                f(list)
-            }
-*/
-        }
     }
 
     internal fun showToastApiRemoteRequest(code: Int, title: String, message: String) {

@@ -1,6 +1,10 @@
 package com.fonrouge.fsLib.model.base
 
-interface BaseModel<T> {
-    val _id: T
-//    abstract val upsertInfo: UpsertInfo?
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
+
+@OptIn(ExperimentalJsExport::class)
+@JsExport
+interface BaseModel {
+    val _id: Any
 }

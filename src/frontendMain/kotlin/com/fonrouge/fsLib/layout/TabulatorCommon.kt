@@ -13,7 +13,7 @@ import io.kvision.html.Link
 import io.kvision.tabulator.*
 import io.kvision.utils.px
 
-inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
+inline fun <reified T : BaseModel, E : IDataList> Container.tabulatorCommon(
     viewList: ViewList<T, E>,
     columnDefinitionList: List<ColumnDefinition<T>>,
     minToolbarSize: Boolean = true,
@@ -148,7 +148,7 @@ enum class RowSelectedType {
     Deselected
 }
 
-fun <T : BaseModel<*>> Tabulator<T>.update(list: List<T>?) {
+fun <T : BaseModel> Tabulator<T>.update(list: List<T>?) {
     if (list == null) {
         clearData()
     } else {

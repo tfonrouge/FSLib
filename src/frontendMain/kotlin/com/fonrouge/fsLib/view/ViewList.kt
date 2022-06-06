@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewList
-import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
@@ -27,7 +26,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KProperty
 
 @Suppress("unused")
-abstract class ViewList<T : BaseModel<*>, E : IDataList>(
+abstract class ViewList<T : BaseModel, E : IDataList>(
     override val configView: ConfigViewList<T, *>,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
@@ -79,7 +78,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             tabulator?.update(dataContainer)
         }
 
-    val actionParamMap = mapOf<ActionParam, (BaseModel<*>?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
+    val actionParamMap = mapOf<ActionParam, (BaseModel?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
         ActionParam.Insert to { item, block ->
             val urlParams = UrlParams(
                 "action" to ActionParam.Insert.name,

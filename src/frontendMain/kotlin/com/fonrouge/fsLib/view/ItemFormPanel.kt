@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 
-class ItemFormPanel<T : BaseModel<*>>(
+class ItemFormPanel<T : BaseModel>(
     val item: T?,
     method: FormMethod?,
     action: String?,
@@ -27,7 +27,7 @@ class ItemFormPanel<T : BaseModel<*>>(
     val selectAjaxList = arrayListOf<SelectAjax<*>>()
 
     @Suppress("unused")
-    inline fun <C : StringFormControl, reified K : BaseModel<*>> C.bindWithAjax(
+    inline fun <C : StringFormControl, reified K : BaseModel> C.bindWithAjax(
         key: KProperty1<T, K?>, required: Boolean = false, requiredMessage: String? = null,
         selectKClass: KClass<K>,
         selectKPropText: KProperty1<K, String?>,
@@ -101,7 +101,7 @@ class ItemFormPanel<T : BaseModel<*>>(
         return this
     }
 
-    class SelectAjax<K : BaseModel<*>>(
+    class SelectAjax<K : BaseModel>(
         val select: Select,
         val key: KProperty1<*, K?>,
         val selectKClass: KClass<K>,
@@ -111,7 +111,7 @@ class ItemFormPanel<T : BaseModel<*>>(
     }
 
     companion object {
-        inline fun <reified K : BaseModel<*>> create(
+        inline fun <reified K : BaseModel> create(
             item: K?,
             method: FormMethod? = null, action: String? = null, enctype: FormEnctype? = null,
             type: FormType? = null, condensed: Boolean = false,
@@ -139,7 +139,7 @@ class ItemFormPanel<T : BaseModel<*>>(
 }
 
 @Suppress("unused")
-inline fun <reified K : BaseModel<*>> Container.itemFormPanel(
+inline fun <reified K : BaseModel> Container.itemFormPanel(
     item: K?,
     method: FormMethod? = null, action: String? = null, enctype: FormEnctype? = null,
     type: FormType? = null, condensed: Boolean = false,

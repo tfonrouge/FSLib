@@ -45,7 +45,7 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
+abstract class ViewItem<T : BaseModel, E : IDataItem>(
     override val configView: ConfigViewItem<T, *>,
     private val serverManager: KVServiceManager<E>,
     private val function: suspend E.(String) -> ItemContainer<T>,
