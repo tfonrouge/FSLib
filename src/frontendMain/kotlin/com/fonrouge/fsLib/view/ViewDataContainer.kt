@@ -27,11 +27,14 @@ abstract class ViewDataContainer<U : Any>(
 ) {
 
     companion object {
-        var handleInterval: Int? = null
+        private var handleInterval: Int? = null
             set(value) {
-                if (value != null) {
-                    window.clearInterval(value)
+                console.warn("HANDLEINTERVAL set(value)", value)
+                field?.let {
+                    console.warn("CLEARING INTERVAL", it)
+                    window.clearInterval(it)
                 }
+                field = value
             }
     }
 
@@ -45,35 +48,27 @@ abstract class ViewDataContainer<U : Any>(
 
     val contextClassId get() = urlParams?.contextClassId
 
+    abstract suspend fun callUpdate()
+
     fun updateData() {
         val callBlock: () -> Unit = {
             try {
                 AppScope.launch {
-//                    configView?.dataFunc?.invoke(getApiParam()).let {
-/*
-                    configView?.dataFunc?.invoke().let {
-                        console.warn("dataFunc() view =", objId)
-                        dataContainer = it as U?
-                        if (loading) {
-                            loading = false
-                            KVWebManager.kvWebStore.dispatch(IfceWebAction.Loaded(this@ViewDataContainer))
-                        }
-                        //                            block?.invoke(it)
-                        displayBlock?.let { it() }
-                    }
-*/
+                    callUpdate()
                 }
             } catch (e: Exception) {
                 console.warn("Error on interval =", e)
             }
         }
-        if (repeatRefreshView == true) {
+        if (repeatUpdateView == true) {
             var lastTime: Int? = null
             var lock = false
             handleInterval = window.setInterval(
                 handler = {
+                    console.warn("entering HANDLE", handleInterval)
                     val time = Date().getUTCSeconds()
-                    if (lastTime != Date().getSeconds() && (time % KVWebManager.intervalTimeout == 0)) {
+                    if (lastTime != Date().getSeconds() && (time % repeatUpdateSecsInterval == 0)) {
+                        console.warn("updating HANDLE")
                         lastTime = Date().getUTCSeconds()
                         if (!lock) {
                             lock = true
@@ -84,6 +79,7 @@ abstract class ViewDataContainer<U : Any>(
                 },
                 timeout = 250
             )
+            console.warn("INSTALLING REPEAT REFRESH", this, "INTERVAL", handleInterval)
         }
         callBlock()
     }

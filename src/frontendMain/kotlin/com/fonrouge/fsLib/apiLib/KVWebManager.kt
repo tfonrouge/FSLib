@@ -32,7 +32,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     private var authenticated = false
 
-    const val intervalTimeout = 5
     var refreshViewItemPeriodic = false
     var refreshViewListPeriodic = false
 

@@ -54,7 +54,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
 
     val configViewItem: ConfigViewItem<*, *>? by lazy { configViewItemMap[name] }
 
-    override var repeatRefreshView: Boolean? = repeatRefreshView
+    override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewListPeriodic
 
     var tabulator: TabulatorRemote<T, E>? = null
@@ -159,6 +159,10 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             pageBanner()
             pageListBody(this)
         }
+    }
+
+    override suspend fun callUpdate() {
+//        tabulator?.reload()
     }
 
     fun refreshList() {

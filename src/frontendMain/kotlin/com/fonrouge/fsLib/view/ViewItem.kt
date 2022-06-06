@@ -41,7 +41,6 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
 import kotlin.js.Date
-import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @Suppress("unused")
@@ -68,7 +67,7 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
 ) {
     val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
 
-    override var repeatRefreshView: Boolean? = repeatRefreshView
+    override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     override fun getName(): String? {
@@ -119,12 +118,12 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
     }
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    private fun callServer(klass: KClass<T>): Promise<Any> {
+    override suspend fun callUpdate() {
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val state = stateFunction?.invoke()?.let { JSON.stringify(it) }
         val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf(state)))
-        return callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
+        callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
             .then { r: dynamic ->
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
                 val itemContainer: ItemContainer<T> =
@@ -249,8 +248,6 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
             container.show()
         }
 
-        callServer(klass)
+        updateData()
     }
-
-    open fun beforeUpdate(updateData: dynamic) {}
 }

@@ -24,7 +24,8 @@ abstract class View(
 
     var objId: Int = -1
 
-    open val repeatRefreshView: Boolean? = null
+    open val repeatUpdateView: Boolean? = null
+    var repeatUpdateSecsInterval = 5
     abstract var urlParams: UrlParams?
 
     var container: Container? = null
