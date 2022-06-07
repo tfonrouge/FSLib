@@ -21,56 +21,21 @@ abstract class View(
     var upsertData: JsonObject? = null,
     val modal: Boolean = false,
 ) {
-
-    var objId: Int = -1
-
-    open val repeatUpdateView: Boolean? = null
-    var repeatUpdateSecsInterval = 5
-    abstract var urlParams: UrlParams?
-
+    var caption: String? = null
     var container: Container? = null
-
-//    val eViewUrl: String = navigoPrefix + configView.url
-
-    var pageBannerLink: Link? = null
-
-    var onUpdatePageBannerLink: ((Link) -> Unit)? = null
-
     val navigoUrlWithParams: String
         get() {
             return configView.navigoUrl + if (urlParams != null) urlParams else ""
         }
-
+    var pageBannerLink: Link? = null
+    var onUpdatePageBannerLink: ((Link) -> Unit)? = null
+    open val repeatUpdateView: Boolean? = null
+    var repeatUpdateSecsInterval = 5
+    abstract var urlParams: UrlParams?
     val urlWithParams: String
         get() {
             return configView.url + if (urlParams != null) urlParams else ""
         }
-
-    var caption: String? = null
-
-    fun getCaption(): String {
-        return caption ?: when (urlParams?.action) {
-            ActionParam.Insert -> "[${ActionParam.Insert}] "
-            ActionParam.Update -> "[${ActionParam.Update}] "
-            else -> ""
-        }.let {
-            it + configView.label +
-                    if (this@View is ViewItem<*, *>) {
-                        getName().let { it1 ->
-                            if (it1 == null) "" else ": $it1"
-                        }
-                    } else ""
-        }
-    }
-
-    fun updateMainBannerLink(text: String, url: String) {
-        pageBannerLink?.label = "${configView.label}: $text"
-        pageBannerLink?.url = "${configView.navigoUrl}/$url"
-    }
-
-    open fun getName(): String? {
-        return null
-    }
 
     fun displayModal(
         caption: String? = null, closeButton: Boolean = true,
@@ -93,7 +58,26 @@ abstract class View(
 
     abstract fun displayPage(container: Container)
 
-    open fun onDisplayPage() {}
+    fun getCaption(): String {
+        return caption ?: when (urlParams?.action) {
+            ActionParam.Insert -> "[${ActionParam.Insert}] "
+            ActionParam.Update -> "[${ActionParam.Update}] "
+            else -> ""
+        }.let {
+            it + configView.label +
+                    if (this@View is ViewItem<*, *>) {
+                        getName().let { it1 ->
+                            if (it1 == null) "" else ": $it1"
+                        }
+                    } else ""
+        }
+    }
+
+    open fun getName(): String? {
+        return null
+    }
+
+    open fun onBeforeDisplayPage() {}
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         flexPanel(
@@ -111,5 +95,10 @@ abstract class View(
                 pageBannerLink?.let { link -> onUpdatePageBannerLink(link) }
             }
         }
+    }
+
+    fun updateMainBannerLink(text: String, url: String) {
+        pageBannerLink?.label = "${configView.label}: $text"
+        pageBannerLink?.url = "${configView.navigoUrl}/$url"
     }
 }

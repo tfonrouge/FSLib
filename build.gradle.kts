@@ -104,6 +104,7 @@ kotlin {
     jvm("backend") {
         compilations.all {
             kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
         }
         withJava()
         testRuns["test"].executionTask.configure {

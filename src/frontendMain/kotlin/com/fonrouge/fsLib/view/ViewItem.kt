@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.KVWebManager.pageContainerWidth
 import com.fonrouge.fsLib.config.ConfigViewItem
-import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.KPair
 import com.fonrouge.fsLib.model.IDataItem
@@ -12,26 +11,27 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.core.FlexDirection
 import io.kvision.form.DateFormControl
+import io.kvision.form.FormPanel
 import io.kvision.form.StringFormControl
 import io.kvision.html.Button
 import io.kvision.html.ButtonStyle
 import io.kvision.html.button
 import io.kvision.html.div
+import io.kvision.i18n.I18n.tr
 import io.kvision.modal.Modal
 import io.kvision.panel.flexPanel
+import io.kvision.panel.vPanel
 import io.kvision.remote.CallAgent
 import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.KVServiceManager
 import io.kvision.state.ObservableValue
-import io.kvision.state.bind
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
 import io.kvision.utils.em
 import io.kvision.utils.px
-import kotlinx.browser.window
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.encodeToString
@@ -51,71 +51,28 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
     private val stateFunction: (() -> String?)? = null,
     private val klass: KClass<T>,
     repeatRefreshView: Boolean? = null,
-    loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
 ) : ViewDataContainer<T>(
     configView = configView,
-    loading = loading,
     editable = editable,
     icon = icon,
     restUrlParams = configView.restUrlParams,
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
 ) {
+    var dataContainer: ObservableValue<ItemContainer<T>> = ObservableValue(ItemContainer(null))
+    var disableEdit: Boolean = false
+    var formPanel: FormPanel<T>? = null
+    val item get() = dataContainer.value.item
     val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
-
+    var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
+    var origObjItem: dynamic = null
+    private var pageContainer: Container? = null
     override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
-
-    override fun getName(): String? {
-        return dataContainer.let {
-            itemNameFunc.invoke(it.value)
-        }
-    }
-
-    var dc2 = ObservableValue<T?>(null)
-
-    var dataContainer: ObservableValue<ItemContainer<T>> = ObservableValue(ItemContainer(null))
-
-    var formPanel: ItemFormPanel<T>? = null
-    var origObjItem: dynamic = null
-
-    private var pageContainer: Container? = null
-
-    var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
-
-    var disableEdit: Boolean = false
-
-    @Suppress("MemberVisibilityCanBePrivate")
-    val buttonAccept: Button by lazy {
-        Button("Aceptar", style = ButtonStyle.OUTLINESUCCESS)
-            .onClick {
-                if (formPanel?.validate() == true) {
-                    onAcceptButtonClick?.invoke(this, it) ?: upsertItem()
-                    (pageContainer as? Modal)?.hide()
-                } else {
-                    Toast.warning(
-                        message = "Datos incompletos",
-                        options = ToastOptions(
-                            positionClass = ToastPosition.BOTTOMRIGHT
-                        )
-                    )
-                }
-            }
-    }
-
-    open fun defaultUpsertValueList(item: T?): List<KPair<T, *>> {
-        return listOf()
-    }
-
-    open fun Container.pageItemBody(item: T?): ItemFormPanel<T>? = null
-
-    fun upsertItem(customUpdate: dynamic = null, block: ((Boolean?) -> Unit)? = null) {
-//        KVWebManager.upsertItem(viewItem = this@ViewItem, customUpdate = customUpdate, block = block)
-    }
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     override suspend fun callUpdate() {
@@ -130,6 +87,10 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
                     Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
                 dataContainer.value = itemContainer
             }
+    }
+
+    open fun defaultUpsertValueList(item: T?): List<KPair<T, *>> {
+        return listOf()
     }
 
     final override fun displayPage(container: Container) {
@@ -152,93 +113,77 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
                 console.warn("PAGEBANNER 2")
             }
 */
+            vPanel {
+                addBeforeDisposeHook {
+                    console.warn("BEFORE DISPOSE HOOK", this)
+                    handleInterval = null
+                    onBeforeDispose()
+                }
+                pageBanner()
+                flexPanel(direction = FlexDirection.COLUMN, spacing = 10, className = "LaCubana") {
+                    formPanel = pageItemBody()
+                    if (urlParams?.actionUpsert == true) {
+                        div(className = "col-$pageContainerWidth-12 text-right") {
+                            marginTop = 1.em
+                            button(tr("Cancel"), style = ButtonStyle.OUTLINEDANGER) {
+                                onClick {
+                                    if (container is Modal) {
+                                        container.hide()
+                                    }
+                                }
+                            }
+                            button(tr("Accept"), style = ButtonStyle.OUTLINESUCCESS) {
+                                onClick {
+                                    if (formPanel?.validate() == true) {
+                                        // upsert
+                                    } else {
+                                        Toast.warning(
+                                            message = "Datos incompletos",
+                                            options = ToastOptions(
+                                                positionClass = ToastPosition.BOTTOMRIGHT
+                                            )
+                                        )
+                                    }
+                                }
+                                marginLeft = 10.px
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-            div().bind(dataContainer) { itemContainer ->
-                singleRender {
-                    container.disposeAll()
-                    container.pageBanner()
-                    if (action == ActionParam.Update && itemContainer.item == null) {
-                        container.centeredMessage("Updating error: item must not be null")
-                    } else {
-                        container.flexPanel(direction = FlexDirection.COLUMN, spacing = 10, className = "LaCubana") {
-                            formPanel = container.pageItemBody(item = itemContainer.item)
-                            if (urlParams?.actionUpsert == true) {
-                                div(className = "col-$pageContainerWidth-12 text-right") {
-                                    marginTop = 1.em
-                                    button("Cancelar", style = ButtonStyle.OUTLINEDANGER) {
-                                        onClick {
-                                            if (container is Modal) {
-                                                container.hide()
-                                            } else {
-/*
-                        lastResolved?.let {
-                            routing.navigate(it.last().url)
-                        } ?: routing.navigate("")
-*/
-                                            }
-                                        }
-                                    }
-                                    add(buttonAccept)
-                                    buttonAccept.marginLeft = 10.px
+        dataContainer.subscribe { itemContainer ->
+            formPanel?.let { formPanel1 ->
+                itemContainer.let { it1 ->
+                    it1.item?.let { formPanel1.setData(it) }
+                }
+                formPanel1.form.fields.forEach { formControlEntry ->
+                    if (urlParams?.actionUpsert != true || formControlEntry.key == "id" || disableEdit) {
+                        formControlEntry.value.disabled = true
+                    }
+                    if (urlParams?.action != ActionParam.Insert) {
+                        when (val formControl = formControlEntry.value) {
+                            is DateFormControl -> {
+                                (origObjItem[formControlEntry.key] as? Date)?.let {
+                                    formControl.value = it
+                                }
+                            }
+                            is StringFormControl -> {
+                                (origObjItem[formControlEntry.key] as? String)?.let {
+                                    formControl.value = it
                                 }
                             }
                         }
-                        formPanel?.let { formPanel1 ->
-                            itemContainer.let { it1 ->
-                                it1.item?.let { formPanel1.setData(it) }
-                            }
-                            formPanel1.form.fields.forEach { formControlEntry ->
-                                if (urlParams?.actionUpsert != true || formControlEntry.key == "id" || disableEdit) {
-                                    formControlEntry.value.disabled = true
-                                }
-                                if (urlParams?.action != ActionParam.Insert) {
-                                    when (val formControl = formControlEntry.value) {
-                                        is DateFormControl -> {
-                                            (origObjItem[formControlEntry.key] as? Date)?.let {
-                                                formControl.value = it
-                                            }
-                                        }
-                                        is StringFormControl -> {
-                                            (origObjItem[formControlEntry.key] as? String)?.let {
-                                                formControl.value = it
-                                            }
-                                        }
-                                    }
-                                }
-                                if (urlParams?.actionUpsert == true) {
-                                    defaultUpsertValueList(itemContainer.item).firstOrNull { it.kProp.name == formControlEntry.key }
-                                        ?.let {
-                                            val value = it.value
-                                            if (formControlEntry.value.getValue() == null && value != null) {
-                                                formControlEntry.value.setValue(value)
-                                            }
-                                        }
+                    }
+                    if (urlParams?.actionUpsert == true) {
+                        defaultUpsertValueList(itemContainer.item).firstOrNull { it.kProp.name == formControlEntry.key }
+                            ?.let {
+                                val value = it.value
+                                if (formControlEntry.value.getValue() == null && value != null) {
+                                    formControlEntry.value.setValue(value)
                                 }
                             }
-                            /* when more than one selector points to the same data */
-                            if (urlParams?.actionUpsert != true || disableEdit) {
-                                formPanel1.selectAjaxList.forEach { selCont ->
-                                    selCont.select.disabled = true
-                                }
-                            }
-                            val block: () -> Unit = {
-                                formPanel1.selectAjaxList.forEach { selCont ->
-                                    selCont.select.value = selCont.selectedPair?.first
-                                    selCont.select.selectedLabel = selCont.selectedPair?.second
-                                }
-                            }
-                            window.setTimeout(block, 300)
-                            var handle: Int? = null
-                            if (formPanel1.selectAjaxList.size > 0) {
-                                handle = window.setInterval(
-                                    handler = block,
-                                    timeout = 1000
-                                )
-                            }
-                            formPanel1.addAfterDestroyHook {
-                                handle?.let { window.clearInterval(it) }
-                            }
-                        }
                     }
                 }
             }
@@ -250,4 +195,20 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
 
         updateData()
     }
+
+    override fun getName(): String? {
+        return dataContainer.let {
+            itemNameFunc.invoke(it.value)
+        }
+    }
+
+    open fun onBeforeDispose() {
+
+    }
+
+    open fun onUpdateDataContainer(itemContainer: ItemContainer<T>) {
+
+    }
+
+    open fun Container.pageItemBody(): FormPanel<T>? = null
 }

@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.apiLib.AppScope
-import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.lib.UrlParams
 import kotlinx.browser.window
@@ -11,7 +10,6 @@ import kotlin.js.Date
 
 abstract class ViewDataContainer<U : Any>(
     configView: ConfigViewContainer<*, *>,
-    loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
     restUrlParams: UrlParams? = null,
@@ -27,7 +25,7 @@ abstract class ViewDataContainer<U : Any>(
 ) {
 
     companion object {
-        private var handleInterval: Int? = null
+        internal var handleInterval: Int? = null
             set(value) {
                 console.warn("HANDLEINTERVAL set(value)", value)
                 field?.let {
@@ -38,15 +36,15 @@ abstract class ViewDataContainer<U : Any>(
             }
     }
 
-    val name get() = configView.name
-
-    val lookupParam get() = configView.lookupParam
-
-//    abstract var dataContainer: ObservableValue<U>?
+    val contextClassId get() = urlParams?.contextClassId
 
     var displayBlock: (() -> Unit)? = null
 
-    val contextClassId get() = urlParams?.contextClassId
+    val lookupParam get() = configView.lookupParam
+
+    val name get() = configView.name
+
+//    abstract var dataContainer: ObservableValue<U>?
 
     abstract suspend fun callUpdate()
 

@@ -5,14 +5,14 @@ import com.fonrouge.fsLib.lib.UrlParams
 import io.kvision.core.Container
 
 class ViewState(
-    private val configView: ConfigView<*>,
-    private val urlParams: UrlParams?
-) {
-    @Suppress("unused")
-    fun displayPage(container: Container) {
-        return configView.viewFunc(urlParams).let { view ->
-            view.onDisplayPage()
-            view.displayPage(container)
-        }
+    internal val configView: ConfigView<*>,
+    internal val urlParams: UrlParams?
+)
+
+@Suppress("unused")
+fun Container.showView(viewState: ViewState) {
+    viewState.configView.viewFunc(viewState.urlParams).apply {
+        onBeforeDisplayPage()
+        displayPage(this@showView)
     }
 }
