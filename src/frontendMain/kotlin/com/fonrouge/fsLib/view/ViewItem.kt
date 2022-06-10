@@ -18,13 +18,13 @@ import io.kvision.html.ButtonStyle
 import io.kvision.html.button
 import io.kvision.html.div
 import io.kvision.i18n.I18n.tr
-import io.kvision.modal.Modal
 import io.kvision.panel.flexPanel
 import io.kvision.panel.vPanel
 import io.kvision.remote.CallAgent
 import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.KVServiceManager
+import io.kvision.routing.routing
 import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
@@ -79,7 +79,8 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val state = stateFunction?.invoke()?.let { JSON.stringify(it) }
-        val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf(state)))
+        val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf("JuanaLaCubana", state)))
+        console.warn("callUpdate data", data)
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
             .then { r: dynamic ->
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
@@ -103,39 +104,26 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
         }
         pageContainer = container
         container.apply {
-
-/*
-            if (container is Modal) {
-                container.caption = getCaption()
-            } else {
-                console.warn("PAGEBANNER 1")
-                pageBanner()
-                console.warn("PAGEBANNER 2")
-            }
-*/
-            vPanel {
+            vPanel(className = "showItem") {
                 addBeforeDisposeHook {
-                    console.warn("BEFORE DISPOSE HOOK", this)
                     handleInterval = null
                     onBeforeDispose()
                 }
                 pageBanner()
-                flexPanel(direction = FlexDirection.COLUMN, spacing = 10, className = "LaCubana") {
+                flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
                     formPanel = pageItemBody()
                     if (urlParams?.actionUpsert == true) {
                         div(className = "col-$pageContainerWidth-12 text-right") {
                             marginTop = 1.em
                             button(tr("Cancel"), style = ButtonStyle.OUTLINEDANGER) {
                                 onClick {
-                                    if (container is Modal) {
-                                        container.hide()
-                                    }
+                                    js("history.back()") as Unit
                                 }
                             }
                             button(tr("Accept"), style = ButtonStyle.OUTLINESUCCESS) {
                                 onClick {
                                     if (formPanel?.validate() == true) {
-                                        // upsert
+                                        js("history.back()") as Unit
                                     } else {
                                         Toast.warning(
                                             message = "Datos incompletos",
@@ -189,11 +177,9 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
             }
         }
 
-        if (container is Modal) {
-            container.show()
+        if (action != ActionParam.Insert) {
+            updateData()
         }
-
-        updateData()
     }
 
     override fun getName(): String? {

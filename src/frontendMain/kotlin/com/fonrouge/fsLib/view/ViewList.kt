@@ -14,11 +14,11 @@ import io.kvision.core.Container
 import io.kvision.dropdown.ContextMenu
 import io.kvision.html.Align
 import io.kvision.modal.Confirm
-import io.kvision.modal.ModalSize
 import io.kvision.remote.KVServiceManager
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
+import io.kvision.routing.routing
 import io.kvision.state.ObservableList
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.TabulatorRemote
@@ -76,33 +76,41 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             tabulator?.update(dataContainer)
         }
 
-    val actionParamMap = mapOf<ActionParam, (BaseModel<*>?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
-        ActionParam.Insert to { item, block ->
-            val urlParams = UrlParams(
-                "action" to ActionParam.Insert.name,
-            )
-            masterViewItem?.dataContainer?.value?.let {
-                urlParams.add("contextClass" to it::class.simpleName)
-                urlParams.add("contextId" to it.item?._id)
-                urlParams.add("contextName" to masterItemProp?.name)
-            }
-            configViewItem?.viewFunc?.let { it(urlParams) }?.let { viewItem ->
-                block?.let { block.invoke(viewItem) }
-                viewItem.displayModal(caption = "Inserting this...", size = ModalSize.XLARGE, centered = true)
-            }
-        },
-        ActionParam.Update to { item, block ->
-            item?.let {
+    val actionParamMap = mapOf<ActionParam, (Any?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
+        ActionParam.Insert to { _, _ ->
+            configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(
-                    "action" to ActionParam.Update.name,
-                    "id" to item._id,
+                    "action" to ActionParam.Insert.name,
                 )
                 masterViewItem?.dataContainer?.value?.let {
                     urlParams.add("contextClass" to it::class.simpleName)
                     urlParams.add("contextId" to it.item?._id)
                     urlParams.add("contextName" to masterItemProp?.name)
                 }
-                configViewItem?.displayModal(urlParams, block)
+                routing.navigate(configViewItem.url + urlParams.toString())
+            }
+/*
+            configViewItem?.viewFunc?.let { it(urlParams) }?.let { viewItem ->
+                block?.let { block.invoke(viewItem) }
+                viewItem.displayModal(caption = "Inserting this...", size = ModalSize.XLARGE, centered = true)
+            }
+*/
+        },
+        ActionParam.Update to { itemId, block ->
+            configViewItem?.let { configViewItem ->
+                itemId?.let {
+                    val urlParams = UrlParams(
+                        "action" to ActionParam.Update.name,
+                        "id" to itemId,
+                    )
+                    masterViewItem?.dataContainer?.value?.let {
+                        urlParams.add("contextClass" to it::class.simpleName)
+                        urlParams.add("contextId" to it.item?._id)
+                        urlParams.add("contextName" to masterItemProp?.name)
+                    }
+                    routing.navigate(configViewItem.url + urlParams.toString())
+//                configViewItem?.displayModal(urlParams, block)
+                }
             }
         },
         ActionParam.Delete to { item, block ->
@@ -141,7 +149,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
         return dataContainer?.let { listNameFunc.invoke(it) }
     }
 
-    open fun onRowSelected(item: T?) {}
+    open fun onRowSelected(itemId: Any?) {}
 
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
 

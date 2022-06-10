@@ -9,6 +9,7 @@ import io.kvision.html.link
 import io.kvision.modal.Modal
 import io.kvision.modal.ModalSize
 import io.kvision.panel.flexPanel
+import io.kvision.utils.em
 import kotlinx.serialization.json.JsonObject
 
 abstract class View(
@@ -19,7 +20,6 @@ abstract class View(
     var matchFilterParam: JsonObject? = null,
     var sortParam: JsonObject? = null,
     var upsertData: JsonObject? = null,
-    val modal: Boolean = false,
 ) {
     var caption: String? = null
     var container: Container? = null
@@ -36,25 +36,6 @@ abstract class View(
         get() {
             return configView.url + if (urlParams != null) urlParams else ""
         }
-
-    fun displayModal(
-        caption: String? = null, closeButton: Boolean = true,
-        size: ModalSize? = null, animation: Boolean = true, centered: Boolean = false,
-        scrollable: Boolean = false, escape: Boolean = true,
-        className: String? = null,
-    ) {
-        val modal = Modal(
-            caption = caption,
-            closeButton = closeButton,
-            size = size,
-            animation = animation,
-            centered = centered,
-            scrollable = scrollable,
-            escape = escape,
-            className = className
-        )
-        displayPage(modal)
-    }
 
     abstract fun displayPage(container: Container)
 
@@ -94,6 +75,7 @@ abstract class View(
 //                onUpdatePageBannerLink = it
                 pageBannerLink?.let { link -> onUpdatePageBannerLink(link) }
             }
+            marginBottom = 1.em
         }
     }
 

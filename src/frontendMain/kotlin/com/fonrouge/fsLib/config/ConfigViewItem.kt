@@ -25,6 +25,11 @@ abstract class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T, *>>(
     viewFunc = viewFunc,
 ) {
 
+    val labelDelete = "Eliminar $label"
+    val labelDetail = "Ver detalle de $label"
+    val labelInsert = "Agregar $label"
+    val labelUpdate = "Modificar $label"
+
     val urlWithInsert: String
         get() {
             val urlParams = UrlParams("action" to ActionParam.Insert.name)
@@ -32,36 +37,17 @@ abstract class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T, *>>(
             return navigoUrl + urlParams.toString()
         }
 
-    fun urlWithUpdate(id: Any): String {
-        val urlParams = UrlParams("id" to id, "action" to ActionParam.Update.name)
-        if (windowModal) urlParams.add("window" to "modal")
-        return navigoUrl + urlParams.toString()
-    }
-
     fun urlWithDelete(id: Any): String {
         val urlParams = UrlParams("id" to id, "action" to ActionParam.Delete.name)
         if (windowModal) urlParams.add("window" to "modal")
         return navigoUrl + urlParams.toString()
     }
 
-    fun displayModal(urlParams: UrlParams?, block: (V.() -> Unit)?) {
-        viewFunc(urlParams).let { viewItem ->
-            block?.let { block.invoke(viewItem) }
-            viewItem.displayBlock = {
-                viewItem.displayModal(
-                    caption = "Updating this...",
-                    size = ModalSize.XLARGE,
-                    centered = true
-                )
-            }
-            viewItem.updateData()
-        }
+    fun urlWithUpdate(id: Any): String {
+        val urlParams = UrlParams("id" to id, "action" to ActionParam.Update.name)
+        if (windowModal) urlParams.add("window" to "modal")
+        return navigoUrl + urlParams.toString()
     }
-
-    val labelInsert = "Agregar $label"
-    val labelUpdate = "Modificar $label"
-    val labelDelete = "Eliminar $label"
-    val labelDetail = "Ver detalle de $label"
 
     init {
         KVWebManager.configViewItemMap[name] = this

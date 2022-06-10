@@ -12,8 +12,7 @@ abstract class ViewHome(
     restUrlParams: UrlParams? = null,
     matchFilterParam: JsonObject? = null,
     sortParam: JsonObject? = null,
-    upsertData: JsonObject? = null,
-    modal: Boolean = false
+    upsertData: JsonObject? = null
 ) : View(
     configView = configView,
     editable = editable,
@@ -22,7 +21,6 @@ abstract class ViewHome(
     matchFilterParam = matchFilterParam,
     sortParam = sortParam,
     upsertData = upsertData,
-    modal = modal
 ) {
     init {
         caption = "Home"

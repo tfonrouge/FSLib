@@ -11,18 +11,19 @@ import io.kvision.core.onEvent
 import io.kvision.dropdown.*
 import io.kvision.html.Link
 import io.kvision.tabulator.*
+import io.kvision.utils.KvEvent
 import io.kvision.utils.px
 
 inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
     viewList: ViewList<T, E>,
     columnDefinitionList: List<ColumnDefinition<T>>,
     minToolbarSize: Boolean = true,
-    noinline rowSelect: ((T?) -> Unit)? = null,
+    noinline rowSelect: ((Any?) -> Unit)? = null,
 ): Container {
 
     lateinit var linkItemPage: Link
 
-    var item: T? = null
+    var itemId: Any? = null
 
     val nav = toolBarList(viewList = viewList, minToolbarSize)
 //    viewList.blockRefresh = { KVWebManager.updateViewDataContainer(viewList) }
@@ -30,36 +31,25 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
 
     val updateLinks: () -> Unit = {
         viewList.configViewItem?.let { configViewItem ->
-            nav.item = item
-            linkItemPage.url = item?._id?.let { "${configViewItem.navigoUrl}?id=${it}" }
+            nav.itemId = itemId
+            linkItemPage.url = itemId?.let { "${configViewItem.navigoUrl}?id=${it}" }
             nav.getChildren().forEach { component ->
                 if (component is Link) {
                     when (component.id) {
-                        ActionParam.Insert.name -> component.url = item?._id?.let {
+                        ActionParam.Insert.name -> component.url = itemId?.let {
                             configViewItem.urlWithInsert + viewList.parentContextUrlParams
                         }
-                        ActionParam.Update.name -> component.url = item?._id?.let {
+                        ActionParam.Update.name -> component.url = itemId?.let {
                             configViewItem.urlWithUpdate(it) + viewList.parentContextUrlParams
                         }
-                        ActionParam.Delete.name -> component.url = item?._id?.let {
+                        ActionParam.Delete.name -> component.url = itemId?.let {
                             configViewItem.urlWithDelete(it)
                         }
                     }
                 }
             }
         }
-
     }
-
-    val blockRowSelected: (RowSelectedType) -> Unit =
-        { _ ->
-            item = viewList.tabulator?.getSelectedData()?.let {
-                if (it.isNotEmpty()) it[0] else null
-            }
-            updateLinks()
-            viewList.onRowSelected(item)
-            rowSelect?.invoke(item)
-        }
 
     viewList.tabulator = tabulatorRemote(
         serviceManager = viewList.serverManager,
@@ -99,11 +89,15 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
         fontSize = 12.px
 
         onEvent {
-            rowSelectedTabulator = {
-                blockRowSelected(RowSelectedType.Selected)
-            }
-            rowDeselectedTabulator = {
-                blockRowSelected(RowSelectedType.Deselected)
+            rowSelectionChangedTabulator = { kvEvent: KvEvent ->
+                val item = this.self.getSelectedData().let {
+                    if (it.isEmpty()) null else it[0]
+                }
+                itemId = item?.let { item.asDynamic()["_id"] }
+                console.warn("ROW SELECT ", item, "itemId", itemId)
+                updateLinks()
+                viewList.onRowSelected(itemId)
+                rowSelect?.invoke(itemId)
             }
         }
 
@@ -117,19 +111,19 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
                             label = configViewItem.labelInsert,
                             icon = "fas fa-plus",
                         ) {
-                            onClick { viewList.actionParamMap[ActionParam.Insert]?.invoke(item, null) }
+                            onClick { viewList.actionParamMap[ActionParam.Insert]?.invoke(itemId, null) }
                         }
                         ddLink(
                             label = configViewItem.labelUpdate,
                             icon = "fas fa-edit",
                         ) {
-                            onClick { viewList.actionParamMap[ActionParam.Update]?.invoke(item, null) }
+                            onClick { viewList.actionParamMap[ActionParam.Update]?.invoke(itemId, null) }
                         }
                         ddLink(
                             label = configViewItem.labelDelete,
                             icon = "fas fa-trash-alt",
                         ) {
-                            onClick { viewList.actionParamMap[ActionParam.Delete]?.invoke(item, null) }
+                            onClick { viewList.actionParamMap[ActionParam.Delete]?.invoke(itemId, null) }
                         }
                     }
                 }

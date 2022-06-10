@@ -29,7 +29,7 @@ fun <T : BaseModel<*>> Container.toolBarList(
                         id = ActionParam.Insert.name
                         enableTooltip(TooltipOptions(configViewItem.labelInsert, animation = true, delay = delay))
                         onClick {
-                            viewList.actionParamMap[ActionParam.Insert]?.invoke(item, null)
+                            viewList.actionParamMap[ActionParam.Insert]?.invoke(itemId, null)
                         }
                     }
                     navLink(
@@ -39,7 +39,7 @@ fun <T : BaseModel<*>> Container.toolBarList(
                         id = ActionParam.Update.name
                         enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                         onClick {
-                            viewList.actionParamMap[ActionParam.Update]?.invoke(item, null)
+                            viewList.actionParamMap[ActionParam.Update]?.invoke(itemId, null)
                         }
                     }
                     navLink(
@@ -49,7 +49,7 @@ fun <T : BaseModel<*>> Container.toolBarList(
                         id = ActionParam.Delete.name
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                         onClick {
-                            viewList.actionParamMap[ActionParam.Delete]?.invoke(item, null)
+                            viewList.actionParamMap[ActionParam.Delete]?.invoke(itemId, null)
                         }
                     }
                     navLink(
@@ -59,7 +59,7 @@ fun <T : BaseModel<*>> Container.toolBarList(
                         id = ActionParam.Delete.name
                         enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                         onClick {
-                            val url = item?._id?.let { "/${configViewItem.url}?id=${it}" }
+                            val url = itemId?.let { "/${configViewItem.url}?id=${it}" }
                             url?.let { it1 -> routing.navigate(it1) }
                         }
                     }
