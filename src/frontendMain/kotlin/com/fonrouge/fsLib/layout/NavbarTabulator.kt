@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.layout
 
-import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
 import io.kvision.navbar.Navbar

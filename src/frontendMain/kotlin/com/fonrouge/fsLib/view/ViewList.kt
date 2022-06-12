@@ -57,7 +57,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
 
     var tabulator: TabulatorRemote<T, E>? = null
 
-    var masterViewItem: ViewItem<*, IDataItem>? = null
+    var masterViewItem: ViewItem<*, IDataItem, *>? = null
     var masterItemProp: KProperty<*>? = null
 
     val parentContextUrlParams: String
@@ -76,7 +76,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             tabulator?.update(dataContainer)
         }
 
-    val actionParamMap = mapOf<ActionParam, (Any?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
+    val actionParamMap = mapOf<ActionParam, (Any?, (ViewItem<*, *, *>.() -> Unit)?) -> Unit>(
         ActionParam.Insert to { _, _ ->
             configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(

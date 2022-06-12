@@ -6,8 +6,6 @@ import com.fonrouge.fsLib.lib.UrlParams
 import io.kvision.core.*
 import io.kvision.html.Link
 import io.kvision.html.link
-import io.kvision.modal.Modal
-import io.kvision.modal.ModalSize
 import io.kvision.panel.flexPanel
 import io.kvision.utils.em
 import kotlinx.serialization.json.JsonObject
@@ -46,7 +44,7 @@ abstract class View(
             else -> ""
         }.let {
             it + configView.label +
-                    if (this@View is ViewItem<*, *>) {
+                    if (this@View is ViewItem<*, *, *>) {
                         getName().let { it1 ->
                             if (it1 == null) "" else ": $it1"
                         }

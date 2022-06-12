@@ -11,7 +11,6 @@ import io.kvision.core.onEvent
 import io.kvision.dropdown.*
 import io.kvision.html.Link
 import io.kvision.tabulator.*
-import io.kvision.utils.KvEvent
 import io.kvision.utils.px
 
 inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
@@ -89,12 +88,11 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
         fontSize = 12.px
 
         onEvent {
-            rowSelectionChangedTabulator = { kvEvent: KvEvent ->
+            rowSelectionChangedTabulator = {
                 val item = this.self.getSelectedData().let {
                     if (it.isEmpty()) null else it[0]
                 }
                 itemId = item?.let { item.asDynamic()["_id"] }
-                console.warn("ROW SELECT ", item, "itemId", itemId)
                 updateLinks()
                 viewList.onRowSelected(itemId)
                 rowSelect?.invoke(itemId)

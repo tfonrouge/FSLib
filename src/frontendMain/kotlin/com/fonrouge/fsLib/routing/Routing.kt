@@ -36,7 +36,7 @@ private fun Navigo.onViewListPage(): Navigo {
     on("$dataUrlPrefix/:dataClass/list",
         { match: Match ->
             configViewListMap[match.data.dataClass as String]?.let { configViewList ->
-                observableConfigView.value = ViewState(configViewList, UrlParams(match))
+                observableConfigView.value = ViewState(configViewList, UrlParams(match = match))
             }
         })
     return this

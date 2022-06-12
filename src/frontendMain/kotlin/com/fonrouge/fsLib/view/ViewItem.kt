@@ -8,6 +8,7 @@ import com.fonrouge.fsLib.lib.KPair
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
+import csstype.url
 import io.kvision.core.Container
 import io.kvision.core.FlexDirection
 import io.kvision.form.DateFormControl
@@ -24,7 +25,6 @@ import io.kvision.remote.CallAgent
 import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.KVServiceManager
-import io.kvision.routing.routing
 import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
@@ -44,10 +44,10 @@ import kotlin.js.Date
 import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
+abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     override val configView: ConfigViewItem<T, *>,
     private val serverManager: KVServiceManager<E>,
-    private val function: suspend E.(String) -> ItemContainer<T>,
+    private val function: suspend E.(U, String?) -> ItemContainer<T>,
     private val stateFunction: (() -> String?)? = null,
     private val klass: KClass<T>,
     repeatRefreshView: Boolean? = null,
@@ -67,6 +67,7 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
     val item get() = dataContainer.value.item
+    var itemId: U? = null
     val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
     var origObjItem: dynamic = null
@@ -79,7 +80,7 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val state = stateFunction?.invoke()?.let { JSON.stringify(it) }
-        val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf("JuanaLaCubana", state)))
+        val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf(JSON.stringify(itemId), state)))
         console.warn("callUpdate data", data)
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
             .then { r: dynamic ->
@@ -101,6 +102,11 @@ abstract class ViewItem<T : BaseModel<*>, E : IDataItem>(
         val action = urlParams?.action
         if (action == ActionParam.Insert) {
             dataContainer.value = ItemContainer(null)
+        } else {
+            val _id = urlParams?.match?.params["id"] as? String
+            console.warn("_id", _id)
+            itemId = _id.unsafeCast<U>()
+            console.warn("ITEM ID", itemId)
         }
         pageContainer = container
         container.apply {

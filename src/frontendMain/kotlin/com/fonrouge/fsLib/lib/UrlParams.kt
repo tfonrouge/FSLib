@@ -5,7 +5,7 @@ import io.kvision.navigo.Match
 
 typealias UrlParam = Pair<String, *>
 
-class UrlParams(match: Match? = null) : ArrayList<UrlParam>() {
+class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
 
     constructor(vararg urlParams: UrlParam) : this() {
         addAll(urlParams)
