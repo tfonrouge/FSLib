@@ -10,9 +10,7 @@ import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.core.FlexDirection
-import io.kvision.form.DateFormControl
 import io.kvision.form.FormPanel
-import io.kvision.form.StringFormControl
 import io.kvision.html.Button
 import io.kvision.html.ButtonStyle
 import io.kvision.html.button
@@ -39,7 +37,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
-import kotlin.js.Date
 import kotlin.reflect.KClass
 
 @Suppress("unused")
@@ -69,7 +66,8 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     var itemId: U? = null
     val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
-    var origObjItem: dynamic = null
+
+    //    var origObjItem: dynamic = null
     private var pageContainer: Container? = null
     override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
@@ -147,38 +145,12 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         }
 
         dataContainer.subscribe { itemContainer ->
-            formPanel?.let { formPanel1 ->
-                itemContainer.let { it1 ->
-                    it1.item?.let { formPanel1.setData(it) }
-                }
-                formPanel1.form.fields.forEach { formControlEntry ->
-                    if (urlParams?.actionUpsert != true || formControlEntry.key == "id" || disableEdit) {
-                        formControlEntry.value.disabled = true
-                    }
-                    if (urlParams?.action != ActionParam.Insert) {
-                        when (val formControl = formControlEntry.value) {
-                            is DateFormControl -> {
-                                (origObjItem[formControlEntry.key] as? Date)?.let {
-                                    formControl.value = it
-                                }
-                            }
-                            is StringFormControl -> {
-                                (origObjItem[formControlEntry.key] as? String)?.let {
-                                    formControl.value = it
-                                }
-                            }
-                        }
-                    }
-                    if (urlParams?.actionUpsert == true) {
-                        defaultUpsertValueList(itemContainer.item).firstOrNull { it.kProp.name == formControlEntry.key }
-                            ?.let {
-                                val value = it.value
-                                if (formControlEntry.value.getValue() == null && value != null) {
-                                    formControlEntry.value.setValue(value)
-                                }
-                            }
-                    }
-                }
+            itemContainer.item?.let {
+                console.warn("DEBUG: getting itemContainer.item", it, formPanel)
+                formPanel?.setData(it)
+//                formPanel?.form?.fields?.forEach {
+//                    it.value.setValue("Juana La Cubana")
+//                }
             }
         }
 
