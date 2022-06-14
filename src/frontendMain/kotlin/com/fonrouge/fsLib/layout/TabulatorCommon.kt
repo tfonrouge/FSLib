@@ -12,7 +12,10 @@ import io.kvision.dropdown.*
 import io.kvision.html.Link
 import io.kvision.tabulator.*
 import io.kvision.utils.px
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.serializer
 
+@OptIn(InternalSerializationApi::class)
 inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
     viewList: ViewList<T, E>,
     columnDefinitionList: List<ColumnDefinition<T>>,
@@ -53,6 +56,7 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
     viewList.tabulator = tabulatorRemote(
         serviceManager = viewList.serverManager,
         function = viewList.function,
+        serializer = T::class.serializer(),
         options = TabulatorOptions(
 //            height = "calc(100vh - 30vh)",
             layout = Layout.FITDATASTRETCH,
