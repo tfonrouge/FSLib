@@ -2,8 +2,8 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.TypeView
-import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewItem
 import kotlinx.serialization.json.JsonObject
@@ -31,19 +31,19 @@ abstract class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T, *, *>>(
 
     val urlWithInsert: String
         get() {
-            val urlParams = UrlParams("action" to ActionParam.Insert.name)
+            val urlParams = UrlParams("action" to CrudAction.Create.name)
             if (windowModal) urlParams.add("window" to "modal")
             return navigoUrl + urlParams.toString()
         }
 
     fun urlWithDelete(id: Any): String {
-        val urlParams = UrlParams("id" to id, "action" to ActionParam.Delete.name)
+        val urlParams = UrlParams("id" to id, "action" to CrudAction.Delete.name)
         if (windowModal) urlParams.add("window" to "modal")
         return navigoUrl + urlParams.toString()
     }
 
     fun urlWithUpdate(id: Any): String {
-        val urlParams = UrlParams("id" to id, "action" to ActionParam.Update.name)
+        val urlParams = UrlParams("id" to id, "action" to CrudAction.Update.name)
         if (windowModal) urlParams.add("window" to "modal")
         return navigoUrl + urlParams.toString()
     }

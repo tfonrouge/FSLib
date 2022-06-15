@@ -5,8 +5,8 @@ import com.fonrouge.fsLib.apiLib.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.layout.update
-import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
@@ -77,11 +77,11 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             tabulator?.update(dataContainer)
         }
 
-    val actionParamMap = mapOf<ActionParam, (Any?, (ViewItem<*, *, *>.() -> Unit)?) -> Unit>(
-        ActionParam.Insert to { _, _ ->
+    val crudActionMap = mapOf<CrudAction, (Any?, (ViewItem<*, *, *>.() -> Unit)?) -> Unit>(
+        CrudAction.Create to { _, _ ->
             configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(
-                    "action" to ActionParam.Insert.name,
+                    "action" to CrudAction.Create.name,
                 )
                 masterViewItem?.dataContainer?.value?.let {
                     urlParams.add("contextClass" to it::class.simpleName)
@@ -97,11 +97,11 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             }
 */
         },
-        ActionParam.Update to { itemId, block ->
+        CrudAction.Update to { itemId, block ->
             configViewItem?.let { configViewItem ->
                 itemId?.let {
                     val urlParams = UrlParams(
-                        "action" to ActionParam.Update.name,
+                        "action" to CrudAction.Update.name,
                         "id" to itemId,
                     )
                     masterViewItem?.dataContainer?.value?.let {
@@ -114,7 +114,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                 }
             }
         },
-        ActionParam.Delete to { item, block ->
+        CrudAction.Delete to { item, block ->
             item?.let {
                 val itemConfigView = configViewItem
                 Confirm.show(
@@ -169,7 +169,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     }
 
     override suspend fun callUpdate() {
-//        tabulator?.reload()
+        tabulator?.reload()
     }
 
     fun refreshList() {

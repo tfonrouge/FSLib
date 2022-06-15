@@ -2,7 +2,7 @@
 
 package com.fonrouge.fsLib.layout
 
-import com.fonrouge.fsLib.lib.ActionParam
+import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
@@ -38,13 +38,13 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
             nav.getChildren().forEach { component ->
                 if (component is Link) {
                     when (component.id) {
-                        ActionParam.Insert.name -> component.url = itemId?.let {
+                        CrudAction.Create.name -> component.url = itemId?.let {
                             configViewItem.urlWithInsert + viewList.parentContextUrlParams
                         }
-                        ActionParam.Update.name -> component.url = itemId?.let {
+                        CrudAction.Update.name -> component.url = itemId?.let {
                             configViewItem.urlWithUpdate(it) + viewList.parentContextUrlParams
                         }
-                        ActionParam.Delete.name -> component.url = itemId?.let {
+                        CrudAction.Delete.name -> component.url = itemId?.let {
                             configViewItem.urlWithDelete(it)
                         }
                     }
@@ -113,19 +113,19 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
                             label = configViewItem.labelInsert,
                             icon = "fas fa-plus",
                         ) {
-                            onClick { viewList.actionParamMap[ActionParam.Insert]?.invoke(itemId, null) }
+                            onClick { viewList.crudActionMap[CrudAction.Create]?.invoke(itemId, null) }
                         }
                         ddLink(
                             label = configViewItem.labelUpdate,
                             icon = "fas fa-edit",
                         ) {
-                            onClick { viewList.actionParamMap[ActionParam.Update]?.invoke(itemId, null) }
+                            onClick { viewList.crudActionMap[CrudAction.Update]?.invoke(itemId, null) }
                         }
                         ddLink(
                             label = configViewItem.labelDelete,
                             icon = "fas fa-trash-alt",
                         ) {
-                            onClick { viewList.actionParamMap[ActionParam.Delete]?.invoke(itemId, null) }
+                            onClick { viewList.crudActionMap[CrudAction.Delete]?.invoke(itemId, null) }
                         }
                     }
                 }
@@ -136,6 +136,9 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
             }
         }
     }
+
+    viewList.updateData()
+
     return this
 }
 

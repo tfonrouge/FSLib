@@ -1,8 +1,8 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
-import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.CrudAction
 import io.kvision.core.*
 import io.kvision.html.Link
 import io.kvision.html.link
@@ -39,8 +39,8 @@ abstract class View(
 
     fun getCaption(): String {
         return caption ?: when (urlParams?.action) {
-            ActionParam.Insert -> "[${ActionParam.Insert}] "
-            ActionParam.Update -> "[${ActionParam.Update}] "
+            CrudAction.Create -> "[${CrudAction.Create}] "
+            CrudAction.Update -> "[${CrudAction.Update}] "
             else -> ""
         }.let {
             it + configView.label +

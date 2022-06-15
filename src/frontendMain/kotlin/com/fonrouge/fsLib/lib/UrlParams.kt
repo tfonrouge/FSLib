@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.lib
 
+import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.navigo.Match
 
@@ -25,17 +26,17 @@ class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
         }
     }
 
-    val action: ActionParam?
+    val action: CrudAction?
         get() {
             return find { it.first == "action" }?.let { pair ->
-                ActionParam.values().find { it.name == pair.second }
+                CrudAction.values().find { it.name == pair.second }
             }
         }
 
     val actionUpsert: Boolean
         get() {
             return find { it.first == "action" }?.let {
-                it.second in listOf(ActionParam.Insert.name, ActionParam.Update.name)
+                it.second in listOf(CrudAction.Create.name, CrudAction.Update.name)
             } ?: false
         }
 
@@ -66,9 +67,3 @@ class ContextClassId(
     val contextId: String,
     val contextName: String?,
 )
-
-enum class ActionParam {
-    Insert,
-    Update,
-    Delete,
-}

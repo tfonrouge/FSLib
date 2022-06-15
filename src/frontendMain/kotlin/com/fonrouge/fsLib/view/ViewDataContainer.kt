@@ -74,6 +74,6 @@ abstract class ViewDataContainer<U : Any>(
                 timeout = 250
             )
         }
-        callBlock()
+//        callBlock()
     }
 }

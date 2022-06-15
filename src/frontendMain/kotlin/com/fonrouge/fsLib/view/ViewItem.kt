@@ -2,9 +2,8 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
-import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.KPair
-import com.fonrouge.fsLib.model.CrudFunction
+import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
@@ -42,7 +41,7 @@ import kotlin.reflect.KClass
 abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     override val configView: ConfigViewItem<T, *>,
     private val serverManager: KVServiceManager<E>,
-    private val function: suspend E.(CrudFunction, U?, T?) -> ItemContainer<T>,
+    private val function: suspend E.(CrudAction, U?, T?) -> ItemContainer<T>,
     private val klass: KClass<T>,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
@@ -71,11 +70,11 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    fun apiCall(crudFunction: CrudFunction) {
+    fun apiCall(crudAction: CrudAction, item: T? = null) {
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
-            Json.encodeToString(crudFunction),
+            Json.encodeToString(crudAction),
             JSON.stringify(itemId),
             item?.let { Json.encodeToString(serializer = klass.serializer(), it) } ?: "null",
         )
@@ -96,7 +95,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     }
 
     override suspend fun callUpdate() {
-        apiCall(CrudFunction.READ)
+        apiCall(CrudAction.Read)
     }
 
     open fun defaultUpsertValueList(item: T?): List<KPair<T, *>> {
@@ -108,7 +107,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         this.container = container
 
         val action = urlParams?.action
-        if (action == ActionParam.Insert) {
+        if (action == CrudAction.Create) {
             dataContainer.value = ItemContainer(null)
         } else {
             val params = urlParams?.match?.params
@@ -126,7 +125,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     handleInterval = null
                     onBeforeDispose()
                 }
-                if(!noPageBanner) {
+                if (!noPageBanner) {
                     pageBanner()
                 }
                 flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
@@ -148,6 +147,9 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 //                                marginLeft = 10.px
                                 onClick {
                                     if (formPanel?.validate() == true) {
+                                        if (action != null) {
+                                            apiCall(action, formPanel?.getData())
+                                        }
                                         js("history.back()") as? Unit
                                     } else {
                                         Toast.warning(
@@ -179,7 +181,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             }
         }
 
-        if (action != ActionParam.Insert) {
+        if (action != CrudAction.Create) {
             updateData()
         }
     }
