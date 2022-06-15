@@ -51,6 +51,9 @@ abstract class ViewDataContainer<U : Any>(
             AppScope.launch {
                 try {
                     callUpdate()
+                    if (this@ViewDataContainer is ViewList<*, *>) {
+                        console.warn("TABULATOR page", this@ViewDataContainer.tabulator?.getData())
+                    }
                 } catch (e: Exception) {
                     console.error("Error on interval =", e)
                 }

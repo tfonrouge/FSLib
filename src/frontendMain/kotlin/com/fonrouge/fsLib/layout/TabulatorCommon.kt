@@ -11,6 +11,7 @@ import io.kvision.core.onEvent
 import io.kvision.dropdown.*
 import io.kvision.html.Link
 import io.kvision.tabulator.*
+import io.kvision.utils.obj
 import io.kvision.utils.px
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
@@ -65,6 +66,11 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
             selectable = 1,
 //            rowSelected = { blockRowSelected(it, RowSelectedType.Selected) },
 //            rowDeselected = { blockRowSelected(it, RowSelectedType.Deselected) },
+            persistence = obj {
+                page = true
+                size = false
+            },
+//            persistenceMode = true,
             pagination = true,
             paginationMode = PaginationMode.REMOTE,
             filterMode = FilterMode.REMOTE,
@@ -137,7 +143,7 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
         }
     }
 
-    viewList.updateData()
+//    viewList.updateData()
 
     return this
 }

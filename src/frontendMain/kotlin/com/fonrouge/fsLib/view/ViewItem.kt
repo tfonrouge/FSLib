@@ -147,9 +147,8 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 //                                marginLeft = 10.px
                                 onClick {
                                     if (formPanel?.validate() == true) {
-                                        if (action != null) {
-                                            apiCall(action, formPanel?.getData())
-                                        }
+                                        console.warn("DEBUG: calling apiCall", action)
+                                        apiCall(CrudAction.Update, formPanel?.getData())
                                         js("history.back()") as? Unit
                                     } else {
                                         Toast.warning(
@@ -181,7 +180,10 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             }
         }
 
+        console.warn("DEBUG: action", action)
+
         if (action != CrudAction.Create) {
+            console.warn("DEBUG: updateData")
             updateData()
         }
     }

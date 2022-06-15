@@ -169,7 +169,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     }
 
     override suspend fun callUpdate() {
-        tabulator?.reload()
+//        tabulator?.options?.
     }
 
     fun refreshList() {
