@@ -86,7 +86,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 params = paramList
             )
         )
-        console.warn("DEBUG: calling params", data)
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
             .then { r: dynamic ->
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
@@ -149,7 +148,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 //                                marginLeft = 10.px
                                 onClick {
                                     if (formPanel?.validate() == true) {
-                                        console.warn("DEBUG: calling apiCall", action)
                                         if (action != null) {
                                             apiCall(action, itemId = itemId, formPanel?.getData())
                                         }

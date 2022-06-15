@@ -169,7 +169,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     }
 
     override suspend fun singleUpdate() {
-//        tabulator?.options?.
+        tabulator?.jsTabulator?.asDynamic().replaceData()
     }
 
     fun refreshList() {

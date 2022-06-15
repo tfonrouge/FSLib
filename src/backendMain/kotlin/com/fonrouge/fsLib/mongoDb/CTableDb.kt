@@ -20,7 +20,7 @@ class FirstStage(
     val pipeline: MutableList<Bson>,
     val count: Long,
     val last_page: Int,
-    val last_row: Int
+    val last_row: Int,
 )
 
 abstract class CTableDb<T : BaseModel<*>>(
@@ -56,7 +56,6 @@ abstract class CTableDb<T : BaseModel<*>>(
         size: Int? = null,
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
-        state: String? = null
     ): FirstStage {
         val bsonList = mutableListOf<Bson>()
         match?.let {
@@ -73,13 +72,26 @@ abstract class CTableDb<T : BaseModel<*>>(
                 filterValue.append(remoteFilter.field, value)
             }
         }
+        if (!sorter.isNullOrEmpty()) {
+            val fields = Document()
+            sorter.forEach { remoteSorter ->
+                fields.append(
+                    remoteSorter.field, when (remoteSorter.dir) {
+                        "asc" -> 1
+                        "desc" -> -1
+                        else -> 1
+                    }
+                )
+            }
+            bsonList.add(Document("\$sort", fields))
+        }
         val count: Long = filterValue?.let { collection.countDocuments(it) } ?: collection.countDocuments()
         if (page == null) {
             return FirstStage(
                 pipeline = bsonList,
                 count = count,
                 last_page = -1,
-                last_row = -1
+                last_row = -1,
             )
         } else {
             val nSize = size ?: 10
@@ -97,7 +109,7 @@ abstract class CTableDb<T : BaseModel<*>>(
                 pipeline = bsonList,
                 count = count,
                 last_page = (count / nSize + 1).toInt(),
-                last_row = 5
+                last_row = 5,
             )
         }
     }

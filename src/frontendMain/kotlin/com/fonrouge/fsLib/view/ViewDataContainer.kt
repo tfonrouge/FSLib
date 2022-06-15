@@ -46,14 +46,11 @@ abstract class ViewDataContainer<U : Any>(
 
     abstract suspend fun singleUpdate()
 
-    fun updateData(editMode: Boolean) {
+    fun updateData(editMode: Boolean = false) {
         val callBlock: () -> Unit = {
             AppScope.launch {
                 try {
                     singleUpdate()
-                    if (this@ViewDataContainer is ViewList<*, *>) {
-                        console.warn("TABULATOR page", this@ViewDataContainer.tabulator?.getData())
-                    }
                 } catch (e: Exception) {
                     console.error("Error on interval =", e)
                 }

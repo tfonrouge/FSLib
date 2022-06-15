@@ -143,7 +143,7 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
         }
     }
 
-//    viewList.updateData()
+    viewList.updateData()
 
     return this
 }
