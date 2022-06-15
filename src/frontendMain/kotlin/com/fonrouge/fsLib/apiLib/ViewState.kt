@@ -5,8 +5,8 @@ import com.fonrouge.fsLib.lib.UrlParams
 import io.kvision.core.Container
 
 class ViewState(
-    internal val configView: ConfigView<*>,
-    internal val urlParams: UrlParams?
+    val configView: ConfigView<*>,
+    val urlParams: UrlParams?
 )
 
 @Suppress("unused")

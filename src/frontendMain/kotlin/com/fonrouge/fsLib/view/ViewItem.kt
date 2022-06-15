@@ -66,8 +66,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     var itemId: U? = null
     val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
-
-    //    var origObjItem: dynamic = null
     private var pageContainer: Container? = null
     override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic

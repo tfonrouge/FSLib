@@ -37,7 +37,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var setup: (KVWebManager.() -> Unit)? = null
 
-    var observableConfigView = ObservableValue<ViewState?>(null)
+    var viewStateObservableValue = ObservableValue<ViewState?>(null)
 
     var iConfigView: IConfigView? = null
 
