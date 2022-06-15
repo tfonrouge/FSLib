@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.KPair
+import com.fonrouge.fsLib.model.CrudFunction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
@@ -27,7 +28,6 @@ import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
 import io.kvision.utils.em
-import io.kvision.utils.px
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.encodeToString
@@ -42,8 +42,7 @@ import kotlin.reflect.KClass
 abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     override val configView: ConfigViewItem<T, *>,
     private val serverManager: KVServiceManager<E>,
-    private val function: suspend E.(U, String?) -> ItemContainer<T>,
-    private val stateFunction: (() -> String?)? = null,
+    private val function: suspend E.(CrudFunction, U?, T?) -> ItemContainer<T>,
     private val klass: KClass<T>,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
@@ -70,11 +69,21 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    override suspend fun callUpdate() {
+    fun apiCall(crudFunction: CrudFunction) {
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
-        val state = stateFunction?.invoke()?.let { JSON.stringify(it) }
-        val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf(JSON.stringify(itemId), state)))
+        val paramList = listOf(
+            Json.encodeToString(crudFunction),
+            JSON.stringify(itemId),
+            item?.let { Json.encodeToString(serializer = klass.serializer(), it) } ?: "null",
+        )
+        val data = Serialization.plain.encodeToString(
+            JsonRpcRequest(
+                id = 0,
+                method = url,
+                params = paramList
+            )
+        )
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
             .then { r: dynamic ->
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
@@ -82,6 +91,10 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
                 dataContainer.value = itemContainer
             }
+    }
+
+    override suspend fun callUpdate() {
+        apiCall(CrudFunction.READ)
     }
 
     open fun defaultUpsertValueList(item: T?): List<KPair<T, *>> {
@@ -96,8 +109,13 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         if (action == ActionParam.Insert) {
             dataContainer.value = ItemContainer(null)
         } else {
-            val _id = urlParams?.match?.params["id"] as? String
-            itemId = _id.unsafeCast<U>()
+            val params = urlParams?.match?.params
+            val _id = if (params == undefined) {
+                null
+            } else {
+                params["id"]
+            }
+            itemId = _id?.unsafeCast<U>()
         }
         pageContainer = container
         container.apply {
@@ -109,7 +127,12 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 pageBanner()
                 flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
                     formPanel = pageItemBody()
-                    flexPanel(direction = FlexDirection.ROW, justify = JustifyContent.CENTER) {
+                    if (urlParams?.actionUpsert != true) {
+                        formPanel?.form?.fields?.forEach { entry ->
+                            entry.value.disabled = true
+                        }
+                    }
+                    flexPanel(direction = FlexDirection.ROW, justify = JustifyContent.CENTER, spacing = 20) {
                         marginTop = 1.em
                         if (urlParams?.actionUpsert == true) {
                             button(tr("Cancel"), style = ButtonStyle.OUTLINEDANGER) {
@@ -118,7 +141,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                                 }
                             }
                             button(tr("Accept"), style = ButtonStyle.OUTLINESUCCESS) {
-                                marginLeft = 10.px
+//                                marginLeft = 10.px
                                 onClick {
                                     if (formPanel?.validate() == true) {
                                         js("history.back()") as? Unit
