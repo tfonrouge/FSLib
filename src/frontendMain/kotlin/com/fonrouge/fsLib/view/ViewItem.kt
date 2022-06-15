@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.apiLib.KVWebManager
-import com.fonrouge.fsLib.apiLib.KVWebManager.pageContainerWidth
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.ActionParam
 import com.fonrouge.fsLib.lib.KPair
@@ -10,11 +9,11 @@ import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.core.FlexDirection
+import io.kvision.core.JustifyContent
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
 import io.kvision.html.ButtonStyle
 import io.kvision.html.button
-import io.kvision.html.div
 import io.kvision.i18n.I18n.tr
 import io.kvision.panel.flexPanel
 import io.kvision.panel.vPanel
@@ -76,7 +75,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         val callAgent = CallAgent()
         val state = stateFunction?.invoke()?.let { JSON.stringify(it) }
         val data = Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf(JSON.stringify(itemId), state)))
-        console.warn("callUpdate data", data)
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
             .then { r: dynamic ->
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
@@ -99,9 +97,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             dataContainer.value = ItemContainer(null)
         } else {
             val _id = urlParams?.match?.params["id"] as? String
-            console.warn("_id", _id)
             itemId = _id.unsafeCast<U>()
-            console.warn("ITEM ID", itemId)
         }
         pageContainer = container
         container.apply {
@@ -113,28 +109,32 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 pageBanner()
                 flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
                     formPanel = pageItemBody()
-                    if (urlParams?.actionUpsert == true) {
-                        div(className = "col-$pageContainerWidth-12 text-right") {
-                            marginTop = 1.em
+                    flexPanel(direction = FlexDirection.ROW, justify = JustifyContent.CENTER) {
+                        marginTop = 1.em
+                        if (urlParams?.actionUpsert == true) {
                             button(tr("Cancel"), style = ButtonStyle.OUTLINEDANGER) {
                                 onClick {
-                                    js("history.back()") as Unit
+                                    js("history.back()") as? Unit
                                 }
                             }
                             button(tr("Accept"), style = ButtonStyle.OUTLINESUCCESS) {
+                                marginLeft = 10.px
                                 onClick {
                                     if (formPanel?.validate() == true) {
-                                        js("history.back()") as Unit
+                                        js("history.back()") as? Unit
                                     } else {
                                         Toast.warning(
-                                            message = "Datos incompletos",
+                                            message = "Form has incomplete data",
                                             options = ToastOptions(
                                                 positionClass = ToastPosition.BOTTOMRIGHT
                                             )
                                         )
                                     }
                                 }
-                                marginLeft = 10.px
+                            }
+                        } else {
+                            button(tr("Back"), icon = "fa-solid fa-arrow-rotate-left").onClick {
+                                js("history.back()") as? Unit
                             }
                         }
                     }
@@ -142,13 +142,11 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             }
         }
 
-        dataContainer.subscribe { itemContainer ->
-            itemContainer.item?.let {
-                console.warn("DEBUG: getting itemContainer.item", it, formPanel)
-                formPanel?.setData(it)
-//                formPanel?.form?.fields?.forEach {
-//                    it.value.setValue("Juana La Cubana")
-//                }
+        formPanel?.let { formPanel ->
+            dataContainer.subscribe { itemContainer ->
+                itemContainer.item?.let { item ->
+                    formPanel.setData(item)
+                }
             }
         }
 

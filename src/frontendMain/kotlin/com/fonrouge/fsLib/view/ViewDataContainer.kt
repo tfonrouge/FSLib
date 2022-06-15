@@ -27,9 +27,7 @@ abstract class ViewDataContainer<U : Any>(
     companion object {
         internal var handleInterval: Int? = null
             set(value) {
-                console.warn("HANDLEINTERVAL set(value)", value)
                 field?.let {
-                    console.warn("CLEARING INTERVAL", it)
                     window.clearInterval(it)
                 }
                 field = value
@@ -50,12 +48,12 @@ abstract class ViewDataContainer<U : Any>(
 
     fun updateData() {
         val callBlock: () -> Unit = {
-            try {
-                AppScope.launch {
+            AppScope.launch {
+                try {
                     callUpdate()
+                } catch (e: Exception) {
+                    console.error("Error on interval =", e)
                 }
-            } catch (e: Exception) {
-                console.warn("Error on interval =", e)
             }
         }
         if (repeatUpdateView == true) {
@@ -63,10 +61,8 @@ abstract class ViewDataContainer<U : Any>(
             var lock = false
             handleInterval = window.setInterval(
                 handler = {
-                    console.warn("entering HANDLE", handleInterval)
                     val time = Date().getUTCSeconds()
                     if (lastTime != Date().getSeconds() && (time % repeatUpdateSecsInterval == 0)) {
-                        console.warn("updating HANDLE")
                         lastTime = Date().getUTCSeconds()
                         if (!lock) {
                             lock = true
@@ -77,7 +73,6 @@ abstract class ViewDataContainer<U : Any>(
                 },
                 timeout = 250
             )
-            console.warn("INSTALLING REPEAT REFRESH", this, "INTERVAL", handleInterval)
         }
         callBlock()
     }
