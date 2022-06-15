@@ -63,6 +63,8 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     val item get() = dataContainer.value.item
     var itemId: U? = null
     val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
+    var noBackButton = false
+    var noPageBanner = false
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
     private var pageContainer: Container? = null
     override var repeatUpdateView: Boolean? = repeatRefreshView
@@ -124,7 +126,9 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     handleInterval = null
                     onBeforeDispose()
                 }
-                pageBanner()
+                if(!noPageBanner) {
+                    pageBanner()
+                }
                 flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
                     formPanel = pageItemBody()
                     if (urlParams?.actionUpsert != true) {
@@ -156,8 +160,10 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                                 }
                             }
                         } else {
-                            button(tr("Back"), icon = "fa-solid fa-arrow-rotate-left").onClick {
-                                js("history.back()") as? Unit
+                            if (!noBackButton) {
+                                button(tr("Back"), icon = "fa-solid fa-arrow-rotate-left").onClick {
+                                    js("history.back()") as? Unit
+                                }
                             }
                         }
                     }
