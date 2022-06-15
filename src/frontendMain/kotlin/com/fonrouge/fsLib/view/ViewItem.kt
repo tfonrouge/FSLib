@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.KPair
+import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
@@ -70,7 +71,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    fun apiCall(crudAction: CrudAction, item: T? = null) {
+    fun apiCall(crudAction: CrudAction, itemId: U?, item: T?) {
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
@@ -85,6 +86,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 params = paramList
             )
         )
+        console.warn("DEBUG: calling params", data)
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
             .then { r: dynamic ->
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
@@ -94,8 +96,8 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             }
     }
 
-    override suspend fun callUpdate() {
-        apiCall(CrudAction.Read)
+    override suspend fun singleUpdate() {
+        apiCall(CrudAction.Read, itemId = itemId, null)
     }
 
     open fun defaultUpsertValueList(item: T?): List<KPair<T, *>> {
@@ -148,7 +150,9 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                                 onClick {
                                     if (formPanel?.validate() == true) {
                                         console.warn("DEBUG: calling apiCall", action)
-                                        apiCall(CrudAction.Update, formPanel?.getData())
+                                        if (action != null) {
+                                            apiCall(action, itemId = itemId, formPanel?.getData())
+                                        }
                                         js("history.back()") as? Unit
                                     } else {
                                         Toast.warning(
@@ -180,12 +184,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             }
         }
 
-        console.warn("DEBUG: action", action)
-
-        if (action != CrudAction.Create) {
-            console.warn("DEBUG: updateData")
-            updateData()
-        }
+        updateData(urlParams?.actionUpsert == true)
     }
 
     override fun getName(): String? {

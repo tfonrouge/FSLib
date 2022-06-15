@@ -44,13 +44,13 @@ abstract class ViewDataContainer<U : Any>(
 
 //    abstract var dataContainer: ObservableValue<U>?
 
-    abstract suspend fun callUpdate()
+    abstract suspend fun singleUpdate()
 
-    fun updateData() {
+    fun updateData(editMode: Boolean) {
         val callBlock: () -> Unit = {
             AppScope.launch {
                 try {
-                    callUpdate()
+                    singleUpdate()
                     if (this@ViewDataContainer is ViewList<*, *>) {
                         console.warn("TABULATOR page", this@ViewDataContainer.tabulator?.getData())
                     }
@@ -59,7 +59,7 @@ abstract class ViewDataContainer<U : Any>(
                 }
             }
         }
-        if (repeatUpdateView == true) {
+        if (!editMode && repeatUpdateView == true) {
             var lastTime: Int? = null
             var lock = false
             handleInterval = window.setInterval(
@@ -77,6 +77,6 @@ abstract class ViewDataContainer<U : Any>(
                 timeout = 250
             )
         }
-//        callBlock()
+        callBlock()
     }
 }
