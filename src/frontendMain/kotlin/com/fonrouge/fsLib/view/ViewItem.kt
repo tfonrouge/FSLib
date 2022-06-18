@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.KPair
-import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer

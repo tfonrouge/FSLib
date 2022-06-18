@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.Collection
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
@@ -7,9 +8,11 @@ import io.kvision.remote.RemoteSorter
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.coroutine.CoroutineCollection
+import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.limit
 import org.litote.kmongo.skip
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.findAnnotation
 
 class ModelLookup<T : BaseModel<*>, U : BaseModel<*>>(
     val resultProperty: KProperty1<T, U?>,
@@ -23,7 +26,22 @@ class FirstStage(
     val last_row: Int,
 )
 
-abstract class CTableDb<T : BaseModel<*>>(
+@Suppress("unused")
+inline fun <reified T : BaseModel<*>> mongoDbCollection(
+    lookupBuilderList: List<LookupBuilder<T, *, *>>? = null,
+    noinline init: (CTableDb<T>.() -> Unit)? = null
+): CTableDb<T> {
+    val collName: String = T::class.findAnnotation<Collection>()?.name ?: T::class.simpleName!!
+    val collection = mongoDatabase.getCollection(collName, T::class.java).coroutine
+    val cTableDb = CTableDb(
+        collection = collection,
+        lookupBuilderList = lookupBuilderList
+    )
+    init?.invoke(cTableDb)
+    return cTableDb
+}
+
+class CTableDb<T : BaseModel<*>>(
     val collection: CoroutineCollection<T>,
     private val lookupBuilderList: List<LookupBuilder<T, *, *>>? = null,
 ) {
