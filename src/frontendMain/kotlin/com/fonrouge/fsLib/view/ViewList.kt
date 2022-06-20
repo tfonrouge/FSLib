@@ -45,38 +45,10 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     sortParam = sortParam
 ) {
 
-    val listNameFunc: ((List<T>) -> String) = { list ->
-        list.getOrNull(0)?._id.toString()
-    }
-
     var blockRefresh: (() -> Unit)? = null
-
+    open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     val configViewItem: ConfigViewItem<*, *>? by lazy { configViewItemMap[name] }
-
-    override var repeatUpdateView: Boolean? = repeatRefreshView
-        get() = field ?: KVWebManager.refreshViewListPeriodic
-
-    var tabulator: TabulatorRemote<T, E>? = null
-
-    var masterViewItem: ViewItem<*, IDataItem, *>? = null
-    var masterItemProp: KProperty<*>? = null
-
-    val parentContextUrlParams: String
-        get() {
-            return masterViewItem?.dataContainer?.value?.let {
-                "&contextClass=${it::class.simpleName}&contextId=${it.item?._id}"
-            } ?: ""
-        }
-
     open val contextMenu: ((ContextMenu).() -> Unit)? = null
-
-    var dataContainer: ObservableList<T>? = null
-        set(value) {
-            field = value
-            pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
-            tabulator?.update(dataContainer)
-        }
-
     val crudActionMap = mapOf<CrudAction, (Any?, (ViewItem<*, *, *>.() -> Unit)?) -> Unit>(
         CrudAction.Create to { _, _ ->
             configViewItem?.let { configViewItem ->
@@ -145,6 +117,28 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             }
         }
     )
+    var dataContainer: ObservableList<T>? = null
+        set(value) {
+            field = value
+            pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
+            tabulator?.update(dataContainer)
+        }
+    var jsTabulatorBuilt: Boolean = false
+    val listNameFunc: ((List<T>) -> String) = { list ->
+        list.getOrNull(0)?._id.toString()
+    }
+    var masterItemProp: KProperty<*>? = null
+    var masterViewItem: ViewItem<*, IDataItem, *>? = null
+    val parentContextUrlParams: String
+        get() {
+            return masterViewItem?.dataContainer?.value?.let {
+                "&contextClass=${it::class.simpleName}&contextId=${it.item?._id}"
+            } ?: ""
+        }
+    override var repeatUpdateView: Boolean? = repeatRefreshView
+        get() = field ?: KVWebManager.refreshViewListPeriodic
+    var tabulator: TabulatorRemote<T, E>? = null
+    var updateDispatched = false
 
     override fun getName(): String? {
         return dataContainer?.let { listNameFunc.invoke(it) }
@@ -152,11 +146,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
 
     open fun onRowSelected(itemId: Any?) {}
 
-    open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-
     abstract fun pageListBody(container: Container)
-
-    var updateDispatched = false
 
     final override fun displayPage(container: Container) {
 
@@ -169,7 +159,9 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     }
 
     override suspend fun singleUpdate() {
-        tabulator?.setPage(tabulator?.getPage() ?: 1)
+        if (jsTabulatorBuilt) {
+            tabulator?.setPage(tabulator?.getPage() ?: 1)
+        }
     }
 
     fun refreshList() {

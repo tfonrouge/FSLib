@@ -109,6 +109,12 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
             }
         }
 
+        addAfterInsertHook {
+            jsTabulator?.on("tableBuilt") {
+                viewList.jsTabulatorBuilt = true
+            }
+        }
+
         viewList.configViewItem?.let { configViewItem ->
             contextMenu {
                 header("Menu Opciones")
