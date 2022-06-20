@@ -91,7 +91,6 @@ signing {
 
 val kvisionVersion: String by System.getProperties()
 val serializationVersion: String by project
-val coroutinesVersion: String by project
 val exposedVersion: String by project
 val ktorVersion: String by project
 val kmongoVersion: String by project
@@ -151,7 +150,6 @@ kotlin {
         val frontendMain by getting {
             dependencies {
 //                implementation("org.jetbrains.kotlinx:kotlinx-datetime-js:0.2.0")
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutinesVersion")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
                 api("io.kvision:kvision:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap:$kvisionVersion")
