@@ -158,21 +158,11 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
         }
     }
 
-    private var selected: List<T?>? = null
-
-    fun onDataProcessed() {
-        selected?.forEach {
-            if (it != null) {
-                console.warn("SELECTING =", it)
-                tabulator?.selectRow(it)
-            }
-        }
-    }
+     var selectedIdList: List<Any?>? = null
 
     override suspend fun singleUpdate() {
         if (jsTabulatorBuilt) {
-            selected = tabulator?.getSelectedData()
-            console.warn("SELECTED =", selected)
+            selectedIdList = tabulator?.getSelectedData()?.map { it._id }
             tabulator?.setPage(tabulator?.getPage() ?: 1)
         }
     }

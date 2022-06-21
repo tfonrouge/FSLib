@@ -111,22 +111,21 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
         }
 
         addAfterInsertHook {
-            console.warn("jsTabulator", jsTabulator)
             jsTabulator?.on("tableBuilt") {
                 viewList.jsTabulatorBuilt = true
             }
             jsTabulator?.on("dataProcessing") {
-                console.warn("ON PROCESSING ...")
-//                selectRow("00002")
                 window.setTimeout(
-                    handler = {
-                        selectRow("00005")
-//                        viewList.onDataProcessed()
+                    {
+                        val list = viewList.selectedIdList
+                        if (list?.isNotEmpty() == true) {
+                            jsTabulator?.getRows("")?.firstOrNull {
+                                it.getData().asDynamic()["_id"] == list[0]
+                            }?.select?.invoke()
+                        }
                     },
-                    timeout = 0
+                    0
                 )
-//                viewList.onDataProcessed()
-//                selectRow()
             }
         }
 
