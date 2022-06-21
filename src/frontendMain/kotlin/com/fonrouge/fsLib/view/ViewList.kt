@@ -158,8 +158,21 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
         }
     }
 
+    private var selected: List<T?>? = null
+
+    fun onDataProcessed() {
+        selected?.forEach {
+            if (it != null) {
+                console.warn("SELECTING =", it)
+                tabulator?.selectRow(it)
+            }
+        }
+    }
+
     override suspend fun singleUpdate() {
         if (jsTabulatorBuilt) {
+            selected = tabulator?.getSelectedData()
+            console.warn("SELECTED =", selected)
             tabulator?.setPage(tabulator?.getPage() ?: 1)
         }
     }

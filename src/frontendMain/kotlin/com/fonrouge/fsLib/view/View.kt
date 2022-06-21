@@ -21,6 +21,7 @@ abstract class View(
 ) {
     var caption: String? = null
     var container: Container? = null
+    var linkBanner: Link? = null
     val navigoUrlWithParams: String
         get() {
             return configView.navigoUrl + if (urlParams != null) urlParams else ""
@@ -66,7 +67,7 @@ abstract class View(
             AlignItems.BASELINE,
             className = "container-fluid mainBanner"
         ) {
-            link(getCaption(), navigoUrlWithParams, className = "navbar-brand mainBanner") {
+            linkBanner = link(label = getCaption(), url = navigoUrlWithParams, className = "navbar-brand mainBanner") {
                 setStyle("color", "white")
             }
             onUpdatePageBannerLink?.let { it ->

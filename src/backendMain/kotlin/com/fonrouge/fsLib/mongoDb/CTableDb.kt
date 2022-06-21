@@ -23,7 +23,7 @@ class FirstStage(
     val pipeline: MutableList<Bson>,
     val count: Long,
     val last_page: Int,
-    val last_row: Int,
+    val last_row: Int?,
 )
 
 @Suppress("unused")
@@ -109,7 +109,7 @@ class CTableDb<T : BaseModel<*>>(
                 pipeline = bsonList,
                 count = count,
                 last_page = -1,
-                last_row = -1,
+                last_row = null,
             )
         } else {
             val nSize = size ?: 10
@@ -127,7 +127,7 @@ class CTableDb<T : BaseModel<*>>(
                 pipeline = bsonList,
                 count = count,
                 last_page = (count / nSize + 1).toInt(),
-                last_row = 5,
+                last_row = null,
             )
         }
     }

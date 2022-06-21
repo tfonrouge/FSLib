@@ -173,11 +173,10 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             }
         }
 
-        formPanel?.let { formPanel ->
-            dataContainer.subscribe { itemContainer ->
-                itemContainer.item?.let { item ->
-                    formPanel.setData(item)
-                }
+        dataContainer.subscribe { itemContainer ->
+            itemContainer.item?.let { item ->
+                linkBanner?.label = getCaption()
+                formPanel?.setData(item)
             }
         }
 

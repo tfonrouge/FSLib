@@ -13,6 +13,7 @@ import io.kvision.html.Link
 import io.kvision.tabulator.*
 import io.kvision.utils.obj
 import io.kvision.utils.px
+import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 
@@ -63,7 +64,7 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
             layout = Layout.FITDATASTRETCH,
             layoutColumnsOnNewData = true,
 //            tooltipsHeader = true,
-            selectable = 1,
+//            selectable = 1,
 //            rowSelected = { blockRowSelected(it, RowSelectedType.Selected) },
 //            rowDeselected = { blockRowSelected(it, RowSelectedType.Deselected) },
             persistence = obj {
@@ -110,8 +111,22 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
         }
 
         addAfterInsertHook {
+            console.warn("jsTabulator", jsTabulator)
             jsTabulator?.on("tableBuilt") {
                 viewList.jsTabulatorBuilt = true
+            }
+            jsTabulator?.on("dataProcessing") {
+                console.warn("ON PROCESSING ...")
+//                selectRow("00002")
+                window.setTimeout(
+                    handler = {
+                        selectRow("00005")
+//                        viewList.onDataProcessed()
+                    },
+                    timeout = 0
+                )
+//                viewList.onDataProcessed()
+//                selectRow()
             }
         }
 
