@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty1
 
 class LookupBuilder<T : BaseModel<*>, U : BaseModel<*>, V : Any>(
     private val cTableDb: CTableDb<U>,
-    private val localField: KProperty1<T, V>,
+    private val localField: KProperty1<T, V?>,
     private val foreignField: KProperty1<U, V>,
     val resultProperty: KProperty1<T, U?>,
     private val matchFilters: List<Bson>? = null

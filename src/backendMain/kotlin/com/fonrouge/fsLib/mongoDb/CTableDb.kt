@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.Collection
+import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
@@ -8,38 +8,9 @@ import io.kvision.remote.RemoteSorter
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.limit
+import org.litote.kmongo.match
 import org.litote.kmongo.skip
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.findAnnotation
-
-class ModelLookup<T : BaseModel<*>, U : BaseModel<*>>(
-    val resultProperty: KProperty1<T, U?>,
-    val modelLookupList: List<ModelLookup<U, *>>? = null
-)
-
-class FirstStage(
-    val pipeline: MutableList<Bson>,
-    val count: Long,
-    val last_page: Int,
-    val last_row: Int?,
-)
-
-@Suppress("unused")
-inline fun <reified T : BaseModel<*>> mongoDbCollection(
-    lookupBuilderList: List<LookupBuilder<T, *, *>>? = null,
-    noinline init: (CTableDb<T>.() -> Unit)? = null
-): CTableDb<T> {
-    val collName: String = T::class.findAnnotation<Collection>()?.name ?: T::class.simpleName!!
-    val collection = mongoDatabase.getCollection(collName, T::class.java).coroutine
-    val cTableDb = CTableDb(
-        collection = collection,
-        lookupBuilderList = lookupBuilderList
-    )
-    init?.invoke(cTableDb)
-    return cTableDb
-}
 
 class CTableDb<T : BaseModel<*>>(
     val collection: CoroutineCollection<T>,
@@ -47,7 +18,21 @@ class CTableDb<T : BaseModel<*>>(
 ) {
 
     @Suppress("unused")
-    suspend inline fun <reified U : T> aggregateToRemoteData(
+    suspend inline fun <reified U : T> itemContainer(
+        match: Bson,
+        modelLookupList: List<ModelLookup<*, *>>? = null
+    ): ItemContainer<U> {
+        val pipeline = mutableListOf(
+            match,
+        )
+        pipeline.addAll(buildLookup(modelLookupList))
+        pipeline.add(limit(1))
+        val item = collection.aggregate<U>(pipeline).first()
+        return ItemContainer(item = item)
+    }
+
+    @Suppress("unused")
+    suspend inline fun <reified U : T> remoteData(
         firstStage: FirstStage,
         modelLookupList: List<ModelLookup<*, *>>? = null
     ): RemoteData<U> {
