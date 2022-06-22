@@ -95,7 +95,9 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     }
 
     override suspend fun singleUpdate() {
-        apiCall(CrudAction.Read, itemId = itemId, null)
+        urlParams?.action?.let {
+            apiCall(it, itemId = itemId, null)
+        }
     }
 
     open fun defaultUpsertValueList(item: T?): List<KPair<T, *>> {

@@ -9,7 +9,6 @@ import io.kvision.core.enableTooltip
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
-import io.kvision.routing.routing
 
 fun <T : BaseModel<*>> Container.toolBarList(
     viewList: ViewList<T, *>,
@@ -59,8 +58,7 @@ fun <T : BaseModel<*>> Container.toolBarList(
                         id = CrudAction.Delete.name
                         enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                         onClick {
-                            val url = itemId?.let { "/${configViewItem.url}?id=${it}" }
-                            url?.let { it1 -> routing.navigate(it1) }
+                            viewList.crudActionMap[CrudAction.Read]?.invoke(itemId, null)
                         }
                     }
                 }

@@ -69,6 +69,15 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
             }
 */
         },
+        CrudAction.Read to { itemId, block ->
+            configViewItem?.let { configViewItem ->
+                val urlParams = UrlParams(
+                    "action" to CrudAction.Read.name,
+                    "id" to itemId
+                )
+                routing.navigate(configViewItem.url + urlParams.toString())
+            }
+        },
         CrudAction.Update to { itemId, block ->
             configViewItem?.let { configViewItem ->
                 itemId?.let {
