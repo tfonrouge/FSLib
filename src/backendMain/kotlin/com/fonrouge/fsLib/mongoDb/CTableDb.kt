@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
@@ -9,7 +8,6 @@ import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.limit
-import org.litote.kmongo.match
 import org.litote.kmongo.skip
 
 class CTableDb<T : BaseModel<*>>(
@@ -18,17 +16,16 @@ class CTableDb<T : BaseModel<*>>(
 ) {
 
     @Suppress("unused")
-    suspend inline fun <reified U : T> itemContainer(
+    suspend inline fun <reified U : T> item(
         match: Bson,
         modelLookupList: List<ModelLookup<*, *>>? = null
-    ): ItemContainer<U> {
+    ): U? {
         val pipeline = mutableListOf(
             match,
         )
         pipeline.addAll(buildLookup(modelLookupList))
         pipeline.add(limit(1))
-        val item = collection.aggregate<U>(pipeline).first()
-        return ItemContainer(item = item)
+        return collection.aggregate<U>(pipeline).first()
     }
 
     @Suppress("unused")

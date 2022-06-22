@@ -158,7 +158,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
         }
     }
 
-     var selectedIdList: List<Any?>? = null
+    var selectedIdList: List<Any?>? = null
 
     override suspend fun singleUpdate() {
         if (jsTabulatorBuilt) {

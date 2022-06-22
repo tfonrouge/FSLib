@@ -123,6 +123,7 @@ kotlin {
             dependencies {
                 api("io.kvision:kvision-server-ktor:$kvisionVersion")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+                api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
             }
             kotlin.srcDir("build/generated-src/common")
         }
@@ -150,7 +151,6 @@ kotlin {
         val frontendMain by getting {
             dependencies {
 //                implementation("org.jetbrains.kotlinx:kotlinx-datetime-js:0.2.0")
-                api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
                 api("io.kvision:kvision:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-css:$kvisionVersion")
