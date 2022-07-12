@@ -158,6 +158,7 @@ kotlin {
                 api("io.kvision:kvision-bootstrap-dialog:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-icons:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-select:$kvisionVersion")
+                api("io.kvision:kvision-bootstrap-select-remote:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-spinner:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-upload:$kvisionVersion")
                 api("io.kvision:kvision-chart:$kvisionVersion")
