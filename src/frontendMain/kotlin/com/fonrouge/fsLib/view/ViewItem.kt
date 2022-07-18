@@ -100,9 +100,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         }
     }
 
-    open fun defaultUpsertValueList(item: T?): List<KPair<T, *>> {
-        return listOf()
-    }
+    open val createDefaultValueList: List<KPair<T, *>>? = null
 
     final override fun displayPage(container: Container) {
 
@@ -172,6 +170,13 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                         }
                     }
                 }
+            }
+        }
+
+        if (urlParams?.action == CrudAction.Create) {
+            createDefaultValueList?.forEach { kPair ->
+                formPanel?.form?.fields?.asIterable()
+                    ?.firstOrNull { kPair.kProp.name == it.key }?.value?.setValue(kPair.value)
             }
         }
 
