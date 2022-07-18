@@ -12,7 +12,6 @@ abstract class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T, *, *>>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V),
-    val windowModal: Boolean = false,
     restUrlParams: UrlParams? = null,
     lookupParam: JsonObject? = null,
 ) : ConfigViewContainer<T, V>(
@@ -29,22 +28,24 @@ abstract class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T, *, *>>(
     val labelInsert = "Agregar $label"
     val labelUpdate = "Modificar $label"
 
-    val urlWithInsert: String
+    val urlCreate: String
         get() {
             val urlParams = UrlParams("action" to CrudAction.Create.name)
-            if (windowModal) urlParams.add("window" to "modal")
             return navigoUrl + urlParams.toString()
         }
 
-    fun urlWithDelete(id: Any): String {
-        val urlParams = UrlParams("id" to id, "action" to CrudAction.Delete.name)
-        if (windowModal) urlParams.add("window" to "modal")
+    fun urlRead(id: Any): String {
+        val urlParams = UrlParams("id" to id, "action" to CrudAction.Read.name)
         return navigoUrl + urlParams.toString()
     }
 
-    fun urlWithUpdate(id: Any): String {
+    fun urlDelete(id: Any): String {
+        val urlParams = UrlParams("id" to id, "action" to CrudAction.Delete.name)
+        return navigoUrl + urlParams.toString()
+    }
+
+    fun urlUpdate(id: Any): String {
         val urlParams = UrlParams("id" to id, "action" to CrudAction.Update.name)
-        if (windowModal) urlParams.add("window" to "modal")
         return navigoUrl + urlParams.toString()
     }
 

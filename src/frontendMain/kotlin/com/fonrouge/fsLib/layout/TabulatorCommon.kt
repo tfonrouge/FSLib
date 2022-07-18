@@ -36,18 +36,18 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
     val updateLinks: () -> Unit = {
         viewList.configViewItem?.let { configViewItem ->
             nav.itemId = itemId
-            linkItemPage.url = itemId?.let { "${configViewItem.navigoUrl}?id=${it}" }
+            linkItemPage.url = itemId?.let { configViewItem.urlRead(it) }
             nav.getChildren().forEach { component ->
                 if (component is Link) {
                     when (component.id) {
                         CrudAction.Create.name -> component.url = itemId?.let {
-                            configViewItem.urlWithInsert + viewList.parentContextUrlParams
+                            configViewItem.urlCreate + viewList.parentContextUrlParams
                         }
                         CrudAction.Update.name -> component.url = itemId?.let {
-                            configViewItem.urlWithUpdate(it) + viewList.parentContextUrlParams
+                            configViewItem.urlUpdate(it) + viewList.parentContextUrlParams
                         }
                         CrudAction.Delete.name -> component.url = itemId?.let {
-                            configViewItem.urlWithDelete(it)
+                            configViewItem.urlDelete(it)
                         }
                     }
                 }
