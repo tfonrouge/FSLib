@@ -16,7 +16,7 @@ class CTableDb<T : BaseModel<*>>(
 ) {
 
     @Suppress("unused")
-    suspend inline fun <reified U : T> item(
+    suspend inline fun <reified U : T> getItem(
         match: Bson,
         modelLookupList: List<ModelLookup<*, *>>? = null
     ): U? {
