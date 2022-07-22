@@ -158,9 +158,6 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     abstract fun pageListBody(container: Container)
 
     final override fun displayPage(container: Container) {
-
-        this.container = container
-
         container.apply {
             pageBanner()
             pageListBody(this)

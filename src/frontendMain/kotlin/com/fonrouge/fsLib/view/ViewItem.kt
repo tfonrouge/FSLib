@@ -6,6 +6,7 @@ import com.fonrouge.fsLib.lib.KPair
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
+import com.fonrouge.fsLib.model.ItemContainerCallType
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.core.FlexDirection
@@ -41,7 +42,8 @@ import kotlin.reflect.KClass
 abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     override val configView: ConfigViewItem<T, *>,
     private val serverManager: KVServiceManager<E>,
-    private val function: suspend E.(CrudAction, U?, T?) -> ItemContainer<T>,
+    private val function: suspend E.(CrudAction, U?, T?, ItemContainerCallType) -> ItemContainer<T>,
+    private val stateFunction: (() -> String)? = null,
     private val klass: KClass<T>,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
@@ -56,10 +58,10 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
 ) {
-    var dataContainer: ObservableValue<ItemContainer<T>> = ObservableValue(ItemContainer(null))
+    var dataContainer: ObservableValue<ItemContainer<T>?> = ObservableValue(null)
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
-    val item get() = dataContainer.value.item
+    val item get() = dataContainer.value?.item
     var itemId: U? = null
     val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
     var noBackButton = false
@@ -70,14 +72,15 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    fun apiCall(crudAction: CrudAction, itemId: U?, item: T?) {
+    fun apiCall(crudAction: CrudAction, itemId: U?, item: T?, itemContainerCallType: ItemContainerCallType) {
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
             Json.encodeToString(crudAction),
             JSON.stringify(itemId),
             item?.let { Json.encodeToString(serializer = klass.serializer(), it) } ?: "null",
-        )
+            Json.encodeToString(itemContainerCallType))
+        console.warn("URL, PARAMLIST:", url, paramList)
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
                 id = 0,
@@ -85,30 +88,27 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 params = paramList
             )
         )
-        callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
-            .then { r: dynamic ->
-                val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-                val itemContainer: ItemContainer<T> =
-                    Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
-                dataContainer.value = itemContainer
-            }
+        callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
+            val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+            console.warn("DECODING:", result)
+            val itemContainer: ItemContainer<T> =
+                Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
+            dataContainer.value = itemContainer
+        }
     }
 
     override suspend fun singleUpdate() {
         urlParams?.action?.let {
-            apiCall(it, itemId = itemId, null)
+            apiCall(it, itemId = itemId, null, ItemContainerCallType.Query)
         }
     }
 
     open val createDefaultValueList: List<KPair<T, *>>? = null
 
-    final override fun displayPage(container: Container) {
-
-        this.container = container
-
+    override fun displayPage(container: Container) {
         val action = urlParams?.action
         if (action == CrudAction.Create) {
-            dataContainer.value = ItemContainer(null)
+//            dataContainer.value = ItemContainer(null)
         } else {
             val params = urlParams?.match?.params
             val _id = if (params == undefined) {
@@ -148,13 +148,17 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                                 onClick {
                                     if (formPanel?.validate() == true) {
                                         if (action != null) {
-                                            apiCall(action, itemId = itemId, formPanel?.getData())
+                                            apiCall(
+                                                action,
+                                                itemId = itemId,
+                                                formPanel?.getData(),
+                                                ItemContainerCallType.Action
+                                            )
                                         }
                                         js("history.back()") as? Unit
                                     } else {
                                         Toast.warning(
-                                            message = "Form has incomplete data",
-                                            options = ToastOptions(
+                                            message = "Form has incomplete data", options = ToastOptions(
                                                 positionClass = ToastPosition.BOTTOMRIGHT
                                             )
                                         )
@@ -173,15 +177,22 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             }
         }
 
-        if (urlParams?.action == CrudAction.Create) {
-            createDefaultValueList?.forEach { kPair ->
-                formPanel?.form?.fields?.asIterable()
-                    ?.firstOrNull { kPair.kProp.name == it.key }?.value?.setValue(kPair.value)
+        when (action) {
+            CrudAction.Create -> {
+                createDefaultValueList?.forEach { kPair ->
+                    formPanel?.form?.fields?.asIterable()?.firstOrNull { kPair.kProp.name == it.key }?.value?.setValue(
+                        kPair.value
+                    )
+                }
             }
+            CrudAction.Read, CrudAction.Update -> {
+
+            }
+            else -> {}
         }
 
         dataContainer.subscribe { itemContainer ->
-            itemContainer.item?.let { item ->
+            itemContainer?.item?.let { item ->
                 linkBanner?.label = getCaption()
                 formPanel?.setData(item)
             }
@@ -191,8 +202,8 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     }
 
     override fun getName(): String? {
-        return dataContainer.let {
-            itemNameFunc.invoke(it.value)
+        return dataContainer.let { itemContainerObservableValue ->
+            itemContainerObservableValue.value?.let { itemContainer -> itemNameFunc.invoke(itemContainer) }
         }
     }
 

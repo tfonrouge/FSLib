@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.lib.withProgress
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -37,7 +38,6 @@ abstract class ViewDataContainer<U : Any>(
     val contextClassId get() = urlParams?.contextClassId
 
     var displayBlock: (() -> Unit)? = null
-
     val lookupParam get() = configView.lookupParam
 
     val name get() = configView.name
@@ -47,8 +47,8 @@ abstract class ViewDataContainer<U : Any>(
     abstract suspend fun singleUpdate()
 
     fun updateData(editMode: Boolean = false) {
-        val callBlock: () -> Unit = {
-            AppScope.launch {
+        val callBlock = {
+            AppScope.withProgress {
                 try {
                     singleUpdate()
                 } catch (e: Exception) {

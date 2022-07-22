@@ -20,7 +20,6 @@ abstract class View(
     var upsertData: JsonObject? = null,
 ) {
     var caption: String? = null
-    var container: Container? = null
     var linkBanner: Link? = null
     val navigoUrlWithParams: String
         get() {
