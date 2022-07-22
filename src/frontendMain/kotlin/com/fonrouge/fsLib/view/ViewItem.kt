@@ -80,7 +80,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             JSON.stringify(itemId),
             item?.let { Json.encodeToString(serializer = klass.serializer(), it) } ?: "null",
             Json.encodeToString(itemContainerCallType))
-        console.warn("URL, PARAMLIST:", url, paramList)
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
                 id = 0,
@@ -90,7 +89,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         )
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            console.warn("DECODING:", result)
             val itemContainer: ItemContainer<T> =
                 Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
             dataContainer.value = itemContainer
