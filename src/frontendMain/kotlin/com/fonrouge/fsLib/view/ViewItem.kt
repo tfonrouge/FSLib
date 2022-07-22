@@ -98,7 +98,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             val itemContainer: ItemContainer<T> =
                 Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
             block(itemContainer)
-//            dataContainer.value = itemContainer
         }
     }
 
@@ -218,7 +217,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     item = null,
                     itemContainerCallType = ItemContainerCallType.Query
                 ) { itemContainer ->
-                    console.warn("RETURNING FROM apiCall", itemContainer)
                     if (itemContainer.result) {
                         displayForm(container, action)
                     } else {
