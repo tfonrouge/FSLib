@@ -72,7 +72,13 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    fun apiCall(crudAction: CrudAction, itemId: U?, item: T?, itemContainerCallType: ItemContainerCallType) {
+    fun getItemContainer(
+        crudAction: CrudAction,
+        itemId: U?,
+        item: T?,
+        itemContainerCallType: ItemContainerCallType,
+        block: (ItemContainer<T>) -> Unit,
+    ) {
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
@@ -91,31 +97,22 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
             val itemContainer: ItemContainer<T> =
                 Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
-            dataContainer.value = itemContainer
+            block(itemContainer)
+//            dataContainer.value = itemContainer
         }
     }
 
     override suspend fun singleUpdate() {
-        urlParams?.action?.let {
-            apiCall(it, itemId = itemId, null, ItemContainerCallType.Query)
+        urlParams?.action?.let { crudAction ->
+            getItemContainer(crudAction, itemId = itemId, null, ItemContainerCallType.Query) { itemContainer ->
+                dataContainer.value = itemContainer
+            }
         }
     }
 
     open val createDefaultValueList: List<KPair<T, *>>? = null
 
-    override fun displayPage(container: Container) {
-        val action = urlParams?.action
-        if (action == CrudAction.Create) {
-//            dataContainer.value = ItemContainer(null)
-        } else {
-            val params = urlParams?.match?.params
-            val _id = if (params == undefined) {
-                null
-            } else {
-                params["id"]
-            }
-            itemId = _id?.unsafeCast<U>()
-        }
+    private fun displayForm(container: Container, action: CrudAction) {
         pageContainer = container
         container.apply {
             vPanel(className = "showItem") {
@@ -145,15 +142,19 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 //                                marginLeft = 10.px
                                 onClick {
                                     if (formPanel?.validate() == true) {
-                                        if (action != null) {
-                                            apiCall(
-                                                action,
-                                                itemId = itemId,
-                                                formPanel?.getData(),
-                                                ItemContainerCallType.Action
-                                            )
+                                        getItemContainer(
+                                            action,
+                                            itemId = itemId,
+                                            formPanel?.getData(),
+                                            ItemContainerCallType.Action
+                                        ) {
+                                            if (it.result) {
+                                                Toast.success("Info", "Operation successful")
+                                            } else {
+                                                Toast.warning("!", "Operation error: ${it.description}")
+                                            }
+                                            js("history.back()") as? Unit
                                         }
-                                        js("history.back()") as? Unit
                                     } else {
                                         Toast.warning(
                                             message = "Form has incomplete data", options = ToastOptions(
@@ -184,19 +185,49 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 }
             }
             CrudAction.Read, CrudAction.Update -> {
-
+                dataContainer.value?.item?.let { t ->
+                    formPanel?.setData(t)
+                }
             }
             else -> {}
         }
 
-        dataContainer.subscribe { itemContainer ->
-            itemContainer?.item?.let { item ->
+        dataContainer.subscribe {
+            it?.item?.let { item ->
                 linkBanner?.label = getCaption()
                 formPanel?.setData(item)
             }
         }
 
         updateData(urlParams?.actionUpsert == true)
+    }
+
+    override fun displayPage(container: Container) {
+        when (val action = urlParams?.action) {
+            CrudAction.Create, CrudAction.Read, CrudAction.Update -> {
+                val params = urlParams?.match?.params
+                val _id = if (params == undefined) {
+                    null
+                } else {
+                    params["id"]
+                }
+                itemId = _id?.unsafeCast<U>()
+                getItemContainer(
+                    crudAction = action,
+                    itemId = itemId,
+                    item = null,
+                    itemContainerCallType = ItemContainerCallType.Query
+                ) { itemContainer ->
+                    console.warn("RETURNING FROM apiCall", itemContainer)
+                    if (itemContainer.result) {
+                        displayForm(container, action)
+                    } else {
+                        Toast.warning("!", itemContainer.description ?: "internal error...")
+                    }
+                }
+            }
+            else -> {}
+        }
     }
 
     override fun getName(): String? {
