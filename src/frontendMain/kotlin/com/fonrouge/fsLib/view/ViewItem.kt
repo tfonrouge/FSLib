@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.KPair
@@ -8,9 +9,7 @@ import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.ItemContainerCallType
 import com.fonrouge.fsLib.model.base.BaseModel
-import io.kvision.core.Container
-import io.kvision.core.FlexDirection
-import io.kvision.core.JustifyContent
+import io.kvision.core.*
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
 import io.kvision.html.ButtonStyle
@@ -23,11 +22,10 @@ import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.KVServiceManager
 import io.kvision.state.ObservableValue
-import io.kvision.toast.Toast
-import io.kvision.toast.ToastOptions
-import io.kvision.toast.ToastPosition
+import io.kvision.toast.*
 import io.kvision.utils.Serialization
 import io.kvision.utils.em
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.encodeToString
@@ -67,7 +65,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     var noBackButton = false
     var noPageBanner = false
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
-    private var pageContainer: Container? = null
     override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
@@ -111,18 +108,17 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 
     open val createDefaultValueList: List<KPair<T, *>>? = null
 
-    private fun displayForm(container: Container, action: CrudAction) {
-        pageContainer = container
+    private fun displayForm(container: Container, action: CrudAction, itemContainer: ItemContainer<T>) {
         container.apply {
             vPanel(className = "showItem") {
-                addBeforeDisposeHook {
-                    handleInterval = null
-                    onBeforeDispose()
-                }
-                if (!noPageBanner) {
-                    pageBanner()
-                }
                 flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
+                    addBeforeDisposeHook {
+                        handleInterval = null
+                        onBeforeDispose()
+                    }
+                    if (!noPageBanner) {
+                        pageBanner()
+                    }
                     formPanel = pageItemBody()
                     if (urlParams?.actionUpsert != true) {
                         formPanel?.form?.fields?.forEach { entry ->
@@ -174,31 +170,30 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 }
             }
         }
-
         when (action) {
             CrudAction.Create -> {
                 createDefaultValueList?.forEach { kPair ->
-                    formPanel?.form?.fields?.asIterable()?.firstOrNull { kPair.kProp.name == it.key }?.value?.setValue(
-                        kPair.value
-                    )
+                    formPanel?.form?.fields?.asIterable()
+                        ?.firstOrNull { kPair.kProp.name == it.key }?.value?.setValue(
+                            kPair.value
+                        )
                 }
             }
-            CrudAction.Read, CrudAction.Update -> {
-                dataContainer.value?.item?.let { t ->
-                    formPanel?.setData(t)
+            CrudAction.Read -> {
+                itemContainer.item?.let { formPanel?.setData(it) }
+                dataContainer.subscribe {
+                    it?.item?.let { item ->
+                        linkBanner?.label = getCaption()
+                        formPanel?.setData(item)
+                    }
                 }
+                updateData(false)
+            }
+            CrudAction.Update -> {
+                itemContainer.item?.let { formPanel?.setData(it) }
             }
             else -> {}
         }
-
-        dataContainer.subscribe {
-            it?.item?.let { item ->
-                linkBanner?.label = getCaption()
-                formPanel?.setData(item)
-            }
-        }
-
-        updateData(urlParams?.actionUpsert == true)
     }
 
     override fun displayPage(container: Container) {
@@ -218,9 +213,19 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     itemContainerCallType = ItemContainerCallType.Query
                 ) { itemContainer ->
                     if (itemContainer.result) {
-                        displayForm(container, action)
+                        displayForm(container, action, itemContainer)
                     } else {
-                        Toast.warning("!", itemContainer.description ?: "internal error...")
+                        js("history.back()") as? Unit
+                        AppScope.launch {
+//                            Toast.warning("!", itemContainer.description ?: "unknown error...")
+                            ToastContainer(ToastContainerPosition.MIDDLECENTER)
+                                .showToast(
+                                    message = itemContainer.description ?: "unknown error...",
+                                    title = "!",
+                                    bgColor = BsBgColor.DANGER,
+                                    color = BsColor.WHITE
+                                )
+                        }
                     }
                 }
             }

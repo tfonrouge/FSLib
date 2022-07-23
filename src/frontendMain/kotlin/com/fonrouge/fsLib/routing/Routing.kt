@@ -26,7 +26,6 @@ private fun Navigo.onViewItemPage(): Navigo {
         { match ->
             configViewItemMap[match.data.dataClass as? String]?.let { configViewItem ->
                 val urlParams = UrlParams(match = match)
-
                 viewStateObservableValue.value = ViewState(configViewItem, urlParams)
             }
         }

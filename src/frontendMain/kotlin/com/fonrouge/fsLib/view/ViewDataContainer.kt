@@ -3,8 +3,8 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.lib.withProgress
 import kotlinx.browser.window
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlin.js.Date
 
@@ -45,9 +45,9 @@ abstract class ViewDataContainer<U : Any>(
 
     abstract suspend fun singleUpdate()
 
-    fun updateData(editMode: Boolean = false) {
+    fun updateData(first: Boolean) {
         val callBlock = {
-            AppScope.withProgress {
+            AppScope.launch {
                 try {
                     singleUpdate()
                 } catch (e: Exception) {
@@ -55,7 +55,7 @@ abstract class ViewDataContainer<U : Any>(
                 }
             }
         }
-        if (!editMode && repeatUpdateView == true) {
+        if (repeatUpdateView == true) {
             var lastTime: Int? = null
             var lock = false
             handleInterval = window.setInterval(
@@ -73,6 +73,8 @@ abstract class ViewDataContainer<U : Any>(
                 timeout = 250
             )
         }
-        callBlock()
+        if (first) {
+            callBlock()
+        }
     }
 }
