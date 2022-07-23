@@ -35,17 +35,15 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var refreshViewItemPeriodic = false
     var refreshViewListPeriodic = false
 
-    var setup: (KVWebManager.() -> Unit)? = null
-
     var viewStateObservableValue = ObservableValue<ViewState?>(null)
 
     var iConfigView: IConfigView? = null
 
     var afterInitialize: (() -> Unit)? = null
 
-    fun initialize() {
+    fun initialize(block: (KVWebManager.() -> Unit)? = null) {
 
-        setup?.invoke(this)
+        block?.invoke(this)
 
 //        Routing.init(root = null, useHash = true, strategy = Strategy.ONE)
         Routing.init()
