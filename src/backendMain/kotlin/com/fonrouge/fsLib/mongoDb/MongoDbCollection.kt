@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.Collection
+import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.model.base.BaseModel
 import org.litote.kmongo.coroutine.coroutine
 import kotlin.reflect.full.findAnnotation
