@@ -14,15 +14,10 @@ public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
         get() = PrimitiveSerialDescriptor("LocalDateTime frontEnd Serializer", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): LocalDateTime {
-        val s = decoder.decodeString()
-        val localDateTime = LocalDateTime(s)
-        console.warn("LocalDateTime deserialized:", localDateTime, "from", s)
-        return localDateTime
+        return LocalDateTime(decoder.decodeString())
     }
 
     override fun serialize(encoder: Encoder, value: LocalDateTime) {
-        val s = value.toISOString()
-        console.warn("LocalDateTime serialize:", s)
-        encoder.encodeString(s)
+        encoder.encodeString(value.toISOString())
     }
 }
