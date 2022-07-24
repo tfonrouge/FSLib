@@ -11,7 +11,7 @@ import kotlinx.serialization.encoding.Encoder
 import org.bson.BsonType
 
 @Suppress("unused", "RedundantVisibilityModifier")
-public actual object NumberDoubleSerializer : KSerializer<Double> {
+public actual object FSNumberDoubleSerializer : KSerializer<Double> {
     override fun deserialize(decoder: Decoder): Double {
         val bsonDecoder = decoder as BsonFlexibleDecoder
         return when (bsonDecoder.reader.currentBsonType) {
