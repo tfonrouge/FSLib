@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
@@ -7,6 +8,7 @@ import io.kvision.remote.RemoteSorter
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.coroutine.CoroutineCollection
+import org.litote.kmongo.eq
 import org.litote.kmongo.limit
 import org.litote.kmongo.skip
 
@@ -14,40 +16,6 @@ class CTableDb<T : BaseModel<*>>(
     val collection: CoroutineCollection<T>,
     private val lookupBuilderList: List<LookupBuilder<T, *, *>>? = null,
 ) {
-
-    @Suppress("unused")
-    suspend inline fun <reified U : T> getItem(
-        match: Bson,
-        modelLookupList: List<ModelLookup<*, *>>? = null
-    ): U? {
-        val pipeline = mutableListOf(
-            match,
-        )
-        pipeline.addAll(buildLookup(modelLookupList))
-        pipeline.add(limit(1))
-        return collection.aggregate<U>(pipeline).first()
-    }
-
-    @Suppress("unused")
-    suspend inline fun <reified U : T> remoteData(
-        firstStage: FirstStage,
-        modelLookupList: List<ModelLookup<*, *>>? = null
-    ): RemoteData<U> {
-        firstStage.pipeline.addAll(buildLookup(modelLookupList))
-        val list = collection.aggregate<U>(firstStage.pipeline).toList()
-        return RemoteData(data = list, last_page = firstStage.last_page, last_row = firstStage.last_row)
-    }
-
-    fun buildLookup(modelLookupList: List<ModelLookup<*, *>>? = null): List<Bson> {
-        val pipeline: MutableList<Bson> = mutableListOf()
-        lookupBuilderList?.forEach { lookupBuilder ->
-            modelLookupList?.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
-                ?.let { modelLookup: ModelLookup<*, *> ->
-                    lookupBuilder.addToPipeline(pipeline, modelLookup)
-                }
-        }
-        return pipeline
-    }
 
     @Suppress("unused")
     suspend fun buildFirstStage(
@@ -112,5 +80,57 @@ class CTableDb<T : BaseModel<*>>(
                 last_row = null,
             )
         }
+    }
+
+    fun buildLookup(modelLookupList: List<ModelLookup<*, *>>? = null): List<Bson> {
+        val pipeline: MutableList<Bson> = mutableListOf()
+        lookupBuilderList?.forEach { lookupBuilder ->
+            modelLookupList?.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
+                ?.let { modelLookup: ModelLookup<*, *> ->
+                    lookupBuilder.addToPipeline(pipeline, modelLookup)
+                }
+        }
+        return pipeline
+    }
+
+    @Suppress("unused")
+    suspend inline fun <reified U : T> getItem(
+        match: Bson,
+        modelLookupList: List<ModelLookup<*, *>>? = null
+    ): U? {
+        val pipeline = mutableListOf(
+            match,
+        )
+        pipeline.addAll(buildLookup(modelLookupList))
+        pipeline.add(limit(1))
+        return collection.aggregate<U>(pipeline).first()
+    }
+
+    @Suppress("unused")
+    suspend fun insertOne(item: T?): ItemContainer<T> {
+        if (item != null) {
+            val result = collection.insertOne(item)
+            return ItemContainer(result = result.insertedId != null)
+        }
+        return ItemContainer(result = false, description = "insertOne(): item contains null value...")
+    }
+
+    @Suppress("unused")
+    suspend inline fun <reified U : T> remoteData(
+        firstStage: FirstStage,
+        modelLookupList: List<ModelLookup<*, *>>? = null
+    ): RemoteData<U> {
+        firstStage.pipeline.addAll(buildLookup(modelLookupList))
+        val list = collection.aggregate<U>(firstStage.pipeline).toList()
+        return RemoteData(data = list, last_page = firstStage.last_page, last_row = firstStage.last_row)
+    }
+
+    @Suppress("unused")
+    suspend fun updateOne(_id: Any?, item: T?): ItemContainer<T> {
+        if (item != null) {
+            val result = collection.updateOne(filter = item::_id eq _id, target = item)
+            return ItemContainer(result = result.modifiedCount == 1L)
+        }
+        return ItemContainer(result = false, description = "updateOne(): item contains null value...")
     }
 }

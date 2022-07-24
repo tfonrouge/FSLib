@@ -217,7 +217,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     } else {
                         js("history.back()") as? Unit
                         AppScope.launch {
-//                            Toast.warning("!", itemContainer.description ?: "unknown error...")
                             ToastContainer(ToastContainerPosition.MIDDLECENTER)
                                 .showToast(
                                     message = itemContainer.description ?: "unknown error...",

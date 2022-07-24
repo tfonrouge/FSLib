@@ -30,12 +30,5 @@ abstract class ConfigViewContainer<T : BaseModel<*>, V : ViewDataContainer<*>>(
         return "$dataUrlPrefix/$name${typeView.label}"
     }
 
-//    fun dispatchViewPage(urlParams: UrlParams?) {
-//        viewFunc.invoke(urlParams).let { viewDataContainer: V ->
-//            viewDataContainer.dispatchActionPage()
-//            if (this !is ConfigViewItem<*, *> && urlParams?.action != ActionParam.Insert) {
-//                viewDataContainer.updateData()
-//            }
-//        }
-//    }
+    val labelUrl get() = label to navigoUrl
 }

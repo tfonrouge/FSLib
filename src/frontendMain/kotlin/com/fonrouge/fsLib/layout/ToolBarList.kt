@@ -70,25 +70,6 @@ fun <T : BaseModel<*>> Container.toolBarList(
                     viewList.refreshList()
                 }
             }
-/*
-            dropDown(
-                "Favourites",
-                listOf("HTML" to "#!/basic", "Forms" to "#!/forms"),
-                icon = "fas fa-star",
-                forNavbar = true
-            )
-*/
         }
-
-        /*
-            navForm {
-                text(label = "Search:")
-            }
-    */
-/*
-        nav(rightAlign = true) {
-            navLink("System", icon = "fab fa-windows")
-        }
-*/
     }
 }

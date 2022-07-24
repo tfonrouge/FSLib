@@ -6,7 +6,6 @@ import kotlinx.serialization.json.JsonObject
 
 abstract class ViewHome(
     configView: ConfigViewHome<*>,
-    loading: Boolean = false,
     editable: Boolean = true,
     icon: String? = null,
     restUrlParams: UrlParams? = null,

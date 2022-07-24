@@ -62,12 +62,6 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                 }
                 routing.navigate(configViewItem.url + urlParams.toString())
             }
-/*
-            configViewItem?.viewFunc?.let { it(urlParams) }?.let { viewItem ->
-                block?.let { block.invoke(viewItem) }
-                viewItem.displayModal(caption = "Inserting this...", size = ModalSize.XLARGE, centered = true)
-            }
-*/
         },
         CrudAction.Read to { itemId, block ->
             configViewItem?.let { configViewItem ->
@@ -91,7 +85,6 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                         urlParams.add("contextName" to masterItemProp?.name)
                     }
                     routing.navigate(configViewItem.url + urlParams.toString())
-//                configViewItem?.displayModal(urlParams, block)
                 }
             }
         },

@@ -41,8 +41,6 @@ abstract class ViewDataContainer<U : Any>(
 
     val name get() = configView.name
 
-//    abstract var dataContainer: ObservableValue<U>?
-
     abstract suspend fun singleUpdate()
 
     fun updateData(first: Boolean) {
