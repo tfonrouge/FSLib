@@ -32,6 +32,7 @@ val MongoDbPlugin = createApplicationPlugin(
 ) {
 //    database = pluginConfig.database
     plugin = pluginConfig
+    println("MongoDbPlugin is installed: host=${plugin.serverUrl}, database=${plugin.database}")
 }
 
 class MongoDbPluginConfiguration {

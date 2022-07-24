@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib
+package com.fonrouge.fsLib.serializers
 
 import io.kvision.types.LocalDateTime
 import kotlinx.serialization.KSerializer

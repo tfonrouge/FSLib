@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib
+package com.fonrouge.fsLib.serializers
 
 import com.github.jershell.kbson.BsonFlexibleDecoder
 import io.kvision.remote.ServiceException
@@ -19,7 +19,7 @@ public actual object NumberDoubleSerializer : KSerializer<Double> {
             BsonType.INT64 -> bsonDecoder.decodeLong().toDouble()
             BsonType.DOUBLE -> bsonDecoder.decodeDouble()
             else -> {
-                throw ServiceException("NumberDoubleSerializer: Unkown how to decode type '${bsonDecoder.reader.currentBsonType}'")
+                throw ServiceException("NumberDoubleSerializer: Unknown how to decode type '${bsonDecoder.reader.currentBsonType}'")
             }
         }
     }
