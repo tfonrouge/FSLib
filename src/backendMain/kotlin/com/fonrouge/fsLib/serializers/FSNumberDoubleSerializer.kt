@@ -12,20 +12,23 @@ import org.bson.BsonType
 
 @Suppress("unused", "RedundantVisibilityModifier")
 public actual object FSNumberDoubleSerializer : KSerializer<Double> {
-    override fun deserialize(decoder: Decoder): Double {
-        val bsonDecoder = decoder as BsonFlexibleDecoder
-        return when (bsonDecoder.reader.currentBsonType) {
-            BsonType.INT32 -> bsonDecoder.decodeInt().toDouble()
-            BsonType.INT64 -> bsonDecoder.decodeLong().toDouble()
-            BsonType.DOUBLE -> bsonDecoder.decodeDouble()
-            else -> {
-                throw ServiceException("NumberDoubleSerializer: Unknown how to decode type '${bsonDecoder.reader.currentBsonType}'")
-            }
-        }
-    }
-
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Number as Double Serializer", PrimitiveKind.DOUBLE)
+
+    override fun deserialize(decoder: Decoder): Double {
+        return if (decoder is BsonFlexibleDecoder) {
+            when (decoder.reader.currentBsonType) {
+                BsonType.INT32 -> decoder.decodeInt().toDouble()
+                BsonType.INT64 -> decoder.decodeLong().toDouble()
+                BsonType.DOUBLE -> decoder.decodeDouble()
+                else -> {
+                    throw ServiceException("NumberDoubleSerializer: Unknown how to decode type '${decoder.reader.currentBsonType}'")
+                }
+            }
+        } else {
+            decoder.decodeDouble()
+        }
+    }
 
     override fun serialize(encoder: Encoder, value: Double) {
         return encoder.encodeDouble(value = value)
