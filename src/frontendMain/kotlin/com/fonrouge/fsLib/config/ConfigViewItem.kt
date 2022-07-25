@@ -28,6 +28,8 @@ abstract class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T, *, *>>(
     val labelInsert = "Agregar $label"
     val labelUpdate = "Modificar $label"
 
+    fun labelUrlRead(id: Any) = label to urlRead(id)
+
     val urlCreate: String
         get() {
             val urlParams = UrlParams("action" to CrudAction.Create.name)
