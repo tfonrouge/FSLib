@@ -30,7 +30,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     override val configView: ConfigViewList<T, *>,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
-    private val stateFunction: (() -> String?)? = null,
+    val stateFunction: (() -> String)? = null,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,

@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.StateFunctionItem
 import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
@@ -40,7 +41,7 @@ import kotlin.reflect.KClass
 abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     override val configView: ConfigViewItem<T, *>,
     private val serverManager: KVServiceManager<E>,
-    private val function: suspend E.(CrudAction, U?, T?, ItemContainerCallType) -> ItemContainer<T>,
+    private val function: suspend E.(U?, T?, StateFunctionItem) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,
     private val klass: KClass<T>,
     repeatRefreshView: Boolean? = null,
@@ -79,10 +80,15 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
-            Json.encodeToString(crudAction),
             JSON.stringify(itemId),
             item?.let { Json.encodeToString(serializer = klass.serializer(), it) } ?: "null",
-            Json.encodeToString(itemContainerCallType))
+            Json.encodeToString(
+                StateFunctionItem(
+                    crudAction = crudAction,
+                    itemContainerCallType = itemContainerCallType,
+                    state = stateFunction?.invoke()
+                )
+            ))
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
                 id = 0,

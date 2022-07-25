@@ -58,6 +58,7 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
     viewList.tabulator = tabulatorRemote(
         serviceManager = viewList.serverManager,
         function = viewList.function,
+        stateFunction = viewList.stateFunction,
         serializer = T::class.serializer(),
         options = TabulatorOptions(
 //            height = "calc(100vh - 30vh)",
