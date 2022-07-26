@@ -48,28 +48,34 @@ abstract class ViewDataContainer<U : Any>(
             AppScope.launch {
                 try {
                     singleUpdate()
+                    console.warn(
+                        "singleUpdate:",
+                        (this@ViewDataContainer as? ViewList<*, *>)?.masterViewItem?.urlParams?.actionUpsert
+                    )
                 } catch (e: Exception) {
                     console.error("Error on interval =", e)
                 }
             }
         }
-        if (repeatUpdateView == true) {
-            var lastTime: Int? = null
-            var lock = false
-            handleInterval = window.setInterval(
-                handler = {
-                    val time = Date().getUTCSeconds()
-                    if (lastTime != Date().getSeconds() && (time % repeatUpdateSecsInterval == 0)) {
-                        lastTime = Date().getUTCSeconds()
-                        if (!lock) {
-                            lock = true
-                            callBlock()
-                            lock = false
+        if ((this@ViewDataContainer as? ViewList<*, *>)?.masterViewItem == null) {
+            if (repeatUpdateView == true) {
+                var lastTime: Int? = null
+                var lock = false
+                handleInterval = window.setInterval(
+                    handler = {
+                        val time = Date().getUTCSeconds()
+                        if (lastTime != Date().getSeconds() && (time % repeatUpdateSecsInterval == 0)) {
+                            lastTime = Date().getUTCSeconds()
+                            if (!lock) {
+                                lock = true
+                                callBlock()
+                                lock = false
+                            }
                         }
-                    }
-                },
-                timeout = 250
-            )
+                    },
+                    timeout = 250
+                )
+            }
         }
         if (first) {
             callBlock()
