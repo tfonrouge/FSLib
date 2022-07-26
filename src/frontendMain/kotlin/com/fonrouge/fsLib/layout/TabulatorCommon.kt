@@ -20,7 +20,6 @@ import kotlinx.serialization.serializer
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
     viewList: ViewList<T, E>,
-    columnDefinitionList: List<ColumnDefinition<T>>,
     minToolbarSize: Boolean = true,
     noinline rowSelect: ((Any?) -> Unit)? = null,
 ): Container {
@@ -91,7 +90,7 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
                 columns = true
             },
 */
-            columns = columnDefinitionList,
+            columns = viewList.columnDefinitionList,
         ),
     ) {
 

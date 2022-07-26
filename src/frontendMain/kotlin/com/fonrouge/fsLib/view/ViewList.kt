@@ -148,12 +148,12 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
 
     open fun onRowSelected(itemId: Any?) {}
 
-    abstract fun pageListBody(container: Container)
+    abstract fun Container.pageListBody()
 
     final override fun displayPage(container: Container) {
         container.apply {
             pageBanner()
-            pageListBody(this)
+            pageListBody()
         }
     }
 
