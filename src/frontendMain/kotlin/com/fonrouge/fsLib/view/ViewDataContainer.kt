@@ -48,10 +48,6 @@ abstract class ViewDataContainer<U : Any>(
             AppScope.launch {
                 try {
                     singleUpdate()
-                    console.warn(
-                        "singleUpdate:",
-                        (this@ViewDataContainer as? ViewList<*, *>)?.masterViewItem?.urlParams?.actionUpsert
-                    )
                 } catch (e: Exception) {
                     console.error("Error on interval =", e)
                 }
