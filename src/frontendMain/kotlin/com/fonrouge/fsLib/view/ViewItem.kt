@@ -74,15 +74,12 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         itemId: U?,
         item: T?,
         callType: StateItem.CallType,
-        json: kotlin.js.Json? = null,
         block: (ItemContainer<T>) -> Unit,
     ) {
-        console.warn("JSON =", json, "string", json, "\"", JSON.stringify(json))
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
             JSON.stringify(itemId),
-//            item?.let { Json.encodeToString(serializer = klass.serializer(), it) } ?: "null",
             Json.encodeToString(
                 serializer = StateItem.serializer(klass.serializer()),
                 value = StateItem(
@@ -158,7 +155,6 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                                             itemId = itemId,
                                             item = formPanel?.getData(),
                                             callType = StateItem.CallType.Action,
-                                            json = formPanel?.getDataJson(),
                                         ) {
                                             if (it.result) {
                                                 Toast.success("Info", "Operation successful")
