@@ -8,7 +8,6 @@ import com.fonrouge.fsLib.lib.KPair
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
-import com.fonrouge.fsLib.model.ItemContainerCallType
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.*
 import io.kvision.form.FormPanel
@@ -74,7 +73,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         crudAction: CrudAction,
         itemId: U?,
         item: T?,
-        itemContainerCallType: ItemContainerCallType,
+        callType: StateItem.CallType,
         json: kotlin.js.Json? = null,
         block: (ItemContainer<T>) -> Unit,
     ) {
@@ -90,7 +89,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     item = item,
                     json = null,
                     crudAction = crudAction,
-                    itemContainerCallType = itemContainerCallType,
+                    callType = callType,
                     state = stateFunction?.invoke()
                 )
             )
@@ -112,7 +111,12 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 
     override suspend fun singleUpdate() {
         urlParams?.action?.let { crudAction ->
-            getItemContainer(crudAction, itemId = itemId, null, ItemContainerCallType.Query) { itemContainer ->
+            getItemContainer(
+                crudAction = crudAction,
+                itemId = itemId,
+                item = null,
+                callType = StateItem.CallType.Query
+            ) { itemContainer ->
                 dataContainer.value = itemContainer
             }
         }
@@ -120,7 +124,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 
     open val createDefaultValueList: List<KPair<T, *>>? = null
 
-    private fun displayForm(container: Container, action: CrudAction, itemContainer: ItemContainer<T>) {
+    private fun displayForm(container: Container, action: CrudAction) {
         container.apply {
             vPanel(className = "showItem") {
                 flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
@@ -153,7 +157,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                                             crudAction = action,
                                             itemId = itemId,
                                             item = formPanel?.getData(),
-                                            itemContainerCallType = ItemContainerCallType.Action,
+                                            callType = StateItem.CallType.Action,
                                             json = formPanel?.getDataJson(),
                                         ) {
                                             if (it.result) {
@@ -193,7 +197,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 }
             }
             CrudAction.Read -> {
-                itemContainer.item?.let { formPanel?.setData(it) }
+                dataContainer.value?.item?.let { formPanel?.setData(it) }
                 dataContainer.subscribe {
                     it?.item?.let { item ->
                         linkBanner?.label = getCaption()
@@ -203,7 +207,10 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 updateData(false)
             }
             CrudAction.Update -> {
-                itemContainer.item?.let { formPanel?.setData(it) }
+                dataContainer.value?.item?.let {
+                    linkBanner?.label = getCaption()
+                    formPanel?.setData(it)
+                }
             }
             else -> {}
         }
@@ -223,10 +230,11 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     crudAction = action,
                     itemId = itemId,
                     item = null,
-                    itemContainerCallType = ItemContainerCallType.Query
+                    callType = StateItem.CallType.Query
                 ) { itemContainer ->
                     if (itemContainer.result) {
-                        displayForm(container, action, itemContainer)
+                        dataContainer.value = itemContainer
+                        displayForm(container, action)
                     } else {
                         js("history.back()") as? Unit
                         AppScope.launch {
