@@ -7,7 +7,6 @@ import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
@@ -130,7 +129,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
         list.getOrNull(0)?._id.toString()
     }
     var masterItemProp: KProperty<*>? = null
-    var masterViewItem: ViewItem<*, out IDataItem, *>? = null
+    var masterViewItem: ViewItem<*, *, *>? = null
     val parentContextUrlParams: String
         get() {
             return masterViewItem?.dataContainer?.value?.let {

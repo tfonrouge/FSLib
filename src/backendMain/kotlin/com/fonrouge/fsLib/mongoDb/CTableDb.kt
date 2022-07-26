@@ -5,6 +5,9 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
+import org.bson.BsonDocument
+import org.bson.BsonString
+import org.bson.BsonValue
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.coroutine.CoroutineCollection
@@ -29,13 +32,21 @@ class CTableDb<T : BaseModel<*>>(
         match?.let {
             bsonList.add(it)
         }
-        var filterValue: Document? = null
+        val filterValue = match?.let { bson ->
+            val bsonDocument = BsonDocument()
+            (bson.toBsonDocument()["\$match"] as BsonDocument).forEach {
+                bsonDocument.append(it.key, it.value)
+            }
+            bsonDocument
+        } ?: BsonDocument()
         if (filter != null && filter.isNotEmpty()) {
-            filterValue = Document()
             filter.forEach { remoteFilter ->
-                val value = when (remoteFilter.type) {
-                    "like" -> Document("\$regex", remoteFilter.value).append("\$options", "i")
-                    else -> remoteFilter.value
+                val value: BsonValue = when (remoteFilter.type) {
+                    "like" -> BsonDocument(
+                        "\$regex",
+                        BsonString(remoteFilter.value)
+                    ).append("\$options", BsonString("i"))
+                    else -> BsonString(remoteFilter.value)
                 }
                 filterValue.append(remoteFilter.field, value)
             }
@@ -53,7 +64,7 @@ class CTableDb<T : BaseModel<*>>(
             }
             bsonList.add(Document("\$sort", fields))
         }
-        val count: Long = filterValue?.let { collection.countDocuments(it) } ?: collection.countDocuments()
+        val count: Long = filterValue.let { collection.countDocuments(it) }
         if (page == null) {
             return FirstStage(
                 pipeline = bsonList,
@@ -64,7 +75,7 @@ class CTableDb<T : BaseModel<*>>(
         } else {
             val nSize = size ?: 10
             val nSkip = nSize * (page - 1)
-            filterValue?.let {
+            filterValue.let {
                 bsonList.add(Document("\$match", it))
             }
             bsonList.add(
