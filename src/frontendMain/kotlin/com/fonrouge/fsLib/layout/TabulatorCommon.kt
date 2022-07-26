@@ -42,9 +42,11 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.fsTabulator(
                         CrudAction.Create.name -> component.url = itemId?.let {
                             configViewItem.urlCreate + viewList.parentContextUrlParams
                         }
+
                         CrudAction.Update.name -> component.url = itemId?.let {
                             configViewItem.urlUpdate(it) + viewList.parentContextUrlParams
                         }
+
                         CrudAction.Delete.name -> component.url = itemId?.let {
                             configViewItem.urlDelete(it)
                         }
@@ -81,15 +83,15 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.fsTabulator(
             paginationSize = 10,
             paginationSizeSelector = true,
             autoResize = true,
-/*
-            persistence = obj {
-                sort = true
-                filter = true
-                group = true
-//                    page = true
-                columns = true
-            },
-*/
+            /*
+                        persistence = obj {
+                            sort = true
+                            filter = true
+                            group = true
+            //                    page = true
+                            columns = true
+                        },
+            */
             columns = viewList.columnDefinitionList,
         ),
     ) {

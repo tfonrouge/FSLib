@@ -192,6 +192,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                         )
                 }
             }
+
             CrudAction.Read -> {
                 dataContainer.value?.item?.let { formPanel?.setData(it) }
                 dataContainer.subscribe {
@@ -202,12 +203,14 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                 }
                 updateData(false)
             }
+
             CrudAction.Update -> {
                 dataContainer.value?.item?.let {
                     linkBanner?.label = getCaption()
                     formPanel?.setData(it)
                 }
             }
+
             else -> {}
         }
     }
@@ -245,6 +248,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     }
                 }
             }
+
             else -> {}
         }
     }

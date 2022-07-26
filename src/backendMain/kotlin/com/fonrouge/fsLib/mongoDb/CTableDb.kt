@@ -39,13 +39,14 @@ class CTableDb<T : BaseModel<*>>(
             }
             bsonDocument
         } ?: BsonDocument()
-        if (filter != null && filter.isNotEmpty()) {
+        if (!filter.isNullOrEmpty()) {
             filter.forEach { remoteFilter ->
                 val value: BsonValue = when (remoteFilter.type) {
                     "like" -> BsonDocument(
                         "\$regex",
                         BsonString(remoteFilter.value)
                     ).append("\$options", BsonString("i"))
+
                     else -> BsonString(remoteFilter.value)
                 }
                 filterValue.append(remoteFilter.field, value)
