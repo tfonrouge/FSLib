@@ -18,7 +18,7 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseModel<*>, E : IDataList> Container.tabulatorCommon(
+inline fun <reified T : BaseModel<*>, E : IDataList> Container.fsTabulator(
     viewList: ViewList<T, E>,
     minToolbarSize: Boolean = true,
     noinline rowSelect: ((Any?) -> Unit)? = null,
