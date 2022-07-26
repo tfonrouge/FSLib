@@ -130,7 +130,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
         list.getOrNull(0)?._id.toString()
     }
     var masterItemProp: KProperty<*>? = null
-    var masterViewItem: ViewItem<*, IDataItem, *>? = null
+    var masterViewItem: ViewItem<*, out IDataItem, *>? = null
     val parentContextUrlParams: String
         get() {
             return masterViewItem?.dataContainer?.value?.let {
