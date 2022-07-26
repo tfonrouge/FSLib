@@ -29,6 +29,7 @@ abstract class ConfigViewItem<T : BaseModel<*>, V : ViewItem<T, *, *>>(
     val labelUpdate = "Modificar $label"
 
     fun labelUrlRead(id: Any) = label to urlRead(id)
+    fun labelUrlUpdate(id: Any) = label to urlUpdate(id)
 
     val urlCreate: String
         get() {
