@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.StateFunctionItem
+import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
@@ -41,7 +41,7 @@ import kotlin.reflect.KClass
 abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     override val configView: ConfigViewItem<T, *>,
     private val serverManager: KVServiceManager<E>,
-    private val function: suspend E.(U?, T?, StateFunctionItem) -> ItemContainer<T>,
+    private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,
     private val klass: KClass<T>,
     repeatRefreshView: Boolean? = null,
@@ -75,20 +75,26 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         itemId: U?,
         item: T?,
         itemContainerCallType: ItemContainerCallType,
+        json: kotlin.js.Json? = null,
         block: (ItemContainer<T>) -> Unit,
     ) {
+        console.warn("JSON =", json, "string", json, "\"", JSON.stringify(json))
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
             JSON.stringify(itemId),
-            item?.let { Json.encodeToString(serializer = klass.serializer(), it) } ?: "null",
+//            item?.let { Json.encodeToString(serializer = klass.serializer(), it) } ?: "null",
             Json.encodeToString(
-                StateFunctionItem(
+                serializer = StateItem.serializer(klass.serializer()),
+                value = StateItem(
+                    item = item,
+                    json = null,
                     crudAction = crudAction,
                     itemContainerCallType = itemContainerCallType,
                     state = stateFunction?.invoke()
                 )
-            ))
+            )
+        )
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
                 id = 0,
@@ -144,10 +150,11 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                                 onClick {
                                     if (formPanel?.validate() == true) {
                                         getItemContainer(
-                                            action,
+                                            crudAction = action,
                                             itemId = itemId,
-                                            formPanel?.getData(),
-                                            ItemContainerCallType.Action
+                                            item = formPanel?.getData(),
+                                            itemContainerCallType = ItemContainerCallType.Action,
+                                            json = formPanel?.getDataJson(),
                                         ) {
                                             if (it.result) {
                                                 Toast.success("Info", "Operation successful")
