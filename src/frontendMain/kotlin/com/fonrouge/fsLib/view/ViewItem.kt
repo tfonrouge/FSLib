@@ -7,7 +7,6 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.KPair
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.*
@@ -18,32 +17,16 @@ import io.kvision.html.button
 import io.kvision.i18n.I18n.tr
 import io.kvision.panel.flexPanel
 import io.kvision.panel.vPanel
-import io.kvision.remote.CallAgent
-import io.kvision.remote.HttpMethod
-import io.kvision.remote.JsonRpcRequest
-import io.kvision.remote.KVServiceManager
 import io.kvision.state.ObservableValue
 import io.kvision.toast.*
-import io.kvision.utils.Serialization
 import io.kvision.utils.em
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.decodeFromDynamic
-import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
-import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
-    override val configView: ConfigViewItem<T, *>,
-    private val serverManager: KVServiceManager<E>,
-    private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
-    private val stateFunction: (() -> String)? = null,
-    private val klass: KClass<T>,
+abstract class ViewItem<T : BaseModel<U>, U>(
+    override val configView: ConfigViewItem<T, out ViewItem<T, U>, *, U>,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -86,53 +69,15 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         }
     }
 
-    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    fun callItemService(
-        crudAction: CrudAction,
-        itemId: U?,
-        item: T?,
-        callType: StateItem.CallType,
-        block: (ItemContainer<T>) -> Unit,
-    ) {
-        val (url, method) = serverManager.requireCall(function)
-        val callAgent = CallAgent()
-        val paramList = listOf(
-            JSON.stringify(itemId),
-            Json.encodeToString(
-                serializer = StateItem.serializer(klass.serializer()),
-                value = StateItem(
-                    item = item,
-                    json = null,
-                    crudAction = crudAction,
-                    callType = callType,
-                    state = stateFunction?.invoke(),
-                    contextDataUrl = urlParams?.contextDataUrl
-                )
-            )
-        )
-        val data = Serialization.plain.encodeToString(
-            JsonRpcRequest(
-                id = 0,
-                method = url,
-                params = paramList
-            )
-        )
-        callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
-            val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            val itemContainer: ItemContainer<T> =
-                Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
-            block(itemContainer)
-        }
-    }
-
     fun callUpdateItemService() {
         if (urlParams?.actionUpsert == true) {
             formPanel?.getData()?.let {
-                callItemService(
+                configView.callItemService(
                     crudAction = CrudAction.Update,
                     itemId = itemId,
                     item = it,
-                    callType = StateItem.CallType.Action
+                    callType = StateItem.CallType.Action,
+                    contextDataUrl = urlParams?.contextDataUrl
                 ) { itemContainer ->
                     dataContainer.value = itemContainer
                 }
@@ -169,11 +114,12 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 //                                marginLeft = 10.px
                                 onClick {
                                     if (formPanel?.validate() == true) {
-                                        callItemService(
+                                        configView.callItemService(
                                             crudAction = action,
                                             itemId = itemId,
                                             item = formPanel?.getData(),
                                             callType = StateItem.CallType.Action,
+                                            contextDataUrl = urlParams?.contextDataUrl
                                         ) {
                                             if (it.result) {
                                                 Toast.success("Info", "Operation successful")
@@ -249,11 +195,13 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     params["id"]
                 }
                 itemId = _id?.unsafeCast<U>()
-                callItemService(
+                configView.callItemService(
                     crudAction = action,
                     itemId = itemId,
                     item = null,
-                    callType = StateItem.CallType.Query
+                    callType = StateItem.CallType.Query,
+                    contextDataUrl = urlParams?.contextDataUrl
+
                 ) { itemContainer ->
                     if (itemContainer.result) {
                         dataContainer.value = itemContainer
@@ -295,11 +243,12 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 
     override suspend fun singleUpdate() {
         urlParams?.action?.let { crudAction ->
-            callItemService(
+            configView.callItemService(
                 crudAction = crudAction,
                 itemId = itemId,
                 item = null,
-                callType = StateItem.CallType.Query
+                callType = StateItem.CallType.Query,
+                contextDataUrl = urlParams?.contextDataUrl
             ) { itemContainer ->
                 dataContainer.value = itemContainer
             }

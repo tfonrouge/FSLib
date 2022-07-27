@@ -28,7 +28,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var configViewHome: ConfigViewHome<*>? = null
 
-    val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *>>()
+    val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *>>()
 
     private var authenticated = false
 

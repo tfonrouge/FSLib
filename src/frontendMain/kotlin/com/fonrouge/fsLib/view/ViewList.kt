@@ -44,9 +44,9 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
 
     var blockRefresh: (() -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-    val configViewItem: ConfigViewItem<*, *>? by lazy { configViewItemMap[name] }
+    val configViewItem: ConfigViewItem<*, *, *, *>? by lazy { configViewItemMap[name] }
     open val contextMenu: ((ContextMenu).() -> Unit)? = null
-    val crudActionMap = mapOf<CrudAction, (Any?, (ViewItem<*, *, *>.() -> Unit)?) -> Unit>(
+    val crudActionMap = mapOf<CrudAction, (Any?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
         CrudAction.Create to { _, _ ->
             configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(
@@ -122,7 +122,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     val listNameFunc: ((List<T>) -> String) = { list ->
         list.getOrNull(0)?._id.toString()
     }
-    var masterViewItem: ViewItem<*, *, *>? = null
+    var masterViewItem: ViewItem<*, *>? = null
     val parentContextUrlParams: String
         get() {
             return masterViewItem?.dataContainer?.value?.let {

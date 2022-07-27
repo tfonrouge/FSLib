@@ -34,8 +34,6 @@ abstract class ViewDataContainer<U : Any>(
             }
     }
 
-    val contextClassId get() = urlParams?.contextDataUrl
-
     var displayBlock: (() -> Unit)? = null
     val lookupParam get() = configView.lookupParam
 
