@@ -145,4 +145,13 @@ class CTableDb<T : BaseModel<*>>(
         }
         return ItemContainer(result = false, description = "updateOne(): item contains null value...")
     }
+
+    @Suppress("unused")
+    suspend fun updateOne(_id: Any?, bson: Bson?): ItemContainer<T> {
+        if (bson != null) {
+            val result = collection.updateOne(BaseModel<*>::_id eq _id, update = bson)
+            return ItemContainer(result = result.modifiedCount == 1L)
+        }
+        return ItemContainer(result = false, description = "updateOne(): item contains null value...")
+    }
 }

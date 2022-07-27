@@ -22,14 +22,12 @@ import io.kvision.state.ObservableList
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.TabulatorRemote
 import kotlinx.serialization.json.JsonObject
-import kotlin.reflect.KProperty
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     override val configView: ConfigViewList<T, *>,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
-    val stateFunction: (() -> String)? = null,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -54,11 +52,8 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                 val urlParams = UrlParams(
                     "action" to CrudAction.Create.name,
                 )
-                masterViewItem?.dataContainer?.value?.let {
-                    urlParams.add("contextClass" to it::class.simpleName)
-                    urlParams.add("contextId" to it.item?._id)
-                    urlParams.add("contextName" to masterItemProp?.name)
-                }
+                masterViewItem?.addContext(urlParams)
+                masterViewItem?.callUpdateItemService()
                 routing.navigate(configViewItem.url + urlParams.toString())
             }
         },
@@ -68,6 +63,8 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                     "action" to CrudAction.Read.name,
                     "id" to itemId
                 )
+                masterViewItem?.addContext(urlParams)
+                masterViewItem?.callUpdateItemService()
                 routing.navigate(configViewItem.url + urlParams.toString())
             }
         },
@@ -78,11 +75,8 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                         "action" to CrudAction.Update.name,
                         "id" to itemId,
                     )
-                    masterViewItem?.dataContainer?.value?.let {
-                        urlParams.add("contextClass" to it::class.simpleName)
-                        urlParams.add("contextId" to it.item?._id)
-                        urlParams.add("contextName" to masterItemProp?.name)
-                    }
+                    masterViewItem?.addContext(urlParams)
+                    masterViewItem?.callUpdateItemService()
                     routing.navigate(configViewItem.url + urlParams.toString())
                 }
             }
@@ -128,7 +122,6 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     val listNameFunc: ((List<T>) -> String) = { list ->
         list.getOrNull(0)?._id.toString()
     }
-    var masterItemProp: KProperty<*>? = null
     var masterViewItem: ViewItem<*, *, *>? = null
     val parentContextUrlParams: String
         get() {

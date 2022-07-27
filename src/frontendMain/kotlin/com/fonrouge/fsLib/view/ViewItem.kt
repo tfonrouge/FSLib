@@ -5,6 +5,7 @@ import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.KPair
+import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemContainer
@@ -56,10 +57,20 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     matchFilterParam = matchFilterParam,
     sortParam = sortParam
 ) {
+    open val createDefaultValueList: List<KPair<T, *>>? = null
     var dataContainer: ObservableValue<ItemContainer<T>?> = ObservableValue(null)
+
+    init {
+        dataContainer.subscribe {
+            it?.item?.let { item ->
+                linkBanner?.label = getCaption()
+                formPanel?.setData(item)
+            }
+        }
+    }
+
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
-    val item get() = dataContainer.value?.item
     var itemId: U? = null
     val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
     var noBackButton = false
@@ -68,8 +79,15 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
+    fun addContext(urlParams: UrlParams) {
+        dataContainer.value?.let { itemContainer ->
+            urlParams.add("contextClass" to itemContainer.item?.let { it::class.simpleName })
+            urlParams.add("contextId" to itemContainer.item?._id)
+        }
+    }
+
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    fun getItemContainer(
+    fun callItemService(
         crudAction: CrudAction,
         itemId: U?,
         item: T?,
@@ -87,7 +105,8 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     json = null,
                     crudAction = crudAction,
                     callType = callType,
-                    state = stateFunction?.invoke()
+                    state = stateFunction?.invoke(),
+                    contextDataUrl = urlParams?.contextDataUrl
                 )
             )
         )
@@ -106,20 +125,20 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         }
     }
 
-    override suspend fun singleUpdate() {
-        urlParams?.action?.let { crudAction ->
-            getItemContainer(
-                crudAction = crudAction,
-                itemId = itemId,
-                item = null,
-                callType = StateItem.CallType.Query
-            ) { itemContainer ->
-                dataContainer.value = itemContainer
+    fun callUpdateItemService() {
+        if (urlParams?.actionUpsert == true) {
+            formPanel?.getData()?.let {
+                callItemService(
+                    crudAction = CrudAction.Update,
+                    itemId = itemId,
+                    item = it,
+                    callType = StateItem.CallType.Action
+                ) { itemContainer ->
+                    dataContainer.value = itemContainer
+                }
             }
         }
     }
-
-    open val createDefaultValueList: List<KPair<T, *>>? = null
 
     private fun displayForm(container: Container, action: CrudAction) {
         container.apply {
@@ -150,7 +169,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 //                                marginLeft = 10.px
                                 onClick {
                                     if (formPanel?.validate() == true) {
-                                        getItemContainer(
+                                        callItemService(
                                             crudAction = action,
                                             itemId = itemId,
                                             item = formPanel?.getData(),
@@ -185,6 +204,11 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
         }
         when (action) {
             CrudAction.Create -> {
+                console.warn("CREATE ASSIGNING")
+                dataContainer.value?.item?.let {
+                    console.warn("CREATE ASSIGNING it:", it)
+                    formPanel?.setData(it)
+                }
                 createDefaultValueList?.forEach { kPair ->
                     formPanel?.form?.fields?.asIterable()
                         ?.firstOrNull { kPair.kProp.name == it.key }?.value?.setValue(
@@ -195,12 +219,12 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
 
             CrudAction.Read -> {
                 dataContainer.value?.item?.let { formPanel?.setData(it) }
-                dataContainer.subscribe {
-                    it?.item?.let { item ->
-                        linkBanner?.label = getCaption()
-                        formPanel?.setData(item)
-                    }
-                }
+//                dataContainer.subscribe {
+//                    it?.item?.let { item ->
+//                        linkBanner?.label = getCaption()
+//                        formPanel?.setData(item)
+//                    }
+//                }
                 updateData(false)
             }
 
@@ -225,7 +249,7 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
                     params["id"]
                 }
                 itemId = _id?.unsafeCast<U>()
-                getItemContainer(
+                callItemService(
                     crudAction = action,
                     itemId = itemId,
                     item = null,
@@ -268,4 +292,17 @@ abstract class ViewItem<T : BaseModel<U>, E : IDataItem, U>(
     }
 
     open fun Container.pageItemBody(): FormPanel<T>? = null
+
+    override suspend fun singleUpdate() {
+        urlParams?.action?.let { crudAction ->
+            callItemService(
+                crudAction = crudAction,
+                itemId = itemId,
+                item = null,
+                callType = StateItem.CallType.Query
+            ) { itemContainer ->
+                dataContainer.value = itemContainer
+            }
+        }
+    }
 }
