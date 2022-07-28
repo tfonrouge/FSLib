@@ -42,10 +42,10 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     viewFunc = viewFunc,
 ) {
 
-    val labelDelete = "Eliminar $label"
-    val labelDetail = "Ver detalle de $label"
-    val labelInsert = "Agregar $label"
-    val labelUpdate = "Modificar $label"
+    val labelDelete = "Delete $label"
+    val labelDetail = "Detail of $label"
+    val labelCreate = "Create $label"
+    val labelUpdate = "Update $label"
 
     fun labelUrlRead(id: Any) = label to urlRead(id)
     fun labelUrlUpdate(id: Any) = label to urlUpdate(id)

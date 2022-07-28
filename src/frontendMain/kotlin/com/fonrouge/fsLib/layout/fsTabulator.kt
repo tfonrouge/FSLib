@@ -138,7 +138,7 @@ inline fun <reified T : BaseModel<*>, E : IDataList> Container.fsTabulator(
                 if (viewList.editable) {
                     dropDown("Edit", forDropDown = true, icon = "fas fa-pen") {
                         ddLink(
-                            label = configViewItem.labelInsert,
+                            label = configViewItem.labelCreate,
                             icon = "fas fa-plus",
                         ) {
                             onClick { viewList.crudActionMap[CrudAction.Create]?.invoke(itemId, null) }

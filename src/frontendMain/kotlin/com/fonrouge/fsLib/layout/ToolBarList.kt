@@ -26,7 +26,7 @@ fun <T : BaseModel<*>> Container.toolBarList(
                         icon = "fas fa-plus",
                     ) {
                         id = CrudAction.Create.name
-                        enableTooltip(TooltipOptions(configViewItem.labelInsert, animation = true, delay = delay))
+                        enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                         onClick {
                             viewList.crudActionMap[CrudAction.Create]?.invoke(itemId, null)
                         }
