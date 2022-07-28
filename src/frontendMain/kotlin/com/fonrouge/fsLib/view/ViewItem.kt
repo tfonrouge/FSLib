@@ -74,9 +74,9 @@ abstract class ViewItem<T : BaseModel<U>, U>(
             formPanel?.getData()?.let {
                 configView.callItemService(
                     crudAction = CrudAction.Update,
+                    callType = StateItem.CallType.Action,
                     itemId = itemId,
                     item = it,
-                    callType = StateItem.CallType.Action,
                     contextDataUrl = urlParams?.contextDataUrl
                 ) { itemContainer ->
                     dataContainer.value = itemContainer
@@ -116,9 +116,9 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                     if (formPanel?.validate() == true) {
                                         configView.callItemService(
                                             crudAction = action,
+                                            callType = StateItem.CallType.Action,
                                             itemId = itemId,
                                             item = formPanel?.getData(),
-                                            callType = StateItem.CallType.Action,
                                             contextDataUrl = urlParams?.contextDataUrl
                                         ) {
                                             if (it.result) {
@@ -197,9 +197,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                 itemId = _id?.unsafeCast<U>()
                 configView.callItemService(
                     crudAction = action,
-                    itemId = itemId,
-                    item = null,
                     callType = StateItem.CallType.Query,
+                    itemId = itemId,
                     contextDataUrl = urlParams?.contextDataUrl
 
                 ) { itemContainer ->
@@ -245,9 +244,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
         urlParams?.action?.let { crudAction ->
             configView.callItemService(
                 crudAction = crudAction,
-                itemId = itemId,
-                item = null,
                 callType = StateItem.CallType.Query,
+                itemId = itemId,
                 contextDataUrl = urlParams?.contextDataUrl
             ) { itemContainer ->
                 dataContainer.value = itemContainer

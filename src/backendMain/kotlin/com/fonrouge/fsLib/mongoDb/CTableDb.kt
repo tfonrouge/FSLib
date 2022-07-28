@@ -122,7 +122,7 @@ class CTableDb<T : BaseModel<*>>(
     suspend fun insertOne(item: T?): ItemContainer<T> {
         if (item != null) {
             val result = collection.insertOne(item)
-            return ItemContainer(result = result.insertedId != null)
+            return ItemContainer(item = item, result = result.insertedId != null)
         }
         return ItemContainer(result = false, description = "insertOne(): item contains null value...")
     }

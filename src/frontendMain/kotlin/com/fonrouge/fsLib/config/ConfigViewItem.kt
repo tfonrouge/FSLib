@@ -74,10 +74,10 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     fun callItemService(
         crudAction: CrudAction,
-        itemId: U?,
-        item: T?,
         callType: StateItem.CallType,
-        contextDataUrl: ContextDataUrl?,
+        itemId: U? = null,
+        item: T? = null,
+        contextDataUrl: ContextDataUrl? = null,
         block: (ItemContainer<T>) -> Unit,
     ) {
         val (url, method) = serverManager.requireCall(function)
