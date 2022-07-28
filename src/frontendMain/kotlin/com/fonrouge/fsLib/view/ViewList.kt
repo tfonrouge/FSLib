@@ -50,7 +50,7 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     val configViewItem: ConfigViewItem<*, *, *, Any>?
         get() {
-            return configViewItemMap[name] as ConfigViewItem<*, *, *, Any>?
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<*, *, *, Any>>()
         }
     open val contextMenu: ((ContextMenu).() -> Unit)? = null
     val crudActionMap = mapOf<CrudAction, (Any?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
