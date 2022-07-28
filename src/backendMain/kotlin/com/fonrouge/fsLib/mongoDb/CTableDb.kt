@@ -13,11 +13,12 @@ import org.bson.conversions.Bson
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.limit
+import org.litote.kmongo.match
 import org.litote.kmongo.skip
 
-class CTableDb<T : BaseModel<*>>(
+class CTableDb<T : BaseModel<U>, U>(
     val collection: CoroutineCollection<T>,
-    private val lookupBuilderList: List<LookupBuilder<T, *, *>>? = null,
+    private val lookupBuilderList: List<LookupBuilder<T, *, *, *>>? = null,
 ) {
 
     @Suppress("unused")
@@ -106,16 +107,29 @@ class CTableDb<T : BaseModel<*>>(
     }
 
     @Suppress("unused")
-    suspend inline fun <reified U : T> getItem(
+    suspend inline fun <reified R : T> findOneById(
+        _id: U,
+        modelLookupList: List<ModelLookup<*, *>>? = null
+    ): ItemContainer<R> {
+        return ItemContainer(
+            item = getItem(
+                match = match(BaseModel<*>::_id eq _id),
+                modelLookupList = modelLookupList
+            )
+        )
+    }
+
+    @Suppress("unused")
+    suspend inline fun <reified R : T> getItem(
         match: Bson,
         modelLookupList: List<ModelLookup<*, *>>? = null
-    ): U? {
+    ): R? {
         val pipeline = mutableListOf(
             match,
         )
         pipeline.addAll(buildLookup(modelLookupList))
         pipeline.add(limit(1))
-        return collection.aggregate<U>(pipeline).first()
+        return collection.aggregate<R>(pipeline).first()
     }
 
     @Suppress("unused")
@@ -128,17 +142,17 @@ class CTableDb<T : BaseModel<*>>(
     }
 
     @Suppress("unused")
-    suspend inline fun <reified U : T> remoteData(
+    suspend inline fun <reified R : T> remoteData(
         firstStage: FirstStage,
         modelLookupList: List<ModelLookup<*, *>>? = null
-    ): RemoteData<U> {
+    ): RemoteData<R> {
         firstStage.pipeline.addAll(buildLookup(modelLookupList))
-        val list = collection.aggregate<U>(firstStage.pipeline).toList()
+        val list = collection.aggregate<R>(firstStage.pipeline).toList()
         return RemoteData(data = list, last_page = firstStage.last_page, last_row = firstStage.last_row)
     }
 
     @Suppress("unused")
-    suspend fun updateOne(_id: Any?, item: T?): ItemContainer<T> {
+    suspend fun updateOne(_id: U?, item: T?): ItemContainer<T> {
         if (item != null) {
             val result = collection.updateOne(filter = item::_id eq _id, target = item)
             return ItemContainer(result = result.modifiedCount == 1L)
@@ -147,7 +161,7 @@ class CTableDb<T : BaseModel<*>>(
     }
 
     @Suppress("unused")
-    suspend fun updateOne(_id: Any?, bson: Bson?): ItemContainer<T> {
+    suspend fun updateOne(_id: U?, bson: Bson?): ItemContainer<T> {
         if (bson != null) {
             val result = collection.updateOne(BaseModel<*>::_id eq _id, update = bson)
             return ItemContainer(result = result.modifiedCount == 1L)

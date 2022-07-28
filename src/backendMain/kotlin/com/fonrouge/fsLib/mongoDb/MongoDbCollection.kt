@@ -6,10 +6,10 @@ import org.litote.kmongo.coroutine.coroutine
 import kotlin.reflect.full.findAnnotation
 
 @Suppress("unused")
-inline fun <reified T : BaseModel<*>> mongoDbCollection(
-    lookupBuilderList: List<LookupBuilder<T, *, *>>? = null,
-    noinline init: (CTableDb<T>.() -> Unit)? = null
-): CTableDb<T> {
+inline fun <reified T : BaseModel<U>, U> mongoDbCollection(
+    lookupBuilderList: List<LookupBuilder<T, *, *, *>>? = null,
+    noinline init: (CTableDb<T, U>.() -> Unit)? = null
+): CTableDb<T, U> {
     val collName: String = T::class.findAnnotation<Collection>()?.name ?: T::class.simpleName!!
     val collection = mongoDatabase.getCollection(collName, T::class.java).coroutine
     val cTableDb = CTableDb(
