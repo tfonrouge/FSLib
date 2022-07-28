@@ -11,7 +11,6 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import io.kvision.navigo.Match
 import io.kvision.navigo.Navigo
-import kotlinx.browser.window
 
 fun Navigo.initialize(): Navigo {
     return this
@@ -34,6 +33,7 @@ private fun Navigo.onViewItemPage(): Navigo {
                         configViewItem.callItemService(
                             crudAction = crudAction,
                             callType = StateItem.CallType.Query,
+                            contextDataUrl = urlParams.contextDataUrl
                         ) {
                             console.warn("Navigo Create Query", it)
                             if (it.item != null) {
@@ -41,19 +41,12 @@ private fun Navigo.onViewItemPage(): Navigo {
                                     "action" to CrudAction.Update,
                                     "id" to it.item._id
                                 )
-                                var url = (configViewItem.url + urlParams.toString()).asDynamic()
+                                val url = (configViewItem.navigoUrl + urlParams.toString()).asDynamic()
                                 val stateObj = "{${it::class.simpleName}: \"${it.item._id}\"}".asDynamic()
                                 console.warn("replaceState", stateObj, url)
                                 js("""history.replaceState(stateObj,"createToUpdate",url)""")
-                                url = configViewItem.url + urlParams.toString()
-//                                navigateByName()
-                                console.warn("navigate", url)
-                                window.setTimeout(
-                                    handler = {
-                                        navigate(url)
-                                    },
-                                    timeout = 1000
-                                )
+                                js("history.go(0)")
+                                Unit
                             } else {
                                 viewStateObservableValue.value = ViewState(configViewItem, urlParams)
                             }
