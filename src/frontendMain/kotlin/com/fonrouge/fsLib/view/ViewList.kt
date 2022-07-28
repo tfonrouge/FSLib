@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.apiLib.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewItem
@@ -21,6 +22,9 @@ import io.kvision.routing.routing
 import io.kvision.state.ObservableList
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.TabulatorRemote
+import io.kvision.toast.Toast
+import io.kvision.toast.ToastOptions
+import io.kvision.toast.ToastPosition
 import kotlinx.serialization.json.JsonObject
 
 @Suppress("unused")
@@ -44,7 +48,10 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
 
     var blockRefresh: (() -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-    val configViewItem: ConfigViewItem<*, *, *, *>? by lazy { configViewItemMap[name] }
+    val configViewItem: ConfigViewItem<*, *, *, Any>?
+        get() {
+            return configViewItemMap[name] as ConfigViewItem<*, *, *, Any>?
+        }
     open val contextMenu: ((ContextMenu).() -> Unit)? = null
     val crudActionMap = mapOf<CrudAction, (Any?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
         CrudAction.Create to { _, _ ->
@@ -92,13 +99,16 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                     noTitle = "No",
                     centered = true
                 ) {
-/*
-                    KVWebManager.deleteItem(item) {
-                        if (it == true) {
+                    configViewItem?.callItemService(
+                        crudAction = CrudAction.Delete,
+                        callType = StateItem.CallType.Action,
+                        itemId = item
+                    ) {
+                        if (it.result) {
                             Toast.info("Item deleted", "Info")
                         } else {
                             Toast.warning(
-                                message = "Item '${itemConfigView?.label}' id '${item.id}' not deleted",
+                                message = "Item '${itemConfigView?.label}' id '${item}' not deleted",
                                 title = "Warning",
                                 options = ToastOptions(
                                     positionClass = ToastPosition.BOTTOMFULLWIDTH,
@@ -107,7 +117,6 @@ abstract class ViewList<T : BaseModel<*>, E : IDataList>(
                             )
                         }
                     }
-*/
                 }
             }
         }
