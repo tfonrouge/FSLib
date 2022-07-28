@@ -16,7 +16,7 @@ import org.litote.kmongo.limit
 import org.litote.kmongo.match
 import org.litote.kmongo.skip
 
-class CTableDb<T : BaseModel<U>, U>(
+class CTableDb<T : BaseModel<U>, U : Any>(
     val collection: CoroutineCollection<T>,
     private val lookupBuilderList: List<LookupBuilder<T, *, *, *>>? = null,
 ) {
@@ -104,6 +104,14 @@ class CTableDb<T : BaseModel<U>, U>(
                 }
         }
         return pipeline
+    }
+
+    @Suppress("unused")
+    suspend fun deleteOneById(_id: U?): ItemContainer<T> {
+        if (_id != null) {
+            return ItemContainer(result = collection.deleteOneById(_id).deletedCount == 1L)
+        }
+        return ItemContainer(result = false)
     }
 
     @Suppress("unused")

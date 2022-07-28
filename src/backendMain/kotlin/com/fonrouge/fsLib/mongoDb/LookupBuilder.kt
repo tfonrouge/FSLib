@@ -8,7 +8,7 @@ import org.litote.kmongo.*
 import org.litote.kmongo.MongoOperator.eq
 import kotlin.reflect.KProperty1
 
-class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V : Any, W>(
+class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V : Any, W: Any>(
     private val cTableDb: CTableDb<U, W>,
     private val localField: KProperty1<T, V?>,
     private val foreignField: KProperty1<U, V>,

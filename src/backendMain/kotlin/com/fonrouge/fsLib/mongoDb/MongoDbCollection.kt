@@ -6,7 +6,7 @@ import org.litote.kmongo.coroutine.coroutine
 import kotlin.reflect.full.findAnnotation
 
 @Suppress("unused")
-inline fun <reified T : BaseModel<U>, U> mongoDbCollection(
+inline fun <reified T : BaseModel<U>, U: Any> mongoDbCollection(
     lookupBuilderList: List<LookupBuilder<T, *, *, *>>? = null,
     noinline init: (CTableDb<T, U>.() -> Unit)? = null
 ): CTableDb<T, U> {
