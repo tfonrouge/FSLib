@@ -126,6 +126,10 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         list.getOrNull(0)?._id.toString()
     }
     var masterViewItem: ViewItem<*, *>? = null
+        set(value) {
+            editable = value?.urlParams?.actionUpsert == true
+            field = value
+        }
     val parentContextUrlParams: String
         get() {
             return masterViewItem?.dataContainer?.value?.let {

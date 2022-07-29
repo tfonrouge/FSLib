@@ -6,6 +6,7 @@ import io.kvision.dropdown.cmLink
 import io.kvision.dropdown.cmLinkDisabled
 import io.kvision.html.Link
 
+@Suppress("unused")
 fun ContextMenu.cmLinkEnabled(
     label: String, url: String? = null, icon: String? = null, image: ResString? = null,
     className: String? = null,

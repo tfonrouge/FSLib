@@ -12,7 +12,7 @@ import kotlinx.serialization.json.JsonObject
 
 abstract class View(
     open val configView: ConfigView<*>,
-    val editable: Boolean = true,
+    var editable: Boolean = true,
     val icon: String? = null,
     val restUrlParams: UrlParams? = null,
     var matchFilterParam: JsonObject? = null,

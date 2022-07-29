@@ -8,6 +8,7 @@ import io.kvision.navbar.Navbar
 import io.kvision.utils.px
 import io.kvision.utils.rem
 
+@Suppress("unused")
 fun Navbar.navSeparator() {
     div {
         height = 1.rem

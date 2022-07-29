@@ -6,6 +6,7 @@ import io.kvision.html.Div
 import io.kvision.html.div
 import io.kvision.utils.em
 
+@Suppress("unused")
 fun Container.formRow(text: String? = null, init: Div.() -> Unit) {
     text?.let { content ->
         div(content = content, className = "row-label-group") {

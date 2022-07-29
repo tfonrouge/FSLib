@@ -5,6 +5,7 @@ import io.kvision.core.Container
 import io.kvision.html.Align
 import io.kvision.html.Div
 
+@Suppress("unused")
 fun Container.formColumn(
     columnWidth: Int,
     content: String? = null,
