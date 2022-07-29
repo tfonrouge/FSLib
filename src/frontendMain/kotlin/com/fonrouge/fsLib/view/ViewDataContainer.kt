@@ -51,7 +51,7 @@ abstract class ViewDataContainer<U : Any>(
                 }
             }
         }
-        if ((this@ViewDataContainer as? ViewList<*, *>)?.masterViewItem == null) {
+        if ((this@ViewDataContainer as? ViewList<*, *, *>)?.masterViewItem == null) {
             if (repeatUpdateView == true) {
                 var lastTime: Int? = null
                 var lock = false

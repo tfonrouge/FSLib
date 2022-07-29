@@ -28,8 +28,8 @@ import io.kvision.toast.ToastPosition
 import kotlinx.serialization.json.JsonObject
 
 @Suppress("unused")
-abstract class ViewList<T : BaseModel<*>, E : IDataList>(
-    override val configView: ConfigViewList<T, *>,
+abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
+    override val configView: ConfigViewList<T, out ViewList<T, E, U>, U>,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
     repeatRefreshView: Boolean? = null,

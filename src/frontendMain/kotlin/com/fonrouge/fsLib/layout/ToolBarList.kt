@@ -10,8 +10,8 @@ import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
 
-fun <T : BaseModel<*>> Container.toolBarList(
-    viewList: ViewList<T, *>,
+fun <T : BaseModel<U>, U> Container.toolBarList(
+    viewList: ViewList<T, *, U>,
     minToolbarSize: Boolean = true,
 ): NavbarTabulator {
 
