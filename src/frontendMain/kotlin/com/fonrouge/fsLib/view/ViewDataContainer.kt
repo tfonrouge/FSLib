@@ -39,6 +39,8 @@ abstract class ViewDataContainer<U : Any>(
 
     val name get() = configView.name
 
+    var suspendRepeatUpdate = false
+
     abstract suspend fun singleUpdate()
 
     fun updateData(first: Boolean) {
@@ -51,25 +53,23 @@ abstract class ViewDataContainer<U : Any>(
                 }
             }
         }
-        if ((this@ViewDataContainer as? ViewList<*, *, *>)?.masterViewItem == null) {
-            if (repeatUpdateView == true) {
-                var lastTime: Int? = null
-                var lock = false
-                handleInterval = window.setInterval(
-                    handler = {
-                        val time = Date().getUTCSeconds()
-                        if (lastTime != Date().getSeconds() && (time % repeatUpdateSecsInterval == 0)) {
-                            lastTime = Date().getUTCSeconds()
-                            if (!lock) {
-                                lock = true
-                                callBlock()
-                                lock = false
-                            }
+        if (repeatUpdateView == true && !suspendRepeatUpdate) {
+            var lastTime: Int? = null
+            var lock = false
+            handleInterval = window.setInterval(
+                handler = {
+                    val time = Date().getUTCSeconds()
+                    if (lastTime != Date().getSeconds() && (time % repeatUpdateSecsInterval == 0)) {
+                        lastTime = Date().getUTCSeconds()
+                        if (!lock) {
+                            lock = true
+                            callBlock()
+                            lock = false
                         }
-                    },
-                    timeout = 250
-                )
-            }
+                    }
+                },
+                timeout = 250
+            )
         }
         if (first) {
             callBlock()
