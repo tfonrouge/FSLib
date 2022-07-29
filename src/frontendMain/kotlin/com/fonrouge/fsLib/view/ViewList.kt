@@ -14,10 +14,6 @@ import io.kvision.core.Container
 import io.kvision.dropdown.ContextMenu
 import io.kvision.html.Align
 import io.kvision.modal.Confirm
-import io.kvision.remote.KVServiceManager
-import io.kvision.remote.RemoteData
-import io.kvision.remote.RemoteFilter
-import io.kvision.remote.RemoteSorter
 import io.kvision.routing.routing
 import io.kvision.state.ObservableList
 import io.kvision.tabulator.ColumnDefinition
@@ -29,9 +25,7 @@ import kotlinx.serialization.json.JsonObject
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
-    override val configView: ConfigViewList<T, out ViewList<T, E, U>, U>,
-    val serverManager: KVServiceManager<E>,
-    val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
+    override val configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,

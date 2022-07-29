@@ -2,14 +2,21 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
+import io.kvision.remote.KVServiceManager
+import io.kvision.remote.RemoteData
+import io.kvision.remote.RemoteFilter
+import io.kvision.remote.RemoteSorter
 import kotlinx.serialization.json.JsonObject
 
-abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, *, U>, U>(
+abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IDataList, U>(
     name: String,
     label: String,
     viewFunc: ((UrlParams?) -> V),
+    val serverManager: KVServiceManager<E>,
+    val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
     restUrlParams: UrlParams? = null,
     lookupParam: JsonObject? = null,
 ) : ConfigViewContainer<T, V>(
@@ -22,7 +29,7 @@ abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, *, U>, U>(
 ) {
 
     companion object {
-        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *>>()
+        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *>>()
     }
 
     init {

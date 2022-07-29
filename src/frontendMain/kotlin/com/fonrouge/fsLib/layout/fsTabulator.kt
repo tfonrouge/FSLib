@@ -57,11 +57,12 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     }
 
     viewList.tabulator = tabulatorRemote(
-        serviceManager = viewList.serverManager,
-        function = viewList.function,
+        serviceManager = viewList.configView.serverManager,
+        function = viewList.configView.function,
         stateFunction = viewList.masterViewItem?.let { { "${it.dataContainer.value?.item?._id}" } },
         serializer = T::class.serializer(),
         options = TabulatorOptions(
+            columns = viewList.columnDefinitionList,
 //            height = "calc(100vh - 30vh)",
             layout = Layout.FITDATASTRETCH,
             layoutColumnsOnNewData = true,
@@ -92,7 +93,6 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                             columns = true
                         },
             */
-            columns = viewList.columnDefinitionList,
         ),
     ) {
 
