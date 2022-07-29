@@ -26,7 +26,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
 
     lateinit var linkItemPage: Link
 
-    var itemId: Any? = null
+    var itemId: U? = null
 
     val nav = toolBarList(viewList = viewList, minToolbarSize)
 //    viewList.blockRefresh = { KVWebManager.updateViewDataContainer(viewList) }

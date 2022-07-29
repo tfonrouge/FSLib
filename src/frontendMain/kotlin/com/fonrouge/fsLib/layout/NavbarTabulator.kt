@@ -7,7 +7,7 @@ import io.kvision.navbar.NavbarColor
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.NavbarType
 
-class NavbarTabulator(
+class NavbarTabulator<U>(
     label: String?,
     link: String?,
     type: NavbarType?,
@@ -16,7 +16,7 @@ class NavbarTabulator(
     bgColor: BsBgColor,
     collapseOnClick: Boolean,
     className: String?,
-    init: (NavbarTabulator.() -> Unit)?,
+    init: (NavbarTabulator<U>.() -> Unit)?,
 ) : Navbar(
     label = label,
     link = link,
@@ -28,7 +28,7 @@ class NavbarTabulator(
     className = className
 ) {
 
-    var itemId: Any? = null
+    var itemId: U? = null
 
     //    var onClickActionParamList: Map<ActionParam, (item: BaseModel?) -> Unit> = mapOf()
     var onClickRefresh: () -> Unit = {}
@@ -38,7 +38,7 @@ class NavbarTabulator(
     }
 }
 
-fun Container.navbarTabulator(
+fun <U> Container.navbarTabulator(
     label: String? = null,
     link: String? = null,
     type: NavbarType? = null,
@@ -47,9 +47,9 @@ fun Container.navbarTabulator(
     bgColor: BsBgColor = BsBgColor.LIGHT,
     collapseOnClick: Boolean = false,
     className: String? = null,
-    init: (NavbarTabulator.() -> Unit)? = null,
-): NavbarTabulator {
-    val navbar = NavbarTabulator(label, link, type, expand, nColor, bgColor, collapseOnClick, className, init)
+    init: (NavbarTabulator<U>.() -> Unit)? = null,
+): NavbarTabulator<U> {
+    val navbar = NavbarTabulator<U>(label, link, type, expand, nColor, bgColor, collapseOnClick, className, init)
     this.add(navbar)
     return navbar
 }

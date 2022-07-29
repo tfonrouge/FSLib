@@ -13,7 +13,7 @@ import io.kvision.navbar.navLink
 fun <T : BaseModel<U>, U> Container.toolBarList(
     viewList: ViewList<T, *, U>,
     minToolbarSize: Boolean = true,
-): NavbarTabulator {
+): NavbarTabulator<U> {
 
     val delay = 300
 

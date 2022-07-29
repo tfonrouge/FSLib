@@ -48,12 +48,12 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
 
     var blockRefresh: (() -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-    val configViewItem: ConfigViewItem<*, *, *, Any>?
+    val configViewItem: ConfigViewItem<*, *, *, U>?
         get() {
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<*, *, *, Any>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<*, *, *, U>>()
         }
     open val contextMenu: ((ContextMenu).() -> Unit)? = null
-    val crudActionMap = mapOf<CrudAction, (Any?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
+    val crudActionMap = mapOf<CrudAction, (U?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
         CrudAction.Create to { _, _ ->
             configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(
