@@ -141,19 +141,19 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                             label = configViewItem.labelCreate,
                             icon = "fas fa-plus",
                         ) {
-                            onClick { viewList.crudActionMap[CrudAction.Create]?.invoke(itemId, null) }
+                            onClick { viewList.crudActionMap[CrudAction.Create]?.invoke(itemId) }
                         }
                         ddLink(
                             label = configViewItem.labelUpdate,
                             icon = "fas fa-edit",
                         ) {
-                            onClick { viewList.crudActionMap[CrudAction.Update]?.invoke(itemId, null) }
+                            onClick { viewList.crudActionMap[CrudAction.Update]?.invoke(itemId) }
                         }
                         ddLink(
                             label = configViewItem.labelDelete,
                             icon = "fas fa-trash-alt",
                         ) {
-                            onClick { viewList.crudActionMap[CrudAction.Delete]?.invoke(itemId, null) }
+                            onClick { viewList.crudActionMap[CrudAction.Delete]?.invoke(itemId) }
                         }
                     }
                 }

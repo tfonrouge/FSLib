@@ -53,8 +53,8 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<*, *, *, U>>()
         }
     open val contextMenu: ((ContextMenu).() -> Unit)? = null
-    val crudActionMap = mapOf<CrudAction, (U?, (ViewItem<*, *>.() -> Unit)?) -> Unit>(
-        CrudAction.Create to { _, _ ->
+    val crudActionMap = mapOf<CrudAction, (U?) -> Unit>(
+        CrudAction.Create to { _ ->
             configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(
                     "action" to CrudAction.Create.name,
@@ -64,7 +64,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 routing.navigate(configViewItem.url + urlParams.toString())
             }
         },
-        CrudAction.Read to { itemId, block ->
+        CrudAction.Read to { itemId ->
             configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(
                     "action" to CrudAction.Read.name,
@@ -75,7 +75,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 routing.navigate(configViewItem.url + urlParams.toString())
             }
         },
-        CrudAction.Update to { itemId, block ->
+        CrudAction.Update to { itemId ->
             configViewItem?.let { configViewItem ->
                 itemId?.let {
                     val urlParams = UrlParams(
@@ -88,7 +88,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 }
             }
         },
-        CrudAction.Delete to { item, block ->
+        CrudAction.Delete to { item ->
             item?.let {
                 val itemConfigView = configViewItem
                 Confirm.show(

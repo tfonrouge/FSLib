@@ -28,7 +28,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                         id = CrudAction.Create.name
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                         onClick {
-                            viewList.crudActionMap[CrudAction.Create]?.invoke(itemId, null)
+                            viewList.crudActionMap[CrudAction.Create]?.invoke(itemId)
                         }
                     }
                     navLink(
@@ -38,7 +38,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                         id = CrudAction.Update.name
                         enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                         onClick {
-                            viewList.crudActionMap[CrudAction.Update]?.invoke(itemId, null)
+                            viewList.crudActionMap[CrudAction.Update]?.invoke(itemId)
                         }
                     }
                     navLink(
@@ -48,7 +48,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                         id = CrudAction.Delete.name
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                         onClick {
-                            viewList.crudActionMap[CrudAction.Delete]?.invoke(itemId, null)
+                            viewList.crudActionMap[CrudAction.Delete]?.invoke(itemId)
                         }
                     }
                     navLink(
@@ -58,7 +58,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                         id = CrudAction.Delete.name
                         enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                         onClick {
-                            viewList.crudActionMap[CrudAction.Read]?.invoke(itemId, null)
+                            viewList.crudActionMap[CrudAction.Read]?.invoke(itemId)
                         }
                     }
                 }
