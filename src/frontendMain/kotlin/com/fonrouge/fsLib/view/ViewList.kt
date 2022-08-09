@@ -145,7 +145,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         return dataContainer?.let { listNameFunc.invoke(it) }
     }
 
-    open fun onRowSelected(itemId: Any?) {}
+    open fun onRowSelected(item: T?) {}
 
     abstract fun Container.pageListBody()
 

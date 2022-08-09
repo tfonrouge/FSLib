@@ -107,7 +107,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                 }
                 itemId = item?.let { item.asDynamic()["_id"] }
                 updateLinks()
-                viewList.onRowSelected(itemId)
+                viewList.onRowSelected(item)
                 rowSelect?.invoke(itemId)
             }
         }
