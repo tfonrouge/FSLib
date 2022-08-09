@@ -238,7 +238,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 
     }
 
-    open fun Container.pageItemBody(): FormPanel<T>? = null
+    abstract fun Container.pageItemBody(): FormPanel<T>?
 
     override suspend fun singleUpdate() {
         urlParams?.action?.let { crudAction ->

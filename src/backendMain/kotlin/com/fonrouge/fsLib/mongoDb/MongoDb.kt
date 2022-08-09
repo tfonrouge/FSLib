@@ -5,11 +5,10 @@ import com.mongodb.client.model.CollationStrength
 import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
 import org.litote.kmongo.reactivestreams.KMongo
+import java.util.*
 
 //private var database: String? = "test"
 private var plugin: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
-
-var locale = "en"
 
 val mongoClient by lazy {
     plugin.let { KMongo.createClient(it.connectionString) }
@@ -22,7 +21,7 @@ val mongoDatabase: MongoDatabase by lazy {
 
 @Suppress("unused")
 val collation: Collation by lazy {
-    Collation.builder().locale(locale).collationStrength(CollationStrength.PRIMARY).build()
+    Collation.builder().locale(plugin.locale).collationStrength(CollationStrength.PRIMARY).build()
 }
 
 @Suppress("unused")
@@ -42,6 +41,7 @@ class MongoDbPluginConfiguration {
     var user: String? = null
     var password: String? = null
     var database: String = "test"
+    var locale: String = Locale.getDefault().language
 
     val connectionString
         get() = "mongodb://" + if (user != null || password != null) {
