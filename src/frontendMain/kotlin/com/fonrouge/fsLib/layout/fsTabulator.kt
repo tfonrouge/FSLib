@@ -16,12 +16,15 @@ import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
+import kotlin.js.Json
+import kotlin.js.json
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     minToolbarSize: Boolean = true,
-    noinline rowSelect: ((Any?) -> Unit)? = null,
+    noinline stateJsonFun: (() -> Json)? = null,
+//    noinline rowSelect: ((Any?) -> Unit)? = null,
 ): Container {
 
     lateinit var linkItemPage: Link
@@ -56,10 +59,22 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         }
     }
 
+    val stateFunction = {
+        var json: Json? = null
+        if (stateJsonFun != null) {
+            json = stateJsonFun()
+        }
+        viewList.masterViewItem?.let { viewItem ->
+            val json2 = json("masterViewItemId" to viewItem.dataContainer.value?.item?._id)
+            json = json?.add(json2) ?: json2
+        }
+        JSON.stringify(json)
+    }
+
     viewList.tabulator = tabulatorRemote(
         serviceManager = viewList.configView.serverManager,
         function = viewList.configView.function,
-        stateFunction = viewList.masterViewItem?.let { { "${it.dataContainer.value?.item?._id}" } },
+        stateFunction = stateFunction,
         serializer = T::class.serializer(),
         options = TabulatorOptions(
             columns = viewList.columnDefinitionList,
@@ -108,7 +123,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                 itemId = item?.let { item.asDynamic()["_id"] }
                 updateLinks()
                 viewList.onRowSelected(item)
-                rowSelect?.invoke(itemId)
+//                rowSelect?.invoke(itemId)
             }
         }
 

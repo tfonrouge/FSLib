@@ -5,16 +5,10 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
-import org.bson.BsonDocument
-import org.bson.BsonString
-import org.bson.BsonValue
-import org.bson.Document
+import org.bson.*
 import org.bson.conversions.Bson
+import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.eq
-import org.litote.kmongo.limit
-import org.litote.kmongo.match
-import org.litote.kmongo.skip
 
 class CTableDb<T : BaseModel<U>, U : Any>(
     val collection: CoroutineCollection<T>,
@@ -24,6 +18,7 @@ class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun buildFirstStage(
         match: Bson? = null,
+        sort: Bson? = null,
         page: Int? = null,
         size: Int? = null,
         filter: List<RemoteFilter>? = null,
@@ -53,18 +48,25 @@ class CTableDb<T : BaseModel<U>, U : Any>(
                 filterValue.append(remoteFilter.field, value)
             }
         }
-        if (!sorter.isNullOrEmpty()) {
-            val fields = Document()
+        if (sort != null) {
+            if (sort.toBsonDocument()["\$sort"] != null) {
+                bsonList.add(sort)
+            } else {
+                bsonList.add(sort(sort))
+            }
+        } else if (!sorter.isNullOrEmpty()) {
+            val fields = BsonDocument()
             sorter.forEach { remoteSorter ->
                 fields.append(
                     remoteSorter.field, when (remoteSorter.dir) {
-                        "asc" -> 1
-                        "desc" -> -1
-                        else -> 1
+                        "asc" -> BsonInt32(1)
+                        "desc" -> BsonInt32(-1)
+                        else -> BsonInt32(1)
                     }
                 )
             }
-            bsonList.add(Document("\$sort", fields))
+//            bsonList.add(Document("\$sort", fields))
+            bsonList.add(sort(fields))
         }
         val count: Long = filterValue.let { collection.countDocuments(it) }
         if (page == null) {
