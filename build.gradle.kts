@@ -17,17 +17,21 @@ version = "1.1.6"
 
 repositories {
     mavenCentral()
+    mavenLocal()
     jcenter()
     gradlePluginPortal()
 }
 
+/*
 val javadocJar by tasks.creating(Jar::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = "Assembles Javadoc JAR"
     archiveClassifier.set("javadoc")
 //    from(tasks.named("dokkaHtml"))
 }
+*/
 
+/*
 val sonatypeUsername: String? = System.getenv("SONATYPE_USERNAME")
 val sonatypePassword: String? = System.getenv("SONATYPE_PASSWORD")
 
@@ -78,7 +82,6 @@ publishing {
     }
 }
 
-/*
 signing {
     val file = File("/Users/teo/teo_fonrouge_com_gpg.key")
     useInMemoryPgpKeys(
@@ -96,8 +99,8 @@ val ktorVersion: String by project
 val kmongoVersion: String by project
 val commonsCodecVersion: String by project
 
-val webDir = file("src/frontendMain/web")
-val mainClassName = "io.ktor.server.netty.EngineMain"
+//val webDir = file("src/frontendMain/web")
+//val mainClassName = "io.ktor.server.netty.EngineMain"
 
 kotlin {
     jvm("backend") {
