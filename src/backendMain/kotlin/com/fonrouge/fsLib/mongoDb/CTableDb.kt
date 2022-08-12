@@ -5,14 +5,18 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
+import sun.security.krb5.internal.crypto.crc32
 
 class CTableDb<T : BaseModel<U>, U : Any>(
     val collection: CoroutineCollection<T>,
     private val lookupBuilderList: List<LookupBuilder<T, *, *, *>>? = null,
+    val genCheckSum: Boolean = false
 ) {
 
     @Suppress("unused")
@@ -158,7 +162,18 @@ class CTableDb<T : BaseModel<U>, U : Any>(
     ): RemoteData<R> {
         firstStage.pipeline.addAll(buildLookup(modelLookupList))
         val list = collection.aggregate<R>(firstStage.pipeline).toList()
-        return RemoteData(data = list, last_page = firstStage.last_page, last_row = firstStage.last_row)
+        var hashCode = 0
+        if (genCheckSum) {
+            list.forEach {
+                hashCode += crc32.byte2crc32(Json.encodeToString(it).encodeToByteArray())
+            }
+        }
+        return RemoteData(
+            data = list,
+            last_page = firstStage.last_page,
+            last_row = firstStage.last_row,
+            chkSum = hashCode
+        )
     }
 
     @Suppress("unused")
