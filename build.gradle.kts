@@ -105,12 +105,13 @@ val commonsCodecVersion: String by project
 kotlin {
     jvm("backend") {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-            kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
-        }
-        withJava()
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
+            java {
+                targetCompatibility = JavaVersion.VERSION_1_8
+            }
+            kotlinOptions {
+                jvmTarget = "1.8"
+                freeCompilerArgs = listOf("-Xjsr305=strict")
+            }
         }
     }
     js("frontend", IR) {
