@@ -2,9 +2,11 @@
 
 package com.fonrouge.fsLib.layout
 
+import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
@@ -18,6 +20,21 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import kotlin.js.Json
 import kotlin.js.json
+
+inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
+    configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
+    masterViewItem: ViewItem<*, *>,
+    minToolbarSize: Boolean = true,
+    noinline stateJsonFun: (() -> Json)? = null,
+): Container {
+    val viewList = configViewList.viewFunc(null)
+    viewList.masterViewItem = masterViewItem
+    return fsTabulator(
+        viewList = configViewList.viewFunc(null),
+        minToolbarSize = minToolbarSize,
+        stateJsonFun = stateJsonFun
+    )
+}
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
