@@ -34,7 +34,7 @@ public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
         if (encoder is BsonEncoder) {
             encoder.encodeDateTime(ZonedDateTimeSerializer.epochMillis(value.atZone(ZoneOffset.UTC)))
         } else {
-            encoder.encodeString(value.format(DateTimeFormatter.ISO_DATE_TIME))
+            encoder.encodeString(value.format(DateTimeFormatter.ISO_DATE_TIME) + "Z")
         }
     }
 }
