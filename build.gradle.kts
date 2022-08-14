@@ -149,6 +149,10 @@ kotlin {
                 api("io.ktor:ktor-server-default-headers:$ktorVersion")
                 api("io.ktor:ktor-server-netty:$ktorVersion")
                 api("org.litote.kmongo:kmongo-coroutine-serialization:$kmongoVersion")
+                api("org.jetbrains.exposed:exposed-core:$exposedVersion")
+                api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+                api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+                api("com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre8")
             }
         }
         val backendTest by getting
