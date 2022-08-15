@@ -46,7 +46,10 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
 //    noinline rowSelect: ((Any?) -> Unit)? = null,
 ): Container {
 
-    lateinit var linkItemPage: Link
+    var headerContextMenu: Header? = null
+    var linkContextMenuRead: Link? = null
+    var linkContextMenuUpdate: Link? = null
+    var linkContextMenuDelete: Link? = null
 
     var itemId: U? = null
 
@@ -57,7 +60,6 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     val updateLinks: () -> Unit = {
         viewList.configViewItem?.let { configViewItem ->
             nav.itemId = itemId
-            linkItemPage.url = itemId?.let { configViewItem.urlRead(it) }
             nav.getChildren().forEach { component ->
                 if (component is Link) {
                     when (component.id) {
@@ -134,23 +136,12 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
 
         fontSize = 12.px
 
-        /*
-        TODO: implement this in KVision
-         */
-        addAfterInsertHook {
-            jsTabulator?.on("rowMouseOver") { a: Event, row: dynamic ->
-                viewList.itemOver = row.getData()
-                itemId = row.getData()._id
-                console.warn("rowMouseOver", a, viewList.itemOver, itemId)
-            }
-        }
-
         onEvent {
             rowSelectionChangedTabulator = {
                 val item = this.self.getSelectedData().let {
                     if (it.isEmpty()) null else it[0]
                 }
-                itemId = item?.let { item.asDynamic()["_id"] }
+                itemId = item?.let { item.asDynamic()["_id"] } as? U
                 updateLinks()
                 viewList.onRowSelected(item)
 //                rowSelect?.invoke(itemId)
@@ -158,6 +149,18 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         }
 
         addAfterInsertHook {
+            /*
+            TODO: implement this in KVision
+             */
+            jsTabulator?.on("rowMouseOver") { a: Event, row: dynamic ->
+                viewList.itemOver = row.getData()
+                itemId = row.getData()._id as? U
+                headerContextMenu?.content = "ContextMenu ($itemId)"
+                linkContextMenuRead?.url = itemId?.let { viewList.configViewItem?.urlRead(it) }
+                linkContextMenuUpdate?.url = itemId?.let { viewList.configViewItem?.urlUpdate(it) }
+                linkContextMenuDelete?.url = itemId?.let { viewList.configViewItem?.urlDelete(it) }
+                console.warn("rowMouseOver", a, viewList.itemOver, itemId)
+            }
             jsTabulator?.on("tableBuilt") {
                 viewList.jsTabulatorBuilt = true
             }
@@ -178,29 +181,27 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
 
         viewList.configViewItem?.let { configViewItem ->
             contextMenu {
-                header("Menu Opciones")
-                linkItemPage = cmLink(label = "Ver detalle de ${configViewItem.label}", url = "")
+                headerContextMenu = header()
+                linkContextMenuRead =
+                    cmLink(
+                        label = "Ver detalle de ${configViewItem.label}",
+                        icon = "fas fa-eye"
+                    )
                 if (viewList.editable) {
-                    dropDown("Edit", forDropDown = true, icon = "fas fa-pen") {
-                        ddLink(
-                            label = configViewItem.labelCreate,
-                            icon = "fas fa-plus",
-                        ) {
-                            onClick { viewList.crudActionMap[CrudAction.Create]?.invoke(itemId) }
-                        }
-                        ddLink(
-                            label = configViewItem.labelUpdate,
-                            icon = "fas fa-edit",
-                        ) {
-                            onClick { viewList.crudActionMap[CrudAction.Update]?.invoke(itemId) }
-                        }
-                        ddLink(
-                            label = configViewItem.labelDelete,
-                            icon = "fas fa-trash-alt",
-                        ) {
-                            onClick { viewList.crudActionMap[CrudAction.Delete]?.invoke(itemId) }
-                        }
-                    }
+                    separator()
+                    cmLink(
+                        label = configViewItem.labelCreate,
+                        icon = "fas fa-plus",
+                        url = viewList.configViewItem?.urlCreate
+                    )
+                    linkContextMenuUpdate = cmLink(
+                        label = configViewItem.labelUpdate,
+                        icon = "fas fa-edit",
+                    )
+                    linkContextMenuDelete = cmLink(
+                        label = configViewItem.labelDelete,
+                        icon = "fas fa-trash-alt",
+                    )
                 }
                 viewList.contextMenu?.let {
                     separator()

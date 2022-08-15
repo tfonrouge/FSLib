@@ -22,6 +22,16 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
             if (viewList.editable) {
                 viewList.configViewItem?.let { configViewItem ->
                     navLink(
+                        label = if (minToolbarSize) "" else "Ver detalle",
+                        icon = "fas fa-eye"
+                    ) {
+                        id = CrudAction.Delete.name
+                        enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
+                        onClick {
+                            viewList.crudActionMap[CrudAction.Read]?.invoke(itemId)
+                        }
+                    }
+                    navLink(
                         label = if (minToolbarSize) "" else "Agregar",
                         icon = "fas fa-plus",
                     ) {
@@ -49,16 +59,6 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                         onClick {
                             viewList.crudActionMap[CrudAction.Delete]?.invoke(itemId)
-                        }
-                    }
-                    navLink(
-                        label = if (minToolbarSize) "" else "Ver detalle",
-                        icon = "fas fa-eye"
-                    ) {
-                        id = CrudAction.Delete.name
-                        enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
-                        onClick {
-                            viewList.crudActionMap[CrudAction.Read]?.invoke(itemId)
                         }
                     }
                 }
