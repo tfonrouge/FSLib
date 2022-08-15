@@ -8,6 +8,7 @@ import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
+import com.fonrouge.fsLib.view.masterViewItemId
 import io.kvision.core.Container
 import io.kvision.core.onEvent
 import io.kvision.dropdown.*
@@ -82,7 +83,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             json = stateJsonFun()
         }
         viewList.masterViewItem?.let { viewItem ->
-            val json2 = json("masterViewItemId" to viewItem.dataContainer.value?.item?._id)
+            val json2 = json(masterViewItemId to viewItem.dataContainer.value?.item?._id)
             json = json?.add(json2) ?: json2
         }
         JSON.stringify(json)

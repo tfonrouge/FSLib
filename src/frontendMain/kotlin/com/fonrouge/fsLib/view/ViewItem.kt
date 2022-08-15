@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import org.w3c.dom.events.MouseEvent
 
+const val masterViewItemId = "masterViewItemId"
+
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<U>, U>(
     override val configView: ConfigViewItem<T, out ViewItem<T, U>, *, U>,
