@@ -3,12 +3,12 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.config.ConfigViewList
+import com.fonrouge.fsLib.masterViewItemId
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
-import com.fonrouge.fsLib.view.masterViewItemId
 import io.kvision.core.Container
 import io.kvision.core.onEvent
 import io.kvision.dropdown.*
