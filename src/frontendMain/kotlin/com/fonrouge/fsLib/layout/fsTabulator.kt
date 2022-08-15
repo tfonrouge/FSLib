@@ -30,7 +30,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     val viewList = configViewList.viewFunc(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
-        viewList = configViewList.viewFunc(null),
+        viewList = viewList,
         minToolbarSize = minToolbarSize,
         stateJsonFun = stateJsonFun
     )
