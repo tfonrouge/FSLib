@@ -19,6 +19,7 @@ import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
+import org.w3c.dom.events.Event
 import kotlin.js.Json
 import kotlin.js.json
 
@@ -132,6 +133,17 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         id = viewList.urlWithParams
 
         fontSize = 12.px
+
+        /*
+        TODO: implement this in KVision
+         */
+        addAfterInsertHook {
+            jsTabulator?.on("rowMouseOver") { a: Event, row: dynamic ->
+                viewList.itemOver = row.getData()
+                itemId = row.getData()._id
+                console.warn("rowMouseOver", a, viewList.itemOver, itemId)
+            }
+        }
 
         onEvent {
             rowSelectionChangedTabulator = {

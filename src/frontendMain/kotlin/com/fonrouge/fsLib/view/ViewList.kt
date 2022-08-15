@@ -121,6 +121,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
             tabulator?.update(dataContainer)
         }
+    var itemOver: dynamic = null
     var jsTabulatorBuilt: Boolean = false
     val listNameFunc: ((List<T>) -> String) = { list ->
         list.getOrNull(0)?._id.toString()
