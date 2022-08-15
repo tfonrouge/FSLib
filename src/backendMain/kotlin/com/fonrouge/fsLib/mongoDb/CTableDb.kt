@@ -21,7 +21,7 @@ class CTableDb<T : BaseModel<U>, U : Any>(
 
     @Suppress("unused")
     suspend fun listFirstStage(
-        match1: Bson? = null,
+        match: Bson? = null,
         sort: Bson? = null,
         page: Int? = null,
         size: Int? = null,
@@ -29,10 +29,10 @@ class CTableDb<T : BaseModel<U>, U : Any>(
         sorter: List<RemoteSorter>? = null,
     ): FirstStage {
         val bsonList = mutableListOf<Bson>()
-        val match =
-            if (match1 == null) null else if (match1.toBsonDocument()["\$match"] != null) match1 else match(match1)
-        match?.let { bsonList.add(it) }
-        val filterValue = match?.let { bson ->
+        val match0 =
+            if (match == null) null else if (match.toBsonDocument()["\$match"] != null) match else match(match)
+        match0?.let { bsonList.add(it) }
+        val filterValue = match0?.let { bson ->
             val bsonDocument = BsonDocument()
             (bson.toBsonDocument()["\$match"] as BsonDocument).forEach {
                 bsonDocument.append(it.key, it.value)
