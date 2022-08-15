@@ -1,6 +1,8 @@
 package com.fonrouge.fsLib.model
 
-@kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class CrudAction {
     Create,
     Read,

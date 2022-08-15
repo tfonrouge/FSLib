@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.layout
 
+import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
@@ -9,6 +10,7 @@ import io.kvision.core.enableTooltip
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
+import kotlinx.coroutines.launch
 
 fun <T : BaseModel<U>, U> Container.toolBarList(
     viewList: ViewList<T, *, U>,
@@ -67,7 +69,9 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
 
                 }
                 navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
-                    viewList.refreshList()
+                    AppScope.launch {
+                        viewList.dataUpdate()
+                    }
                 }
             }
         }

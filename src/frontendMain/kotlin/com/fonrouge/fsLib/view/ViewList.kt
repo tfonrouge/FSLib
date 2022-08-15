@@ -159,14 +159,10 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
 
     var selectedIdList: List<Any?>? = null
 
-    override suspend fun singleUpdate() {
+    override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
             selectedIdList = tabulator?.getSelectedData()?.map { it._id }
             tabulator?.setPage(tabulator?.getPage() ?: 1)
         }
-    }
-
-    fun refreshList() {
-        blockRefresh?.invoke()
     }
 }

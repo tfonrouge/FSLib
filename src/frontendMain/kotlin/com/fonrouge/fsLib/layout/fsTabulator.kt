@@ -212,7 +212,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         }
     }
 
-    viewList.updateData(true)
+    viewList.installUpdate(true)
 
     return this
 }

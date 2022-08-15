@@ -41,13 +41,13 @@ abstract class ViewDataContainer<U : Any>(
 
     var suspendRepeatUpdate = false
 
-    abstract suspend fun singleUpdate()
+    abstract suspend fun dataUpdate()
 
-    fun updateData(first: Boolean) {
+    fun installUpdate(first: Boolean) {
         val callBlock = {
             AppScope.launch {
                 try {
-                    singleUpdate()
+                    dataUpdate()
                 } catch (e: Exception) {
                     console.error("Error on interval =", e)
                 }

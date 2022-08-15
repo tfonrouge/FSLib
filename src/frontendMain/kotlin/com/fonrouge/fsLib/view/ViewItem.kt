@@ -171,7 +171,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 //                        formPanel?.setData(item)
 //                    }
 //                }
-                updateData(false)
+                installUpdate(false)
             }
 
             CrudAction.Update -> {
@@ -240,7 +240,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
-    override suspend fun singleUpdate() {
+    override suspend fun dataUpdate() {
         urlParams?.action?.let { crudAction ->
             configView.callItemService(
                 crudAction = crudAction,
