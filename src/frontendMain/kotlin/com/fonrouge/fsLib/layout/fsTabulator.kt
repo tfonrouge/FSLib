@@ -159,7 +159,6 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                 linkContextMenuRead?.url = itemId?.let { viewList.configViewItem?.urlRead(it) }
                 linkContextMenuUpdate?.url = itemId?.let { viewList.configViewItem?.urlUpdate(it) }
                 linkContextMenuDelete?.url = itemId?.let { viewList.configViewItem?.urlDelete(it) }
-                console.warn("rowMouseOver", a, viewList.itemOver, itemId)
             }
             jsTabulator?.on("tableBuilt") {
                 viewList.jsTabulatorBuilt = true
