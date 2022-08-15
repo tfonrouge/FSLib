@@ -28,13 +28,15 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (() -> Json)? = null,
+    noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
     val viewList = configViewList.viewFunc(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
         minToolbarSize = minToolbarSize,
-        stateJsonFun = stateJsonFun
+        stateJsonFun = stateJsonFun,
+        init = init
     )
 }
 
@@ -43,7 +45,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (() -> Json)? = null,
-//    noinline rowSelect: ((Any?) -> Unit)? = null,
+    noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
 
     var headerContextMenu: Header? = null
@@ -131,6 +133,8 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             */
         ),
     ) {
+
+        init?.invoke(this)
 
         id = viewList.urlWithParams
 
