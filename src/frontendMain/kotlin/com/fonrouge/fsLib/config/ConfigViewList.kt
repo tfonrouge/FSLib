@@ -10,9 +10,10 @@ import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlinx.serialization.json.JsonObject
+import kotlin.reflect.KClass
 
 abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IDataList, U>(
-    name: String,
+    private val klass: KClass<T>,
     label: String,
     viewFunc: ((UrlParams?) -> V),
     val serverManager: KVServiceManager<E>,
@@ -20,7 +21,7 @@ abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IData
     restUrlParams: UrlParams? = null,
     lookupParam: JsonObject? = null,
 ) : ConfigViewContainer<T, V>(
-    name = name,
+    name = klass.simpleName!!,
     label = label,
     restUrlParams = restUrlParams,
     lookupParam = lookupParam,
