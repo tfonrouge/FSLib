@@ -152,13 +152,15 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             /*
             TODO: implement this in KVision
              */
-            jsTabulator?.on("rowMouseOver") { a: Event, row: dynamic ->
-                viewList.itemOver = row.getData()
-                itemId = row.getData()._id as? U
-                headerContextMenu?.content = "ContextMenu ($itemId)"
-                linkContextMenuRead?.url = itemId?.let { viewList.configViewItem?.urlRead(it) }
-                linkContextMenuUpdate?.url = itemId?.let { viewList.configViewItem?.urlUpdate(it) }
-                linkContextMenuDelete?.url = itemId?.let { viewList.configViewItem?.urlDelete(it) }
+            jsTabulator?.on("rowMouseOver") { event: Event, row: dynamic ->
+                if (!event.defaultPrevented) {
+                    viewList.itemOver = row.getData()
+                    itemId = row.getData()._id as? U
+                    headerContextMenu?.content = "ContextMenu ($itemId)"
+                    linkContextMenuRead?.url = itemId?.let { viewList.configViewItem?.urlRead(it) }
+                    linkContextMenuUpdate?.url = itemId?.let { viewList.configViewItem?.urlUpdate(it) }
+                    linkContextMenuDelete?.url = itemId?.let { viewList.configViewItem?.urlDelete(it) }
+                }
             }
             jsTabulator?.on("tableBuilt") {
                 viewList.jsTabulatorBuilt = true
