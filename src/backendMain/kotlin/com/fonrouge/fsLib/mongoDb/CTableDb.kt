@@ -20,7 +20,7 @@ class CTableDb<T : BaseModel<U>, U : Any>(
 ) {
 
     @Suppress("unused")
-    suspend fun buildFirstStage(
+    suspend fun listFirstStage(
         match: Bson? = null,
         sort: Bson? = null,
         page: Int? = null,
