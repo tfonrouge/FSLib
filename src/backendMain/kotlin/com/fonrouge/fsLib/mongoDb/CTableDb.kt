@@ -120,8 +120,8 @@ class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend inline fun <reified R : T> findOneById(
-        _id: U,
+    suspend inline fun <reified R : T> getItemContainer(
+        _id: U?,
         modelLookupList: List<ModelLookup<*, *>>? = null
     ): ItemContainer<R> {
         return ItemContainer(

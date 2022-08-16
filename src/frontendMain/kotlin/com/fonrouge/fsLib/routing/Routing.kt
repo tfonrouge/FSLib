@@ -24,49 +24,48 @@ fun Navigo.initialize(): Navigo {
 }
 
 private fun Navigo.onViewItemPage(): Navigo {
-    on("$dataUrlPrefix/:dataClass/item",
-        { match ->
-            configViewItemMap[match.data.dataClass as? String]?.let { configViewItem ->
-                var urlParams = UrlParams(match = match)
-                urlParams.action?.let { crudAction ->
-                    if (crudAction == CrudAction.Create) {
-                        configViewItem.callItemService(
-                            crudAction = crudAction,
-                            callType = StateItem.CallType.Query,
-                            contextDataUrl = urlParams.contextDataUrl
-                        ) {
-                            console.warn("Navigo Create Query", it)
-                            if (it.item != null) {
-                                urlParams = UrlParams(
-                                    "action" to CrudAction.Update,
-                                    "id" to it.item._id
-                                )
-                                val url = (configViewItem.navigoUrl + urlParams.toString()).asDynamic()
-                                val stateObj = "{${it::class.simpleName}: \"${it.item._id}\"}".asDynamic()
-                                console.warn("replaceState", stateObj, url)
-                                js("""history.replaceState(stateObj,"createToUpdate",url)""")
-                                js("history.go(0)")
-                                Unit
-                            } else {
-                                viewStateObservableValue.value = ViewState(configViewItem, urlParams)
-                            }
+    on("$dataUrlPrefix/:dataClass/item", { match ->
+        configViewItemMap[match.data.dataClass as? String]?.let { configViewItem ->
+            var urlParams = UrlParams(match = match)
+            urlParams.action?.let { crudAction ->
+                if (crudAction == CrudAction.Create) {
+                    configViewItem.callItemService(
+                        crudAction = crudAction,
+                        callType = StateItem.CallType.Query,
+                        contextDataUrl = urlParams.contextDataUrl
+                    ) { itemContainer ->
+                        console.warn("Navigo Create Query", itemContainer)
+                        if (itemContainer.item != null) {
+                            urlParams = UrlParams(
+                                "action" to CrudAction.Update, "id" to itemContainer.item?._id
+                            )
+                            @Suppress("UNUSED_VARIABLE")
+                            val url = (configViewItem.navigoUrl + urlParams.toString()).asDynamic()
+
+                            @Suppress("UNUSED_VARIABLE")
+                            val stateObj =
+                                "{${itemContainer::class.simpleName}: \"${itemContainer.item?._id}\"}".asDynamic()
+                            js("""history.replaceState(stateObj,"createToUpdate",url)""")
+                            js("history.go(0)")
+                            Unit
+                        } else {
+                            viewStateObservableValue.value = ViewState(configViewItem, urlParams)
                         }
-                    } else {
-                        viewStateObservableValue.value = ViewState(configViewItem, urlParams)
                     }
+                } else {
+                    viewStateObservableValue.value = ViewState(configViewItem, urlParams)
                 }
             }
         }
-    )
+    })
     return this
 }
 
 private fun Navigo.onViewListPage(): Navigo {
-    on("$dataUrlPrefix/:dataClass/list",
-        { match: Match ->
-            configViewListMap[match.data.dataClass as String]?.let { configViewList ->
-                viewStateObservableValue.value = ViewState(configViewList, UrlParams(match = match))
-            }
-        })
+    on("$dataUrlPrefix/:dataClass/list", { match: Match ->
+        configViewListMap[match.data.dataClass as String]?.let { configViewList ->
+            viewStateObservableValue.value = ViewState(configViewList, UrlParams(match = match))
+        }
+    })
     return this
 }
