@@ -63,6 +63,14 @@ abstract class SqlDbSettings(
         return Json.decodeFromJsonElement(jsonObject)
     }
 
+    inline fun <reified T> sqlEntityToList(resultSet: ResultSet): List<T> {
+        val result = mutableListOf<T>()
+        while (resultSet.next()) {
+            result.add(sqlEntityTo(resultSet))
+        }
+        return result
+    }
+
     fun JsonObjectBuilder.sqlServerResultSet(field: KCallable<*>, resultSet: SQLServerResultSet, i: Int) {
         when (field.returnType.classifier) {
             String::class -> put(field.name, resultSet.getString(i))
