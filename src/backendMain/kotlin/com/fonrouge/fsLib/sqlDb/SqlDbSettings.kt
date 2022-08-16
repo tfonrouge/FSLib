@@ -46,7 +46,7 @@ abstract class SqlDbSettings(
         return decodePair
     }
 
-    inline fun <reified T> sqlEntityTo(resultSet: ResultSet): T? {
+    inline fun <reified T> sqlEntityTo(resultSet: ResultSet): T {
         val metaData = resultSet.metaData
         val decodePair = getDecodeMap(T::class, metaData)
         val jsonObject = buildJsonObject {
@@ -60,11 +60,7 @@ abstract class SqlDbSettings(
                 }
             }
         }
-        return try {
-            Json.decodeFromJsonElement<T>(jsonObject)
-        } catch (e: Exception) {
-            null
-        }
+        return Json.decodeFromJsonElement(jsonObject)
     }
 
     fun JsonObjectBuilder.sqlServerResultSet(field: KCallable<*>, resultSet: SQLServerResultSet, i: Int) {
