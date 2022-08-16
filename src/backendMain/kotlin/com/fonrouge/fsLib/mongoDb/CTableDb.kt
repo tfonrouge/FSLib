@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
@@ -146,10 +147,10 @@ class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun insertOne(item: T?): ItemContainer<T> {
-        if (item != null) {
-            val result = collection.insertOne(item)
-            return ItemContainer(item = item, result = result.insertedId != null)
+    suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
+        if (state.item != null) {
+            val result = collection.insertOne(state.item)
+            return ItemContainer(item = state.item, result = result.insertedId != null)
         }
         return ItemContainer(result = false, description = "insertOne(): item contains null value...")
     }
@@ -176,20 +177,15 @@ class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun updateOne(_id: U?, item: T?): ItemContainer<T> {
-        if (item != null) {
-            val result = collection.updateOne(filter = item::_id eq _id, target = item)
+    suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
+        if (state.item != null) {
+            val result = collection.updateOne(filter = state.item::_id eq _id, target = state.item)
             return ItemContainer(result = result.modifiedCount == 1L)
         }
-        return ItemContainer(result = false, description = "updateOne(): item contains null value...")
-    }
-
-    @Suppress("unused")
-    suspend fun updateOne(_id: U?, bson: Bson?): ItemContainer<T> {
-        if (bson != null) {
-            val result = collection.updateOne(BaseModel<*>::_id eq _id, update = bson)
+        if (state.json != null) {
+            val result = collection.updateOne(BaseModel<*>::_id eq _id, update = BsonDocument.parse(state.json))
             return ItemContainer(result = result.modifiedCount == 1L)
         }
-        return ItemContainer(result = false, description = "updateOne(): item contains null value...")
+        return ItemContainer(result = false, description = "Invalid data on StateItem ...")
     }
 }
