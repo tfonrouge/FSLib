@@ -188,7 +188,7 @@ class CTableDb<T : BaseModel<U>, U : Any>(
         state.json?.let {
             val result = collection.updateOne(
                 filter = BaseModel<*>::_id eq _id,
-                update = BsonDocument.parse(it)
+                update = BsonDocument("\$set", BsonDocument.parse(it))
             )
             return ItemContainer(result = result.modifiedCount == 1L)
         }
