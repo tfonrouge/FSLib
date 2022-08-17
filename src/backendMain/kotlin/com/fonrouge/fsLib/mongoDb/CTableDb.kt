@@ -177,6 +177,29 @@ class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
+    suspend inline fun <reified R : T> remoteData(
+        match: Bson? = null,
+        sort: Bson? = null,
+        page: Int? = null,
+        size: Int? = null,
+        filter: List<RemoteFilter>? = null,
+        sorter: List<RemoteSorter>? = null,
+        modelLookupList: List<ModelLookup<*, *>>? = null
+    ): RemoteData<R> {
+        return remoteData(
+            firstStage = listFirstStage(
+                match = match,
+                sort = sort,
+                page = page,
+                size = size,
+                filter = filter,
+                sorter = sorter,
+            ),
+            modelLookupList = modelLookupList
+        )
+    }
+
+    @Suppress("unused")
     suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
             val result = collection.updateOne(
