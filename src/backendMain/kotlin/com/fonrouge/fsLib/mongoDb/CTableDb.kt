@@ -8,27 +8,26 @@ import io.ktor.http.*
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
-import sun.security.krb5.internal.crypto.crc32
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
 abstract class CTableDb<T : BaseModel<U>, U : Any>(
     klass: KClass<T>,
-    private val lookup: (() -> List<LookupBuilder<T, *, *, *>>)? = null,
-    val genCheckSum: Boolean = false,
 ) {
     private val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
     val collection: CoroutineCollection<T> = mongoDatabase.getCollection(collName, klass.java).coroutine
-    private val lookupList: List<LookupBuilder<T, *, *, *>>?
+    open val lookupFun: (() -> List<LookupBuilder<T, *, *, *>>)? = null
+    var lookup: List<LookupBuilder<T, *, *, *>>? = null
         get() {
-            return lookup?.invoke()
+            if (field == null) {
+                field = lookupFun?.invoke() ?: listOf()
+            }
+            return field
         }
 
     companion object {
@@ -118,7 +117,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
 
     fun buildLookup(modelLookupList: List<ModelLookup<*, *>>? = null): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        lookupList?.forEach { lookupBuilder ->
+        lookup?.forEach { lookupBuilder ->
             modelLookupList?.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
                 ?.let { modelLookup: ModelLookup<*, *> ->
                     lookupBuilder.addToPipeline(pipeline, modelLookup)
@@ -177,17 +176,10 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     ): RemoteData<R> {
         firstStage.pipeline.addAll(buildLookup(modelLookupList))
         val list = collection.aggregate<R>(firstStage.pipeline).toList()
-        var hashCode = 0
-        if (genCheckSum) {
-            list.forEach {
-                hashCode += crc32.byte2crc32(Json.encodeToString(it).encodeToByteArray())
-            }
-        }
         return RemoteData(
             data = list,
             last_page = firstStage.last_page,
             last_row = firstStage.last_row,
-//            chkSum = hashCode
         )
     }
 
