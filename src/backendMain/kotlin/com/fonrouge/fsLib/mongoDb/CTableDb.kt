@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.annotations.MongoDoc
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
+import io.ktor.http.*
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
@@ -20,11 +21,15 @@ import kotlin.reflect.full.findAnnotation
 
 abstract class CTableDb<T : BaseModel<U>, U : Any>(
     klass: KClass<T>,
-    private val lookupBuilderList: (() -> List<LookupBuilder<T, *, *, *>>)? = null,
+    private val lookup: (() -> List<LookupBuilder<T, *, *, *>>)? = null,
     val genCheckSum: Boolean = false,
 ) {
-    val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
+    private val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
     val collection: CoroutineCollection<T> = mongoDatabase.getCollection(collName, klass.java).coroutine
+    private val lookupList: List<LookupBuilder<T, *, *, *>>?
+        get() {
+            return lookup?.invoke()
+        }
 
     companion object {
         val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
@@ -113,7 +118,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
 
     fun buildLookup(modelLookupList: List<ModelLookup<*, *>>? = null): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        lookupBuilderList?.invoke()?.forEach { lookupBuilder ->
+        lookupList?.forEach { lookupBuilder ->
             modelLookupList?.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
                 ?.let { modelLookup: ModelLookup<*, *> ->
                     lookupBuilder.addToPipeline(pipeline, modelLookup)
