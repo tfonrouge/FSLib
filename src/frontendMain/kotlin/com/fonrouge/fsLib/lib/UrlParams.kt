@@ -51,6 +51,13 @@ data class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
             } else null
         }
 
+    val id: String?
+        get() {
+            return firstOrNull { it.first == "id" }?.let {
+                it.second as? String
+            }
+        }
+
     override fun toString(): String {
         if (size > 0) {
             var string = ""

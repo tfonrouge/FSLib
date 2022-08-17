@@ -62,7 +62,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(
                     "action" to CrudAction.Read.name,
-                    "id" to itemId
+                    "id" to JSON.stringify(itemId)
                 )
                 masterViewItem?.addContext(urlParams)
                 masterViewItem?.callUpdateItemService()
@@ -74,16 +74,17 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 itemId?.let {
                     val urlParams = UrlParams(
                         "action" to CrudAction.Update.name,
-                        "id" to itemId,
+                        "id" to JSON.stringify(itemId),
                     )
+                    console.warn("URLPARAMS", urlParams)
                     masterViewItem?.addContext(urlParams)
                     masterViewItem?.callUpdateItemService()
                     routing.navigate(configViewItem.url + urlParams.toString())
                 }
             }
         },
-        CrudAction.Delete to { item ->
-            item?.let {
+        CrudAction.Delete to { itemId ->
+            itemId?.let {
                 val itemConfigView = configViewItem
                 Confirm.show(
                     caption = "Please confirm",
@@ -96,13 +97,13 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                     configViewItem?.callItemService(
                         crudAction = CrudAction.Delete,
                         callType = StateItem.CallType.Action,
-                        itemId = item
+                        itemId = JSON.stringify(itemId)
                     ) {
                         if (it.result) {
                             Toast.info("Item deleted", "Info")
                         } else {
                             Toast.warning(
-                                message = "Item '${itemConfigView?.label}' id '${item}' not deleted",
+                                message = "Item '${itemConfigView?.label}' id '${itemId}' not deleted",
                                 title = "Warning",
                                 options = ToastOptions(
                                     positionClass = ToastPosition.BOTTOMFULLWIDTH,

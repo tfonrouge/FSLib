@@ -47,8 +47,8 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     val labelCreate = "Create $label"
     val labelUpdate = "Update $label"
 
-    fun labelUrlRead(id: Any) = label to urlRead(id)
-    fun labelUrlUpdate(id: Any) = label to urlUpdate(id)
+    fun labelUrlRead(id: U) = label to urlRead(id)
+    fun labelUrlUpdate(id: U) = label to urlUpdate(id)
 
     val urlCreate: String
         get() {
@@ -56,18 +56,18 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
             return navigoUrl + urlParams.toString()
         }
 
-    fun urlRead(id: Any): String {
-        val urlParams = UrlParams("id" to id, "action" to CrudAction.Read.name)
+    fun urlRead(id: U): String {
+        val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Read.name)
         return navigoUrl + urlParams.toString()
     }
 
-    fun urlDelete(id: Any): String {
-        val urlParams = UrlParams("id" to id, "action" to CrudAction.Delete.name)
+    fun urlDelete(id: U): String {
+        val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Delete.name)
         return navigoUrl + urlParams.toString()
     }
 
-    fun urlUpdate(id: Any): String {
-        val urlParams = UrlParams("id" to id, "action" to CrudAction.Update.name)
+    fun urlUpdate(id: U): String {
+        val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Update.name)
         return navigoUrl + urlParams.toString()
     }
 
@@ -75,7 +75,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     fun callItemService(
         crudAction: CrudAction,
         callType: StateItem.CallType,
-        itemId: U? = null,
+        itemId: String? = JSON.stringify(null),
         item: T? = null,
         contextDataUrl: ContextDataUrl? = null,
         block: (ItemContainer<T>) -> Unit,
@@ -83,7 +83,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
-            JSON.stringify(itemId),
+            itemId,
             Json.encodeToString(
                 serializer = StateItem.serializer(klass.serializer()),
                 value = StateItem(

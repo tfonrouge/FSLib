@@ -75,7 +75,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                 configView.callItemService(
                     crudAction = CrudAction.Update,
                     callType = StateItem.CallType.Action,
-                    itemId = itemId,
+                    itemId = JSON.stringify(itemId),
                     item = it,
                     contextDataUrl = urlParams?.contextDataUrl
                 ) { itemContainer ->
@@ -117,7 +117,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                         configView.callItemService(
                                             crudAction = action,
                                             callType = StateItem.CallType.Action,
-                                            itemId = itemId,
+                                            itemId = JSON.stringify(itemId),
                                             item = formPanel?.getData(),
                                             contextDataUrl = urlParams?.contextDataUrl
                                         ) {
@@ -188,33 +188,34 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     override fun displayPage(container: Container) {
         when (val action = urlParams?.action) {
             CrudAction.Create, CrudAction.Read, CrudAction.Update -> {
-                val params = urlParams?.match?.params
-                val _id = if (params == undefined) {
-                    null
-                } else {
-                    params["id"]
-                }
-                itemId = _id?.unsafeCast<U>()
                 configView.callItemService(
                     crudAction = action,
                     callType = StateItem.CallType.Query,
-                    itemId = itemId,
+                    itemId = urlParams?.id,
                     contextDataUrl = urlParams?.contextDataUrl
 
                 ) { itemContainer ->
                     if (itemContainer.result) {
+                        itemId = itemContainer.item?._id
                         dataContainer.value = itemContainer
                         displayForm(container, action)
                     } else {
                         js("history.back()") as? Unit
                         AppScope.launch {
-                            ToastContainer(ToastContainerPosition.MIDDLECENTER)
-                                .showToast(
-                                    message = itemContainer.description ?: "unknown error...",
-                                    title = "!",
-                                    bgColor = BsBgColor.DANGER,
-                                    color = BsColor.WHITE
+                            itemContainer.description?.let { description ->
+                                Toast.warning(
+                                    message = description,
+                                    title = "Action ${action.name} denied:",
+                                    options = ToastOptions(
+                                        positionClass = ToastPosition.BOTTOMFULLWIDTH,
+                                        progressBar = true,
+                                        closeDuration = 10,
+                                        extendedTimeOut = 20,
+                                        closeButton = true,
+                                    )
                                 )
+                            }
+
                         }
                     }
                 }
@@ -245,7 +246,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
             configView.callItemService(
                 crudAction = crudAction,
                 callType = StateItem.CallType.Query,
-                itemId = itemId,
+                itemId = JSON.stringify(itemId),
                 contextDataUrl = urlParams?.contextDataUrl
             ) { itemContainer ->
                 dataContainer.value = itemContainer
