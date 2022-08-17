@@ -1,15 +1,17 @@
 package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.mongoDb.CTableDb.Companion.map1
 import com.mongodb.client.model.UnwindOptions
 import com.mongodb.client.model.Variable
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
 import org.litote.kmongo.MongoOperator.eq
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V : Any, W : Any>(
-    private val cTableDb: CTableDb<U, W>,
+    private val cTableDb: KClass<out CTableDb<U, W>>,
     private val localField: KProperty1<T, V?>,
     private val foreignField: KProperty1<U, V>,
     val resultProperty: KProperty1<T, U?>,
@@ -31,10 +33,12 @@ class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V : Any, W : Any>(
             match(*match.toTypedArray())
         )
 
-        pip2 += cTableDb.buildLookup(modelLookup.modelLookupList)
+        map1[cTableDb]?.buildLookup(modelLookup.modelLookupList)?.let {
+            pip2 += it
+        }
 
         pipeline += lookup(
-            from = cTableDb.collection.namespace.collectionName,
+            from = map1[cTableDb]?.collection?.namespace?.collectionName ?: "?",
             let = listOf(Variable("letVar1", localField)),
             resultProperty = resultProperty,
             *pip2.toTypedArray()

@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.StateItem
+import com.fonrouge.fsLib.annotations.MongoDoc
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.remote.RemoteData
@@ -12,13 +13,22 @@ import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
+import org.litote.kmongo.coroutine.coroutine
 import sun.security.krb5.internal.crypto.crc32
+import kotlin.reflect.KClass
+import kotlin.reflect.full.findAnnotation
 
-class CTableDb<T : BaseModel<U>, U : Any>(
-    val collection: CoroutineCollection<T>,
-    private val lookupBuilderList: List<LookupBuilder<T, *, *, *>>? = null,
-    val genCheckSum: Boolean = false
+abstract class CTableDb<T : BaseModel<U>, U : Any>(
+    klass: KClass<T>,
+    private val lookupBuilderList: (() -> List<LookupBuilder<T, *, *, *>>)? = null,
+    val genCheckSum: Boolean = false,
 ) {
+    val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
+    val collection: CoroutineCollection<T> = mongoDatabase.getCollection(collName, klass.java).coroutine
+
+    companion object {
+        val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
+    }
 
     @Suppress("unused")
     suspend fun listFirstStage(
@@ -103,7 +113,7 @@ class CTableDb<T : BaseModel<U>, U : Any>(
 
     fun buildLookup(modelLookupList: List<ModelLookup<*, *>>? = null): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        lookupBuilderList?.forEach { lookupBuilder ->
+        lookupBuilderList?.invoke()?.forEach { lookupBuilder ->
             modelLookupList?.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
                 ?.let { modelLookup: ModelLookup<*, *> ->
                     lookupBuilder.addToPipeline(pipeline, modelLookup)
@@ -216,5 +226,10 @@ class CTableDb<T : BaseModel<U>, U : Any>(
             return ItemContainer(result = result.modifiedCount == 1L)
         }
         return ItemContainer(result = false, description = "Invalid data on StateItem ...")
+    }
+
+    init {
+        @Suppress("LeakingThis")
+        map1[this::class] = this
     }
 }
