@@ -148,9 +148,9 @@ class CTableDb<T : BaseModel<U>, U : Any>(
 
     @Suppress("unused")
     suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
-        if (state.item != null) {
-            val result = collection.insertOne(state.item)
-            return ItemContainer(item = state.item, result = result.insertedId != null)
+        state.item?.let {
+            val result = collection.insertOne(it)
+            return ItemContainer(item = it, result = result.insertedId != null)
         }
         return ItemContainer(result = false, description = "insertOne(): item contains null value...")
     }
@@ -178,12 +178,18 @@ class CTableDb<T : BaseModel<U>, U : Any>(
 
     @Suppress("unused")
     suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
-        if (state.item != null) {
-            val result = collection.updateOne(filter = state.item::_id eq _id, target = state.item)
+        state.item?.let {
+            val result = collection.updateOne(
+                filter = it::_id eq _id,
+                target = it
+            )
             return ItemContainer(result = result.modifiedCount == 1L)
         }
-        if (state.json != null) {
-            val result = collection.updateOne(BaseModel<*>::_id eq _id, update = BsonDocument.parse(state.json))
+        state.json?.let {
+            val result = collection.updateOne(
+                filter = BaseModel<*>::_id eq _id,
+                update = BsonDocument.parse(it)
+            )
             return ItemContainer(result = result.modifiedCount == 1L)
         }
         return ItemContainer(result = false, description = "Invalid data on StateItem ...")
