@@ -115,10 +115,10 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         }
     }
 
-    fun buildLookup(modelLookupList: List<ModelLookup<*, *>>? = null): List<Bson> {
+    fun buildLookup(vararg modelLookup: ModelLookup<*, *>): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         lookup?.forEach { lookupBuilder ->
-            modelLookupList?.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
+            modelLookup.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
                 ?.let { modelLookup: ModelLookup<*, *> ->
                     lookupBuilder.addToPipeline(pipeline, modelLookup)
                 }
@@ -137,12 +137,12 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend inline fun <reified R : T> getItemContainer(
         _id: U?,
-        modelLookupList: List<ModelLookup<*, *>>? = null
+        vararg modelLookup: ModelLookup<*, *>
     ): ItemContainer<R> {
         return ItemContainer(
             item = getItem(
                 match = match(BaseModel<*>::_id eq _id),
-                modelLookupList = modelLookupList
+                modelLookup = modelLookup
             )
         )
     }
@@ -150,12 +150,12 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend inline fun <reified R : T> getItem(
         match: Bson,
-        modelLookupList: List<ModelLookup<*, *>>? = null
+        vararg modelLookup: ModelLookup<*, *>
     ): R? {
         val pipeline = mutableListOf(
             if (match.toBsonDocument()["\$match"] != null) match else match(match)
         )
-        pipeline.addAll(buildLookup(modelLookupList))
+        pipeline.addAll(buildLookup(*modelLookup))
         pipeline.add(limit(1))
         return collection.aggregate<R>(pipeline).first()
     }
@@ -172,9 +172,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend inline fun <reified R : T> remoteData(
         firstStage: FirstStage,
-        modelLookupList: List<ModelLookup<*, *>>? = null
+        vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<R> {
-        firstStage.pipeline.addAll(buildLookup(modelLookupList))
+        firstStage.pipeline.addAll(buildLookup(*modelLookup))
         val list = collection.aggregate<R>(firstStage.pipeline).toList()
         return RemoteData(
             data = list,
@@ -191,7 +191,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         size: Int? = null,
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
-        modelLookupList: List<ModelLookup<*, *>>? = null
+        vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<R> {
         return remoteData(
             firstStage = listFirstStage(
@@ -202,7 +202,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 filter = filter,
                 sorter = sorter,
             ),
-            modelLookupList = modelLookupList
+            *modelLookup
         )
     }
 

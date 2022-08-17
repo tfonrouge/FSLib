@@ -33,7 +33,7 @@ class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V : Any, W : Any>(
             match(*match.toTypedArray())
         )
 
-        map1[cTableDb]?.buildLookup(modelLookup.modelLookupList)?.let {
+        map1[cTableDb]?.buildLookup(*modelLookup.modelLookup)?.let {
             pip2 += it
         }
 

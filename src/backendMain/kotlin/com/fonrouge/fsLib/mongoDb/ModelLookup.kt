@@ -5,5 +5,5 @@ import kotlin.reflect.KProperty1
 
 class ModelLookup<T : BaseModel<*>, U : BaseModel<*>>(
     val resultProperty: KProperty1<T, U?>,
-    val modelLookupList: List<ModelLookup<U, *>>? = null
+    vararg val modelLookup: ModelLookup<U, *>
 )
