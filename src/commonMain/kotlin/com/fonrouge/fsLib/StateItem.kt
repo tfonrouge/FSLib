@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class StateItem<T : BaseModel<*>>(
-    val item: T? = null,
-    val json: String? = null,
+    var item: T? = null,
+    var json: String? = null,
     val crudAction: CrudAction,
     val callType: CallType,
     val state: String? = null,
