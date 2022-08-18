@@ -198,10 +198,19 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                         contextDataUrl = urlParams?.contextDataUrl
 
                     ) { itemContainer ->
-                        val back = {
-                            js("history.back()")
-                            Unit
-                        }
+                        val toastOptions = ToastOptions(
+                            positionClass = ToastPosition.BOTTOMFULLWIDTH,
+                            progressBar = true,
+                            closeDuration = 10,
+                            extendedTimeOut = 20,
+                            closeButton = true,
+                            onHidden = {
+                                js("history.back()")
+                                Unit
+                            },
+                            escapeHtml = true,
+                            closeHtml = "<button type=\"button\">Close</button>"
+                        )
                         if (itemContainer.result) {
                             itemId = itemContainer.item?._id
                             dataContainer.value = itemContainer
@@ -227,11 +236,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                             Toast.warning(
                                                 message = "$crudAction action cancelled ...",
                                                 title = "$crudAction cancelled",
-                                                options = ToastOptions(
-                                                    positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                                                    onHidden = back,
-                                                    progressBar = true,
-                                                )
+                                                options = toastOptions
                                             )
                                         }
                                         button("Accept", style = ButtonStyle.OUTLINESUCCESS).onClick {
@@ -246,22 +251,14 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                                         message = itemContainer.description
                                                             ?: "$crudAction action successful ...",
                                                         title = "$crudAction success",
-                                                        options = ToastOptions(
-                                                            positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                                                            onHidden = back,
-                                                            progressBar = true,
-                                                        )
+                                                        options = toastOptions
                                                     )
                                                 } else {
                                                     Toast.warning(
                                                         message = itemContainer.description
                                                             ?: "$crudAction action failed ...",
                                                         title = "$crudAction failed",
-                                                        options = ToastOptions(
-                                                            positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                                                            onHidden = back,
-                                                            progressBar = true,
-                                                        )
+                                                        options = toastOptions
                                                     )
                                                 }
                                             }
@@ -278,14 +275,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                     Toast.warning(
                                         message = description,
                                         title = "${crudAction.name} action denied:",
-                                        options = ToastOptions(
-                                            positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                                            progressBar = true,
-                                            closeDuration = 10,
-                                            extendedTimeOut = 20,
-                                            closeButton = true,
-                                            onHidden = back
-                                        )
+                                        options = toastOptions
                                     )
                                 }
                             }
