@@ -129,8 +129,10 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             }
                         } else {
                             Toast.warning(
-                                message = "Form has incomplete data", options = ToastOptions(
-                                    positionClass = ToastPosition.BOTTOMRIGHT
+                                message = "Form has incomplete data",
+                                options = ToastOptions(
+                                    positionClass = ToastPosition.BOTTOMRIGHT,
+                                    progressBar = true,
                                 )
                             )
                         }
@@ -227,7 +229,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                                 title = "$crudAction cancelled",
                                                 options = ToastOptions(
                                                     positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                                                    onHidden = back
+                                                    onHidden = back,
+                                                    progressBar = true,
                                                 )
                                             )
                                         }
@@ -245,7 +248,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                                         title = "$crudAction success",
                                                         options = ToastOptions(
                                                             positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                                                            onHidden = back
+                                                            onHidden = back,
+                                                            progressBar = true,
                                                         )
                                                     )
                                                 } else {
@@ -255,7 +259,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                                         title = "$crudAction failed",
                                                         options = ToastOptions(
                                                             positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                                                            onHidden = back
+                                                            onHidden = back,
+                                                            progressBar = true,
                                                         )
                                                     )
                                                 }
