@@ -196,6 +196,10 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                         contextDataUrl = urlParams?.contextDataUrl
 
                     ) { itemContainer ->
+                        val back = {
+                            js("history.back()")
+                            Unit
+                        }
                         if (itemContainer.result) {
                             itemId = itemContainer.item?._id
                             dataContainer.value = itemContainer
@@ -221,11 +225,11 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                             Toast.warning(
                                                 message = "$crudAction action cancelled ...",
                                                 title = "$crudAction cancelled",
-                                                options = ToastOptions(positionClass = ToastPosition.BOTTOMFULLWIDTH)
+                                                options = ToastOptions(
+                                                    positionClass = ToastPosition.BOTTOMFULLWIDTH,
+                                                    onHidden = back
+                                                )
                                             )
-                                            AppScope.launch {
-                                                js("history.back()") as? Unit
-                                            }
                                         }
                                         button("Accept", style = ButtonStyle.OUTLINESUCCESS).onClick {
                                             configView.callItemService(
@@ -239,17 +243,22 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                                         message = itemContainer.description
                                                             ?: "$crudAction action successful ...",
                                                         title = "$crudAction success",
-                                                        options = ToastOptions(positionClass = ToastPosition.BOTTOMFULLWIDTH)
+                                                        options = ToastOptions(
+                                                            positionClass = ToastPosition.BOTTOMFULLWIDTH,
+                                                            onHidden = back
+                                                        )
                                                     )
                                                 } else {
                                                     Toast.warning(
                                                         message = itemContainer.description
                                                             ?: "$crudAction action failed ...",
                                                         title = "$crudAction failed",
-                                                        options = ToastOptions(positionClass = ToastPosition.BOTTOMFULLWIDTH)
+                                                        options = ToastOptions(
+                                                            positionClass = ToastPosition.BOTTOMFULLWIDTH,
+                                                            onHidden = back
+                                                        )
                                                     )
                                                 }
-                                                js("history.back()") as? Unit
                                             }
                                         }
                                     }
@@ -270,9 +279,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                             closeDuration = 10,
                                             extendedTimeOut = 20,
                                             closeButton = true,
-                                            onHidden = {
-                                                js("history.back()") as? Unit
-                                            }
+                                            onHidden = back
                                         )
                                     )
                                 }
