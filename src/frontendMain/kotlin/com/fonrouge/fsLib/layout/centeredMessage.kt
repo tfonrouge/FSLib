@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.layout
 
-import io.kvision.core.*
+import io.kvision.core.Container
 import io.kvision.html.Align
 import io.kvision.html.Div
 import io.kvision.html.div
