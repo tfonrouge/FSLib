@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.StateItem
-import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
@@ -23,7 +22,6 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import org.w3c.dom.events.MouseEvent
 
@@ -268,17 +266,14 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             }
                         } else {
                             vPanel(className = "showItem") {
-                                centeredMessage("$crudAction action denied ...")
+                                centeredMessage("$crudAction action denied XXXX...")
                             }
-                            AppScope.launch {
-                                itemContainer.description?.let { description ->
-                                    Toast.warning(
-                                        message = description,
-                                        title = "${crudAction.name} action denied:",
-                                        options = toastOptions
-                                    )
-                                }
-                            }
+                            Toast.warning(
+                                message = itemContainer.description
+                                    ?: "$crudAction action successful ...",
+                                title = "$crudAction action denied",
+                                options = toastOptions
+                            )
                         }
                     }
                 } else {
