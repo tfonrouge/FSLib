@@ -27,7 +27,7 @@ private fun Navigo.onViewItemPage(): Navigo {
     on("$dataUrlPrefix/:dataClass/item", { match ->
         configViewItemMap[match.data.dataClass as? String]?.let { configViewItem ->
             var urlParams = UrlParams(match = match)
-            urlParams.action?.let { crudAction ->
+            urlParams.crudAction?.let { crudAction ->
                 if (crudAction == CrudAction.Create) {
                     configViewItem.callItemService(
                         crudAction = crudAction,

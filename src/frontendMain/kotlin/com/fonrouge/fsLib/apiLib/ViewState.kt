@@ -13,6 +13,6 @@ class ViewState(
 fun Container.showView(viewState: ViewState) {
     viewState.configView.viewFunc(viewState.urlParams).apply {
         onBeforeDisplayPage()
-        displayPage(this@showView)
+        this@showView.displayPage()
     }
 }

@@ -27,7 +27,7 @@ data class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
         }
     }
 
-    val action: CrudAction?
+    val crudAction: CrudAction?
         get() {
             return find { it.first == "action" }?.let { pair ->
                 CrudAction.values().find { it.name == pair.second }

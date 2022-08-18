@@ -151,11 +151,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
 
     abstract fun Container.pageListBody()
 
-    final override fun displayPage(container: Container) {
-        container.apply {
-            pageBanner()
-            pageListBody()
-        }
+    final override fun Container.displayPage() {
+        pageBanner()
+        pageListBody()
     }
 
     var selectedIdList: List<Any?>? = null

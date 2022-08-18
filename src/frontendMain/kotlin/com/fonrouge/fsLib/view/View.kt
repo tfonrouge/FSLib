@@ -35,10 +35,10 @@ abstract class View(
             return configView.url + if (urlParams != null) urlParams else ""
         }
 
-    abstract fun displayPage(container: Container)
+    abstract fun Container.displayPage()
 
     fun getCaption(): String {
-        return caption ?: when (urlParams?.action) {
+        return caption ?: when (urlParams?.crudAction) {
             CrudAction.Create -> "[${CrudAction.Create}] "
             CrudAction.Update -> "[${CrudAction.Update}] "
             else -> ""
