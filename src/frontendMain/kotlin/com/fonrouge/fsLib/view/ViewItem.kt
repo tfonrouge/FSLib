@@ -31,15 +31,10 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-    matchFilterParam: JsonObject? = null,
-    sortParam: JsonObject? = null,
 ) : ViewDataContainer<T>(
     configView = configView,
     editable = editable,
     icon = icon,
-    restUrlParams = configView.restUrlParams,
-    matchFilterParam = matchFilterParam,
-    sortParam = sortParam
 ) {
     open val createDefaultValueList: List<KPair<T, *>>? = null
     var dataContainer: ObservableValue<ItemContainer<T>?> = ObservableValue(null)

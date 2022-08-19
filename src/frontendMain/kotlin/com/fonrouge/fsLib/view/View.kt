@@ -14,10 +14,6 @@ abstract class View(
     open val configView: ConfigView<*>,
     var editable: Boolean = true,
     val icon: String? = null,
-    val restUrlParams: UrlParams? = null,
-    var matchFilterParam: JsonObject? = null,
-    var sortParam: JsonObject? = null,
-    var upsertData: JsonObject? = null,
 ) {
     var caption: String? = null
     var linkBanner: Link? = null

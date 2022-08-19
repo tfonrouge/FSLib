@@ -2,8 +2,8 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.apiLib.KVWebManager
-import com.fonrouge.fsLib.apiLib.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewItem
+import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.UrlParams
@@ -29,15 +29,10 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-    matchFilterParam: JsonObject? = null,
-    sortParam: JsonObject? = null,
 ) : ViewDataContainer<List<T>>(
     configView = configView,
     editable = editable,
     icon = icon,
-    restUrlParams = configView.restUrlParams,
-    matchFilterParam = matchFilterParam,
-    sortParam = sortParam
 ) {
 
     var blockRefresh: (() -> Unit)? = null

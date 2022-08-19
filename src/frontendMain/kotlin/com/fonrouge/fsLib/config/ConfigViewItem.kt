@@ -2,8 +2,6 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.StateItem
-import com.fonrouge.fsLib.apiLib.KVWebManager
-import com.fonrouge.fsLib.apiLib.TypeView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
@@ -28,19 +26,18 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     private val klass: KClass<T>,
     label: String,
     viewFunc: ((UrlParams?) -> V),
-    restUrlParams: UrlParams? = null,
-    lookupParam: JsonObject? = null,
     private val serverManager: KVServiceManager<E>,
     private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,
 ) : ConfigViewContainer<T, V>(
     name = klass.simpleName!!,
     label = label,
-    restUrlParams = restUrlParams,
-    lookupParam = lookupParam,
-    typeView = TypeView.Item,
+    baseUrlSuffix = "item",
     viewFunc = viewFunc,
 ) {
+    companion object {
+        val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *>>()
+    }
 
     val labelDelete = "Delete $label"
     val labelDetail = "Detail of $label"
@@ -112,6 +109,6 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     }
 
     init {
-        KVWebManager.configViewItemMap[name] = this
+        configViewItemMap[name] = this
     }
 }

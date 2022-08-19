@@ -12,16 +12,10 @@ abstract class ViewDataContainer<U : Any>(
     configView: ConfigViewContainer<*, *>,
     editable: Boolean = true,
     icon: String? = null,
-    restUrlParams: UrlParams? = null,
-    matchFilterParam: JsonObject? = null,
-    sortParam: JsonObject? = null,
 ) : View(
     configView = configView,
     editable = editable,
     icon = icon,
-    restUrlParams = restUrlParams,
-    matchFilterParam = matchFilterParam,
-    sortParam = sortParam
 ) {
 
     companion object {
@@ -35,7 +29,6 @@ abstract class ViewDataContainer<U : Any>(
     }
 
     var displayBlock: (() -> Unit)? = null
-    val lookupParam get() = configView.lookupParam
 
     val name get() = configView.name
 
