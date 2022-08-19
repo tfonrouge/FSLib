@@ -260,7 +260,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             }
                         } else {
                             vPanel(className = "showItem") {
-                                centeredMessage("$crudAction action denied XXXX...")
+                                centeredMessage("$crudAction action denied ...")
                             }
                             Toast.warning(
                                 message = itemContainer.description
