@@ -2,10 +2,8 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.config.ConfigViewContainer
-import com.fonrouge.fsLib.lib.UrlParams
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
 import kotlin.js.Date
 
 abstract class ViewDataContainer<U : Any>(

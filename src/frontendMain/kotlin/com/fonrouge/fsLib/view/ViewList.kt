@@ -21,7 +21,6 @@ import io.kvision.tabulator.TabulatorRemote
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
-import kotlinx.serialization.json.JsonObject
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(

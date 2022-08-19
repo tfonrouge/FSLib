@@ -8,7 +8,6 @@ import io.kvision.html.Link
 import io.kvision.html.link
 import io.kvision.panel.flexPanel
 import io.kvision.utils.em
-import kotlinx.serialization.json.JsonObject
 
 abstract class View(
     open val configView: ConfigView<*>,

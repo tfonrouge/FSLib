@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.View
-import kotlinx.serialization.json.JsonObject
 
 private const val navigoPrefix = "#/"
 

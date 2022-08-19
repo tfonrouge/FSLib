@@ -8,7 +8,6 @@ import io.kvision.remote.KVServiceManager
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
-import kotlinx.serialization.json.JsonObject
 import kotlin.reflect.KClass
 
 abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IDataList, U>(

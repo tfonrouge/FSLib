@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewDataContainer
-import kotlinx.serialization.json.JsonObject
 
 abstract class ConfigViewContainer<T : BaseModel<*>, V : ViewDataContainer<*>>(
     name: String,

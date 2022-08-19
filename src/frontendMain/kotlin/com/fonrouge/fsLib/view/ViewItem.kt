@@ -22,7 +22,6 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
-import kotlinx.serialization.json.JsonObject
 import org.w3c.dom.events.MouseEvent
 
 @Suppress("unused")

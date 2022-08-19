@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.apiLib.KVWebManager.configViewHome
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.ViewHome
-import kotlinx.serialization.json.JsonObject
 
 abstract class ConfigViewHome<V : ViewHome>(
     name: String,

@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewHome
-import kotlinx.serialization.json.JsonObject
 
 abstract class ViewHome(
     configView: ConfigViewHome<*>,
