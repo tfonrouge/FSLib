@@ -34,7 +34,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     icon = icon,
 ) {
 
-    var blockRefresh: (() -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     val configViewItem: ConfigViewItem<*, *, *, U>?
         get() {
@@ -135,7 +134,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewListPeriodic
     var tabulator: TabulatorRemote<T, E>? = null
-    var updateDispatched = false
 
     override fun getName(): String? {
         return dataContainer?.let { listNameFunc.invoke(it) }
