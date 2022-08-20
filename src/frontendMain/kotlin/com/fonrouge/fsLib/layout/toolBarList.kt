@@ -24,7 +24,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
             if (viewList.editable) {
                 viewList.configViewItem?.let { configViewItem ->
                     navLink(
-                        label = if (minToolbarSize) "" else "Ver detalle",
+                        label = if (minToolbarSize) "" else "Detail",
                         icon = "fas fa-eye"
                     ) {
                         id = CrudAction.Delete.name
@@ -34,7 +34,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                         }
                     }
                     navLink(
-                        label = if (minToolbarSize) "" else "Agregar",
+                        label = if (minToolbarSize) "" else "Create",
                         icon = "fas fa-plus",
                     ) {
                         id = CrudAction.Create.name
@@ -44,7 +44,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                         }
                     }
                     navLink(
-                        label = if (minToolbarSize) "" else "Modificar",
+                        label = if (minToolbarSize) "" else "Update",
                         icon = "fas fa-edit"
                     ) {
                         id = CrudAction.Update.name
@@ -54,7 +54,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                         }
                     }
                     navLink(
-                        label = if (minToolbarSize) "" else "Eliminar",
+                        label = if (minToolbarSize) "" else "Delete",
                         icon = "fas fa-trash-alt"
                     ) {
                         id = CrudAction.Delete.name
