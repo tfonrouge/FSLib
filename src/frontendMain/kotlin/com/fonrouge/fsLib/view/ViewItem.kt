@@ -1,10 +1,10 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.KPair
 import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
-import com.fonrouge.fsLib.lib.KPair
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemContainer
@@ -35,7 +35,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     editable = editable,
     icon = icon,
 ) {
-    open val createDefaultValueList: List<KPair<T, *>>? = null
+    open val onCreateDefaultValueList: List<KPair<T, *>>? = null
     var dataContainer: ObservableValue<ItemContainer<T>?> = ObservableValue(null)
 
     init {
@@ -145,7 +145,12 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                     console.warn("CREATE ASSIGNING it:", it)
                     formPanel?.setData(it)
                 }
-                createDefaultValueList?.forEach { kPair ->
+//                val onCreateDefaultValue: List<KPair<T, *>>? = dataContainer.value?.onCreateDefaultValue?.let {
+//                    Json.decodeFromString(it)
+//                }
+//                val list1 = dataContainer.value?.onCreateDefaultValue
+//                console.warn("onCreateDefaultValue", list1)
+                onCreateDefaultValueList?.forEach { kPair ->
                     formPanel?.form?.fields?.asIterable()
                         ?.firstOrNull { kPair.kProp.name == it.key }?.value?.setValue(
                             kPair.value
