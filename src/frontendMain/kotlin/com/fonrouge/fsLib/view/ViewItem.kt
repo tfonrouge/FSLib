@@ -35,7 +35,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     editable = editable,
     icon = icon,
 ) {
-    open val onCreateDefaultValueList: List<KPair<T>>? = null
+    open val onCreateDefaultValueList: List<KPair<T, *>>? = null
     var dataContainer: ObservableValue<ItemContainer<T>?> = ObservableValue(null)
 
     init {

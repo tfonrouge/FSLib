@@ -4,10 +4,10 @@ import io.kvision.types.LocalDateTime
 import kotlinx.serialization.Contextual
 import kotlin.reflect.KProperty1
 
-class KPair<T>(
-    val kProp: KProperty1<T, @Contextual Any?>,
+class KPair<T, V>(
+    val kProp: KProperty1<T, V?>,
     @Contextual
-    val value: Any?,
+    val value: V?,
 )
 
 infix fun <T> KProperty1<T, Int?>.with(that: Int?) = KPair(this, that)
