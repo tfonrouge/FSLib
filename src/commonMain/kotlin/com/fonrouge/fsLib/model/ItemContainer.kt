@@ -1,12 +1,11 @@
 package com.fonrouge.fsLib.model
 
-import com.fonrouge.fsLib.KPair
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class ItemContainer<T>(
     var item: T? = null,
     var result: Boolean = item != null,
     var description: String? = null,
-    var onCreateDefaultValue: List<KPair<T, @Contextual Any>>? = null,
+    var onCreateDefaultValue: String? = null
 )

@@ -6,5 +6,6 @@ import kotlin.js.JsExport
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 interface BaseModel<T> {
+    @Suppress("NON_EXPORTABLE_TYPE", "PropertyName")
     val _id: T
 }
