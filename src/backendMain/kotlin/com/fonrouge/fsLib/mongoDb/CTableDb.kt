@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.annotations.MongoDoc
+import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.ktor.http.*
@@ -163,8 +164,15 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
-            val result = collection.insertOne(it)
-            return ItemContainer(item = it, result = result.insertedId != null)
+            val insertOneResult = collection.insertOne(it)
+            val result = insertOneResult.insertedId != null
+            return ItemContainer(
+                item = it,
+                result = result,
+                itemAlreadyOn = result &&
+                        state.callType == StateItem.CallType.Query &&
+                        state.crudAction == CrudAction.Create
+            )
         }
         return ItemContainer(result = false, description = "insertOne(): item contains null value...")
     }

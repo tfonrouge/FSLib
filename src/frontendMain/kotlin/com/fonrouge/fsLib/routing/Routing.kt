@@ -46,7 +46,7 @@ private fun Navigo.onViewItemPage(): Navigo {
                     ) { itemContainer ->
                         if (itemContainer.itemAlreadyOn) {
                             urlParams = UrlParams(
-                                "action" to CrudAction.Update, "id" to itemContainer.item?._id
+                                "action" to CrudAction.Update, "id" to JSON.stringify(itemContainer.item?._id)
                             )
                             @Suppress("UNUSED_VARIABLE")
                             val url = (configViewItem.navigoUrl + urlParams.toString()).asDynamic()
