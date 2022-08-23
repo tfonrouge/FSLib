@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class ItemContainer<T>(
     var item: T? = null,
     var result: Boolean = item != null,
+    val itemAlreadyOn: Boolean = false,
     var description: String? = null,
-    var onCreateDefaultValue: String? = null
 )
