@@ -69,7 +69,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                         "action" to CrudAction.Update.name,
                         "id" to JSON.stringify(itemId),
                     )
-                    console.warn("URLPARAMS", urlParams)
                     masterViewItem?.addContext(urlParams)
                     masterViewItem?.callUpdateItemService()
                     routing.navigate(configViewItem.url + urlParams.toString())

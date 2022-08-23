@@ -44,7 +44,6 @@ private fun Navigo.onViewItemPage(): Navigo {
                         callType = StateItem.CallType.Query,
                         contextDataUrl = urlParams.contextDataUrl
                     ) { itemContainer ->
-                        console.warn("Navigo Create Query", itemContainer)
                         if (itemContainer.itemAlreadyOn) {
                             urlParams = UrlParams(
                                 "action" to CrudAction.Update, "id" to itemContainer.item?._id

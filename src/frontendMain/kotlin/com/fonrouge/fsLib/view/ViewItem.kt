@@ -139,9 +139,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
         }
         when (crudAction) {
             CrudAction.Create -> {
-                console.warn("CREATE ASSIGNING")
                 dataContainer.value?.item?.let {
-                    console.warn("CREATE ASSIGNING it:", it)
                     formPanel?.setData(it)
                 }
             }
