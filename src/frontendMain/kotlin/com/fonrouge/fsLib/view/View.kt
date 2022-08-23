@@ -51,7 +51,9 @@ abstract class View(
         return null
     }
 
-    open fun onBeforeDisplayPage() {}
+    open fun onBeforeDisplayPage(container: Container) {}
+
+    open fun onBeforeDispose() {}
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         flexPanel(

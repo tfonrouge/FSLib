@@ -79,13 +79,11 @@ abstract class ViewItem<T : BaseModel<U>, U>(
         }
     }
 
-    open fun Container.displayDefault(urlParams: UrlParams?) {}
+    open fun Container.displayDefault(urlParams: UrlParams?) {
+        centeredMessage("no CRUD action ...")
+    }
 
     private fun Container.displayForm(crudAction: CrudAction) {
-        addBeforeDisposeHook {
-            handleInterval = null
-            onBeforeDispose()
-        }
         formPanel = pageItemBody()
         if (urlParams?.actionUpsert != true) {
             formPanel?.form?.fields?.forEach { entry ->
@@ -266,10 +264,6 @@ abstract class ViewItem<T : BaseModel<U>, U>(
         return dataContainer.let { itemContainerObservableValue ->
             itemContainerObservableValue.value?.let { itemContainer -> itemNameFunc.invoke(itemContainer) }
         }
-    }
-
-    open fun onBeforeDispose() {
-
     }
 
     open fun onChangeDataContainer(itemContainer: ItemContainer<T>?) {

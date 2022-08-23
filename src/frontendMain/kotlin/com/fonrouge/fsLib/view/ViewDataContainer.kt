@@ -66,4 +66,9 @@ abstract class ViewDataContainer<U : Any>(
             callBlock()
         }
     }
+
+    override fun onBeforeDispose() {
+        super.onBeforeDispose()
+        handleInterval = null
+    }
 }

@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.apiLib
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import io.kvision.core.Container
+import io.kvision.html.div
 
 class ViewState(
     val configView: ConfigView<*>,
@@ -12,7 +13,12 @@ class ViewState(
 @Suppress("unused")
 fun Container.showView(viewState: ViewState) {
     viewState.configView.viewFunc(viewState.urlParams).apply {
-        onBeforeDisplayPage()
-        this@showView.displayPage()
+        div {
+            addBeforeDisposeHook {
+                onBeforeDispose()
+            }
+            onBeforeDisplayPage(this@showView)
+            this@showView.displayPage()
+        }
     }
 }
