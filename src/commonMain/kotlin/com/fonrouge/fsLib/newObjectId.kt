@@ -1,3 +1,3 @@
 package com.fonrouge.fsLib
 
-expect fun newObjectId() : String
+expect fun newObjectId(): String
