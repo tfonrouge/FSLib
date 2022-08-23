@@ -42,6 +42,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                 linkBanner?.label = getCaption()
                 formPanel?.setData(item)
             }
+            onChangeDataContainer(it)
         }
     }
 
@@ -273,7 +274,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 
     }
 
-    open fun onUpdateDataContainer(itemContainer: ItemContainer<T>) {
+    open fun onChangeDataContainer(itemContainer: ItemContainer<T>?) {
 
     }
 

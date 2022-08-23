@@ -26,7 +26,7 @@ public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
                 ZoneOffset.UTC
             )
         } else {
-            LocalDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_DATE_TIME)
+            LocalDateTime.parse(decoder.decodeString(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         }
     }
 
@@ -34,7 +34,7 @@ public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
         if (encoder is BsonEncoder) {
             encoder.encodeDateTime(ZonedDateTimeSerializer.epochMillis(value.atZone(ZoneOffset.UTC)))
         } else {
-            encoder.encodeString(value.format(DateTimeFormatter.ISO_DATE_TIME) + "Z")
+            encoder.encodeString(value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
         }
     }
 }
