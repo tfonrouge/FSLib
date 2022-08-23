@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.sqlDb
 
 import com.fonrouge.fsLib.annotations.SqlField
+import com.fonrouge.fsLib.serializers.FSLocalDateTimeSerializer
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
@@ -77,7 +78,9 @@ abstract class SqlDbSettings(
             Integer::class -> put(field.name, resultSet.getInt(i))
             LocalDateTime::class -> put(
                 field.name,
-                resultSet.getDateTime(i)?.toLocalDateTime()?.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                resultSet.getDateTime(i)?.toLocalDateTime()?.format(
+                    DateTimeFormatter.ofPattern(FSLocalDateTimeSerializer.KV_DEFAULT_DATETIME_FORMAT)
+                )
             )
 
             Double::class -> put(field.name, resultSet.getDouble(i))

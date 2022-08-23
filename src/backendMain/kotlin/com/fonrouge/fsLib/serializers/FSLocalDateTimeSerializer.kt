@@ -14,8 +14,11 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-@Suppress("RedundantVisibilityModifier", "unused")
+@Suppress("RedundantVisibilityModifier", "unused", "MemberVisibilityCanBePrivate")
 public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
+
+    const val KV_DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
+
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("LocalDateTime backEnd Serializer", PrimitiveKind.STRING)
 
@@ -26,7 +29,7 @@ public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
                 ZoneOffset.UTC
             )
         } else {
-            LocalDateTime.parse(decoder.decodeString(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            LocalDateTime.parse(decoder.decodeString(), DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT))
         }
     }
 
@@ -34,7 +37,7 @@ public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
         if (encoder is BsonEncoder) {
             encoder.encodeDateTime(ZonedDateTimeSerializer.epochMillis(value.atZone(ZoneOffset.UTC)))
         } else {
-            encoder.encodeString(value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+            encoder.encodeString(value.format(DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT)))
         }
     }
 }
