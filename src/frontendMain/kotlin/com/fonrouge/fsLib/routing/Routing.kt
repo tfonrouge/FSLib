@@ -56,15 +56,12 @@ private fun Navigo.onViewItemPage(): Navigo {
                                 "{${itemContainer::class.simpleName}: \"${itemContainer.item?._id}\"}".asDynamic()
                             js("""history.replaceState(stateObj,"createToUpdate",url)""")
                             js("history.go(0)")
-                            Unit
-                        } else {
-                            viewStateObservableValue.value = ViewState(configViewItem, urlParams)
+                            return@callItemService
                         }
                     }
-                } else {
-                    viewStateObservableValue.value = ViewState(configViewItem, urlParams)
                 }
             }
+            viewStateObservableValue.value = ViewState(configViewItem, urlParams)
         }
     })
     return this
