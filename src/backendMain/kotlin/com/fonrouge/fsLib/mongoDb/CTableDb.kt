@@ -136,29 +136,24 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
+    suspend inline fun <reified R : T> findOneById(
+        _id: U?,
+        vararg modelLookup: ModelLookup<*, *>
+    ): R? {
+        val pipeline = mutableListOf(match(BaseModel<*>::_id eq _id))
+        pipeline.addAll(buildLookup(*modelLookup))
+        return collection.aggregate<R>(pipeline).first()
+    }
+
+
+    @Suppress("unused")
     suspend inline fun <reified R : T> getItemContainer(
         _id: U?,
         vararg modelLookup: ModelLookup<*, *>
     ): ItemContainer<R> {
         return ItemContainer(
-            item = getItem(
-                match = match(BaseModel<*>::_id eq _id),
-                modelLookup = modelLookup
-            )
+            item = findOneById(_id = _id, modelLookup = modelLookup)
         )
-    }
-
-    @Suppress("unused")
-    suspend inline fun <reified R : T> getItem(
-        match: Bson,
-        vararg modelLookup: ModelLookup<*, *>
-    ): R? {
-        val pipeline = mutableListOf(
-            if (match.toBsonDocument()["\$match"] != null) match else match(match)
-        )
-        pipeline.addAll(buildLookup(*modelLookup))
-        pipeline.add(limit(1))
-        return collection.aggregate<R>(pipeline).first()
     }
 
     @Suppress("unused")
