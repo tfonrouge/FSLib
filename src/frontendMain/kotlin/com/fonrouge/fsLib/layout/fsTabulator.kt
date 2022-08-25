@@ -20,6 +20,7 @@ import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
+import org.w3c.dom.pointerevents.PointerEvent
 import kotlin.js.Json
 import kotlin.js.json
 
@@ -160,11 +161,13 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                 if (!event.defaultPrevented) {
                     viewList.itemOver = row.getData()
                     itemId = row.getData()._id as? U
-                    headerContextMenu?.content = "ContextMenu ($itemId)"
-                    linkContextMenuRead?.url = itemId?.let { viewList.configViewItem?.urlRead(it) }
-                    linkContextMenuUpdate?.url = itemId?.let { viewList.configViewItem?.urlUpdate(it) }
-                    linkContextMenuDelete?.url = itemId?.let { viewList.configViewItem?.urlDelete(it) }
                 }
+            }
+            jsTabulator?.on("rowContext") { event: PointerEvent, row: dynamic ->
+                headerContextMenu?.content = "ContextMenu ($itemId)"
+                linkContextMenuRead?.url = itemId?.let { viewList.configViewItem?.urlRead(it) }
+                linkContextMenuUpdate?.url = itemId?.let { viewList.configViewItem?.urlUpdate(it) }
+                linkContextMenuDelete?.url = itemId?.let { viewList.configViewItem?.urlDelete(it) }
             }
             jsTabulator?.on("tableBuilt") {
                 viewList.jsTabulatorBuilt = true
