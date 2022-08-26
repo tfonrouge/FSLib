@@ -14,7 +14,6 @@ import io.kvision.core.onEvent
 import io.kvision.dropdown.*
 import io.kvision.html.Link
 import io.kvision.tabulator.*
-import io.kvision.utils.obj
 import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
@@ -102,18 +101,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         serializer = T::class.serializer(),
         options = TabulatorOptions(
             columns = viewList.columnDefinitionList,
-//            height = "calc(100vh - 30vh)",
+            height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
             layout = Layout.FITDATASTRETCH,
             layoutColumnsOnNewData = true,
-//            tooltipsHeader = true,
-//            selectable = 1,
-//            rowSelected = { blockRowSelected(it, RowSelectedType.Selected) },
-//            rowDeselected = { blockRowSelected(it, RowSelectedType.Deselected) },
-            persistence = obj {
-                page = true
-                size = false
-            },
-//            persistenceMode = true,
             pagination = true,
             paginationMode = PaginationMode.REMOTE,
             filterMode = FilterMode.REMOTE,
@@ -123,15 +113,6 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             paginationSize = 10,
             paginationSizeSelector = true,
             autoResize = true,
-            /*
-                        persistence = obj {
-                            sort = true
-                            filter = true
-                            group = true
-            //                    page = true
-                            columns = true
-                        },
-            */
         ),
     ) {
 

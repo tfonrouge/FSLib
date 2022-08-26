@@ -16,6 +16,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberProperties
 
 abstract class CTableDb<T : BaseModel<U>, U : Any>(
     klass: KClass<T>,
@@ -36,7 +37,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun listFirstStage(
+    suspend inline fun <reified R : T> listFirstStage(
         match: Bson? = null,
         sort: Bson? = null,
         page: Int? = null,
@@ -44,40 +45,41 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
     ): FirstStage {
-        val bsonList = mutableListOf<Bson>()
-        val match0 =
-            if (match == null) null else if (match.toBsonDocument()["\$match"] != null) match else match(match)
-        match0?.let { bsonList.add(it) }
-        val filterValue = match0?.let { bson ->
-            val bsonDocument = BsonDocument()
-            (bson.toBsonDocument()["\$match"] as BsonDocument).forEach {
-                bsonDocument.append(it.key, it.value)
-            }
-            bsonDocument
-        } ?: BsonDocument()
-        if (!filter.isNullOrEmpty()) {
+        val pipeline = mutableListOf<Bson>()
+        val matchDocument = match?.toBsonDocument()?.get("\$match")?.asDocument() ?: match?.toBsonDocument()
+        val filterDocument = if (!filter.isNullOrEmpty()) {
+            val bdoc = BsonDocument()
+            val kProperty1s = R::class.memberProperties
             filter.forEach { remoteFilter ->
-                val value: BsonValue = when (remoteFilter.type) {
-                    "like" -> BsonDocument(
-                        "\$regex",
-                        BsonString(remoteFilter.value)
-                    ).append("\$options", BsonString("i"))
+                val kfield = kProperty1s.firstOrNull { it.name == remoteFilter.field }
+                val value: BsonValue? = when (kfield?.returnType?.classifier) {
+                    String::class, null -> {
+                        when (remoteFilter.type) {
+                            "like" -> BsonDocument(
+                                "\$regex",
+                                BsonString(remoteFilter.value)
+                            ).append("\$options", BsonString("i"))
 
-                    else -> BsonString(remoteFilter.value)
+                            else -> BsonString(remoteFilter.value)
+                        }
+                    }
+
+                    Int::class -> remoteFilter.value?.toIntOrNull()?.let { BsonInt32(it) }
+                    Long::class -> remoteFilter.value?.toLongOrNull()?.let { BsonInt64(it) }
+                    Double::class -> remoteFilter.value?.toDoubleOrNull()?.let { BsonDouble(it) }
+                    else -> null
                 }
-                filterValue.append(remoteFilter.field, value)
+                value?.let { bdoc.append(remoteFilter.field, value) }
             }
-        }
+            bdoc
+        } else null
+        var sortDocument: BsonDocument? = null
         if (sort != null) {
-            if (sort.toBsonDocument()["\$sort"] != null) {
-                bsonList.add(sort)
-            } else {
-                bsonList.add(sort(sort))
-            }
+            sortDocument = sort.toBsonDocument()?.get("\$sort")?.asDocument() ?: sort.toBsonDocument()
         } else if (!sorter.isNullOrEmpty()) {
-            val fields = BsonDocument()
+            sortDocument = BsonDocument()
             sorter.forEach { remoteSorter ->
-                fields.append(
+                sortDocument.append(
                     remoteSorter.field, when (remoteSorter.dir) {
                         "asc" -> BsonInt32(1)
                         "desc" -> BsonInt32(-1)
@@ -85,32 +87,29 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                     }
                 )
             }
-            bsonList.add(sort(fields))
         }
-        val count: Long = filterValue.let { collection.countDocuments(it) }
+        val count: Long = collection.countDocuments(and(matchDocument, filterDocument))
         if (page == null) {
             return FirstStage(
-                pipeline = bsonList,
+                pipeline = pipeline,
                 count = count,
                 last_page = -1,
                 last_row = null,
             )
         } else {
             val nSize = size ?: 10
-            val nSkip = nSize * (page - 1)
-            filterValue.let {
-                bsonList.add(Document("\$match", it))
-            }
-            bsonList.add(
-                skip(nSkip)
-            )
-            bsonList.add(
-                limit(nSize)
-            )
+            val maxPage = ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt()
+            val nPage = kotlin.math.min(maxPage, page)
+            val nSkip = nSize * (nPage - 1)
+            matchDocument?.let { pipeline.add(match(matchDocument)) }
+            filterDocument?.let { pipeline.add(match(filterDocument)) }
+            sortDocument?.let { pipeline.add(sort(sortDocument)) }
+            kotlin.math.max(nSkip, 0).let { if (it > 0) pipeline.add(skip(it)) }
+            pipeline.add(limit(nSize))
             return FirstStage(
-                pipeline = bsonList,
+                pipeline = pipeline,
                 count = count,
-                last_page = (count / nSize + 1).toInt(),
+                last_page = maxPage,
                 last_row = null,
             )
         }
@@ -178,6 +177,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<R> {
         firstStage.pipeline.addAll(buildLookup(*modelLookup))
+        println("Aggregate = ${firstStage.pipeline.json}")
         val list = collection.aggregate<R>(firstStage.pipeline).toList()
         return RemoteData(
             data = list,
@@ -197,7 +197,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<R> {
         return remoteData(
-            firstStage = listFirstStage(
+            firstStage = listFirstStage<R>(
                 match = match,
                 sort = sort,
                 page = page,
