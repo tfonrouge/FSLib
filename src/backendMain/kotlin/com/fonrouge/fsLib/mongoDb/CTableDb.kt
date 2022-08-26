@@ -95,6 +95,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         }
         val count = mongoColl.countDocuments(and(matchDocument, filterDocument)).awaitFirstOrNull() ?: 0L
         if (page == null) {
+            matchDocument?.let { pipeline.add(match(matchDocument)) }
+            filterDocument?.let { pipeline.add(match(filterDocument)) }
+            sortDocument?.let { pipeline.add(sort(sortDocument)) }
             return FirstStage(
                 pipeline = pipeline,
                 count = count,
