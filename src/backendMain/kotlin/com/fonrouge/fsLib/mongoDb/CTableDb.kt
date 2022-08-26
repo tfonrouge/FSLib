@@ -38,7 +38,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         }
 
     companion object {
-        val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
+        internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
     @Suppress("unused")
