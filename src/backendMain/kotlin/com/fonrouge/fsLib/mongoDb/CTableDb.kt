@@ -5,24 +5,26 @@ import com.fonrouge.fsLib.annotations.MongoDoc
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
+import org.litote.kmongo.coroutine.toList
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 
 abstract class CTableDb<T : BaseModel<U>, U : Any>(
-    klass: KClass<T>,
+    private val klass: KClass<T>,
 ) {
     private val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
-    val collection: CoroutineCollection<T> = mongoDatabase.getCollection(collName, klass.java).coroutine
+    val collection: MongoCollection<T> = mongoDatabase.getCollection(collName, klass.java).coroutine.collection
     open val lookupFun: (() -> List<LookupBuilder<T, *, *, *>>)? = null
     var lookup: List<LookupBuilder<T, *, *, *>>? = null
         get() {
@@ -37,7 +39,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend inline fun <reified R : T> listFirstStage(
+    suspend fun listFirstStage(
         match: Bson? = null,
         sort: Bson? = null,
         page: Int? = null,
@@ -49,7 +51,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         val matchDocument = match?.toBsonDocument()?.get("\$match")?.asDocument() ?: match?.toBsonDocument()
         val filterDocument = if (!filter.isNullOrEmpty()) {
             val bdoc = BsonDocument()
-            val kProperty1s = R::class.memberProperties
+            val kProperty1s = klass.memberProperties
             filter.forEach { remoteFilter ->
                 val kfield = kProperty1s.firstOrNull { it.name == remoteFilter.field }
                 val value: BsonValue? = when (kfield?.returnType?.classifier) {
@@ -88,7 +90,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 )
             }
         }
-        val count: Long = collection.countDocuments(and(matchDocument, filterDocument))
+        val count = collection.countDocuments(and(matchDocument, filterDocument)).awaitFirstOrNull() ?: 0L
         if (page == null) {
             return FirstStage(
                 pipeline = pipeline,
@@ -129,27 +131,31 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun deleteOneById(_id: U?): ItemContainer<T> {
         if (_id != null) {
-            return ItemContainer(result = collection.deleteOneById(_id).deletedCount == 1L)
+            return ItemContainer(
+                result = collection
+                    .deleteOne(BaseModel<*>::_id eq _id)
+                    .awaitFirstOrNull()?.deletedCount == 1L
+            )
         }
         return ItemContainer(result = false)
     }
 
     @Suppress("unused")
-    suspend inline fun <reified R : T> findOneById(
+    suspend fun findOneById(
         _id: U?,
         vararg modelLookup: ModelLookup<*, *>
-    ): R? {
+    ): T? {
         val pipeline = mutableListOf(match(BaseModel<*>::_id eq _id))
         pipeline.addAll(buildLookup(*modelLookup))
-        return collection.aggregate<R>(pipeline).first()
+        return collection.aggregate(pipeline).awaitFirstOrNull()
     }
 
 
     @Suppress("unused")
-    suspend inline fun <reified R : T> getItemContainer(
+    suspend fun getItemContainer(
         _id: U?,
         vararg modelLookup: ModelLookup<*, *>
-    ): ItemContainer<R> {
+    ): ItemContainer<T> {
         return ItemContainer(
             item = findOneById(_id = _id, modelLookup = modelLookup)
         )
@@ -158,8 +164,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
-            val insertOneResult = collection.insertOne(it)
-            val result = insertOneResult.insertedId != null
+            val insertOneResult = collection.insertOne(it).awaitFirstOrNull()
+            val result = insertOneResult?.insertedId != null
             return ItemContainer(
                 item = it,
                 result = result,
@@ -172,13 +178,13 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend inline fun <reified R : T> remoteData(
+    suspend fun remoteData(
         firstStage: FirstStage,
         vararg modelLookup: ModelLookup<*, *>
-    ): RemoteData<R> {
+    ): RemoteData<T> {
         firstStage.pipeline.addAll(buildLookup(*modelLookup))
         println("Aggregate = ${firstStage.pipeline.json}")
-        val list = collection.aggregate<R>(firstStage.pipeline).toList()
+        val list = collection.aggregate(firstStage.pipeline, klass.java).toList()
         return RemoteData(
             data = list,
             last_page = firstStage.last_page,
@@ -187,7 +193,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend inline fun <reified R : T> remoteData(
+    suspend fun remoteData(
         match: Bson? = null,
         sort: Bson? = null,
         page: Int? = null,
@@ -195,9 +201,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
         vararg modelLookup: ModelLookup<*, *>
-    ): RemoteData<R> {
+    ): RemoteData<T> {
         return remoteData(
-            firstStage = listFirstStage<R>(
+            firstStage = listFirstStage(
                 match = match,
                 sort = sort,
                 page = page,
@@ -212,14 +218,14 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
-            val result = collection.updateOne(
+            val result = collection.coroutine.updateOne(
                 filter = it::_id eq _id,
                 target = it
             )
             return ItemContainer(result = result.modifiedCount == 1L)
         }
         state.json?.let {
-            val result = collection.updateOne(
+            val result = collection.coroutine.updateOne(
                 filter = BaseModel<*>::_id eq _id,
                 update = BsonDocument("\$set", BsonDocument.parse(it))
             )
