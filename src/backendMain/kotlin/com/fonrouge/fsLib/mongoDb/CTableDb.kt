@@ -24,7 +24,10 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     private val klass: KClass<T>,
 ) {
     private val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
-    val collection: MongoCollection<T> = mongoDatabase.getCollection(collName, klass.java).coroutine.collection
+    val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collName, klass.java)
+
+    @Suppress("unused")
+    val coroutineColl = mongoColl.coroutine
     open val lookupFun: (() -> List<LookupBuilder<T, *, *, *>>)? = null
     var lookup: List<LookupBuilder<T, *, *, *>>? = null
         get() {
@@ -90,7 +93,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 )
             }
         }
-        val count = collection.countDocuments(and(matchDocument, filterDocument)).awaitFirstOrNull() ?: 0L
+        val count = mongoColl.countDocuments(and(matchDocument, filterDocument)).awaitFirstOrNull() ?: 0L
         if (page == null) {
             return FirstStage(
                 pipeline = pipeline,
@@ -132,7 +135,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     suspend fun deleteOneById(_id: U?): ItemContainer<T> {
         if (_id != null) {
             return ItemContainer(
-                result = collection
+                result = mongoColl
                     .deleteOne(BaseModel<*>::_id eq _id)
                     .awaitFirstOrNull()?.deletedCount == 1L
             )
@@ -147,9 +150,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     ): T? {
         val pipeline = mutableListOf(match(BaseModel<*>::_id eq _id))
         pipeline.addAll(buildLookup(*modelLookup))
-        return collection.aggregate(pipeline).awaitFirstOrNull()
+        return mongoColl.aggregate(pipeline).awaitFirstOrNull()
     }
-
 
     @Suppress("unused")
     suspend fun getItemContainer(
@@ -164,7 +166,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
-            val insertOneResult = collection.insertOne(it).awaitFirstOrNull()
+            val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
             val result = insertOneResult?.insertedId != null
             return ItemContainer(
                 item = it,
@@ -184,7 +186,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     ): RemoteData<T> {
         firstStage.pipeline.addAll(buildLookup(*modelLookup))
         println("Aggregate = ${firstStage.pipeline.json}")
-        val list = collection.aggregate(firstStage.pipeline, klass.java).toList()
+        val list = mongoColl.aggregate(firstStage.pipeline, klass.java).toList()
         return RemoteData(
             data = list,
             last_page = firstStage.last_page,
@@ -218,14 +220,14 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
-            val result = collection.coroutine.updateOne(
+            val result = mongoColl.coroutine.updateOne(
                 filter = it::_id eq _id,
                 target = it
             )
             return ItemContainer(result = result.modifiedCount == 1L)
         }
         state.json?.let {
-            val result = collection.coroutine.updateOne(
+            val result = mongoColl.coroutine.updateOne(
                 filter = BaseModel<*>::_id eq _id,
                 update = BsonDocument("\$set", BsonDocument.parse(it))
             )

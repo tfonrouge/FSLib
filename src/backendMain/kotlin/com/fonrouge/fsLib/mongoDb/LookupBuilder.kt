@@ -38,7 +38,7 @@ class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V : Any, W : Any>(
         }
 
         pipeline += lookup(
-            from = map1[cTableDb]?.collection?.namespace?.collectionName ?: "?",
+            from = map1[cTableDb]?.mongoColl?.namespace?.collectionName ?: "?",
             let = listOf(Variable("letVar1", localField)),
             resultProperty = resultProperty,
             *pip2.toTypedArray()
