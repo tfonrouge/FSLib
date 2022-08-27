@@ -5,13 +5,13 @@ import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
+import com.fonrouge.fsLib.layout.TabulatorMenuItem
 import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
-import io.kvision.dropdown.ContextMenu
 import io.kvision.html.Align
 import io.kvision.modal.Confirm
 import io.kvision.routing.routing
@@ -33,13 +33,14 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     editable = editable,
     icon = icon,
 ) {
-
+    var overItem: T? = null
+    var menuState: RowContextMenuState = RowContextMenuState.Unknown
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     val configViewItem: ConfigViewItem<*, *, *, U>?
         get() {
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<*, *, *, U>>()
         }
-    open val contextMenu: ((ContextMenu).() -> Unit)? = null
+    open val contextRowMenu: ((MutableList<TabulatorMenuItem>).(_id: U) -> Unit)? = null
     val crudActionMap = mapOf<CrudAction, (U?) -> Unit>(
         CrudAction.Create to { _ ->
             configViewItem?.let { configViewItem ->
@@ -114,7 +115,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
             tabulator?.update(dataContainer)
         }
-    var itemOver: dynamic = null
     var jsTabulatorBuilt: Boolean = false
     val listNameFunc: ((List<T>) -> String) = { list ->
         list.getOrNull(0)?._id.toString()
@@ -151,8 +151,16 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
 
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
-            selectedIdList = tabulator?.getSelectedData()?.map { it._id }
-            tabulator?.setPage(tabulator?.getPage() ?: 1)
+            if (menuState != RowContextMenuState.Opened) {
+                selectedIdList = tabulator?.getSelectedData()?.map { it._id }
+                tabulator?.setPage(tabulator?.getPage() ?: 1)
+            }
         }
+    }
+
+    enum class RowContextMenuState {
+        Unknown,
+        Opened,
+        Closed,
     }
 }

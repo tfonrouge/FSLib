@@ -7,19 +7,19 @@ import com.fonrouge.fsLib.masterViewItemId
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
-import io.kvision.dropdown.*
 import io.kvision.html.Link
 import io.kvision.tabulator.*
-import io.kvision.utils.px
+import io.kvision.tabulator.js.Tabulator.RowComponent
+import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
-import org.w3c.dom.pointerevents.PointerEvent
 import kotlin.js.Json
 import kotlin.js.json
 
@@ -47,33 +47,22 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     noinline stateJsonFun: (() -> Json)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
-
-    var headerContextMenu: Header? = null
-    var linkContextMenuRead: Link? = null
-    var linkContextMenuUpdate: Link? = null
-    var linkContextMenuDelete: Link? = null
-
-    var itemId: U? = null
-
     val nav = toolBarList(viewList = viewList, minToolbarSize)
-//    viewList.blockRefresh = { KVWebManager.updateViewDataContainer(viewList) }
-//    nav.onClickRefresh = { KVWebManager.updateViewDataContainer(viewList) }
-
-    val updateLinks: () -> Unit = {
+    val updateLinks: (item: T?) -> Unit = { item ->
         viewList.configViewItem?.let { configViewItem ->
-            nav.itemId = itemId
+            nav.itemId = item?._id
             nav.getChildren().forEach { component ->
                 if (component is Link) {
                     when (component.id) {
-                        CrudAction.Create.name -> component.url = itemId?.let {
+                        CrudAction.Create.name -> component.url = item?._id?.let {
                             configViewItem.urlCreate + viewList.parentContextUrlParams
                         }
 
-                        CrudAction.Update.name -> component.url = itemId?.let {
+                        CrudAction.Update.name -> component.url = item?._id?.let {
                             configViewItem.urlUpdate(it) + viewList.parentContextUrlParams
                         }
 
-                        CrudAction.Delete.name -> component.url = itemId?.let {
+                        CrudAction.Delete.name -> component.url = item?._id?.let {
                             configViewItem.urlDelete(it)
                         }
                     }
@@ -106,6 +95,15 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             layoutColumnsOnNewData = true,
             pagination = true,
             paginationMode = PaginationMode.REMOTE,
+            paginationCounter = "rows",
+            rowContextMenu = { viewList.overItem?._id?.let { contextRowMenuGenerator(it, viewList) } },
+//            paginationCounter = js(
+//                """
+//                function(pageSize, currentRow, currentPage, totalRows, totalPages) {
+//                    return "Showing " + currentRow + " rows of " + totalRows + " total";
+//                }
+//                """
+//            ),
             filterMode = FilterMode.REMOTE,
             sortMode = SortMode.REMOTE,
             dataLoader = false,
@@ -120,17 +118,15 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
 
         id = viewList.urlWithParams
 
-        fontSize = 12.px
+        fontSize = 0.75.em
 
         onEvent {
             rowSelectionChangedTabulator = {
-                val item = this.self.getSelectedData().let {
+                val item = self.getSelectedData().let {
                     if (it.isEmpty()) null else it[0]
                 }
-                itemId = item?.let { item.asDynamic()["_id"] } as? U
-                updateLinks()
+                updateLinks(item)
                 viewList.onRowSelected(item)
-//                rowSelect?.invoke(itemId)
             }
         }
 
@@ -138,17 +134,17 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             /*
             TODO: implement this in KVision
              */
-            jsTabulator?.on("rowMouseOver") { event: Event, row: dynamic ->
+            jsTabulator?.on("rowMouseOver") { event: Event, row: RowComponent ->
                 if (!event.defaultPrevented) {
-                    viewList.itemOver = row.getData()
-                    itemId = row.getData()._id as? U
+                    viewList.overItem = row.getData().unsafeCast<T?>()
+                    ViewDataContainer.clearStartTime()
                 }
             }
-            jsTabulator?.on("rowContext") { event: PointerEvent, row: dynamic ->
-                headerContextMenu?.content = "ContextMenu ($itemId)"
-                linkContextMenuRead?.url = itemId?.let { viewList.configViewItem?.urlRead(it) }
-                linkContextMenuUpdate?.url = itemId?.let { viewList.configViewItem?.urlUpdate(it) }
-                linkContextMenuDelete?.url = itemId?.let { viewList.configViewItem?.urlDelete(it) }
+            jsTabulator?.on("menuOpened") {
+                viewList.menuState = ViewList.RowContextMenuState.Opened
+            }
+            jsTabulator?.on("menuClosed") {
+                viewList.menuState = ViewList.RowContextMenuState.Closed
             }
             jsTabulator?.on("tableBuilt") {
                 viewList.jsTabulatorBuilt = true
@@ -167,37 +163,38 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                 )
             }
         }
-
-        viewList.configViewItem?.let { configViewItem ->
-            contextMenu {
-                headerContextMenu = header()
-                linkContextMenuRead =
-                    cmLink(
-                        label = "Ver detalle de ${configViewItem.label}",
-                        icon = "fas fa-eye"
-                    )
-                if (viewList.editable) {
-                    separator()
-                    cmLink(
-                        label = configViewItem.labelCreate,
-                        icon = "fas fa-plus",
-                        url = viewList.configViewItem?.urlCreate
-                    )
-                    linkContextMenuUpdate = cmLink(
-                        label = configViewItem.labelUpdate,
-                        icon = "fas fa-edit",
-                    )
-                    linkContextMenuDelete = cmLink(
-                        label = configViewItem.labelDelete,
-                        icon = "fas fa-trash-alt",
-                    )
+        /*
+                viewList.configViewItem?.let { configViewItem ->
+                    contextMenu {
+                        headerContextMenu = header()
+                        linkContextMenuRead =
+                            cmLink(
+                                label = "Ver detalle de ${configViewItem.label}",
+                                icon = "fas fa-eye"
+                            )
+                        if (viewList.editable) {
+                            separator()
+                            cmLink(
+                                label = configViewItem.labelCreate,
+                                icon = "fas fa-plus",
+                                url = viewList.configViewItem?.urlCreate
+                            )
+                            linkContextMenuUpdate = cmLink(
+                                label = configViewItem.labelUpdate,
+                                icon = "fas fa-edit",
+                            )
+                            linkContextMenuDelete = cmLink(
+                                label = configViewItem.labelDelete,
+                                icon = "fas fa-trash-alt",
+                            )
+                        }
+                        viewList.contextMenu?.let {
+                            separator()
+                            it(this)
+                        }
+                    }
                 }
-                viewList.contextMenu?.let {
-                    separator()
-                    it(this)
-                }
-            }
-        }
+        */
     }
 
     viewList.installUpdate(true)
@@ -205,9 +202,41 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     return this
 }
 
-enum class RowSelectedType {
-    Selected,
-    Deselected
+fun <T : BaseModel<U>, U> contextRowMenuGenerator(
+    _id: U,
+    viewList: ViewList<T, *, U>,
+): Array<dynamic> {
+    val menu = mutableListOf<TabulatorMenuItem>()
+    with(menu) {
+        menuItem(label = "ContextMenu ($_id)", disabled = true)
+        menuItem(separator = true)
+        menuItem(
+            label = "Detail of ${viewList.configViewItem?.label}",
+            icon = "fas fa-eye",
+            url = viewList.configViewItem?.urlRead(_id)
+        )
+        if (viewList.editable) {
+            menuItem(separator = true)
+            menuItem(
+                label = viewList.configViewItem?.labelCreate,
+                icon = "fas fa-plus",
+                url = viewList.configViewItem?.urlCreate
+            )
+            menuItem(
+                label = viewList.configViewItem?.labelUpdate,
+                icon = "fas fa-edit",
+            )
+            menuItem(
+                label = viewList.configViewItem?.labelDelete,
+                icon = "fas fa-trash-alt",
+            )
+        }
+        viewList.contextRowMenu?.let {
+            menuItem(separator = true)
+            it.invoke(this, _id)
+        }
+    }
+    return menu.toTypedArray()
 }
 
 fun <T : BaseModel<*>> Tabulator<T>.update(list: List<T>?) {

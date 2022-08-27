@@ -17,6 +17,7 @@ abstract class ViewDataContainer<U : Any>(
 ) {
 
     companion object {
+        var startTime = 0L
         internal var handleInterval: Int? = null
             set(value) {
                 field?.let {
@@ -24,6 +25,10 @@ abstract class ViewDataContainer<U : Any>(
                 }
                 field = value
             }
+
+        fun clearStartTime() {
+            startTime = (Date().getTime() / 1000).toLong()
+        }
     }
 
     var displayBlock: (() -> Unit)? = null
@@ -45,14 +50,13 @@ abstract class ViewDataContainer<U : Any>(
             }
         }
         if (repeatUpdateView == true && !suspendRepeatUpdate) {
-            var lastTime: Int? = null
             var lock = false
             handleInterval = window.setInterval(
                 handler = {
-                    val time = Date().getUTCSeconds()
-                    if (lastTime != Date().getSeconds() && (time % repeatUpdateSecsInterval == 0)) {
-                        lastTime = Date().getUTCSeconds()
+                    val curTime = (Date().getTime() / 1000).toLong()
+                    if ((curTime - startTime) > repeatUpdateSecsInterval) {
                         if (!lock) {
+                            startTime = curTime
                             lock = true
                             callBlock()
                             lock = false
