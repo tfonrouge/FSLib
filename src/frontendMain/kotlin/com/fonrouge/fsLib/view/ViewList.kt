@@ -137,9 +137,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         get() = field ?: KVWebManager.refreshViewListPeriodic
     var tabulator: TabulatorRemote<T, E>? = null
     var selectedIdList: List<Any?>? = null
-    open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {
-        menuItem(label = "Testing ...")
-    }
+    open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
 
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
         val item = overItem?.let { toKotlinObj(it, configViewList.klass) }
