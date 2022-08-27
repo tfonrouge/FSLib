@@ -84,8 +84,8 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     }
 
     viewList.tabulator = tabulatorRemote(
-        serviceManager = viewList.configView.serverManager,
-        function = viewList.configView.function,
+        serviceManager = viewList.configViewList.serverManager,
+        function = viewList.configViewList.function,
         stateFunction = stateFunction,
         serializer = T::class.serializer(),
         options = TabulatorOptions(
@@ -96,7 +96,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             pagination = true,
             paginationMode = PaginationMode.REMOTE,
             paginationCounter = "rows",
-            rowContextMenu = { viewList.overItem?._id?.let { contextRowMenuGenerator(it, viewList) } },
+            rowContextMenu = { viewList.contextRowMenuGenerator() },
 //            paginationCounter = js(
 //                """
 //                function(pageSize, currentRow, currentPage, totalRows, totalPages) {
@@ -136,7 +136,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
              */
             jsTabulator?.on("rowMouseOver") { event: Event, row: RowComponent ->
                 if (!event.defaultPrevented) {
-                    viewList.overItem = row.getData().unsafeCast<T?>()
+                    if (viewList.menuState != ViewList.RowContextMenuState.Opened) {
+                        viewList.overItem = row.getData()
+                    }
                     ViewDataContainer.clearStartTime()
                 }
             }
@@ -163,80 +165,11 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                 )
             }
         }
-        /*
-                viewList.configViewItem?.let { configViewItem ->
-                    contextMenu {
-                        headerContextMenu = header()
-                        linkContextMenuRead =
-                            cmLink(
-                                label = "Ver detalle de ${configViewItem.label}",
-                                icon = "fas fa-eye"
-                            )
-                        if (viewList.editable) {
-                            separator()
-                            cmLink(
-                                label = configViewItem.labelCreate,
-                                icon = "fas fa-plus",
-                                url = viewList.configViewItem?.urlCreate
-                            )
-                            linkContextMenuUpdate = cmLink(
-                                label = configViewItem.labelUpdate,
-                                icon = "fas fa-edit",
-                            )
-                            linkContextMenuDelete = cmLink(
-                                label = configViewItem.labelDelete,
-                                icon = "fas fa-trash-alt",
-                            )
-                        }
-                        viewList.contextMenu?.let {
-                            separator()
-                            it(this)
-                        }
-                    }
-                }
-        */
     }
 
     viewList.installUpdate(true)
 
     return this
-}
-
-fun <T : BaseModel<U>, U> contextRowMenuGenerator(
-    _id: U,
-    viewList: ViewList<T, *, U>,
-): Array<dynamic> {
-    val menu = mutableListOf<TabulatorMenuItem>()
-    with(menu) {
-        menuItem(label = "ContextMenu ($_id)", disabled = true)
-        menuItem(separator = true)
-        menuItem(
-            label = "Detail of ${viewList.configViewItem?.label}",
-            icon = "fas fa-eye",
-            url = viewList.configViewItem?.urlRead(_id)
-        )
-        if (viewList.editable) {
-            menuItem(separator = true)
-            menuItem(
-                label = viewList.configViewItem?.labelCreate,
-                icon = "fas fa-plus",
-                url = viewList.configViewItem?.urlCreate
-            )
-            menuItem(
-                label = viewList.configViewItem?.labelUpdate,
-                icon = "fas fa-edit",
-            )
-            menuItem(
-                label = viewList.configViewItem?.labelDelete,
-                icon = "fas fa-trash-alt",
-            )
-        }
-        viewList.contextRowMenu?.let {
-            menuItem(separator = true)
-            it.invoke(this, _id)
-        }
-    }
-    return menu.toTypedArray()
 }
 
 fun <T : BaseModel<*>> Tabulator<T>.update(list: List<T>?) {

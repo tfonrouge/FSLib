@@ -6,6 +6,7 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.layout.TabulatorMenuItem
+import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
@@ -21,28 +22,30 @@ import io.kvision.tabulator.TabulatorRemote
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
+import io.kvision.utils.toKotlinObj
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
-    override val configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
+    val configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
 ) : ViewDataContainer<List<T>>(
-    configView = configView,
+    configView = configViewList,
     editable = editable,
     icon = icon,
 ) {
-    var overItem: T? = null
+    /* dynamic content only used to get _id */
+    var overItem: Any? = null
     var menuState: RowContextMenuState = RowContextMenuState.Unknown
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     val configViewItem: ConfigViewItem<*, *, *, U>?
         get() {
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<*, *, *, U>>()
         }
-    open val contextRowMenu: ((MutableList<TabulatorMenuItem>).(_id: U) -> Unit)? = null
+
     val crudActionMap = mapOf<CrudAction, (U?) -> Unit>(
-        CrudAction.Create to { _ ->
+        CrudAction.Create to {
             configViewItem?.let { configViewItem ->
                 val urlParams = UrlParams(
                     "action" to CrudAction.Create.name,
@@ -133,6 +136,45 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewListPeriodic
     var tabulator: TabulatorRemote<T, E>? = null
+    var selectedIdList: List<Any?>? = null
+    open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {
+        menuItem(label = "Testing ...")
+    }
+
+    fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
+        val item = overItem?.let { toKotlinObj(it, configViewList.klass) }
+        if (item != null) {
+            val menu = mutableListOf<TabulatorMenuItem>()
+            with(menu) {
+                menuItem(label = "ContextMenu (${item._id})", disabled = true)
+                menuItem(separator = true)
+                menuItem(
+                    label = "Detail of ${configViewItem?.label}",
+                    icon = "fas fa-eye",
+                    url = configViewItem?.urlRead(item._id)
+                )
+                if (editable) {
+                    menuItem(separator = true)
+                    menuItem(
+                        label = configViewItem?.labelCreate,
+                        icon = "fas fa-plus",
+                        url = configViewItem?.urlCreate
+                    )
+                    menuItem(
+                        label = configViewItem?.labelUpdate,
+                        icon = "fas fa-edit",
+                    )
+                    menuItem(
+                        label = configViewItem?.labelDelete,
+                        icon = "fas fa-trash-alt",
+                    )
+                }
+                contextRowMenu(item)
+            }
+            return menu.toTypedArray()
+        }
+        return null
+    }
 
     override fun getName(): String? {
         return dataContainer?.let { listNameFunc.invoke(it) }
@@ -146,8 +188,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         pageBanner()
         pageListBody()
     }
-
-    var selectedIdList: List<Any?>? = null
 
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {

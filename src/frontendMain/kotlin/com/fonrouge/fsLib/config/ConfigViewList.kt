@@ -11,7 +11,7 @@ import io.kvision.remote.RemoteSorter
 import kotlin.reflect.KClass
 
 abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IDataList, U>(
-    private val klass: KClass<T>,
+    val klass: KClass<T>,
     label: String,
     viewFunc: ((UrlParams?) -> V),
     val serverManager: KVServiceManager<E>,
