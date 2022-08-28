@@ -10,12 +10,15 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
+import io.kvision.core.BoxShadow
 import io.kvision.core.Container
+import io.kvision.core.Style
 import io.kvision.core.onEvent
 import io.kvision.html.Link
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.utils.em
+import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
@@ -113,13 +116,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             autoResize = true,
         ),
     ) {
-
         init?.invoke(this)
-
         id = viewList.urlWithParams
-
         fontSize = 0.75.em
-
         onEvent {
             rowSelectionChangedTabulator = {
                 val item = self.getSelectedData().let {
@@ -129,16 +128,13 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                 viewList.onRowSelected(item)
             }
         }
-
         addAfterInsertHook {
             /*
             TODO: implement this in KVision
              */
             jsTabulator?.on("rowMouseOver") { event: Event, row: RowComponent ->
                 if (!event.defaultPrevented) {
-                    if (viewList.menuState != ViewList.RowContextMenuState.Opened) {
-                        viewList.overItem = row.getData()
-                    }
+                    viewList.overItem = row.getData()
                     ViewDataContainer.clearStartTime()
                 }
             }
@@ -166,9 +162,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             }
         }
     }
-
     viewList.installUpdate(true)
-
     return this
 }
 
