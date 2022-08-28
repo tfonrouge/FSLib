@@ -17,13 +17,13 @@ public actual object FSObjectIdSerializer : KSerializer<String> {
         return when (bsonDecoder.reader.currentBsonType) {
             BsonType.OBJECT_ID -> bsonDecoder.reader.readObjectId().toHexString()
             else -> {
-                throw ServiceException("NumberDoubleSerializer: Unknown how to decode type '${bsonDecoder.reader.currentBsonType}'")
+                throw ServiceException("FSObjectIdSerializer: Unknown how to decode type '${bsonDecoder.reader.currentBsonType}'")
             }
         }
     }
 
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("ObjectId as String Serializer", PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor("Binary as String Serializer", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: String) {
         return encoder.encodeString(value = value)
