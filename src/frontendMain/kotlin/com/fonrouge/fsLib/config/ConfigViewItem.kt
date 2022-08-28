@@ -100,10 +100,8 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         )
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            console.warn("DECODING 1", result)
             val itemContainer: ItemContainer<T> =
                 Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
-            console.warn("DECODING 2", itemContainer)
             block(itemContainer)
         }
     }

@@ -24,13 +24,13 @@ import kotlin.js.Json
 import kotlin.js.json
 
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
-    configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
+    configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (() -> Json)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
-    val viewList = configViewList.viewFunc(null)
+    val viewList = configView.viewFunc(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,

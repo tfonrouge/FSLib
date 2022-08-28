@@ -137,7 +137,15 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
 
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
-        val item: T? = overItem?.let { toKotlinObj(it, configView.klass) }
+        val item: T? = overItem?.let {
+            try {
+                toKotlinObj(it, configView.klass)
+            } catch (e: Exception) {
+                Toast.error(e.message ?: "", "Error decoding (toKotlinObj)")
+                e.printStackTrace()
+                null
+            }
+        }
         if (item != null) {
             val menu = mutableListOf<TabulatorMenuItem>()
             with(menu) {
