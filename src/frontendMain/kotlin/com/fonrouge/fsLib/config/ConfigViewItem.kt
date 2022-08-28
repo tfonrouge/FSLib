@@ -28,7 +28,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     private val serverManager: KVServiceManager<E>,
     private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,
-    val labelId: ((T?) -> String)? = { it?._id?.toString() ?: "<no-item>" }
+    val labelId: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" }
 ) : ConfigViewContainer<T, V>(
     name = klass.simpleName!!,
     label = label,
