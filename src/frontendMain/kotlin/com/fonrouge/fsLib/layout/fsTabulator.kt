@@ -15,19 +15,24 @@ import io.kvision.core.onEvent
 import io.kvision.html.Link
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
+import io.kvision.types.DateSerializer
+import io.kvision.utils.Serialization
 import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
-import kotlin.js.Json
+import kotlin.js.Date
 import kotlin.js.json
 
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
-    noinline stateJsonFun: (() -> Json)? = null,
+    noinline stateJsonFun: (() -> kotlin.js.Json)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
     val viewList = configView.viewFunc(null)
@@ -44,7 +49,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     minToolbarSize: Boolean = true,
-    noinline stateJsonFun: (() -> Json)? = null,
+    noinline stateJsonFun: (() -> kotlin.js.Json)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
     val nav = toolBarList(viewList = viewList, minToolbarSize)
@@ -72,7 +77,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     }
 
     val stateFunction = {
-        var json: Json? = null
+        var json: kotlin.js.Json? = null
         if (stateJsonFun != null) {
             json = stateJsonFun()
         }
@@ -83,11 +88,23 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         JSON.stringify(json)
     }
 
+    viewList.serializer = T::class.serializer()
+    viewList.module = null
+    viewList.jsonHelper = Json(from = (Serialization.customConfiguration ?: Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    })) {
+        serializersModule = SerializersModule {
+            contextual(Date::class, DateSerializer)
+            viewList.module?.let { this.include(it) }
+        }.overwriteWith(serializersModule)
+    }
+
     viewList.tabulator = tabulatorRemote(
         serviceManager = viewList.configView.serverManager,
         function = viewList.configView.function,
         stateFunction = stateFunction,
-        serializer = T::class.serializer(),
+        serializer = viewList.serializer,
         options = TabulatorOptions(
             columns = viewList.columnDefinitionList,
             height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,

@@ -23,6 +23,10 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.toKotlinObj
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlin.reflect.KClass
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
@@ -35,6 +39,10 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     editable = editable,
     icon = icon,
 ) {
+    var jsonHelper: Json? = null
+    var serializer: KSerializer<T>? = null
+    var module: SerializersModule? = null
+
     /* dynamic content only used to get _id */
     var overItem: Any? = null
     var menuState: RowContextMenuState = RowContextMenuState.Unknown
@@ -139,7 +147,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
         val item: T? = overItem?.let {
             try {
-                toKotlinObj(it, configView.klass)
+                dynamicToKotlinObj(it, configView.klass)
             } catch (e: Exception) {
                 Toast.error(e.message ?: "", "Error decoding (toKotlinObj)")
                 e.printStackTrace()
@@ -188,7 +196,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
 
     abstract fun Container.pageListBody()
 
-    final override fun Container.displayPage() {
+    override fun Container.displayPage() {
         pageBanner()
         pageListBody()
     }
@@ -200,6 +208,16 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 tabulator?.setPage(tabulator?.getPage() ?: 1)
             }
         }
+    }
+
+    fun dynamicToKotlinObj(data: dynamic, kClass: KClass<T>): T {
+        if (data._children != null) {
+            data._children =
+                data._children.unsafeCast<Array<dynamic>>().map { dynamicToKotlinObj(it, kClass) }.toTypedArray()
+        }
+        return serializer?.let {
+            jsonHelper?.decodeFromString(it, JSON.stringify(data))
+        } ?: toKotlinObj(data, kClass)
     }
 
     enum class RowContextMenuState {
