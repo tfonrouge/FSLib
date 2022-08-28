@@ -10,9 +10,10 @@ class TabulatorMenuItem(
     var disabled: Boolean? = null,
     var separator: Boolean? = null,
     var menu: TabulatorMenuItem? = null,
+    var header: Boolean = false,
     var url: String? = null,
 ) {
-    var label = "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>"
+    var label = if (!header) "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>" else label
     var blockOnClick: ((e: Event, c: dynamic) -> Unit)? = null
     var action: ((e: Event, c: dynamic) -> Unit) = { e, c ->
         blockOnClick?.let { it(e, c) }
@@ -33,6 +34,7 @@ fun MutableList<TabulatorMenuItem>.menuItem(
     disabled: Boolean? = null,
     separator: Boolean? = null,
     menu: TabulatorMenuItem? = null,
+    header: Boolean = false,
     url: String? = null,
     init: (TabulatorMenuItem.() -> Unit)? = null
 ): TabulatorMenuItem {
@@ -42,6 +44,7 @@ fun MutableList<TabulatorMenuItem>.menuItem(
         disabled = disabled,
         separator = separator,
         menu = menu,
+        header = header,
         url = url
     )
     init?.invoke(tabulatorMenuItem)

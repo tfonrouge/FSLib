@@ -150,7 +150,11 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             val menu = mutableListOf<TabulatorMenuItem>()
             with(menu) {
                 val labelId = configViewItem?.labelId?.invoke(item)
-                menuItem(label = " <font size=\"+1\">${configViewItem?.label}</font>: <b>$labelId</b>", disabled = false)
+                menuItem(
+                    label = " <font size=\"+1\">${configViewItem?.label}</font>: <b>$labelId</b>",
+                    disabled = false,
+                    header = true
+                )
                 menuItem(separator = true)
                 menuItem(
                     label = "Detail of",

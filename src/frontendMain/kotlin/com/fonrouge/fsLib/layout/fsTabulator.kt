@@ -10,15 +10,12 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
-import io.kvision.core.BoxShadow
 import io.kvision.core.Container
-import io.kvision.core.Style
 import io.kvision.core.onEvent
 import io.kvision.html.Link
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.utils.em
-import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
