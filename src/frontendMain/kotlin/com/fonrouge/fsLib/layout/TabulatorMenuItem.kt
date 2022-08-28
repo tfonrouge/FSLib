@@ -12,7 +12,7 @@ class TabulatorMenuItem(
     var menu: TabulatorMenuItem? = null,
     var url: String? = null,
 ) {
-    var label = (icon?.let { "<i class ='$it'></i> - " } ?: "") + label
+    var label = (icon?.let { "<i class ='$it'></i> " } ?: "") + label
     var blockOnClick: ((e: Event, c: dynamic) -> Unit)? = null
     var action: ((e: Event, c: dynamic) -> Unit) = { e, c ->
         blockOnClick?.let { it(e, c) }

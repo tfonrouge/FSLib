@@ -49,7 +49,6 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
     var itemId: U? = null
-    val itemNameFunc: ((ItemContainer<T>) -> String) = { it.item?._id?.toString() ?: "<no item>" }
     var noBackButton = false
     var noPageBanner = false
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
@@ -260,10 +259,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
         }
     }
 
-    override fun getName(): String? {
-        return dataContainer.let { itemContainerObservableValue ->
-            itemContainerObservableValue.value?.let { itemContainer -> itemNameFunc.invoke(itemContainer) }
-        }
+    override fun label(): String {
+        return configView.labelId?.invoke(dataContainer.value?.item)?: "<no-item>"
     }
 
     open fun onChangeDataContainer(itemContainer: ItemContainer<T>?) {

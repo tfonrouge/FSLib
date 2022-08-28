@@ -28,6 +28,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     private val serverManager: KVServiceManager<E>,
     private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,
+    val labelId: ((T?) -> String)? = { it?._id?.toString() ?: "<no-item>" }
 ) : ConfigViewContainer<T, V>(
     name = klass.simpleName!!,
     label = label,
@@ -42,10 +43,8 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     val labelDetail = "Detail of $label"
     val labelCreate = "Create $label"
     val labelUpdate = "Update $label"
-
     fun labelUrlRead(id: U) = label to urlRead(id)
     fun labelUrlUpdate(id: U) = label to urlUpdate(id)
-
     val urlCreate: String
         get() {
             val urlParams = UrlParams("action" to CrudAction.Create.name)
@@ -101,8 +100,10 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         )
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+            console.warn("DECODING 1", result)
             val itemContainer: ItemContainer<T> =
                 Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
+            console.warn("DECODING 2", itemContainer)
             block(itemContainer)
         }
     }

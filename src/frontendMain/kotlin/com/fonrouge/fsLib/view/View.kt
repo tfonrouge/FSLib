@@ -37,18 +37,11 @@ abstract class View(
             CrudAction.Create -> "[${CrudAction.Create}] "
             CrudAction.Update -> "[${CrudAction.Update}] "
             else -> ""
-        }.let {
-            it + configView.label +
-                    if (this@View is ViewItem<*, *>) {
-                        getName().let { it1 ->
-                            if (it1 == null) "" else ": $it1"
-                        }
-                    } else ""
-        }
+        }.let { "$it${configView.label}: ${label()}" }
     }
 
-    open fun getName(): String? {
-        return null
+    internal open fun label(): String {
+        return ""
     }
 
     open fun onBeforeDisplayPage(container: Container) {}

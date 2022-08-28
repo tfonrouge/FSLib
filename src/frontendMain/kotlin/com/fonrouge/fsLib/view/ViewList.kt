@@ -39,9 +39,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     var overItem: Any? = null
     var menuState: RowContextMenuState = RowContextMenuState.Unknown
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-    val configViewItem: ConfigViewItem<*, *, *, U>?
+    val configViewItem: ConfigViewItem<T, *, *, U>?
         get() {
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<*, *, *, U>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
         }
 
     val crudActionMap = mapOf<CrudAction, (U?) -> Unit>(
@@ -119,9 +119,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             tabulator?.update(dataContainer)
         }
     var jsTabulatorBuilt: Boolean = false
-    val listNameFunc: ((List<T>) -> String) = { list ->
-        list.getOrNull(0)?._id.toString()
-    }
     var masterViewItem: ViewItem<*, *>? = null
         set(value) {
             editable = value?.urlParams?.actionUpsert == true
@@ -140,30 +137,31 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
 
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
-        val item = overItem?.let { toKotlinObj(it, configViewList.klass) }
+        val item: T? = overItem?.let { toKotlinObj(it, configViewList.klass) }
         if (item != null) {
             val menu = mutableListOf<TabulatorMenuItem>()
             with(menu) {
-                menuItem(label = "ContextMenu (${item._id})", disabled = true)
+                val labelId = configViewItem?.labelId?.invoke(item)
+                menuItem(label = "${configViewItem?.label}: $labelId", disabled = true)
                 menuItem(separator = true)
                 menuItem(
-                    label = "Detail of ${configViewItem?.label}",
+                    label = "Detail of",
                     icon = "fas fa-eye",
                     url = configViewItem?.urlRead(item._id)
                 )
                 if (editable) {
                     menuItem(separator = true)
                     menuItem(
-                        label = configViewItem?.labelCreate,
+                        label = "Create",
                         icon = "fas fa-plus",
                         url = configViewItem?.urlCreate
                     )
                     menuItem(
-                        label = configViewItem?.labelUpdate,
+                        label = "Update",
                         icon = "fas fa-edit",
                     )
                     menuItem(
-                        label = configViewItem?.labelDelete,
+                        label = "Delete",
                         icon = "fas fa-trash-alt",
                     )
                 }
@@ -172,10 +170,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             return menu.toTypedArray()
         }
         return null
-    }
-
-    override fun getName(): String? {
-        return dataContainer?.let { listNameFunc.invoke(it) }
     }
 
     open fun onRowSelected(item: T?) {}
