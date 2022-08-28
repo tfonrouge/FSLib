@@ -84,8 +84,8 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     }
 
     viewList.tabulator = tabulatorRemote(
-        serviceManager = viewList.configViewList.serverManager,
-        function = viewList.configViewList.function,
+        serviceManager = viewList.configView.serverManager,
+        function = viewList.configView.function,
         stateFunction = stateFunction,
         serializer = T::class.serializer(),
         options = TabulatorOptions(

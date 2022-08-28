@@ -26,12 +26,12 @@ import io.kvision.utils.toKotlinObj
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
-    val configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
+    override val configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
 ) : ViewDataContainer<List<T>>(
-    configView = configViewList,
+    configView = configView,
     editable = editable,
     icon = icon,
 ) {
@@ -137,7 +137,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
 
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
-        val item: T? = overItem?.let { toKotlinObj(it, configViewList.klass) }
+        val item: T? = overItem?.let { toKotlinObj(it, configView.klass) }
         if (item != null) {
             val menu = mutableListOf<TabulatorMenuItem>()
             with(menu) {
