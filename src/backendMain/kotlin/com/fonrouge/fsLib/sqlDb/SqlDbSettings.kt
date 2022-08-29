@@ -5,7 +5,10 @@ import com.fonrouge.fsLib.serializers.FSLocalDateTimeSerializer
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
+import org.intellij.lang.annotations.Language
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
 import java.time.LocalDateTime
@@ -27,6 +30,42 @@ abstract class SqlDbSettings(
     )
 
     private val mutableMap = mutableMapOf<KClass<*>, DecodePair>()
+
+    inline fun <reified T> findItem(@Language("SQL") sql: String): T? {
+        var result: T? = null
+        transaction(db = sqlDb) {
+            try {
+                exec(sql) { resultSet ->
+                    if (resultSet.next()) {
+                        result = sqlEntityTo<T>(resultSet)
+                    }
+                }
+            } catch (e: ExposedSQLException) {
+                val s = "SQL findItem() error: ${e.message}"
+                System.err.println(s)
+                println(s)
+            }
+        }
+        return result
+    }
+
+    inline fun <reified T> findList(@Language("SQL") sql: String): List<T> {
+        val result = mutableListOf<T>()
+        transaction(db = sqlDb) {
+            try {
+                exec(sql) { resultSet ->
+                    while (resultSet.next()) {
+                        result.add(sqlEntityTo(resultSet))
+                    }
+                }
+            } catch (e: ExposedSQLException) {
+                val s = "SQL findList() error: ${e.message}"
+                System.err.println(s)
+                println(s)
+            }
+        }
+        return result
+    }
 
     fun getDecodeMap(klass: KClass<*>, metaData: ResultSetMetaData): DecodePair {
         val decodePair = mutableMap[klass] ?: DecodePair(klass.memberProperties.toTypedArray(), mutableMapOf()).also {
