@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SimpleResponse(
-    val isOk: Boolean,
-    val msgOk: String? = null,
-    val msgError: String? = null,
-    val data: String? = null
+    var isOk: Boolean,
+    var msgOk: String? = null,
+    var msgError: String? = null,
+    var data: String? = null
 )
