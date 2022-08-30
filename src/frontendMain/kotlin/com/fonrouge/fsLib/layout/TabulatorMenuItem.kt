@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.layout
 
+import io.kvision.tabulator.js.Tabulator
 import kotlinx.browser.window
 import org.w3c.dom.events.Event
 
@@ -12,20 +13,13 @@ class TabulatorMenuItem(
     var menu: TabulatorMenuItem? = null,
     var header: Boolean = false,
     var url: String? = null,
-) {
-    var label = if (!header) "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>" else label
-    var blockOnClick: ((e: Event, c: dynamic) -> Unit)? = null
-    var action: ((e: Event, c: dynamic) -> Unit) = { e, c ->
-        blockOnClick?.let { it(e, c) }
+    var action: ((e: Event, c: dynamic) -> Unit)? = { e, c ->
         url?.let {
             window.location.href = it
         }
     }
-
-    fun onClick(block: (e: Event, c: dynamic) -> Unit): TabulatorMenuItem {
-        blockOnClick = block
-        return this
-    }
+) {
+    var label = if (!header) "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>" else label
 }
 
 fun MutableList<TabulatorMenuItem>.menuItem(
@@ -36,7 +30,7 @@ fun MutableList<TabulatorMenuItem>.menuItem(
     menu: TabulatorMenuItem? = null,
     header: Boolean = false,
     url: String? = null,
-    init: (TabulatorMenuItem.() -> Unit)? = null
+    action: ((e: Event, c: dynamic) -> Unit)? = null
 ): TabulatorMenuItem {
     val tabulatorMenuItem = TabulatorMenuItem(
         label = label,
@@ -45,9 +39,9 @@ fun MutableList<TabulatorMenuItem>.menuItem(
         separator = separator,
         menu = menu,
         header = header,
-        url = url
+        url = url,
+        action = action
     )
-    init?.invoke(tabulatorMenuItem)
     this.add(tabulatorMenuItem)
     return tabulatorMenuItem
 }
