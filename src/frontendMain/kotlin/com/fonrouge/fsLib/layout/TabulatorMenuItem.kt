@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.layout
 
-import io.kvision.tabulator.js.Tabulator
 import kotlinx.browser.window
 import org.w3c.dom.events.Event
 
@@ -13,13 +12,15 @@ class TabulatorMenuItem(
     var menu: TabulatorMenuItem? = null,
     var header: Boolean = false,
     var url: String? = null,
-    var action: ((e: Event, c: dynamic) -> Unit)? = { e, c ->
+    action: ((e: Event, c: dynamic) -> Unit)? = null
+) {
+    var label = if (!header) "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>" else label
+    var action: ((e: Event, c: dynamic) -> Unit) = { e, c ->
         url?.let {
             window.location.href = it
         }
+        action?.invoke(e, c)
     }
-) {
-    var label = if (!header) "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>" else label
 }
 
 fun MutableList<TabulatorMenuItem>.menuItem(
