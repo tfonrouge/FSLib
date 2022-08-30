@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.sqlDb
 
 import com.fonrouge.fsLib.annotations.SqlField
+import com.fonrouge.fsLib.annotations.SqlOneToOne
 import com.fonrouge.fsLib.serializers.FSLocalDateTimeSerializer
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -24,12 +26,18 @@ abstract class SqlDbSettings(
     val sqlDb: Database
 ) {
 
-    class DecodePair(
+    class DecodeMap(
         val fields: Array<KCallable<*>>,
-        val stringIntMap: MutableMap<String, Int>
-    )
+        val stringIntMap: MutableMap<String, Int>,
 
-    private val mutableMap = mutableMapOf<KClass<*>, DecodePair>()
+        ) {
+        val oneToOneFields: Array<KCallable<*>> =
+            fields.mapNotNull {
+                if (it.hasAnnotation<SqlOneToOne>()) it else null
+            }.toTypedArray()
+    }
+
+    private val mutableMap = mutableMapOf<KClass<*>, DecodeMap>()
 
     inline fun <reified T> findItem(@Language("SQL") sql: String): T? {
         var result: T? = null
@@ -67,69 +75,67 @@ abstract class SqlDbSettings(
         return result
     }
 
-    fun getDecodeMap(klass: KClass<*>, metaData: ResultSetMetaData): DecodePair {
-        val decodePair = mutableMap[klass] ?: DecodePair(klass.memberProperties.toTypedArray(), mutableMapOf()).also {
+    private fun getDecodeMap(klass: KClass<*>, metaData: ResultSetMetaData): DecodeMap {
+        val decodeMap = mutableMap[klass] ?: DecodeMap(klass.memberProperties.toTypedArray(), mutableMapOf()).also {
             mutableMap[klass] = it
         }
         for (i in 1..metaData.columnCount) {
             val sqlName = metaData.getColumnName(i).uppercase()
-            if (!decodePair.stringIntMap.containsKey(sqlName)) {
-                val index = decodePair.fields.indexOfFirst { field ->
+            if (!decodeMap.stringIntMap.containsKey(sqlName)) {
+                val index = decodeMap.fields.indexOfFirst { field ->
                     val name = field.findAnnotation<SqlField>()?.name ?: field.name
                     name.equals(other = sqlName, ignoreCase = true)
                 }
                 if (index >= 0) {
-                    decodePair.stringIntMap[sqlName] = index
+                    decodeMap.stringIntMap[sqlName] = index
                 }
             }
         }
-        return decodePair
+        return decodeMap
     }
 
-    inline fun <reified T> sqlEntityTo(resultSet: ResultSet): T {
+    private fun JsonObjectBuilder.putElement(field: KCallable<*>, resultSet: ResultSet, index: Int) {
+        when (field.returnType.classifier) {
+            String::class -> put(field.name, resultSet.getString(index))
+            Integer::class -> put(field.name, resultSet.getInt(index))
+            LocalDateTime::class -> when (resultSet) {
+                is SQLServerResultSet -> put(
+                    field.name,
+                    resultSet.getDateTime(index)?.toLocalDateTime()?.format(
+                        DateTimeFormatter.ofPattern(FSLocalDateTimeSerializer.KV_DEFAULT_DATETIME_FORMAT)
+                    )
+                )
+
+                else -> put(field.name, resultSet.getString(index))
+            }
+
+            Double::class -> put(field.name, resultSet.getDouble(index))
+            else -> put(field.name, null)
+        }
+    }
+
+    fun buildJsonFromResultSet(klass: KClass<*>, resultSet: ResultSet): JsonObject {
         val metaData = resultSet.metaData
-        val decodePair = getDecodeMap(T::class, metaData)
-        val jsonObject = buildJsonObject {
+        val decodeMap = getDecodeMap(klass, metaData)
+        return buildJsonObject {
             for (i in 1..metaData.columnCount) {
-                decodePair.stringIntMap[metaData.getColumnName(i).uppercase()]?.let {
-                    val field = decodePair.fields[it]
-                    when (resultSet) {
-                        is SQLServerResultSet -> sqlServerResultSet(field, resultSet, i)
-                        else -> simpleResultSet(field, resultSet, i)
+                decodeMap.stringIntMap[metaData.getColumnName(i).uppercase()]?.let {
+                    val field = decodeMap.fields[it]
+                    putElement(field, resultSet, i)
+                }
+            }
+            decodeMap.oneToOneFields.forEach { field ->
+                field.findAnnotation<SqlOneToOne>()?.let {
+                    (field.returnType.classifier as? KClass<*>)?.let {
+                        put(field.name, buildJsonFromResultSet(it, resultSet))
                     }
                 }
             }
         }
+    }
+
+    inline fun <reified T> sqlEntityTo(resultSet: ResultSet): T {
+        val jsonObject = buildJsonFromResultSet(T::class, resultSet)
         return Json.decodeFromJsonElement(jsonObject)
-    }
-
-    fun JsonObjectBuilder.sqlServerResultSet(field: KCallable<*>, resultSet: SQLServerResultSet, i: Int) {
-        when (field.returnType.classifier) {
-            String::class -> put(field.name, resultSet.getString(i))
-            Integer::class -> put(field.name, resultSet.getInt(i))
-            LocalDateTime::class -> put(
-                field.name,
-                resultSet.getDateTime(i)?.toLocalDateTime()?.format(
-                    DateTimeFormatter.ofPattern(FSLocalDateTimeSerializer.KV_DEFAULT_DATETIME_FORMAT)
-                )
-            )
-
-            Double::class -> put(field.name, resultSet.getDouble(i))
-            else -> put(field.name, null)
-        }
-    }
-
-    fun JsonObjectBuilder.simpleResultSet(field: KCallable<*>, resultSet: ResultSet, i: Int) {
-        when (field.returnType.classifier) {
-            String::class -> put(field.name, resultSet.getString(i))
-            Integer::class -> put(field.name, resultSet.getInt(i))
-            LocalDateTime::class -> put(
-                field.name,
-                resultSet.getString(i)
-            )
-
-            Double::class -> put(field.name, resultSet.getDouble(i))
-            else -> put(field.name, null)
-        }
     }
 }
