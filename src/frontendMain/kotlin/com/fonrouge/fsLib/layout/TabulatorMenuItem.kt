@@ -46,4 +46,3 @@ fun MutableList<TabulatorMenuItem>.menuItem(
     this.add(tabulatorMenuItem)
     return tabulatorMenuItem
 }
-

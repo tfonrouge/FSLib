@@ -170,7 +170,6 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                         callType = StateItem.CallType.Query,
                         itemId = urlParams?.id,
                         contextDataUrl = urlParams?.contextDataUrl
-
                     ) { itemContainer ->
                         val toastOptions = ToastOptions(
                             positionClass = ToastPosition.BOTTOMFULLWIDTH,

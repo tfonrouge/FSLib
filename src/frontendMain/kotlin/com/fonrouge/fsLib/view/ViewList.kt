@@ -179,10 +179,12 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                     menuItem(
                         label = "Update",
                         icon = "fas fa-edit",
+                        url = configViewItem?.urlUpdate(item._id)
                     )
                     menuItem(
                         label = "Delete",
                         icon = "fas fa-trash-alt",
+                        url = configViewItem?.urlDelete(item._id)
                     )
                 }
                 contextRowMenu(item)

@@ -36,32 +36,7 @@ private fun Navigo.onViewPage(): Navigo {
 private fun Navigo.onViewItemPage(): Navigo {
     on("data/:dataClass/item", { match ->
         configViewItemMap[match.data.dataClass as? String]?.let { configViewItem ->
-            var urlParams = UrlParams(match = match)
-            urlParams.crudAction?.let { crudAction ->
-                if (crudAction == CrudAction.Create) {
-                    configViewItem.callItemService(
-                        crudAction = crudAction,
-                        callType = StateItem.CallType.Query,
-                        contextDataUrl = urlParams.contextDataUrl
-                    ) { itemContainer ->
-                        if (itemContainer.itemAlreadyOn) {
-                            urlParams = UrlParams(
-                                "action" to CrudAction.Update, "id" to JSON.stringify(itemContainer.item?._id)
-                            )
-                            @Suppress("UNUSED_VARIABLE")
-                            val url = (configViewItem.navigoUrl + urlParams.toString()).asDynamic()
-
-                            @Suppress("UNUSED_VARIABLE")
-                            val stateObj =
-                                "{${itemContainer::class.simpleName}: \"${itemContainer.item?._id}\"}".asDynamic()
-                            js("""history.replaceState(stateObj,"createToUpdate",url)""")
-                            js("history.go(0)")
-                            return@callItemService
-                        }
-                    }
-                }
-            }
-            viewStateObservableValue.value = ViewState(configViewItem, urlParams)
+            viewStateObservableValue.value = ViewState(configViewItem, UrlParams(match = match))
         }
     })
     return this
