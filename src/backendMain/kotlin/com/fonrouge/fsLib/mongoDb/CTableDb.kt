@@ -188,7 +188,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<T> {
         firstStage.pipeline.addAll(buildLookup(*modelLookup))
-        println("Aggregate = ${firstStage.pipeline.json}")
+//        println("Aggregate = ${firstStage.pipeline.json}")
         val list = mongoColl.aggregate(firstStage.pipeline, klass.java).toList()
         return RemoteData(
             data = list,
