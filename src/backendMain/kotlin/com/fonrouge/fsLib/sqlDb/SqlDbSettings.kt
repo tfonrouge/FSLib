@@ -18,6 +18,7 @@ import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -39,13 +40,21 @@ abstract class SqlDbSettings(
 
     private val mutableMap = mutableMapOf<KClass<*>, DecodeMap>()
 
-    inline fun <reified T> findItem(@Language("SQL") sql: String): T? {
+    inline fun <reified T : Any> findItem(@Language("SQL") sql: String): T? {
         var result: T? = null
         transaction(db = sqlDb) {
             try {
                 exec(sql) { resultSet ->
                     if (resultSet.next()) {
-                        result = sqlEntityTo<T>(resultSet)
+                        result = if (T::class.isSubclassOf(Comparable::class)) {
+                            getElementFromClasifier(
+                                kClass = T::class,
+                                resultSet = resultSet,
+                                index = 1
+                            ) as? T
+                        } else {
+                            sqlEntityTo<T>(resultSet)
+                        }
                     }
                 }
             } catch (e: ExposedSQLException) {
@@ -94,23 +103,52 @@ abstract class SqlDbSettings(
         return decodeMap
     }
 
-    private fun JsonObjectBuilder.putElement(field: KCallable<*>, resultSet: ResultSet, index: Int) {
-        when (field.returnType.classifier) {
-            String::class -> put(field.name, resultSet.getString(index))
-            Integer::class -> put(field.name, resultSet.getInt(index))
-            LocalDateTime::class -> when (resultSet) {
-                is SQLServerResultSet -> put(
-                    field.name,
-                    resultSet.getDateTime(index)?.toLocalDateTime()?.format(
-                        DateTimeFormatter.ofPattern(FSLocalDateTimeSerializer.KV_DEFAULT_DATETIME_FORMAT)
-                    )
-                )
-
-                else -> put(field.name, resultSet.getString(index))
+    fun getElementFromClasifier(
+        field: KCallable<*>? = null,
+        kClass: KClass<*>? = field?.returnType?.classifier as? KClass<*>,
+        resultSet: ResultSet,
+        index: Int,
+        jsonObjectBuilder: JsonObjectBuilder? = null
+    ): Any? {
+        return when (kClass) {
+            String::class -> {
+                val result = resultSet.getString(index)
+                field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                result
             }
 
-            Double::class -> put(field.name, resultSet.getDouble(index))
-            else -> put(field.name, null)
+            Integer::class -> {
+                val result = resultSet.getInt(index)
+                field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                result
+            }
+
+            LocalDateTime::class -> when (resultSet) {
+                is SQLServerResultSet -> {
+                    val result = resultSet.getDateTime(index)?.toLocalDateTime()?.format(
+                        DateTimeFormatter.ofPattern(FSLocalDateTimeSerializer.KV_DEFAULT_DATETIME_FORMAT)
+                    )
+                    field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                    result
+                }
+
+                else -> {
+                    val result = resultSet.getString(index)
+                    field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                    result
+                }
+            }
+
+            Double::class -> {
+                val result = resultSet.getDouble(index)
+                field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                result
+            }
+
+            else -> {
+                field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, null) }
+                null
+            }
         }
     }
 
@@ -118,10 +156,15 @@ abstract class SqlDbSettings(
         val metaData = resultSet.metaData
         val decodeMap = getDecodeMap(klass, metaData)
         return buildJsonObject {
-            for (i in 1..metaData.columnCount) {
-                decodeMap.stringIntMap[metaData.getColumnName(i).uppercase()]?.let {
-                    val field = decodeMap.fields[it]
-                    putElement(field, resultSet, i)
+            for (index in 1..metaData.columnCount) {
+                decodeMap.stringIntMap[metaData.getColumnName(index).uppercase()]?.let { indexMap ->
+                    val field = decodeMap.fields[indexMap]
+                    getElementFromClasifier(
+                        field = field,
+                        resultSet = resultSet,
+                        index = index,
+                        jsonObjectBuilder = this@buildJsonObject
+                    )
                 }
             }
             decodeMap.oneToOneFields.forEach { field ->
