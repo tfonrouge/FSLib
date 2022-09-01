@@ -171,6 +171,22 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                         itemId = urlParams?.id,
                         contextDataUrl = urlParams?.contextDataUrl
                     ) { itemContainer ->
+                        if (crudAction == CrudAction.Create && itemContainer.itemAlreadyOn) {
+                            urlParams = UrlParams(
+                                "action" to CrudAction.Update, "id" to JSON.stringify(itemContainer.item?._id)
+                            )
+                            @Suppress("UNUSED_VARIABLE")
+                            val url = (configView.navigoUrl + urlParams.toString()).asDynamic()
+
+                            console.warn("URL CHANGED urlParams", urlParams, "url", url)
+
+                            @Suppress("UNUSED_VARIABLE")
+                            val stateObj =
+                                "{${itemContainer::class.simpleName}: \"${itemContainer.item?._id}\"}".asDynamic()
+                            js("""history.replaceState(stateObj,"createToUpdate",url)""")
+//                                js("history.go(0)")
+//                                return@callItemService
+                        }
                         val toastOptions = ToastOptions(
                             positionClass = ToastPosition.BOTTOMFULLWIDTH,
                             progressBar = true,

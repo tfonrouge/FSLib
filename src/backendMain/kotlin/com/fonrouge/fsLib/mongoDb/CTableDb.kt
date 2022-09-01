@@ -173,7 +173,10 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             val result = insertOneResult?.insertedId != null
             return ItemContainer(
                 item = it,
-                result = result
+                result = result,
+                itemAlreadyOn = result &&
+                        state.callType == StateItem.CallType.Query &&
+                        state.crudAction == CrudAction.Create
             )
         }
         return ItemContainer(result = false, description = "insertOne(): item contains null value...")
