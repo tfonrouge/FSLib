@@ -183,6 +183,10 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                 "{${itemContainer::class.simpleName}: \"${itemContainer.item?._id}\"}".asDynamic()
                             js("""history.replaceState(stateObj,"createToUpdate",url)""")
                         }
+                        var buttonCancel: Button? = null
+                        var buttonAccept: Button? = null
+                        var buttonBack: Button? = null
+                        var alreadyBack = false
                         val toastOptions = ToastOptions(
                             positionClass = ToastPosition.BOTTOMFULLWIDTH,
                             progressBar = true,
@@ -190,7 +194,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             extendedTimeOut = 20,
                             closeButton = true,
                             onHidden = {
-                                js("history.back()")
+                                if (!alreadyBack) js("history.back()")
                                 Unit
                             },
                             escapeHtml = true,
@@ -218,20 +222,32 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                         justify = JustifyContent.CENTER,
                                         spacing = 20
                                     ) {
-                                        button("Cancel", style = ButtonStyle.OUTLINEDANGER).onClick {
+                                        buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left") {
+                                            hide()
+                                        }.onClick {
+                                            alreadyBack = true
+                                            js("history.back()") as? Unit
+                                        }
+                                        buttonCancel = button("Cancel", style = ButtonStyle.OUTLINEDANGER).onClick {
+                                            buttonCancel?.hide()
+                                            buttonAccept?.hide()
+                                            buttonBack?.show()
                                             Toast.warning(
                                                 message = "$crudAction1 action cancelled ...",
                                                 title = "$crudAction1 cancelled",
                                                 options = toastOptions
                                             )
                                         }
-                                        button("Accept", style = ButtonStyle.OUTLINESUCCESS).onClick {
+                                        buttonAccept = button("Accept", style = ButtonStyle.OUTLINESUCCESS).onClick {
                                             configView.callItemService(
                                                 crudAction = CrudAction.Delete,
                                                 callType = StateItem.CallType.Action,
                                                 itemId = urlParams?.id,
                                                 contextDataUrl = urlParams?.contextDataUrl,
                                             ) { itemContainer ->
+                                                buttonCancel?.hide()
+                                                buttonAccept?.hide()
+                                                buttonBack?.show()
                                                 if (itemContainer.result) {
                                                     Toast.success(
                                                         message = itemContainer.description
