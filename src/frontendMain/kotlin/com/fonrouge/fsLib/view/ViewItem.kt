@@ -163,8 +163,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                 if (!noPageBanner) {
                     pageBanner()
                 }
-                val crudAction = urlParams?.crudAction
-                if (crudAction != null) {
+                urlParams?.crudAction?.let { crudAction ->
                     configView.callItemService(
                         crudAction = crudAction,
                         callType = StateItem.CallType.Query,
@@ -267,9 +266,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             )
                         }
                     }
-                } else {
-                    displayDefault(urlParams)
-                }
+                } ?: displayDefault(urlParams)
             }
         }
     }
