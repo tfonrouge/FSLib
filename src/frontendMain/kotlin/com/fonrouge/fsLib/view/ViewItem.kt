@@ -57,8 +57,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 
     fun addContext(urlParams: UrlParams) {
         dataContainer.value?.let { itemContainer ->
-            urlParams.add("contextClass" to itemContainer.item?.let { it::class.simpleName })
-            urlParams.add("contextId" to itemContainer.item?._id)
+            urlParams.add("contextClass" to (itemContainer.item?.let { it::class.simpleName } ?: ""))
+            urlParams.add("contextId" to JSON.stringify(itemContainer.item?._id))
         }
     }
 
@@ -172,19 +172,16 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                     ) { itemContainer ->
                         if (crudAction == CrudAction.Create && itemContainer.itemAlreadyOn) {
                             urlParams = UrlParams(
-                                "action" to CrudAction.Update, "id" to JSON.stringify(itemContainer.item?._id)
+                                "action" to CrudAction.Update.name, "id" to JSON.stringify(itemContainer.item?._id)
                             )
+                            console.warn("crudAction", urlParams?.crudAction)
                             @Suppress("UNUSED_VARIABLE")
                             val url = (configView.navigoUrl + urlParams.toString()).asDynamic()
-
-                            console.warn("URL CHANGED urlParams", urlParams, "url", url)
 
                             @Suppress("UNUSED_VARIABLE")
                             val stateObj =
                                 "{${itemContainer::class.simpleName}: \"${itemContainer.item?._id}\"}".asDynamic()
                             js("""history.replaceState(stateObj,"createToUpdate",url)""")
-//                                js("history.go(0)")
-//                                return@callItemService
                         }
                         val toastOptions = ToastOptions(
                             positionClass = ToastPosition.BOTTOMFULLWIDTH,
@@ -199,11 +196,12 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             escapeHtml = true,
                             closeHtml = "<button type=\"button\">Close</button>"
                         )
-                        if (itemContainer.result) {
+                        val crudAction1 = urlParams?.crudAction
+                        if (itemContainer.result && crudAction1 != null) {
                             itemId = itemContainer.item?._id
                             dataContainer.value = itemContainer
-                            if (crudAction != CrudAction.Delete) {
-                                displayForm(crudAction)
+                            if (crudAction1 != CrudAction.Delete) {
+                                displayForm(crudAction1)
                             } else {
                                 flexPanel(
                                     direction = FlexDirection.COLUMN,
@@ -222,8 +220,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                     ) {
                                         button("Cancel", style = ButtonStyle.OUTLINEDANGER).onClick {
                                             Toast.warning(
-                                                message = "$crudAction action cancelled ...",
-                                                title = "$crudAction cancelled",
+                                                message = "$crudAction1 action cancelled ...",
+                                                title = "$crudAction1 cancelled",
                                                 options = toastOptions
                                             )
                                         }
@@ -237,15 +235,15 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                                 if (itemContainer.result) {
                                                     Toast.success(
                                                         message = itemContainer.description
-                                                            ?: "$crudAction action successful ...",
-                                                        title = "$crudAction success",
+                                                            ?: "$crudAction1 action successful ...",
+                                                        title = "$crudAction1 success",
                                                         options = toastOptions
                                                     )
                                                 } else {
                                                     Toast.warning(
                                                         message = itemContainer.description
-                                                            ?: "$crudAction action failed ...",
-                                                        title = "$crudAction failed",
+                                                            ?: "$crudAction1 action failed ...",
+                                                        title = "$crudAction1 failed",
                                                         options = toastOptions
                                                     )
                                                 }
@@ -256,12 +254,12 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             }
                         } else {
                             vPanel(className = "showItem") {
-                                centeredMessage("$crudAction action denied ...")
+                                centeredMessage("$crudAction1 action denied ...")
                             }
                             Toast.warning(
                                 message = itemContainer.description
-                                    ?: "$crudAction action successful ...",
-                                title = "$crudAction action denied",
+                                    ?: "$crudAction1 action successful ...",
+                                title = "$crudAction1 action denied",
                                 options = toastOptions
                             )
                         }

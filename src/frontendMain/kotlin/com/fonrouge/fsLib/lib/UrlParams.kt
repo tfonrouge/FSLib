@@ -2,20 +2,14 @@ package com.fonrouge.fsLib.lib
 
 import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.navigo.Match
 
-typealias UrlParam = Pair<String, *>
+typealias UrlParam = Pair<String, String>
 
 data class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
 
     constructor(vararg urlParams: UrlParam) : this() {
         addAll(urlParams)
-    }
-
-    constructor(item: BaseModel<*>) : this() {
-        add("id" to item._id)
-        add("class" to item::class.simpleName)
     }
 
     init {
@@ -44,18 +38,16 @@ data class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
     val contextDataUrl: ContextDataUrl?
         get() {
             val contextClass = find { it.first == "contextClass" }?.second
-            val contextId = find { it.first == "contextId" }?.second as? String
-            val contextName = find { it.first == "contextName" }?.second as? String
-            return if (contextClass != null && contextClass is String && contextId != null) {
+            val contextId = find { it.first == "contextId" }?.second
+            val contextName = find { it.first == "contextName" }?.second
+            return if (contextClass != null && contextId != null) {
                 return ContextDataUrl(contextClass, contextId, contextName)
             } else null
         }
 
     val id: String?
         get() {
-            return firstOrNull { it.first == "id" }?.let {
-                it.second as? String
-            }
+            return firstOrNull { it.first == "id" }?.second
         }
 
     override fun toString(): String {
