@@ -9,4 +9,5 @@ data class ItemContainer<T>(
     override var isOk: Boolean = item != null,
     override var msgOk: String? = "Operation successful ...",
     override var msgError: String? = "Operation Failed ...",
+    override var data: String? = null
 ) : ISimpleResponse

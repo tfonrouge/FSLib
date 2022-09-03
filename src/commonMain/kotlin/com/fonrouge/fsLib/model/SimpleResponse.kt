@@ -7,4 +7,5 @@ open class SimpleResponse(
     override var isOk: Boolean,
     override var msgOk: String? = null,
     override var msgError: String? = null,
+    override var data: String? = null,
 ) : ISimpleResponse
