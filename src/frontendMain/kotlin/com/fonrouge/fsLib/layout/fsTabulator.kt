@@ -3,7 +3,6 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.config.ConfigViewList
-import com.fonrouge.fsLib.masterViewItemId
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
@@ -82,7 +81,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             json = stateJsonFun()
         }
         viewList.masterViewItem?.let { viewItem ->
-            val json2 = json(masterViewItemId to viewItem.dataContainer.value?.item?._id)
+            val json2 = json("masterViewItemId" to viewItem.dataContainer.value?.item?._id)
             json = json?.add(json2) ?: json2
         }
         JSON.stringify(json)
