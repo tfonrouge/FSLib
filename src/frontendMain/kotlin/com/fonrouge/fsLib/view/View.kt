@@ -59,7 +59,7 @@ abstract class View(
             linkBanner = link(label = getCaption(), url = navigoUrlWithParams, className = "navbar-brand mainBanner") {
                 setStyle("color", "white")
             }
-            onUpdatePageBannerLink?.let { it ->
+            onUpdatePageBannerLink?.let {
 //                onUpdatePageBannerLink = it
                 pageBannerLink?.let { link -> onUpdatePageBannerLink(link) }
             }

@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ItemContainer<T>(
     var item: T? = null,
-    var result: Boolean = item != null,
     val itemAlreadyOn: Boolean = false,
-    var description: String? = null,
-)
+    override var isOk: Boolean = item != null,
+    override var msgOk: String? = "Operation successful ...",
+    override var msgError: String? = "Operation Failed ...",
+) : ISimpleResponse

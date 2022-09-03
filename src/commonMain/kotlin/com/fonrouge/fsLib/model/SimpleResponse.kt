@@ -3,9 +3,8 @@ package com.fonrouge.fsLib.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SimpleResponse(
-    var isOk: Boolean,
-    var msgOk: String? = null,
-    var msgError: String? = null,
-    var data: String? = null
-)
+open class SimpleResponse(
+    override var isOk: Boolean,
+    override var msgOk: String? = null,
+    override var msgError: String? = null,
+) : ISimpleResponse

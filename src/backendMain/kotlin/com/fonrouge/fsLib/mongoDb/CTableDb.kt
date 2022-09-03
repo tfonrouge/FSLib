@@ -138,12 +138,12 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     suspend fun deleteOneById(_id: U?): ItemContainer<T> {
         if (_id != null) {
             return ItemContainer(
-                result = mongoColl
+                isOk = mongoColl
                     .deleteOne(BaseModel<*>::_id eq _id)
                     .awaitFirstOrNull()?.deletedCount == 1L
             )
         }
-        return ItemContainer(result = false)
+        return ItemContainer(isOk = false)
     }
 
     @Suppress("unused")
@@ -173,13 +173,13 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             val result = insertOneResult?.insertedId != null
             return ItemContainer(
                 item = it,
-                result = result,
+                isOk = result,
                 itemAlreadyOn = result &&
                         state.callType == StateItem.CallType.Query &&
                         state.crudAction == CrudAction.Create
             )
         }
-        return ItemContainer(result = false, description = "insertOne(): item contains null value...")
+        return ItemContainer(isOk = false, msgError = "insertOne(): item contains null value...")
     }
 
     @Suppress("unused")
@@ -227,16 +227,16 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 filter = it::_id eq _id,
                 target = it
             )
-            return ItemContainer(result = result.modifiedCount == 1L)
+            return ItemContainer(isOk = result.modifiedCount == 1L)
         }
         state.json?.let {
             val result = mongoColl.coroutine.updateOne(
                 filter = BaseModel<*>::_id eq _id,
                 update = BsonDocument("\$set", BsonDocument.parse(it))
             )
-            return ItemContainer(result = result.modifiedCount == 1L)
+            return ItemContainer(isOk = result.modifiedCount == 1L)
         }
-        return ItemContainer(result = false, description = "Invalid data on StateItem ...")
+        return ItemContainer(isOk = false, msgError = "Invalid data on StateItem ...")
     }
 
     init {

@@ -108,10 +108,10 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                 item = formPanel?.getData(),
                                 contextDataUrl = urlParams?.contextDataUrl
                             ) {
-                                if (it.result) {
+                                if (it.isOk) {
                                     Toast.success("Info", "Operation successful")
                                 } else {
-                                    Toast.warning("!", "Operation error: ${it.description}")
+                                    Toast.warning("!", "Operation error: ${it.msgError}")
                                 }
                                 js("history.back()") as? Unit
                             }
@@ -201,7 +201,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             closeHtml = "<button type=\"button\">Close</button>"
                         )
                         val crudAction1 = urlParams?.crudAction
-                        if (itemContainer.result && crudAction1 != null) {
+                        if (itemContainer.isOk && crudAction1 != null) {
                             itemId = itemContainer.item?._id
                             dataContainer.value = itemContainer
                             if (crudAction1 != CrudAction.Delete) {
@@ -248,16 +248,16 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                                 buttonCancel?.hide()
                                                 buttonAccept?.hide()
                                                 buttonBack?.show()
-                                                if (itemContainer.result) {
+                                                if (itemContainer.isOk) {
                                                     Toast.success(
-                                                        message = itemContainer.description
+                                                        message = itemContainer.msgOk
                                                             ?: "$crudAction1 action successful ...",
                                                         title = "$crudAction1 success",
                                                         options = toastOptions
                                                     )
                                                 } else {
                                                     Toast.warning(
-                                                        message = itemContainer.description
+                                                        message = itemContainer.msgError
                                                             ?: "$crudAction1 action failed ...",
                                                         title = "$crudAction1 failed",
                                                         options = toastOptions
@@ -273,9 +273,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                 centeredMessage("$crudAction1 action denied ...")
                             }
                             Toast.warning(
-                                message = itemContainer.description
-                                    ?: "$crudAction1 action successful ...",
-                                title = "$crudAction1 action denied",
+                                message = itemContainer.msgError ?: "$crudAction1 action denied ...",
+                                title = "Action denied",
                                 options = toastOptions
                             )
                         }

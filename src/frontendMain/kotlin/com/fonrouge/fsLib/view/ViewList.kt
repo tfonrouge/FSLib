@@ -103,7 +103,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                         callType = StateItem.CallType.Action,
                         itemId = JSON.stringify(itemId)
                     ) {
-                        if (it.result) {
+                        if (it.isOk) {
                             Toast.info("Item deleted", "Info")
                         } else {
                             Toast.warning(
