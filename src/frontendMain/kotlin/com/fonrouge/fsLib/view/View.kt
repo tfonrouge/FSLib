@@ -18,18 +18,13 @@ abstract class View(
     var linkBanner: Link? = null
     val navigoUrlWithParams: String
         get() {
-            return configView.navigoUrl + if (urlParams != null) urlParams else ""
+            return configView.url + if (urlParams != null) urlParams else ""
         }
     var pageBannerLink: Link? = null
     var onUpdatePageBannerLink: ((Link) -> Unit)? = null
     open val repeatUpdateView: Boolean? = null
     var repeatUpdateSecsInterval = 5
     abstract var urlParams: UrlParams?
-    val urlWithParams: String
-        get() {
-            return configView.url + if (urlParams != null) urlParams else ""
-        }
-
     abstract fun Container.displayPage()
 
     fun getCaption(): String {
@@ -69,6 +64,6 @@ abstract class View(
 
     fun updateMainBannerLink(text: String, url: String) {
         pageBannerLink?.label = "${configView.label}: $text"
-        pageBannerLink?.url = "${configView.navigoUrl}/$url"
+        pageBannerLink?.url = "${configView.url}/$url"
     }
 }

@@ -48,22 +48,22 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     val urlCreate: String
         get() {
             val urlParams = UrlParams("action" to CrudAction.Create.name)
-            return navigoUrl + urlParams.toString()
+            return url + urlParams.toString()
         }
 
     fun urlRead(id: U): String {
         val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Read.name)
-        return navigoUrl + urlParams.toString()
+        return url + urlParams.toString()
     }
 
     fun urlDelete(id: U): String {
         val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Delete.name)
-        return navigoUrl + urlParams.toString()
+        return url + urlParams.toString()
     }
 
     fun urlUpdate(id: U): String {
         val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Update.name)
-        return navigoUrl + urlParams.toString()
+        return url + urlParams.toString()
     }
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)

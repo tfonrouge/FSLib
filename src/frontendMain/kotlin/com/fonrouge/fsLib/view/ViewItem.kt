@@ -176,7 +176,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             )
                             console.warn("crudAction", urlParams?.crudAction)
                             @Suppress("UNUSED_VARIABLE")
-                            val url = (configView.navigoUrl + urlParams.toString()).asDynamic()
+                            val url = (configView.url + urlParams.toString()).asDynamic()
 
                             @Suppress("UNUSED_VARIABLE")
                             val stateObj =

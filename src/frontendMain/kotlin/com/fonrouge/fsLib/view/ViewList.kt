@@ -60,7 +60,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 )
                 masterViewItem?.addContext(urlParams)
                 masterViewItem?.callUpdateItemService()
-                routing.navigate(configViewItem.url + urlParams.toString())
+                routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
             }
         },
         CrudAction.Read to { itemId ->
@@ -71,7 +71,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 )
                 masterViewItem?.addContext(urlParams)
                 masterViewItem?.callUpdateItemService()
-                routing.navigate(configViewItem.url + urlParams.toString())
+                routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
             }
         },
         CrudAction.Update to { itemId ->
@@ -83,7 +83,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                     )
                     masterViewItem?.addContext(urlParams)
                     masterViewItem?.callUpdateItemService()
-                    routing.navigate(configViewItem.url + urlParams.toString())
+                    routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
                 }
             }
         },

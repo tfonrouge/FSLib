@@ -17,14 +17,14 @@ abstract class ConfigView<V : View>(
         val configViewMap = mutableMapOf<String, ConfigView<*>>()
     }
 
-    val url: String =
+    val urlWithoutNavigoPrefix: String =
         baseUrlPrefix +
                 (if (baseUrlPrefix.isEmpty()) "" else "/") +
                 name +
                 (if (baseUrlSuffix.isEmpty()) "" else "/") +
                 baseUrlSuffix
-    val navigoUrl: String = navigoPrefix + url
-    val labelUrl: Pair<String, String> = label to navigoUrl
+    val url: String = navigoPrefix + urlWithoutNavigoPrefix
+    val labelUrl: Pair<String, String> = label to url
 
     init {
         if (this !is ConfigViewContainer<*, *>) {

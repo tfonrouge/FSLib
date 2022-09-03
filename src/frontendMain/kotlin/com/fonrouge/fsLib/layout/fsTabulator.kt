@@ -131,7 +131,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         ),
     ) {
         init?.invoke(this)
-        id = viewList.urlWithParams
+        id = viewList.urlParams?.toString()
         fontSize = 0.75.em
         onEvent {
             rowSelectionChangedTabulator = {
