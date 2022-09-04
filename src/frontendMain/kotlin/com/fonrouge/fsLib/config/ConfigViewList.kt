@@ -26,11 +26,6 @@ abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IData
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *>>()
     }
 
-    fun url(contextId: U): String {
-
-        return url + UrlParams()
-    }
-
     init {
         configViewListMap[name] = this
     }

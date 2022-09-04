@@ -55,13 +55,6 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     override var repeatUpdateView: Boolean? = repeatRefreshView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
-    fun addContext(urlParams: UrlParams) {
-        dataContainer.value?.let { itemContainer ->
-            urlParams.add("contextClass" to (itemContainer.item?.let { it::class.simpleName } ?: ""))
-            urlParams.add("contextId" to JSON.stringify(itemContainer.item?._id))
-        }
-    }
-
     fun callUpdateItemService() {
         if (urlParams?.actionUpsert == true) {
             formPanel?.getData()?.let {
