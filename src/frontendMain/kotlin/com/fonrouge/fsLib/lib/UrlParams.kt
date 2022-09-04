@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.lib
 
 import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.model.CrudAction
+import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.navigo.Match
 
 typealias UrlParam = Pair<String, String>
@@ -49,6 +50,12 @@ data class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
         get() {
             return firstOrNull { it.first == "id" }?.second
         }
+
+    fun addContext(item: BaseModel<*>): UrlParams {
+        add("contextClass" to (item.let { item::class.simpleName } ?: ""))
+        add("contextId" to JSON.stringify(item._id))
+        return this
+    }
 
     override fun toString(): String {
         if (size > 0) {

@@ -58,7 +58,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 val urlParams = UrlParams(
                     "action" to CrudAction.Create.name,
                 )
-                masterViewItem?.addContext(urlParams)
+                masterViewItem?.dataContainer?.value?.item?.let {
+                    urlParams.addContext(it)
+                }
                 masterViewItem?.callUpdateItemService()
                 routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
             }
@@ -69,7 +71,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                     "action" to CrudAction.Read.name,
                     "id" to JSON.stringify(itemId)
                 )
-                masterViewItem?.addContext(urlParams)
+                masterViewItem?.dataContainer?.value?.item?.let {
+                    urlParams.addContext(it)
+                }
                 masterViewItem?.callUpdateItemService()
                 routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
             }
@@ -81,7 +85,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                         "action" to CrudAction.Update.name,
                         "id" to JSON.stringify(itemId),
                     )
-                    masterViewItem?.addContext(urlParams)
+                    masterViewItem?.dataContainer?.value?.item?.let {
+                        urlParams.addContext(it)
+                    }
                     masterViewItem?.callUpdateItemService()
                     routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
                 }
