@@ -167,7 +167,6 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                             urlParams = UrlParams(
                                 "action" to CrudAction.Update.name, "id" to JSON.stringify(itemContainer.item?._id)
                             )
-                            console.warn("crudAction", urlParams?.crudAction)
                             @Suppress("UNUSED_VARIABLE")
                             val url = (configView.url + urlParams.toString()).asDynamic()
 
@@ -178,7 +177,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                         }
                         var buttonCancel: Button? = null
                         var buttonAccept: Button? = null
-                        var buttonBack: Button? = null
+                        var buttonBack: Button?
                         var alreadyBack = false
                         val toastOptions = ToastOptions(
                             positionClass = ToastPosition.BOTTOMFULLWIDTH,

@@ -34,7 +34,6 @@ private fun Navigo.onViewPage(): Navigo {
 private fun Navigo.onViewItemPage(): Navigo {
     on("data/:dataClass/item", { match ->
         configViewItemMap[match.data.dataClass as? String]?.let { configViewItem ->
-            console.warn("VIEWITEM MATCH", match)
             viewStateObservableValue.value = ViewState(configViewItem, UrlParams(match = match))
         }
     })
@@ -44,7 +43,6 @@ private fun Navigo.onViewItemPage(): Navigo {
 private fun Navigo.onViewListPage(): Navigo {
     on("data/:dataClass/list", { match: Match ->
         configViewListMap[match.data.dataClass as String]?.let { configViewList ->
-            console.warn("VIEWLIST MATCH", match)
             viewStateObservableValue.value = ViewState(configViewList, UrlParams(match = match))
         }
     })

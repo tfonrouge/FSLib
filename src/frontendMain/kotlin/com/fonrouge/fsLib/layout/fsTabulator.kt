@@ -86,8 +86,6 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             }
         }
         contextDataUrl.params = JSON.stringify(urlParams?.match?.params)
-        console.warn("UrlParams.match.params =", urlParams?.match?.params)
-        console.warn("ContextDataUrl.params =", contextDataUrl.params)
         stateJsonFun?.let {
             contextDataUrl.json = it(contextDataUrl).let { json -> JSON.stringify(json) }
         }
