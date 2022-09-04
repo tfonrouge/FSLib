@@ -2,8 +2,8 @@
 
 package com.fonrouge.fsLib.layout
 
+import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.config.ConfigViewList
-import com.fonrouge.fsLib.masterViewItemId
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
@@ -20,19 +20,19 @@ import io.kvision.utils.Serialization
 import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 import kotlin.js.Date
-import kotlin.js.json
 
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
-    noinline stateJsonFun: (() -> kotlin.js.Json)? = null,
+    noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
     val viewList = configView.viewFunc(null)
@@ -49,7 +49,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     minToolbarSize: Boolean = true,
-    noinline stateJsonFun: (() -> kotlin.js.Json)? = null,
+    noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
     val nav = toolBarList(viewList = viewList, minToolbarSize)
@@ -77,15 +77,21 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     }
 
     val stateFunction = {
-        var json: kotlin.js.Json? = null
-        if (stateJsonFun != null) {
-            json = stateJsonFun()
-        }
+        val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
+        val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
         viewList.masterViewItem?.let { viewItem ->
-            val json2 = json(masterViewItemId to viewItem.dataContainer.value?.item?._id)
-            json = json?.add(json2) ?: json2
+            viewItem.dataContainer.value?.item?.let {
+                contextDataUrl.contextId = JSON.stringify(it._id)
+                contextDataUrl.contextClass = it::class.simpleName
+            }
         }
-        JSON.stringify(json)
+        contextDataUrl.params = JSON.stringify(urlParams?.match?.params)
+        console.warn("UrlParams.match.params =", urlParams?.match?.params)
+        console.warn("ContextDataUrl.params =", contextDataUrl.params)
+        stateJsonFun?.let {
+            contextDataUrl.json = it(contextDataUrl).let { json -> JSON.stringify(json) }
+        }
+        Json.encodeToString(contextDataUrl)
     }
 
     viewList.serializer = T::class.serializer()

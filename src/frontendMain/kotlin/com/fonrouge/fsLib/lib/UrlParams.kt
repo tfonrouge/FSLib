@@ -5,11 +5,9 @@ import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.navigo.Match
 
-typealias UrlParam = Pair<String, String>
+data class UrlParams(val match: Match? = null) : ArrayList<Pair<String, String>>() {
 
-data class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
-
-    constructor(vararg urlParams: UrlParam) : this() {
+    constructor(vararg urlParams: Pair<String, String>) : this() {
         addAll(urlParams)
     }
 
@@ -40,9 +38,8 @@ data class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
         get() {
             val contextClass = find { it.first == "contextClass" }?.second
             val contextId = find { it.first == "contextId" }?.second
-            val contextName = find { it.first == "contextName" }?.second
             return if (contextClass != null && contextId != null) {
-                return ContextDataUrl(contextClass, contextId, contextName)
+                return ContextDataUrl(contextClass = contextClass, contextId = contextId)
             } else null
         }
 
@@ -51,9 +48,11 @@ data class UrlParams(val match: Match? = null) : ArrayList<UrlParam>() {
             return firstOrNull { it.first == "id" }?.second
         }
 
-    fun addContext(item: BaseModel<*>): UrlParams {
-        add("contextClass" to (item.let { item::class.simpleName } ?: ""))
-        add("contextId" to JSON.stringify(item._id))
+    fun addContext(item: BaseModel<*>?): UrlParams {
+        item?.let {
+            add("contextClass" to JSON.stringify(item::class.simpleName))
+            add("contextId" to JSON.stringify(item._id))
+        }
         return this
     }
 
