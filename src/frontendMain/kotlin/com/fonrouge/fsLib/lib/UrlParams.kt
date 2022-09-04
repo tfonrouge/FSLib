@@ -50,7 +50,7 @@ data class UrlParams(val match: Match? = null) : ArrayList<Pair<String, String>>
 
     fun addContext(item: BaseModel<*>?): UrlParams {
         item?.let {
-            add("contextClass" to JSON.stringify(item::class.simpleName))
+            add("contextClass" to (item::class.simpleName ?: ""))
             add("contextId" to JSON.stringify(item._id))
         }
         return this

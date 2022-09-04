@@ -81,8 +81,8 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
         viewList.masterViewItem?.let { viewItem ->
             viewItem.dataContainer.value?.item?.let {
-                contextDataUrl.contextId = JSON.stringify(it._id)
                 contextDataUrl.contextClass = it::class.simpleName
+                contextDataUrl.contextId = JSON.stringify(it._id)
             }
         }
         contextDataUrl.params = JSON.stringify(urlParams?.match?.params)
