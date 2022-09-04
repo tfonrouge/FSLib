@@ -4,40 +4,39 @@ import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.navigo.Match
+import kotlin.js.Json
+import kotlin.js.json
 
-data class UrlParams(val match: Match? = null) : ArrayList<Pair<String, String>>() {
+data class UrlParams(
+    val match: Match? = null,
+    var params: Json? = null
+) : ArrayList<Pair<String, String>>() {
 
     constructor(vararg urlParams: Pair<String, String>) : this() {
-        addAll(urlParams)
+        params = json()
+        urlParams.forEach {
+            params?.add(json(it.first to it.second))
+        }
     }
 
     init {
-        val params = match?.params
-        if (params != null) {
-            for (entry in js("Object").entries(params)) {
-                add(Pair(entry[0], entry[1]))
-            }
-        }
+        match?.let { params = match.params }
     }
 
     val crudAction: CrudAction?
         get() {
-            return find { it.first == "action" }?.let { pair ->
-                CrudAction.values().find { it.name == pair.second }
-            }
+            return CrudAction.values().find { it.name == params?.get("action") }
         }
 
     val actionUpsert: Boolean
         get() {
-            return find { it.first == "action" }?.let {
-                it.second in listOf(CrudAction.Create.name, CrudAction.Update.name)
-            } ?: false
+            return params?.get("action") in listOf(CrudAction.Create.name, CrudAction.Update.name)
         }
 
     val contextDataUrl: ContextDataUrl?
         get() {
-            val contextClass = find { it.first == "contextClass" }?.second
-            val contextId = find { it.first == "contextId" }?.second
+            val contextClass = params?.get("contextClass") as? String
+            val contextId = params?.get("contextId") as? String
             return if (contextClass != null && contextId != null) {
                 return ContextDataUrl(contextClass = contextClass, contextId = contextId)
             } else null
@@ -45,25 +44,25 @@ data class UrlParams(val match: Match? = null) : ArrayList<Pair<String, String>>
 
     val id: String?
         get() {
-            return firstOrNull { it.first == "id" }?.second
+            return params?.get("id") as? String
         }
 
     fun addContext(item: BaseModel<*>?): UrlParams {
-        item?.let {
-            add("contextClass" to (item::class.simpleName ?: ""))
-            add("contextId" to JSON.stringify(item._id))
-        }
+        if (params == null) params = json()
+        params?.set("contextClass", item?.let { item::class.simpleName })
+        params?.set("contextId", JSON.stringify(item?._id))
         return this
     }
 
     override fun toString(): String {
-        if (size > 0) {
-            var string = ""
-            forEach { pair ->
-                string += "${if (string == "") "" else "&"}${pair.first}=${pair.second}"
+        var result = ""
+        var size = 0
+        params?.let {
+            for (entry in js("Object").entries(it)) {
+                ++size
+                result += "${if (result == "") "" else "&"}${entry[0]}=${entry[1]}"
             }
-            return "?$string"
         }
-        return ""
+        return if (size > 0) "?$result" else ""
     }
 }
