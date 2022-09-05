@@ -13,10 +13,11 @@ data class UrlParams(
 ) : ArrayList<Pair<String, String>>() {
 
     constructor(vararg urlParams: Pair<String, String>) : this() {
-        params = json()
-        urlParams.forEach {
-            params?.add(json(it.first to it.second))
-        }
+        params = json(*urlParams)
+//        console.warn("PARAMS", params)
+//        urlParams.forEach {
+//            params?.add(json(it.first to it.second))
+//        }
     }
 
     init {
