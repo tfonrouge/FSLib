@@ -14,7 +14,6 @@ abstract class View(
     var editable: Boolean = true,
     val icon: String? = null,
 ) {
-    var caption: String? = null
     var linkBanner: Link? = null
     val navigoUrlWithParams: String
         get() {
@@ -28,16 +27,14 @@ abstract class View(
     abstract fun Container.displayPage()
 
     fun getCaption(): String {
-        return caption ?: when (urlParams?.crudAction) {
+        return label ?: when (urlParams?.crudAction) {
             CrudAction.Create -> "[${CrudAction.Create}] "
             CrudAction.Update -> "[${CrudAction.Update}] "
             else -> ""
-        }.let { "$it${configView.label}: ${label()}" }
+        }.let { "$it${configView.label}: ${label}" }
     }
 
-    open fun label(): String {
-        return ""
-    }
+    open var label: String = ""
 
     open fun onBeforeDisplayPage(container: Container) {}
 

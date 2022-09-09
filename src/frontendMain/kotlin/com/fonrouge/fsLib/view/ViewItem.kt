@@ -276,9 +276,13 @@ abstract class ViewItem<T : BaseModel<U>, U>(
         }
     }
 
-    override fun label(): String {
-        return configView.labelId?.invoke(dataContainer.value?.item) ?: "<no-item>"
-    }
+    override var label: String = ""
+        set(value) {
+            field = value
+        }
+        get() {
+            return configView.labelId?.invoke(dataContainer.value?.item) ?: "<no-item>"
+        }
 
     open fun onChangeDataContainer(itemContainer: ItemContainer<T>?) {
 
