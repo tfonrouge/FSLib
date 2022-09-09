@@ -35,7 +35,7 @@ abstract class View(
         }.let { "$it${configView.label}: ${label()}" }
     }
 
-    internal open fun label(): String {
+    open fun label(): String {
         return ""
     }
 

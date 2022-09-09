@@ -14,10 +14,6 @@ data class UrlParams(
 
     constructor(vararg urlParams: Pair<String, String>) : this() {
         params = json(*urlParams)
-//        console.warn("PARAMS", params)
-//        urlParams.forEach {
-//            params?.add(json(it.first to it.second))
-//        }
     }
 
     init {

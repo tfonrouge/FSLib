@@ -11,8 +11,8 @@ import kotlinx.serialization.json.Json
 class StateItem<T : BaseModel<*>>(
     var item: T? = null,
     var json: String? = null,
-    val crudAction: CrudAction,
-    val callType: CallType,
+    val crudAction: CrudAction = CrudAction.Read,
+    val callType: CallType = CallType.Query,
     val state: String? = null,
     val contextDataUrl: ContextDataUrl? = null
 ) {
