@@ -39,7 +39,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     init {
         dataContainer.subscribe {
             it?.item?.let { item ->
-                linkBanner?.label = label
+                labelBanner = label
                 formPanel?.setData(item)
             }
             onChangeDataContainer(it)
@@ -141,7 +141,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 
             CrudAction.Update -> {
                 dataContainer.value?.item?.let {
-                    linkBanner?.label = label
+                    labelBanner = label
                     formPanel?.setData(it)
                 }
             }

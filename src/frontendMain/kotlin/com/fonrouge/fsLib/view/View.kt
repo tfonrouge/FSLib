@@ -14,7 +14,7 @@ abstract class View(
     val icon: String? = null,
     open val label: String = configView.label
 ) {
-    var linkBanner: Link? = null
+    private var linkBanner: Link? = null
     val navigoUrlWithParams: String
         get() {
             return configView.url + if (urlParams != null) urlParams else ""
@@ -29,6 +29,16 @@ abstract class View(
     open fun onBeforeDisplayPage(container: Container) {}
 
     open fun onBeforeDispose() {}
+
+    open var labelBanner: String?
+        get() {
+            return linkBanner?.label
+        }
+        set(value) {
+            if (value != null) {
+                linkBanner?.label = value
+            }
+        }
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         flexPanel(
