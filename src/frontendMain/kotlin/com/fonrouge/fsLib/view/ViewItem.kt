@@ -39,7 +39,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     init {
         dataContainer.subscribe {
             it?.item?.let { item ->
-                linkBanner?.label = getCaption()
+                linkBanner?.label = label
                 formPanel?.setData(item)
             }
             onChangeDataContainer(it)
@@ -141,7 +141,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 
             CrudAction.Update -> {
                 dataContainer.value?.item?.let {
-                    linkBanner?.label = getCaption()
+                    linkBanner?.label = label
                     formPanel?.setData(it)
                 }
             }
@@ -276,12 +276,9 @@ abstract class ViewItem<T : BaseModel<U>, U>(
         }
     }
 
-    override var label: String = ""
-        set(value) {
-            field = value
-        }
+    override val label: String
         get() {
-            return configView.labelId?.invoke(dataContainer.value?.item) ?: "<no-item>"
+            return "${configView.label}: ${configView.labelId?.invoke(dataContainer.value?.item) ?: " < no - item > "}"
         }
 
     open fun onChangeDataContainer(itemContainer: ItemContainer<T>?) {

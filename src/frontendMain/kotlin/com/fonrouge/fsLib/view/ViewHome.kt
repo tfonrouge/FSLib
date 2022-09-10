@@ -10,8 +10,5 @@ abstract class ViewHome(
     configView = configView,
     editable = editable,
     icon = icon,
-) {
-    init {
-        caption = "Home"
-    }
-}
+    label = "Home"
+)

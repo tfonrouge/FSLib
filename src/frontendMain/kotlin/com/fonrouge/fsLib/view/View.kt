@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.CrudAction
 import io.kvision.core.*
 import io.kvision.html.Link
 import io.kvision.html.link
@@ -13,6 +12,7 @@ abstract class View(
     open val configView: ConfigView<*>,
     var editable: Boolean = true,
     val icon: String? = null,
+    open val label: String = configView.label
 ) {
     var linkBanner: Link? = null
     val navigoUrlWithParams: String
@@ -26,16 +26,6 @@ abstract class View(
     abstract var urlParams: UrlParams?
     abstract fun Container.displayPage()
 
-    fun getCaption(): String {
-        return label ?: when (urlParams?.crudAction) {
-            CrudAction.Create -> "[${CrudAction.Create}] "
-            CrudAction.Update -> "[${CrudAction.Update}] "
-            else -> ""
-        }.let { "$it${configView.label}: ${label}" }
-    }
-
-    open var label: String = ""
-
     open fun onBeforeDisplayPage(container: Container) {}
 
     open fun onBeforeDispose() {}
@@ -48,7 +38,7 @@ abstract class View(
             AlignItems.BASELINE,
             className = "container-fluid mainBanner"
         ) {
-            linkBanner = link(label = getCaption(), url = navigoUrlWithParams, className = "navbar-brand mainBanner") {
+            linkBanner = link(label = label, url = navigoUrlWithParams, className = "navbar-brand mainBanner") {
                 setStyle("color", "white")
             }
             onUpdatePageBannerLink?.let {
