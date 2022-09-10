@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.2.0-SNAPSHOT"
+version = "1.2.2"
 
 repositories {
     mavenCentral()
