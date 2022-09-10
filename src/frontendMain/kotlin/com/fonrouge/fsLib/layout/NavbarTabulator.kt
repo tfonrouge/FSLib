@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.layout
 
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
+import io.kvision.html.Link
 import io.kvision.navbar.Navbar
 import io.kvision.navbar.NavbarColor
 import io.kvision.navbar.NavbarExpand
@@ -27,11 +28,11 @@ class NavbarTabulator<U>(
     collapseOnClick = collapseOnClick,
     className = className
 ) {
-
     var itemId: U? = null
-
-    //    var onClickActionParamList: Map<ActionParam, (item: BaseModel?) -> Unit> = mapOf()
-    var onClickRefresh: () -> Unit = {}
+    var linkCreate: Link? = null
+    var linkRead: Link? = null
+    var linkUpdate: Link? = null
+    var linkDelete: Link? = null
 
     init {
         init?.invoke(this)

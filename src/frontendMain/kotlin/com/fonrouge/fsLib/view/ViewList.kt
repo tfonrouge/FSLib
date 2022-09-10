@@ -1,10 +1,10 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
+import com.fonrouge.fsLib.layout.NavbarTabulator
 import com.fonrouge.fsLib.layout.TabulatorMenuItem
 import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.layout.update
@@ -13,15 +13,10 @@ import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
-import io.kvision.html.Align
-import io.kvision.modal.Confirm
-import io.kvision.routing.routing
 import io.kvision.state.ObservableList
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.TabulatorRemote
 import io.kvision.toast.Toast
-import io.kvision.toast.ToastOptions
-import io.kvision.toast.ToastPosition
 import io.kvision.utils.toKotlinObj
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -46,86 +41,33 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     /* dynamic content only used to get _id */
     var overItem: Any? = null
     var menuOpenedState: Boolean? = null
+    var navbarTabulator: NavbarTabulator<U>? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     val configViewItem: ConfigViewItem<T, *, *, U>?
         get() {
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
         }
 
-    val crudActionMap = mapOf<CrudAction, (U?) -> Unit>(
-        CrudAction.Create to {
-            configViewItem?.let { configViewItem ->
-                val urlParams = UrlParams(
-                    "action" to CrudAction.Create.name,
+    fun actionUrl(crudAction: CrudAction, itemId: U?): String? {
+        return itemId?.let {
+            val urlParams = if (crudAction == CrudAction.Create) {
+                UrlParams(
+                    "action" to CrudAction.Create.name
                 )
-                masterViewItem?.let {
-                    urlParams.addContext(it.dataContainer.value?.item)
-                } ?: urlParams.addContext(this@ViewList.urlParams?.contextDataUrl)
-                masterViewItem?.callUpdateItemService()
-                routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
-            }
-        },
-        CrudAction.Read to { itemId ->
-            configViewItem?.let { configViewItem ->
-                val urlParams = UrlParams(
-                    "action" to CrudAction.Read.name,
+            } else {
+                UrlParams(
+                    "action" to crudAction.name,
                     "id" to JSON.stringify(itemId)
                 )
-                masterViewItem?.let {
-                    urlParams.addContext(it.dataContainer.value?.item)
-                } ?: urlParams.addContext(this@ViewList.urlParams?.contextDataUrl)
-                masterViewItem?.callUpdateItemService()
-                routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
             }
-        },
-        CrudAction.Update to { itemId ->
-            configViewItem?.let { configViewItem ->
-                itemId?.let {
-                    val urlParams = UrlParams(
-                        "action" to CrudAction.Update.name,
-                        "id" to JSON.stringify(itemId),
-                    )
-                    masterViewItem?.let {
-                        urlParams.addContext(it.dataContainer.value?.item)
-                    } ?: urlParams.addContext(this@ViewList.urlParams?.contextDataUrl)
-                    masterViewItem?.callUpdateItemService()
-                    routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
-                }
-            }
-        },
-        CrudAction.Delete to { itemId ->
-            itemId?.let {
-                val itemConfigView = configViewItem
-                Confirm.show(
-                    caption = "Please confirm",
-                    text = "Delete selected item: '${itemConfigView?.label}' ?",
-                    align = Align.CENTER,
-                    yesTitle = "Yes",
-                    noTitle = "No",
-                    centered = true
-                ) {
-                    configViewItem?.callItemService(
-                        crudAction = CrudAction.Delete,
-                        callType = StateItem.CallType.Action,
-                        itemId = JSON.stringify(itemId)
-                    ) {
-                        if (it.isOk) {
-                            Toast.info("Item deleted", "Info")
-                        } else {
-                            Toast.warning(
-                                message = "Item '${itemConfigView?.label}' id '${itemId}' not deleted",
-                                title = "Warning",
-                                options = ToastOptions(
-                                    positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                                    progressBar = true
-                                )
-                            )
-                        }
-                    }
-                }
-            }
+            masterViewItem?.let {
+                urlParams.addContext(it.dataContainer.value?.item)
+            } ?: urlParams.addContext(this@ViewList.urlParams?.contextDataUrl)
+            masterViewItem?.callUpdateItemService()
+            configViewItem?.let { it.url + urlParams.toString() }
         }
-    )
+    }
+
     var dataContainer: ObservableList<T>? = null
         set(value) {
             field = value
@@ -173,24 +115,24 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 menuItem(
                     label = "Detail of",
                     icon = "fas fa-eye",
-                    url = configViewItem?.urlRead(item._id)
+                    url = actionUrl(CrudAction.Read, item._id)
                 )
                 if (editable) {
                     menuItem(separator = true)
                     menuItem(
                         label = "Create",
                         icon = "fas fa-plus",
-                        url = configViewItem?.urlCreate
+                        url = actionUrl(CrudAction.Create, item._id)
                     )
                     menuItem(
                         label = "Update",
                         icon = "fas fa-edit",
-                        url = configViewItem?.urlUpdate(item._id)
+                        url = actionUrl(CrudAction.Update, item._id)
                     )
                     menuItem(
                         label = "Delete",
                         icon = "fas fa-trash-alt",
-                        url = configViewItem?.urlDelete(item._id)
+                        url = actionUrl(CrudAction.Delete, item._id)
                     )
                 }
                 contextRowMenu(item)
@@ -226,5 +168,23 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         return serializer?.let {
             jsonHelper?.decodeFromString(it, JSON.stringify(data))
         } ?: toKotlinObj(data, kClass)
+    }
+
+    fun updateLinks(item: T?, size: Int) {
+        val id = item?._id
+        navbarTabulator?.itemId = id
+        navbarTabulator?.linkCreate?.url = actionUrl(CrudAction.Create, id)
+        navbarTabulator?.linkRead?.url = actionUrl(CrudAction.Read, id)
+        navbarTabulator?.linkUpdate?.url = actionUrl(CrudAction.Update, id)
+        navbarTabulator?.linkDelete?.url = actionUrl(CrudAction.Delete, id)
+        if (id != null && size == 1) {
+            navbarTabulator?.linkRead?.show()
+            navbarTabulator?.linkUpdate?.show()
+            navbarTabulator?.linkDelete?.show()
+        } else {
+            navbarTabulator?.linkRead?.hide()
+            navbarTabulator?.linkUpdate?.hide()
+            navbarTabulator?.linkDelete?.hide()
+        }
     }
 }

@@ -4,7 +4,6 @@ package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.config.ConfigViewList
-import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewDataContainer
@@ -12,7 +11,6 @@ import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
-import io.kvision.html.Link
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.types.DateSerializer
@@ -52,30 +50,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
-    val nav = toolBarList(viewList = viewList, minToolbarSize)
-    val updateLinks: (item: T?) -> Unit = { item ->
-        viewList.configViewItem?.let { configViewItem ->
-            nav.itemId = item?._id
-            nav.getChildren().forEach { component ->
-                if (component is Link) {
-                    when (component.id) {
-                        CrudAction.Create.name -> component.url = item?._id?.let {
-                            configViewItem.urlCreate + viewList.parentContextUrlParams
-                        }
-
-                        CrudAction.Update.name -> component.url = item?._id?.let {
-                            configViewItem.urlUpdate(it) + viewList.parentContextUrlParams
-                        }
-
-                        CrudAction.Delete.name -> component.url = item?._id?.let {
-                            configViewItem.urlDelete(it)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
     val stateFunction = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
@@ -139,11 +114,16 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         fontSize = 0.75.em
         onEvent {
             rowSelectionChangedTabulator = {
-                val item = self.getSelectedData().let {
+                val tList = self.getSelectedData()
+                val item = tList.let {
                     if (it.isEmpty()) null else it[0]
                 }
-                updateLinks(item)
+                viewList.updateLinks(item, tList.size)
                 viewList.onRowSelected(item)
+            }
+            rowClickTabulator = {
+                self.toggleSelectRow(it.detail.asDynamic()._row)
+                it.preventDefault()
             }
         }
         addAfterInsertHook {

@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.apiLib.AppScope
-import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
@@ -23,45 +22,29 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
         nav {
             if (viewList.editable) {
                 viewList.configViewItem?.let { configViewItem ->
-                    navLink(
+                    linkRead = navLink(
                         label = if (minToolbarSize) "" else "Detail",
-                        icon = "fas fa-eye"
+                        icon = "fas fa-eye",
                     ) {
-                        id = CrudAction.Delete.name
                         enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
-                        onClick {
-                            viewList.crudActionMap[CrudAction.Read]?.invoke(itemId)
-                        }
                     }
-                    navLink(
+                    linkCreate = navLink(
                         label = if (minToolbarSize) "" else "Create",
                         icon = "fas fa-plus",
                     ) {
-                        id = CrudAction.Create.name
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
-                        onClick {
-                            viewList.crudActionMap[CrudAction.Create]?.invoke(itemId)
-                        }
                     }
-                    navLink(
+                    linkUpdate = navLink(
                         label = if (minToolbarSize) "" else "Update",
                         icon = "fas fa-edit"
                     ) {
-                        id = CrudAction.Update.name
                         enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
-                        onClick {
-                            viewList.crudActionMap[CrudAction.Update]?.invoke(itemId)
-                        }
                     }
-                    navLink(
+                    linkDelete = navLink(
                         label = if (minToolbarSize) "" else "Delete",
                         icon = "fas fa-trash-alt"
                     ) {
-                        id = CrudAction.Delete.name
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
-                        onClick {
-                            viewList.crudActionMap[CrudAction.Delete]?.invoke(itemId)
-                        }
                     }
                 }
                 navLink(label = "", icon = "fas fa-ellipsis-v")
