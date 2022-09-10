@@ -157,10 +157,10 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
                 }
             }
             jsTabulator?.on("menuOpened") {
-                viewList.menuState = ViewList.RowContextMenuState.Opened
+                viewList.menuOpenedState = true
             }
             jsTabulator?.on("menuClosed") {
-                viewList.menuState = ViewList.RowContextMenuState.Closed
+                viewList.menuOpenedState = false
             }
             jsTabulator?.on("tableBuilt") {
                 viewList.jsTabulatorBuilt = true

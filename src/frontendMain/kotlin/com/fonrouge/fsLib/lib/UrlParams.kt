@@ -51,6 +51,15 @@ data class UrlParams(
         return this
     }
 
+    fun addContext(contextDataUrl1: ContextDataUrl?): UrlParams {
+        if (params == null) params = json()
+        contextDataUrl1?.let {
+            params?.set("contextClass", it.contextClass)
+            params?.set("contextId", it.contextId)
+        }
+        return this
+    }
+
     override fun toString(): String {
         var result = ""
         var size = 0

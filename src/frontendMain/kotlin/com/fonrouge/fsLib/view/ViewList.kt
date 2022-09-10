@@ -45,7 +45,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
 
     /* dynamic content only used to get _id */
     var overItem: Any? = null
-    var menuState: RowContextMenuState = RowContextMenuState.Unknown
+    var menuOpenedState: Boolean? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     val configViewItem: ConfigViewItem<T, *, *, U>?
         get() {
@@ -58,9 +58,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 val urlParams = UrlParams(
                     "action" to CrudAction.Create.name,
                 )
-                masterViewItem?.dataContainer?.value?.item?.let {
-                    urlParams.addContext(it)
-                }
+                masterViewItem?.let {
+                    urlParams.addContext(it.dataContainer.value?.item)
+                } ?: urlParams.addContext(this@ViewList.urlParams?.contextDataUrl)
                 masterViewItem?.callUpdateItemService()
                 routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
             }
@@ -71,9 +71,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                     "action" to CrudAction.Read.name,
                     "id" to JSON.stringify(itemId)
                 )
-                masterViewItem?.dataContainer?.value?.item?.let {
-                    urlParams.addContext(it)
-                }
+                masterViewItem?.let {
+                    urlParams.addContext(it.dataContainer.value?.item)
+                } ?: urlParams.addContext(this@ViewList.urlParams?.contextDataUrl)
                 masterViewItem?.callUpdateItemService()
                 routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
             }
@@ -85,9 +85,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                         "action" to CrudAction.Update.name,
                         "id" to JSON.stringify(itemId),
                     )
-                    masterViewItem?.dataContainer?.value?.item?.let {
-                        urlParams.addContext(it)
-                    }
+                    masterViewItem?.let {
+                        urlParams.addContext(it.dataContainer.value?.item)
+                    } ?: urlParams.addContext(this@ViewList.urlParams?.contextDataUrl)
                     masterViewItem?.callUpdateItemService()
                     routing.navigate(configViewItem.urlWithoutNavigoPrefix + urlParams.toString())
                 }
@@ -211,7 +211,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
 
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
-            if (menuState != RowContextMenuState.Opened) {
+            if (menuOpenedState != true) {
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
                 tabulator?.setPage(tabulator?.getPage() ?: 1)
             }
@@ -226,11 +226,5 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         return serializer?.let {
             jsonHelper?.decodeFromString(it, JSON.stringify(data))
         } ?: toKotlinObj(data, kClass)
-    }
-
-    enum class RowContextMenuState {
-        Unknown,
-        Opened,
-        Closed,
     }
 }

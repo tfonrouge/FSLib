@@ -206,7 +206,8 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                     alignItems = AlignItems.CENTER,
                                     spacing = 10
                                 ) {
-                                    div(content = "Please confirm delete of ${this@ViewItem.configView.label} '$itemId'") {
+                                    val id = itemContainer.item?.let { configView.labelId?.invoke(it) } ?: itemId
+                                    div(content = "Please confirm delete of ${this@ViewItem.configView.label} '$id'") {
                                         fontSize = 1.5.em
                                     }
                                     flexPanel(
