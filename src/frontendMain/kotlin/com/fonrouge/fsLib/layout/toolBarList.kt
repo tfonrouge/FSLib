@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.apiLib.AppScope
+import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
@@ -28,9 +29,10 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                     ) {
                         enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                     }
-                    linkCreate = navLink(
+                    navLink(
                         label = if (minToolbarSize) "" else "Create",
                         icon = "fas fa-plus",
+                        url = viewList.actionUrl(CrudAction.Create, null)
                     ) {
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                     }
@@ -48,9 +50,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                     }
                 }
                 navLink(label = "", icon = "fas fa-ellipsis-v")
-                navLink(label = "", icon = "fas fa-clock").onClick {
-
-                }
+                navLink(label = "", icon = "fas fa-clock", url = "JuanaLaCubana")
                 navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
                     AppScope.launch {
                         viewList.dataUpdate()

@@ -29,7 +29,6 @@ class NavbarTabulator<U>(
     className = className
 ) {
     var itemId: U? = null
-    var linkCreate: Link? = null
     var linkRead: Link? = null
     var linkUpdate: Link? = null
     var linkDelete: Link? = null

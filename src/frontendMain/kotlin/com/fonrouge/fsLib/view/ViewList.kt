@@ -49,21 +49,23 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         }
 
     fun actionUrl(crudAction: CrudAction, itemId: U?): String? {
-        return itemId?.let {
-            val urlParams = if (crudAction == CrudAction.Create) {
-                UrlParams(
-                    "action" to CrudAction.Create.name
-                )
-            } else {
+        val urlParams = if (crudAction == CrudAction.Create) {
+            UrlParams(
+                "action" to CrudAction.Create.name
+            )
+        } else {
+            itemId?.let {
                 UrlParams(
                     "action" to crudAction.name,
                     "id" to JSON.stringify(itemId)
                 )
             }
-            masterViewItem?.let {
-                urlParams.addContext(it.dataContainer.value?.item)
-            } ?: urlParams.addContext(this@ViewList.urlParams?.contextDataUrl)
-            masterViewItem?.callUpdateItemService()
+        }
+        masterViewItem?.let {
+            urlParams?.addContext(it.dataContainer.value?.item)
+        } ?: urlParams?.addContext(this@ViewList.urlParams?.contextDataUrl)
+        masterViewItem?.callUpdateItemService()
+        return urlParams?.let {
             configViewItem?.let { it.url + urlParams.toString() }
         }
     }
@@ -173,7 +175,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     fun updateLinks(item: T?, size: Int) {
         val id = item?._id
         navbarTabulator?.itemId = id
-        navbarTabulator?.linkCreate?.url = actionUrl(CrudAction.Create, id)
+//        navbarTabulator?.linkCreate?.url = actionUrl(CrudAction.Create, id)
         navbarTabulator?.linkRead?.url = actionUrl(CrudAction.Read, id)
         navbarTabulator?.linkUpdate?.url = actionUrl(CrudAction.Update, id)
         navbarTabulator?.linkDelete?.url = actionUrl(CrudAction.Delete, id)
