@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.CrudAction
 import io.kvision.core.*
 import io.kvision.html.Link
 import io.kvision.html.link
@@ -40,6 +41,16 @@ abstract class View(
             }
         }
 
+    fun iconCrud(crudAction: CrudAction? = null): String? {
+        return when (crudAction ?: urlParams?.crudAction) {
+            CrudAction.Create -> "fas fa-plus"
+            CrudAction.Read -> "fas fa-eye"
+            CrudAction.Update -> "fas fa-edit"
+            CrudAction.Delete -> "fas fa-trash-alt"
+            null -> null
+        }
+    }
+
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         flexPanel(
             FlexDirection.ROW,
@@ -48,7 +59,12 @@ abstract class View(
             AlignItems.BASELINE,
             className = "container-fluid mainBanner"
         ) {
-            linkBanner = link(label = label, url = navigoUrlWithParams, className = "navbar-brand mainBanner") {
+            linkBanner = link(
+                label = label,
+                url = navigoUrlWithParams,
+                className = "navbar-brand mainBanner",
+                icon = iconCrud()
+            ) {
                 setStyle("color", "white")
             }
             onUpdatePageBannerLink?.let {

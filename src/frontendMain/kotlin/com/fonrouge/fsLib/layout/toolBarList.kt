@@ -25,26 +25,26 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                 viewList.configViewItem?.let { configViewItem ->
                     linkRead = navLink(
                         label = if (minToolbarSize) "" else "Detail",
-                        icon = "fas fa-eye",
+                        icon = viewList.iconCrud(CrudAction.Read),
                     ) {
                         enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                     }
                     navLink(
                         label = if (minToolbarSize) "" else "Create",
-                        icon = "fas fa-plus",
+                        icon = viewList.iconCrud(CrudAction.Create),
                         url = viewList.actionUrl(CrudAction.Create, null)
                     ) {
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                     }
                     linkUpdate = navLink(
                         label = if (minToolbarSize) "" else "Update",
-                        icon = "fas fa-edit"
+                        icon = viewList.iconCrud(CrudAction.Update)
                     ) {
                         enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                     }
                     linkDelete = navLink(
                         label = if (minToolbarSize) "" else "Delete",
-                        icon = "fas fa-trash-alt"
+                        icon = viewList.iconCrud(CrudAction.Delete)
                     ) {
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                     }

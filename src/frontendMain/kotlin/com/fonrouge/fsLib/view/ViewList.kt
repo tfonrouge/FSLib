@@ -116,24 +116,24 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 menuItem(separator = true)
                 menuItem(
                     label = "Detail of",
-                    icon = "fas fa-eye",
+                    icon = iconCrud(CrudAction.Read),
                     url = actionUrl(CrudAction.Read, item._id)
                 )
                 if (editable) {
                     menuItem(separator = true)
                     menuItem(
                         label = "Create",
-                        icon = "fas fa-plus",
+                        icon = iconCrud(CrudAction.Create),
                         url = actionUrl(CrudAction.Create, item._id)
                     )
                     menuItem(
                         label = "Update",
-                        icon = "fas fa-edit",
+                        icon = iconCrud(CrudAction.Update),
                         url = actionUrl(CrudAction.Update, item._id)
                     )
                     menuItem(
                         label = "Delete",
-                        icon = "fas fa-trash-alt",
+                        icon = iconCrud(CrudAction.Delete),
                         url = actionUrl(CrudAction.Delete, item._id)
                     )
                 }
