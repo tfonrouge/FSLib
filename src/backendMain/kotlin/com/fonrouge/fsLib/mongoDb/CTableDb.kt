@@ -138,13 +138,17 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     @Suppress("unused")
     suspend fun deleteOneById(_id: U?): ItemContainer<T> {
         if (_id != null) {
-            return ItemContainer(
-                isOk = mongoColl
-                    .deleteOne(BaseModel<*>::_id eq _id)
-                    .awaitFirstOrNull()?.deletedCount == 1L
-            )
+            return try {
+                ItemContainer(
+                    isOk = mongoColl
+                        .deleteOne(BaseModel<*>::_id eq _id)
+                        .awaitFirstOrNull()?.deletedCount == 1L
+                )
+            } catch (e: Exception) {
+                ItemContainer(isOk = false, msgError = e.message)
+            }
         }
-        return ItemContainer(isOk = false)
+        return ItemContainer(isOk = false, msgError = "_id not valid ...")
     }
 
     @Suppress("unused")
@@ -162,23 +166,31 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         _id: U?,
         vararg modelLookup: ModelLookup<*, *>
     ): ItemContainer<T> {
-        return ItemContainer(
-            item = findOneById(_id = _id, modelLookup = modelLookup)
-        )
+        return try {
+            ItemContainer(
+                item = findOneById(_id = _id, modelLookup = modelLookup)
+            )
+        } catch (e: Exception) {
+            ItemContainer(isOk = false, msgError = e.message)
+        }
     }
 
     @Suppress("unused")
     suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
-            val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
-            val result = insertOneResult?.insertedId != null
-            return ItemContainer(
-                item = it,
-                isOk = result,
-                itemAlreadyOn = result &&
-                        state.callType == StateItem.CallType.Query &&
-                        state.crudAction == CrudAction.Create
-            )
+            try {
+                val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
+                val result = insertOneResult?.insertedId != null
+                return ItemContainer(
+                    item = it,
+                    isOk = result,
+                    itemAlreadyOn = result &&
+                            state.callType == StateItem.CallType.Query &&
+                            state.crudAction == CrudAction.Create
+                )
+            } catch (e: Exception) {
+                return ItemContainer(isOk = false, msgError = e.message)
+            }
         }
         return ItemContainer(isOk = false, msgError = "insertOne(): item contains null value...")
     }
@@ -226,19 +238,23 @@ abstract class CTableDb<T : BaseModel<U>, U>(
 
     @Suppress("unused")
     suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
-        state.item?.let {
-            val result = mongoColl.coroutine.updateOne(
-                filter = it::_id eq _id,
-                target = it
-            )
-            return ItemContainer(isOk = result.modifiedCount == 1L)
-        }
-        state.json?.let {
-            val result = mongoColl.coroutine.updateOne(
-                filter = BaseModel<*>::_id eq _id,
-                update = BsonDocument("\$set", BsonDocument.parse(it))
-            )
-            return ItemContainer(isOk = result.modifiedCount == 1L)
+        try {
+            state.item?.let {
+                val result = mongoColl.coroutine.updateOne(
+                    filter = it::_id eq _id,
+                    target = it
+                )
+                return ItemContainer(isOk = result.modifiedCount == 1L)
+            }
+            state.json?.let {
+                val result = mongoColl.coroutine.updateOne(
+                    filter = BaseModel<*>::_id eq _id,
+                    update = BsonDocument("\$set", BsonDocument.parse(it))
+                )
+                return ItemContainer(isOk = result.modifiedCount == 1L)
+            }
+        } catch (e: Exception) {
+            return ItemContainer(isOk = false, msgError = e.message)
         }
         return ItemContainer(isOk = false, msgError = "Invalid data on StateItem ...")
     }
