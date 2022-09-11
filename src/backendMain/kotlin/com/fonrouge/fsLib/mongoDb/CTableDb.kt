@@ -24,6 +24,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     private val klass: KClass<T>,
 ) {
     private val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
+    var debug = false
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collName, klass.java)
 
     @Suppress("unused")
@@ -188,7 +189,10 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<T> {
         firstStage.pipeline.addAll(buildLookup(*modelLookup))
-//        println("Aggregate = ${firstStage.pipeline.json}")
+        if (debug) {
+            println("Class: ${klass.simpleName}, Aggregate:")
+            println(firstStage.pipeline.json)
+        }
         val list = mongoColl.aggregate(firstStage.pipeline, klass.java).toList()
         return RemoteData(
             data = list,
