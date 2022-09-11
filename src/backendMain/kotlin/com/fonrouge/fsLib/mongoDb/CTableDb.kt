@@ -22,9 +22,9 @@ import kotlin.reflect.full.memberProperties
 
 abstract class CTableDb<T : BaseModel<U>, U : Any>(
     private val klass: KClass<T>,
+    var debug: Boolean = false
 ) {
     private val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
-    var debug = false
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collName, klass.java)
 
     @Suppress("unused")
