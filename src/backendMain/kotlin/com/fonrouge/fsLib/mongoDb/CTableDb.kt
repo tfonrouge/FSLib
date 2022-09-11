@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 
-abstract class CTableDb<T : BaseModel<U>, U : Any>(
+abstract class CTableDb<T : BaseModel<U>, U>(
     private val klass: KClass<T>,
     var debug: Boolean = false
 ) {
