@@ -25,6 +25,7 @@ import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 import kotlin.js.Date
+import kotlin.js.json
 
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
@@ -90,14 +91,12 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             pagination = true,
             paginationMode = PaginationMode.REMOTE,
             paginationCounter = "rows",
+            persistenceID = viewList.configView.klass.simpleName,
+            persistence = json(
+                "page" to
+                        json("page" to true)
+            ),
             rowContextMenu = { viewList.contextRowMenuGenerator() },
-//            paginationCounter = js(
-//                """
-//                function(pageSize, currentRow, currentPage, totalRows, totalPages) {
-//                    return "Showing " + currentRow + " rows of " + totalRows + " total";
-//                }
-//                """
-//            ),
             filterMode = FilterMode.REMOTE,
             sortMode = SortMode.REMOTE,
             dataLoader = false,
