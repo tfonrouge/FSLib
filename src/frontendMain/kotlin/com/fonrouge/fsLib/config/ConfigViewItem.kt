@@ -22,7 +22,7 @@ import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataItem, U>(
-    private val klass: KClass<T>,
+    val klass: KClass<T>,
     label: String,
     viewFunc: ((UrlParams?) -> V),
     private val serverManager: KVServiceManager<E>,

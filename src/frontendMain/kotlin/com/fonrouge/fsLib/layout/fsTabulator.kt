@@ -54,11 +54,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     val stateFunction = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
-        viewList.masterViewItem?.let { viewItem ->
-            viewItem.dataContainer.value?.item?.let {
-                contextDataUrl.contextClass = it::class.simpleName
-                contextDataUrl.contextId = JSON.stringify(it._id)
-            }
+        viewList.masterViewItem?.itemId?.let { itemId ->
+            contextDataUrl.contextClass = viewList.masterViewItem?.configView?.klass?.simpleName
+            contextDataUrl.contextId = JSON.stringify(itemId)
         }
         contextDataUrl.params = JSON.stringify(urlParams?.params)
         stateJsonFun?.let {
