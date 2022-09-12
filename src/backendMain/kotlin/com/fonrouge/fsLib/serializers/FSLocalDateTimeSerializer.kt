@@ -11,7 +11,7 @@ import kotlinx.serialization.encoding.Encoder
 import org.litote.kmongo.serialization.ZonedDateTimeSerializer
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Suppress("RedundantVisibilityModifier", "unused", "MemberVisibilityCanBePrivate")
@@ -26,7 +26,7 @@ public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
         return if (decoder is BsonFlexibleDecoder) {
             LocalDateTime.ofInstant(
                 Instant.ofEpochMilli(decoder.reader.readDateTime()),
-                ZoneOffset.UTC
+                ZoneId.systemDefault()
             )
         } else {
             LocalDateTime.parse(decoder.decodeString(), DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT))
@@ -35,7 +35,7 @@ public actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
 
     override fun serialize(encoder: Encoder, value: LocalDateTime) {
         if (encoder is BsonEncoder) {
-            encoder.encodeDateTime(ZonedDateTimeSerializer.epochMillis(value.atZone(ZoneOffset.UTC)))
+            encoder.encodeDateTime(ZonedDateTimeSerializer.epochMillis(value.atZone(ZoneId.systemDefault())))
         } else {
             encoder.encodeString(value.format(DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT)))
         }
