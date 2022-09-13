@@ -28,6 +28,7 @@ val exposedVersion: String by project
 val ktorVersion: String by project
 val kmongoVersion: String by project
 val commonsCodecVersion: String by project
+//val logbackVersion: String by project
 
 kotlin {
     jvm("backend") {
@@ -52,6 +53,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+//                api("ch.qos.logback:logback-classic:$logbackVersion")
                 api("io.kvision:kvision-server-ktor:$kvisionVersion")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
