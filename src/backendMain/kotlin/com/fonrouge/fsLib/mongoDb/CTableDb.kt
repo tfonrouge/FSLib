@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.StateItem
+import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.annotations.MongoDoc
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemContainer
@@ -17,7 +18,9 @@ import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 abstract class CTableDb<T : BaseModel<U>, U>(
@@ -178,6 +181,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     @Suppress("unused")
     suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
+            checkDontPersist(it)
             try {
                 val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
                 val result = insertOneResult?.insertedId != null
@@ -238,6 +242,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
 
     @Suppress("unused")
     suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
+        state.item?.let { checkDontPersist(it) }
         try {
             state.item?.let {
                 val result = mongoColl.coroutine.updateOne(
@@ -257,6 +262,14 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             return ItemContainer(isOk = false, msgError = e.message)
         }
         return ItemContainer(isOk = false, msgError = "Invalid data on StateItem ...")
+    }
+
+    private fun checkDontPersist(item: T) {
+        item::class.memberProperties.forEach { kProperty1 ->
+            if (kProperty1.hasAnnotation<DontPersist>() && kProperty1 is KMutableProperty1) {
+                kProperty1.setter.call(item, null)
+            }
+        }
     }
 
     init {
