@@ -3,5 +3,5 @@
 package com.fonrouge.fsLib.annotations
 
 @Target(AnnotationTarget.PROPERTY)
-@Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.BINARY)
 public annotation class DontPersist
