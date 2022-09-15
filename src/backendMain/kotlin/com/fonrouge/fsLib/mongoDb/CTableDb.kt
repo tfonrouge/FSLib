@@ -242,9 +242,9 @@ abstract class CTableDb<T : BaseModel<U>, U>(
 
     @Suppress("unused")
     suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
-        state.item?.let { checkDontPersist(it) }
         try {
             state.item?.let {
+                checkDontPersist(it)
                 val result = mongoColl.coroutine.updateOne(
                     filter = it::_id eq _id,
                     target = it
