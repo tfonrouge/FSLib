@@ -6,6 +6,7 @@ import com.fonrouge.fsLib.annotations.MongoDoc
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.IAppUser
 import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
 import io.kvision.remote.RemoteData
@@ -21,13 +22,21 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
 abstract class CTableDb<T : BaseModel<U>, U>(
     private val klass: KClass<T>,
     var debug: Boolean = false
 ) {
-    private val collName = klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
+    companion object {
+        var appUsersCollectionName = "__appUsers"
+        internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
+    }
+
+    private val collName =
+        if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
+        else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collName, klass.java)
 
     @Suppress("unused")
@@ -40,10 +49,6 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             }
             return field
         }
-
-    companion object {
-        internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
-    }
 
     @Suppress("unused")
     suspend fun listFirstStage(
