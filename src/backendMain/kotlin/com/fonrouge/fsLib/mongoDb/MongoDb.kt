@@ -20,8 +20,11 @@ val mongoDatabase: MongoDatabase by lazy {
 }
 
 @Suppress("unused")
-val collation: Collation by lazy {
-    Collation.builder().locale(plugin.locale).collationStrength(CollationStrength.PRIMARY).build()
+fun collation(
+    locale: String = plugin.locale,
+    collationStrength: CollationStrength = CollationStrength.PRIMARY
+): Collation {
+    return Collation.builder().locale(locale).collationStrength(collationStrength).build()
 }
 
 @Suppress("unused")
