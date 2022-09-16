@@ -93,8 +93,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             paginationCounter = "rows",
             persistenceID = viewList.configView.klass.simpleName,
             persistence = json(
-                "page" to
-                        json("page" to true)
+                "page" to json("page" to true),
             ),
             rowContextMenu = { viewList.contextRowMenuGenerator() },
             filterMode = FilterMode.REMOTE,
