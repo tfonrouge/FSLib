@@ -11,11 +11,8 @@ var AppUserDb: CTableDb<AppUser, String> = object : CTableDb<AppUser, String>(
         runBlocking {
             coroutineColl.ensureUniqueIndex(
                 AppUser::code,
-                indexOptions = IndexOptions().collation(collation())
-            )
-            coroutineColl.ensureUniqueIndex(
-                AppUser::name,
-                indexOptions = IndexOptions().collation(collation())
+                indexOptions = IndexOptions()
+                    .collation(collation())
             )
         }
     }
