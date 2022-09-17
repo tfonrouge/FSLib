@@ -2,24 +2,24 @@ package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.model.base.AppRole
 import com.fonrouge.fsLib.model.base.AppUser
-import com.fonrouge.fsLib.model.base.UserRole
+import com.fonrouge.fsLib.model.base.AppUserRole
 import kotlinx.coroutines.runBlocking
 
-var UserRoleDb: CTableDb<UserRole, String> = object : CTableDb<UserRole, String>(
-    klass = UserRole::class,
+var AppUserRoleDb: CTableDb<AppUserRole, String> = object : CTableDb<AppUserRole, String>(
+    klass = AppUserRole::class,
     debug = true
 ) {
     override val lookupFun = {
         listOf(
             LookupBuilder(
                 cTableDb = AppUserDb::class,
-                localToForeign = UserRole::user_id localToForeign AppUser::_id,
-                resultProperty = UserRole::user,
+                localToForeign = AppUserRole::appUser_id localToForeign AppUser::_id,
+                resultProperty = AppUserRole::appUser,
             ),
             LookupBuilder(
                 cTableDb = AppRoleDb::class,
-                localToForeign = UserRole::appRole_id localToForeign AppRole::_id,
-                resultProperty = UserRole::appRole,
+                localToForeign = AppUserRole::appRole_id localToForeign AppRole::_id,
+                resultProperty = AppUserRole::appRole,
             )
         )
     }
@@ -27,7 +27,7 @@ var UserRoleDb: CTableDb<UserRole, String> = object : CTableDb<UserRole, String>
     init {
         runBlocking {
             coroutineColl.ensureUniqueIndex(
-                UserRole::user_id, UserRole::appRole_id
+                AppUserRole::appUser_id, AppUserRole::appRole_id
             )
         }
     }

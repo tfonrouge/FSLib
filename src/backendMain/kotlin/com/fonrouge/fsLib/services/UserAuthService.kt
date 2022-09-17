@@ -3,25 +3,33 @@ package com.fonrouge.fsLib.services
 import com.fonrouge.fsLib.model.SimpleResponse
 import com.fonrouge.fsLib.model.base.AppRole
 import com.fonrouge.fsLib.model.base.AppUser
+import com.fonrouge.fsLib.model.base.AppUserRole
 import com.fonrouge.fsLib.model.base.PermissionType
-import com.fonrouge.fsLib.model.base.UserRole
 import com.fonrouge.fsLib.mongoDb.AppRoleDb
-import com.fonrouge.fsLib.mongoDb.UserRoleDb
-import com.google.inject.Inject
+import com.fonrouge.fsLib.mongoDb.AppUserRoleDb
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
+import io.kvision.remote.ServiceException
 import org.litote.kmongo.eq
 import kotlin.jvm.internal.FunctionReferenceImpl
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
-class UserAuthService {
-    @Inject
-    lateinit var call: ApplicationCall
+@Suppress("unused")
+fun CurrentSession.getAppUser(): AppUser? {
+    return get()
 }
 
+@Suppress("unused")
+suspend fun <RESP> ApplicationCall.withAppUser(block: suspend (AppUser) -> RESP): RESP {
+    return sessions.getAppUser()?.let {
+        block(it)
+    } ?: throw ServiceException("App User not set!")
+}
+
+@Suppress("unused")
 suspend fun ApplicationCall.getUserPermission(kCallable: KCallable<*>): SimpleResponse {
-    val user = sessions.get<AppUser>() ?: return SimpleResponse(isOk = false, msgError = "User not valid ...")
+    val user = sessions.getAppUser() ?: return SimpleResponse(isOk = false, msgError = "User not valid ...")
     if (user.rootUser) {
         return SimpleResponse(isOk = true)
     }
@@ -31,8 +39,8 @@ suspend fun ApplicationCall.getUserPermission(kCallable: KCallable<*>): SimpleRe
         AppRole::classOwner eq classOwner,
         AppRole::funcName eq funcName
     ) ?: return SimpleResponse(isOk = false, msgError = "App role doesn't exist '$classOwner::$funcName' ... ")
-    UserRoleDb.coroutineColl.find(
-        filter = UserRole::user_id eq user._id
+    AppUserRoleDb.coroutineColl.find(
+        filter = AppUserRole::appUser_id eq user._id
     ).toList().forEach { userRole ->
         if (userRole.appRole_id == appRole._id)
             return if (userRole.permission == PermissionType.Allow
