@@ -32,9 +32,6 @@ abstract class ViewDataContainer<U : Any>(
     }
 
     var displayBlock: (() -> Unit)? = null
-
-    val name get() = configView.name
-
     var suspendRepeatUpdate = false
 
     abstract suspend fun dataUpdate()

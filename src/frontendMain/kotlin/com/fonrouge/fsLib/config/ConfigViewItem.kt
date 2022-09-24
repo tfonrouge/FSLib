@@ -24,7 +24,8 @@ import kotlin.reflect.KClass
 abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataItem, U>(
     val klass: KClass<T>,
     label: String,
-    viewFunc: ((UrlParams?) -> V),
+    viewFunc: KClass<V>,
+    baseUrl: String = viewFunc.js.name,
     private val serverManager: KVServiceManager<E>,
     private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,
@@ -32,8 +33,8 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
 ) : ConfigViewContainer<T, V>(
     name = klass.simpleName!!,
     label = label,
-    baseUrlSuffix = "item",
     viewFunc = viewFunc,
+    baseUrl = baseUrl
 ) {
     companion object {
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *>>()
@@ -43,8 +44,11 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     val labelDetail = "Detail of $label"
     val labelCreate = "Create $label"
     val labelUpdate = "Update $label"
+    @Suppress("unused")
     fun labelUrlRead(id: U) = label to urlRead(id)
+    @Suppress("unused")
     fun labelUrlUpdate(id: U) = label to urlUpdate(id)
+    @Suppress("unused")
     val urlCreate: String
         get() {
             val urlParams = UrlParams("action" to CrudAction.Create.name)
@@ -56,6 +60,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         return url + urlParams.toString()
     }
 
+    @Suppress("unused")
     fun urlDelete(id: U): String {
         val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Delete.name)
         return url + urlParams.toString()
@@ -107,6 +112,6 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     }
 
     init {
-        configViewItemMap[name] = this
+        configViewItemMap[baseUrl] = this
     }
 }

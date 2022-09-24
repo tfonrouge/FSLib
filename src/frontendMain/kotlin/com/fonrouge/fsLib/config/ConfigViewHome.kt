@@ -1,19 +1,19 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.apiLib.KVWebManager.configViewHome
-import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.ViewHome
+import kotlin.reflect.KClass
 
 abstract class ConfigViewHome<V : ViewHome>(
     name: String,
     label: String,
-    baseUrlPrefix: String = "",
-    viewFunc: (UrlParams?) -> V,
+    viewFunc: KClass<V>,
+    baseUrl: String = "",
 ) : ConfigView<ViewHome>(
     name = name,
     label = label,
-    baseUrlPrefix = baseUrlPrefix,
     viewFunc = viewFunc,
+    baseUrl = baseUrl,
 ) {
     init {
         configViewHome = this

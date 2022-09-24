@@ -15,6 +15,7 @@ import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.types.DateSerializer
 import io.kvision.utils.Serialization
+import io.kvision.utils.createInstance
 import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
@@ -34,7 +35,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): Container {
-    val viewList = configView.viewFunc(null)
+    val viewList = configView.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,

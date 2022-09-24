@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
@@ -13,20 +12,21 @@ import kotlin.reflect.KClass
 abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IDataList, U>(
     val klass: KClass<T>,
     label: String,
-    viewFunc: ((UrlParams?) -> V),
+    viewFunc: KClass<V>,
+    baseUrl: String = viewFunc.js.name,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
 ) : ConfigViewContainer<T, V>(
     name = klass.simpleName!!,
     label = label,
-    baseUrlSuffix = "list",
     viewFunc = viewFunc,
+    baseUrl = baseUrl
 ) {
     companion object {
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *>>()
     }
 
     init {
-        configViewListMap[name] = this
+        configViewListMap[baseUrl] = this
     }
 }

@@ -26,6 +26,7 @@ import kotlin.reflect.KClass
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     override val configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
+    configViewItem: ConfigViewItem<T, *, *, U>? = null,
     repeatRefreshView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -43,8 +44,15 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     var menuOpenedState: Boolean? = null
     var navbarTabulator: NavbarTabulator<U>? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-    val configViewItem: ConfigViewItem<T, *, *, U>?
+    var configViewItem: ConfigViewItem<T, *, *, U>? = configViewItem
         get() {
+            if (field != null) return field
+            val viewClassName = configView.viewFunc.js.name
+            val name = if (viewClassName.contains("ViewList")) {
+                viewClassName.replace("ViewList", "ViewItem")
+            } else {
+                "ViewItem${configView.klass.js.name}"
+            }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
         }
 
