@@ -9,7 +9,7 @@ abstract class ConfigView<V : View>(
     val name: String,
     val label: String,
     val viewFunc: KClass<out V>,
-    val baseUrl: String
+    val baseUrl: String = viewFunc.js.name
 ) {
     companion object {
         val configViewMap = mutableMapOf<String, ConfigView<*>>()
