@@ -10,4 +10,12 @@ data class ItemContainer<T>(
     override var msgOk: String? = "Operation successful ...",
     override var msgError: String? = "Operation Failed ...",
     override var data: String? = null
-) : ISimpleResponse
+) : ISimpleResponse {
+    @Suppress("unused")
+    constructor(simpleResponse: SimpleResponse) : this(
+        isOk = simpleResponse.isOk,
+        msgOk = simpleResponse.msgOk,
+        msgError = simpleResponse.msgError,
+        data = simpleResponse.data
+    )
+}
