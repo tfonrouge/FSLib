@@ -47,7 +47,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     var configViewItem: ConfigViewItem<T, *, *, U>? = configViewItem
         get() {
             if (field != null) return field
-            val viewClassName = configView.viewFunc.js.name
+            val viewClassName = configView.viewFunc.simpleName!!
             val name = if (viewClassName.contains("ViewList")) {
                 viewClassName.replace("ViewList", "ViewItem")
             } else {

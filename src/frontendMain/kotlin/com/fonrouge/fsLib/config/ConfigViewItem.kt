@@ -25,7 +25,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     val klass: KClass<T>,
     label: String,
     viewFunc: KClass<V>,
-    baseUrl: String = viewFunc.js.name,
+    baseUrl: String = viewFunc.simpleName!!,
     private val serverManager: KVServiceManager<E>,
     private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,

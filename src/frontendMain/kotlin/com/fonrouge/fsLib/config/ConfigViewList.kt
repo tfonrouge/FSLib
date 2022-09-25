@@ -13,7 +13,7 @@ abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IData
     val klass: KClass<T>,
     label: String,
     viewFunc: KClass<V>,
-    baseUrl: String = viewFunc.js.name,
+    baseUrl: String = viewFunc.simpleName!!,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
 ) : ConfigViewContainer<T, V>(
