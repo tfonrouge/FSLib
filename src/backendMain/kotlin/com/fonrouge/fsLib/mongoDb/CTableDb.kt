@@ -35,14 +35,16 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
-    private val collName =
+    @Suppress("MemberVisibilityCanBePrivate")
+    val collectionName =
         if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
         else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
-    val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collName, klass.java)
+    val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
 
     @Suppress("unused")
     val coroutineColl = mongoColl.coroutine
     open val lookupFun: (() -> List<LookupBuilder<T, *, *, *>>)? = null
+    var customPipelineList: List<Bson>? = null
     var lookup: List<LookupBuilder<T, *, *, *>>? = null
         get() {
             if (field == null) {
@@ -140,6 +142,9 @@ abstract class CTableDb<T : BaseModel<U>, U>(
                 ?.let { modelLookup: ModelLookup<*, *> ->
                     lookupBuilder.addToPipeline(pipeline, modelLookup)
                 }
+        }
+        customPipelineList?.forEach {
+            pipeline.add(it)
         }
         return pipeline
     }
