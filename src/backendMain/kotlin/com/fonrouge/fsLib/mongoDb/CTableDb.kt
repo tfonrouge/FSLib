@@ -27,9 +27,10 @@ import kotlin.reflect.full.memberProperties
 
 abstract class CTableDb<T : BaseModel<U>, U>(
     private val klass: KClass<T>,
-    var debug: Boolean = false
+    var debug: Boolean? = null
 ) {
     companion object {
+        var globalDebug = false
         var appUsersCollectionName = "__appUsers"
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
@@ -210,7 +211,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<T> {
         firstStage.pipeline.addAll(buildLookup(*modelLookup))
-        if (debug) {
+        if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate:")
             println(firstStage.pipeline.json)
         }
