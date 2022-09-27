@@ -7,6 +7,7 @@ import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.model.base.IAppUser
+import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
 import io.kvision.remote.RemoteData
@@ -210,19 +211,28 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         return ItemContainer(isOk = false, msgError = "insertOne(): item contains null value...")
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun aggregate(
+        pipeline: List<Bson>? = null,
+        vararg modelLookup: ModelLookup<*, *>
+    ): AggregatePublisher<T> {
+        val pip1 = mutableListOf<Bson>()
+        pipeline?.let { pip1.addAll(it) }
+        pip1.addAll(buildLookup(*modelLookup))
+        if (debug ?: globalDebug) {
+            println("Class: ${klass.simpleName}, Aggregate:")
+            println(pip1.json)
+        }
+        return mongoColl.aggregate(pip1, klass.java)
+    }
+
     @Suppress("unused")
     suspend fun remoteData(
         firstStage: FirstStage,
         vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<T> {
-        firstStage.pipeline.addAll(buildLookup(*modelLookup))
-        if (debug ?: globalDebug) {
-            println("Class: ${klass.simpleName}, Aggregate:")
-            println(firstStage.pipeline.json)
-        }
-        val list = mongoColl.aggregate(firstStage.pipeline, klass.java).toList()
         return RemoteData(
-            data = list,
+            data = aggregate(firstStage.pipeline, *modelLookup).toList(),
             last_page = firstStage.last_page,
             last_row = firstStage.last_row,
         )
