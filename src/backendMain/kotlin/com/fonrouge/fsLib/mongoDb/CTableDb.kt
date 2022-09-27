@@ -75,6 +75,15 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         return mongoColl.aggregate(pip1, klass.java)
     }
 
+    /**
+     * Builds a list of bson (pipeline) to be used in the
+     * aggregate operation.
+     *
+     * Accepts a list of ModelLookup
+     *
+     * @param modelLookup array of ModelLookup items
+     * @return List<Bson>
+     */
     fun buildLookup(vararg modelLookup: ModelLookup<*, *>): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         lookup?.forEach { lookupBuilder ->
