@@ -122,6 +122,12 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         return ItemContainer(isOk = false, msgError = "_id not valid ...")
     }
 
+    /**
+     * Find a single *item* from collection
+     *
+     * @param pipeline custom Bson list
+     * @param modelLookup array of ModelLookup
+     */
     suspend fun find(
         pipeline: List<Bson>? = null,
         vararg modelLookup: ModelLookup<*, *>
