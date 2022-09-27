@@ -35,16 +35,10 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         var appUsersCollectionName = "__appUsers"
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
-
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
         else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
-    val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
-
-    @Suppress("unused")
-    val coroutineColl = mongoColl.coroutine
-    open val lookupFun: (() -> List<LookupBuilder<T, *, *, *>>)? = null
     var customPipelineList: List<Bson>? = null
     var lookup: List<LookupBuilder<T, *, *, *>>? = null
         get() {
@@ -53,6 +47,130 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             }
             return field
         }
+    open val lookupFun: (() -> List<LookupBuilder<T, *, *, *>>)? = null
+    val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
+    @Suppress("unused")
+    val coroutineColl = mongoColl.coroutine
+
+    /**
+     * build an AggregatePublisher<T>.
+     *
+     * Is the base for the find(), findOne(), findOneById()
+     * accept a custom pipeline (list of Bson) argument and
+     * also accept a list of ModelLookup to be added to the
+     * final pipelina on the aggregate operation
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun aggregate(
+        pipeline: List<Bson>? = null,
+        vararg modelLookup: ModelLookup<*, *>
+    ): AggregatePublisher<T> {
+        val pip1 = mutableListOf<Bson>()
+        pipeline?.let { pip1.addAll(it) }
+        pip1.addAll(buildLookup(*modelLookup))
+        if (debug ?: globalDebug) {
+            println("Class: ${klass.simpleName}, Aggregate:")
+            println(pip1.json)
+        }
+        return mongoColl.aggregate(pip1, klass.java)
+    }
+
+    fun buildLookup(vararg modelLookup: ModelLookup<*, *>): List<Bson> {
+        val pipeline: MutableList<Bson> = mutableListOf()
+        lookup?.forEach { lookupBuilder ->
+            modelLookup.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
+                ?.let { modelLookup: ModelLookup<*, *> ->
+                    lookupBuilder.addToPipeline(pipeline, modelLookup)
+                }
+        }
+        customPipelineList?.forEach {
+            pipeline.add(it)
+        }
+        return pipeline
+    }
+
+    private fun checkDontPersist(item: T) {
+        item::class.memberProperties.forEach { kProperty1 ->
+            if (kProperty1.hasAnnotation<DontPersist>() && kProperty1 is KMutableProperty1) {
+                kProperty1.setter.call(item, null)
+            }
+        }
+    }
+
+    @Suppress("unused")
+    suspend fun deleteOneById(_id: U?): ItemContainer<T> {
+        if (_id != null) {
+            return try {
+                ItemContainer(
+                    isOk = mongoColl
+                        .deleteOne(BaseModel<*>::_id eq _id)
+                        .awaitFirstOrNull()?.deletedCount == 1L
+                )
+            } catch (e: Exception) {
+                ItemContainer(isOk = false, msgError = e.message)
+            }
+        }
+        return ItemContainer(isOk = false, msgError = "_id not valid ...")
+    }
+
+    suspend fun find(
+        pipeline: List<Bson>? = null,
+        vararg modelLookup: ModelLookup<*, *>
+    ): List<T> {
+        return aggregate(pipeline, *modelLookup).toList()
+    }
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun findOne(
+        pipeline: List<Bson>? = null,
+        vararg modelLookup: ModelLookup<*, *>
+    ): T? {
+        return aggregate(pipeline, *modelLookup).awaitFirstOrNull()
+    }
+
+    @Suppress("unused")
+    suspend fun findOneById(
+        _id: U?,
+        vararg modelLookup: ModelLookup<*, *>
+    ): T? {
+        val pipeline = listOf(match(BaseModel<*>::_id eq _id))
+        return findOne(pipeline, *modelLookup)
+    }
+
+    @Suppress("unused")
+    suspend fun getItemContainer(
+        _id: U?,
+        vararg modelLookup: ModelLookup<*, *>
+    ): ItemContainer<T> {
+        return try {
+            ItemContainer(
+                item = findOneById(_id = _id, modelLookup = modelLookup)
+            )
+        } catch (e: Exception) {
+            ItemContainer(isOk = false, msgError = e.message)
+        }
+    }
+
+    @Suppress("unused")
+    suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
+        state.item?.let {
+            checkDontPersist(it)
+            try {
+                val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
+                val result = insertOneResult?.insertedId != null
+                return ItemContainer(
+                    item = it,
+                    isOk = result,
+                    itemAlreadyOn = result &&
+                            state.callType == StateItem.CallType.Query &&
+                            state.crudAction == CrudAction.Create
+                )
+            } catch (e: Exception) {
+                return ItemContainer(isOk = false, msgError = e.message)
+            }
+        }
+        return ItemContainer(isOk = false, msgError = "insertOne(): item contains null value...")
+    }
 
     @Suppress("unused")
     suspend fun listFirstStage(
@@ -136,96 +254,6 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         }
     }
 
-    fun buildLookup(vararg modelLookup: ModelLookup<*, *>): List<Bson> {
-        val pipeline: MutableList<Bson> = mutableListOf()
-        lookup?.forEach { lookupBuilder ->
-            modelLookup.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
-                ?.let { modelLookup: ModelLookup<*, *> ->
-                    lookupBuilder.addToPipeline(pipeline, modelLookup)
-                }
-        }
-        customPipelineList?.forEach {
-            pipeline.add(it)
-        }
-        return pipeline
-    }
-
-    @Suppress("unused")
-    suspend fun deleteOneById(_id: U?): ItemContainer<T> {
-        if (_id != null) {
-            return try {
-                ItemContainer(
-                    isOk = mongoColl
-                        .deleteOne(BaseModel<*>::_id eq _id)
-                        .awaitFirstOrNull()?.deletedCount == 1L
-                )
-            } catch (e: Exception) {
-                ItemContainer(isOk = false, msgError = e.message)
-            }
-        }
-        return ItemContainer(isOk = false, msgError = "_id not valid ...")
-    }
-
-    @Suppress("unused")
-    suspend fun findOneById(
-        _id: U?,
-        vararg modelLookup: ModelLookup<*, *>
-    ): T? {
-        val pipeline = mutableListOf(match(BaseModel<*>::_id eq _id))
-        pipeline.addAll(buildLookup(*modelLookup))
-        return mongoColl.aggregate(pipeline).awaitFirstOrNull()
-    }
-
-    @Suppress("unused")
-    suspend fun getItemContainer(
-        _id: U?,
-        vararg modelLookup: ModelLookup<*, *>
-    ): ItemContainer<T> {
-        return try {
-            ItemContainer(
-                item = findOneById(_id = _id, modelLookup = modelLookup)
-            )
-        } catch (e: Exception) {
-            ItemContainer(isOk = false, msgError = e.message)
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
-        state.item?.let {
-            checkDontPersist(it)
-            try {
-                val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
-                val result = insertOneResult?.insertedId != null
-                return ItemContainer(
-                    item = it,
-                    isOk = result,
-                    itemAlreadyOn = result &&
-                            state.callType == StateItem.CallType.Query &&
-                            state.crudAction == CrudAction.Create
-                )
-            } catch (e: Exception) {
-                return ItemContainer(isOk = false, msgError = e.message)
-            }
-        }
-        return ItemContainer(isOk = false, msgError = "insertOne(): item contains null value...")
-    }
-
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun aggregate(
-        pipeline: List<Bson>? = null,
-        vararg modelLookup: ModelLookup<*, *>
-    ): AggregatePublisher<T> {
-        val pip1 = mutableListOf<Bson>()
-        pipeline?.let { pip1.addAll(it) }
-        pip1.addAll(buildLookup(*modelLookup))
-        if (debug ?: globalDebug) {
-            println("Class: ${klass.simpleName}, Aggregate:")
-            println(pip1.json)
-        }
-        return mongoColl.aggregate(pip1, klass.java)
-    }
-
     @Suppress("unused")
     suspend fun remoteData(
         firstStage: FirstStage,
@@ -283,14 +311,6 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             return ItemContainer(isOk = false, msgError = e.message)
         }
         return ItemContainer(isOk = false, msgError = "Invalid data on StateItem ...")
-    }
-
-    private fun checkDontPersist(item: T) {
-        item::class.memberProperties.forEach { kProperty1 ->
-            if (kProperty1.hasAnnotation<DontPersist>() && kProperty1 is KMutableProperty1) {
-                kProperty1.setter.call(item, null)
-            }
-        }
     }
 
     init {
