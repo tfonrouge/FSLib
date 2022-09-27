@@ -84,7 +84,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      * Builds a list of bson (pipeline) to be used in the
      * aggregate operation.
      *
-     * Accepts a list of ModelLookup
+     * Accepts a list of ModelLookup and includes the content of [customPipelineList]
      *
      * @param modelLookup array of ModelLookup items
      * @return List<Bson>
