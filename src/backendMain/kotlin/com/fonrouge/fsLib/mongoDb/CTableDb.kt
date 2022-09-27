@@ -39,6 +39,11 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     val collectionName =
         if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
         else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
+
+    /**
+     * List of Bson that is always added in the [buildLookup] function that provides the pipeline
+     * in the aggregation operation
+     */
     var customPipelineList: List<Bson>? = null
     var lookup: List<LookupBuilder<T, *, *, *>>? = null
         get() {

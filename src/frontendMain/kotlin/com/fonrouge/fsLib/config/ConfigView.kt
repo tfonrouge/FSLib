@@ -5,6 +5,9 @@ import kotlin.reflect.KClass
 
 private const val navigoPrefix = "#/"
 
+/*
+    TODO: encode/decode baseUrl to be url compliant
+ */
 abstract class ConfigView<V : View>(
     val name: String,
     val label: String,
