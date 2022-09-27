@@ -123,7 +123,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     }
 
     /**
-     * Find a single *item* from collection
+     * Find a list of *item* from collection
      *
      * @param pipeline custom Bson list
      * @param modelLookup array of ModelLookup
