@@ -3,10 +3,8 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.mongoDb.CTableDb.Companion.map1
 import com.mongodb.client.model.UnwindOptions
-import com.mongodb.client.model.Variable
 import org.bson.conversions.Bson
-import org.litote.kmongo.*
-import org.litote.kmongo.MongoOperator.eq
+import org.litote.kmongo.unwind
 import java.time.LocalDateTime
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -15,34 +13,21 @@ class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V, W>(
     private val cTableDb: KClass<out CTableDb<U, W>>,
     private val localToForeign: LocalToForeign<T, U, V>,
     val resultProperty: KProperty1<T, U?>,
-    private val matchFilters: List<Bson>? = null
 ) {
 
     internal fun addToPipeline(pipeline: MutableList<Bson>, modelLookup: ModelLookup<*, *>) {
-        val match = mutableListOf(
-            expr(
-                eq from listOf(
-                    localToForeign.foreign,
-                    "$\$letVar1"
-                )
-            )
-        )
-
-        matchFilters?.let { match.addAll(it) }
-
-        val pip2 = mutableListOf(
-            match(*match.toTypedArray())
-        )
+        val pip2 = mutableListOf<Bson>()
 
         map1[cTableDb]?.buildLookup(*modelLookup.modelLookup)?.let {
             pip2 += it
         }
 
-        pipeline += lookup(
+        pipeline += lookup5(
             from = map1[cTableDb]?.mongoColl?.namespace?.collectionName ?: "?",
-            let = listOf(Variable("letVar1", localToForeign.local)),
-            resultProperty = resultProperty,
-            *pip2.toTypedArray()
+            localField = localToForeign.local.name,
+            foreignField = localToForeign.foreign.name,
+            pipeline = pip2,
+            newAs = resultProperty.name,
         )
         pipeline += resultProperty.unwind(UnwindOptions().preserveNullAndEmptyArrays(true))
     }
