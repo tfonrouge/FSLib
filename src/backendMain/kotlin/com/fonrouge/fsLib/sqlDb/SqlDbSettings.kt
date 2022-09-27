@@ -110,6 +110,10 @@ abstract class SqlDbSettings(
         index: Int,
         jsonObjectBuilder: JsonObjectBuilder? = null
     ): Any? {
+        if (resultSet.getObject(index) == null) {
+            field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, null) }
+            return null
+        }
         return when (kClass) {
             String::class -> {
                 val result = resultSet.getString(index)
@@ -118,7 +122,7 @@ abstract class SqlDbSettings(
             }
 
             Integer::class -> {
-                val result = resultSet.getInt(index)
+                val result: Int = resultSet.getInt(index)
                 field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
                 result
             }
