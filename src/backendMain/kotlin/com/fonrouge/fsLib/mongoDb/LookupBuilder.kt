@@ -12,11 +12,14 @@ import kotlin.reflect.KProperty1
 class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V, W>(
     private val cTableDb: KClass<out CTableDb<U, W>>,
     private val localToForeign: LocalToForeign<T, U, V>,
-    val resultProperty: KProperty1<T, U?>,
+    private val pipeline: List<Bson>? = null,
+    internal val resultProperty: KProperty1<T, U?>
 ) {
 
     internal fun addToPipeline(pipeline: MutableList<Bson>, modelLookup: ModelLookup<*, *>) {
         val pip2 = mutableListOf<Bson>()
+
+        this.pipeline?.let { pip2 += it }
 
         map1[cTableDb]?.buildLookup(*modelLookup.modelLookup)?.let {
             pip2 += it
@@ -30,6 +33,7 @@ class LookupBuilder<T : BaseModel<*>, U : BaseModel<W>, V, W>(
             newAs = resultProperty.name,
         )
         pipeline += resultProperty.unwind(UnwindOptions().preserveNullAndEmptyArrays(true))
+
     }
 
     class LocalToForeign<T, U, V>(

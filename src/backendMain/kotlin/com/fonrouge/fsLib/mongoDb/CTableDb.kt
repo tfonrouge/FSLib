@@ -129,24 +129,25 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     }
 
     /**
-     * Find a list of *item* from collection
+     * Find [bson] expression in collection and return a list of [T] items
      *
-     * @param pipeline custom Bson list
+     * @param bson bson expression
      * @param modelLookup array of ModelLookup
+     * @return list of T items
      */
     suspend fun find(
-        pipeline: List<Bson>? = null,
+        bson: Bson? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): List<T> {
-        return aggregate(pipeline, *modelLookup).toList()
+        return aggregate(bson?.let { listOf(match(bson)) }, *modelLookup).toList()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOne(
-        pipeline: List<Bson>? = null,
+        bson: Bson? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): T? {
-        return aggregate(pipeline, *modelLookup).awaitFirstOrNull()
+        return aggregate(bson?.let { listOf(match(bson)) }, *modelLookup).awaitFirstOrNull()
     }
 
     @Suppress("unused")
@@ -154,8 +155,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         _id: U?,
         vararg modelLookup: ModelLookup<*, *>
     ): T? {
-        val pipeline = listOf(match(BaseModel<*>::_id eq _id))
-        return findOne(pipeline, *modelLookup)
+        return findOne(BaseModel<*>::_id eq _id, *modelLookup)
     }
 
     @Suppress("unused")
