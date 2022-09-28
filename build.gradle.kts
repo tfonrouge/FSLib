@@ -69,7 +69,6 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
-//                implementation("org.jetbrains.exposed:exposed:$exposedVersion")
                 api("commons-codec:commons-codec:$commonsCodecVersion")
                 api("io.ktor:ktor-server-auth:$ktorVersion")
                 api("io.ktor:ktor-server-call-logging:$ktorVersion")
