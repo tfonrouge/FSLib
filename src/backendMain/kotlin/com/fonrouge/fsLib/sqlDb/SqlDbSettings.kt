@@ -9,6 +9,8 @@ import kotlinx.serialization.json.*
 import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.IColumnType
+import org.jetbrains.exposed.sql.statements.StatementType
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
@@ -40,11 +42,15 @@ abstract class SqlDbSettings(
 
     private val mutableMap = mutableMapOf<KClass<*>, DecodeMap>()
 
-    inline fun <reified T : Any> findItem(@Language("SQL") sql: String): T? {
+    inline fun <reified T : Any> findItem(
+        @Language("SQL") sql: String,
+        args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
+        explicitStatementType: StatementType? = null,
+    ): T? {
         var result: T? = null
         transaction(db = sqlDb) {
             try {
-                exec(sql) { resultSet ->
+                exec(sql, args, explicitStatementType) { resultSet ->
                     if (resultSet.next()) {
                         result = if (T::class.isSubclassOf(Comparable::class)) {
                             getElementFromClasifier(
@@ -66,11 +72,15 @@ abstract class SqlDbSettings(
         return result
     }
 
-    inline fun <reified T> findList(@Language("SQL") sql: String): List<T> {
+    inline fun <reified T> findList(
+        @Language("SQL") sql: String,
+        args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
+        explicitStatementType: StatementType? = null,
+    ): List<T> {
         val result = mutableListOf<T>()
         transaction(db = sqlDb) {
             try {
-                exec(sql) { resultSet ->
+                exec(sql, args, explicitStatementType) { resultSet ->
                     while (resultSet.next()) {
                         result.add(sqlEntityTo(resultSet))
                     }
