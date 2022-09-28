@@ -35,16 +35,17 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         var appUsersCollectionName = "__appUsers"
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
+
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
         else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
 
     /**
-     * List of Bson that is always added in the [buildLookup] function that provides the pipeline
-     * in the aggregation operation
+     * [List] of [Bson] that is *always* added in the [buildLookup] function
+     * for the aggregation operation
      */
-    var customPipelineList: List<Bson>? = null
+    var constPipelineList: List<Bson>? = null
     var lookup: List<LookupBuilder<T, *, *, *>>? = null
         get() {
             if (field == null) {
@@ -54,6 +55,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         }
     open val lookupFun: (() -> List<LookupBuilder<T, *, *, *>>)? = null
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
+
     @Suppress("unused")
     val coroutineColl = mongoColl.coroutine
 
@@ -81,10 +83,9 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     }
 
     /**
-     * Builds a list of bson (pipeline) to be used in the
-     * aggregate operation.
+     * Builds a list of bson (pipeline) to be used in the *lookup* stage of the aggregate operation.
      *
-     * Accepts a list of ModelLookup and includes the content of [customPipelineList]
+     * Accepts a list of ModelLookup and appends the content of [constPipelineList]
      *
      * @param modelLookup array of ModelLookup items
      * @return List<Bson>
@@ -97,7 +98,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
                     lookupBuilder.addToPipeline(pipeline, modelLookup)
                 }
         }
-        customPipelineList?.forEach {
+        constPipelineList?.forEach {
             pipeline.add(it)
         }
         return pipeline
@@ -200,6 +201,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         size: Int? = null,
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
+        other: List<Bson>? = null,
     ): FirstStage {
         val pipeline = mutableListOf<Bson>()
         val matchDocument = match?.toBsonDocument()?.get("\$match")?.asDocument() ?: match?.toBsonDocument()
@@ -249,6 +251,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             matchDocument?.let { pipeline.add(match(matchDocument)) }
             filterDocument?.let { pipeline.add(match(filterDocument)) }
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
+            other?.let { pipeline.addAll(it) }
             return FirstStage(
                 pipeline = pipeline,
                 count = count,
@@ -265,6 +268,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
             kotlin.math.max(nSkip, 0).let { if (it > 0) pipeline.add(skip(it)) }
             pipeline.add(limit(nSize))
+            other?.let { pipeline.addAll(it) }
             return FirstStage(
                 pipeline = pipeline,
                 count = count,
@@ -286,6 +290,11 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         )
     }
 
+    /**
+     * Returns a [RemoteData] builded with the parameters provided
+     *
+     * @param other is an optional Bson list to be added at *end* of builded pipeline
+     */
     @Suppress("unused")
     suspend fun remoteData(
         match: Bson? = null,
@@ -294,6 +303,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         size: Int? = null,
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
+        other: List<Bson>? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): RemoteData<T> {
         return remoteData(
@@ -304,6 +314,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
                 size = size,
                 filter = filter,
                 sorter = sorter,
+                other = other,
             ),
             *modelLookup
         )
