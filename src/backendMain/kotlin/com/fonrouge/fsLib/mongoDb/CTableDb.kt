@@ -129,7 +129,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     }
 
     /**
-     * Find [bson] expression in collection and return a list of [T] items
+     * Find [bson] expression in collection and returns a list of [T] items
      *
      * @param bson bson expression
      * @param modelLookup array of ModelLookup
