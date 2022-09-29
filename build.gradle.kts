@@ -55,6 +55,7 @@ kotlin {
             dependencies {
 //                api("ch.qos.logback:logback-classic:$logbackVersion")
                 api("io.kvision:kvision-server-ktor:$kvisionVersion")
+                api("io.kvision:kvision-server-ktor-koin:$kvisionVersion")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
             }
