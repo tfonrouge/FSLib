@@ -28,7 +28,8 @@ suspend fun <RESP> ApplicationCall.withAppUser(block: suspend (AppUser) -> RESP)
 }
 
 @Suppress("unused")
-suspend fun ApplicationCall.getUserPermission(kCallable: KCallable<*>): SimpleResponse {
+suspend fun ApplicationCall?.getUserPermission(kCallable: KCallable<*>): SimpleResponse {
+    this ?: return SimpleResponse(isOk = false, msgError = "Operation denied ...")
     val user = sessions.getAppUser() ?: return SimpleResponse(isOk = false, msgError = "User not valid ...")
     if (user.rootUser) {
         return SimpleResponse(isOk = true)
