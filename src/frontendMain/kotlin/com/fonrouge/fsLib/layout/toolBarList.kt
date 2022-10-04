@@ -1,8 +1,8 @@
 package com.fonrouge.fsLib.layout
 
-import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions

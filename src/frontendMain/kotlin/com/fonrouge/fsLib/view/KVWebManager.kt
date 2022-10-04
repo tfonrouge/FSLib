@@ -1,8 +1,9 @@
 @file:Suppress("unused")
 
-package com.fonrouge.fsLib.apiLib
+package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewHome
+import com.fonrouge.fsLib.config.IConfigView
 import com.fonrouge.fsLib.routing.initialize
 import io.kvision.routing.Routing
 import io.kvision.routing.routing
@@ -29,7 +30,16 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     private var authenticated = false
 
+    /**
+     * Global variable to allow periodic update on [ViewItem]
+     * Set to true if periodic update is allowed
+     */
     var refreshViewItemPeriodic = false
+
+    /**
+     * Global variable to allow periodic update on [ViewList]
+     * Set to true if periodic update is allowed
+     */
     var refreshViewListPeriodic = false
 
     var viewStateObservableValue = ObservableValue<ViewState?>(null)

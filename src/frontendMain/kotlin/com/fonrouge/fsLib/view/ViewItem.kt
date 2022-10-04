@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.StateItem
-import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
@@ -26,7 +25,7 @@ import org.w3c.dom.events.MouseEvent
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<U>, U>(
     override val configView: ConfigViewItem<T, out ViewItem<T, U>, *, U>,
-    repeatRefreshView: Boolean? = null,
+    periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
 ) : ViewDataContainer<T>(
@@ -34,6 +33,9 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     editable = editable,
     icon = icon,
 ) {
+    /**
+     * Observable that holds data for the [ViewItem]
+     */
     var dataContainer: ObservableValue<ItemContainer<T>?> = ObservableValue(null)
 
     init {
@@ -52,7 +54,11 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     var noBackButton = false
     var noPageBanner = false
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
-    override var repeatUpdateView: Boolean? = repeatRefreshView
+
+    /**
+     * Set to true if periodic update of [dataContainer] is allowed
+     */
+    final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
     fun callUpdateItemService() {

@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.apiLib.KVWebManager
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
@@ -27,7 +26,7 @@ import kotlin.reflect.KClass
 abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     override val configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     configViewItem: ConfigViewItem<T, *, *, U>? = null,
-    repeatRefreshView: Boolean? = null,
+    periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
 ) : ViewDataContainer<List<T>>(
@@ -78,6 +77,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         }
     }
 
+    /**
+     * Observable that holds data list for the [ViewList]
+     */
     var dataContainer: ObservableList<T>? = null
         set(value) {
             field = value
@@ -96,7 +98,11 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 "&contextClass=${it::class.simpleName}&contextId=${it.item?._id}"
             } ?: ""
         }
-    override var repeatUpdateView: Boolean? = repeatRefreshView
+
+    /**
+     * Set to true if periodic update of [dataContainer] is allowed
+     */
+    final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.refreshViewListPeriodic
     var tabulator: TabulatorRemote<T, E>? = null
     var selectedIdList: List<Any?>? = null

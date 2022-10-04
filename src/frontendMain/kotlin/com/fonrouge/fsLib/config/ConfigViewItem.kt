@@ -44,10 +44,13 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     val labelDetail = "Detail of $label"
     val labelCreate = "Create $label"
     val labelUpdate = "Update $label"
+
     @Suppress("unused")
     fun labelUrlRead(id: U) = label to urlRead(id)
+
     @Suppress("unused")
     fun labelUrlUpdate(id: U) = label to urlUpdate(id)
+
     @Suppress("unused")
     val urlCreate: String
         get() {

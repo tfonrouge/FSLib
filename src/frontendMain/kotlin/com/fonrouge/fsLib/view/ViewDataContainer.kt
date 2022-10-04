@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.apiLib.AppScope
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -32,7 +31,7 @@ abstract class ViewDataContainer<U : Any>(
     }
 
     var displayBlock: (() -> Unit)? = null
-    var suspendRepeatUpdate = false
+    var suspendPeriodicUpdate = false
 
     abstract suspend fun dataUpdate()
 
@@ -46,12 +45,12 @@ abstract class ViewDataContainer<U : Any>(
                 }
             }
         }
-        if (repeatUpdateView == true && !suspendRepeatUpdate) {
+        if (periodicUpdateDataView == true && !suspendPeriodicUpdate) {
             var lock = false
             handleInterval = window.setInterval(
                 handler = {
                     val curTime = (Date().getTime() / 1000).toLong()
-                    if ((curTime - startTime) > repeatUpdateSecsInterval) {
+                    if ((curTime - startTime) > periodicUpdateViewInterval) {
                         if (!lock) {
                             startTime = curTime
                             lock = true

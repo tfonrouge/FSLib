@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.layout
 
-import com.fonrouge.fsLib.apiLib.KVWebManager.pageContainerWidth
+import com.fonrouge.fsLib.view.KVWebManager.pageContainerWidth
 import io.kvision.core.Container
 import io.kvision.html.Align
 import io.kvision.html.Div

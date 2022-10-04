@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.apiLib.KVWebManager.configViewHome
+import com.fonrouge.fsLib.view.KVWebManager.configViewHome
 import com.fonrouge.fsLib.view.ViewHome
 import kotlin.reflect.KClass
 

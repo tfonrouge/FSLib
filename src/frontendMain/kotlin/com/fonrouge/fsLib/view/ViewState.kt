@@ -1,8 +1,7 @@
-package com.fonrouge.fsLib.apiLib
+package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.view.View
 import io.kvision.core.Container
 import io.kvision.html.div
 import io.kvision.utils.createInstance

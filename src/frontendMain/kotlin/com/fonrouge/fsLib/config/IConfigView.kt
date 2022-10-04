@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.apiLib
+package com.fonrouge.fsLib.config
 
 interface IConfigView {
     companion object

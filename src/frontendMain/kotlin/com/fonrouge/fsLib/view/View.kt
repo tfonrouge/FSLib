@@ -22,8 +22,12 @@ abstract class View(
         }
     var pageBannerLink: Link? = null
     var onUpdatePageBannerLink: ((Link) -> Unit)? = null
-    open val repeatUpdateView: Boolean? = null
-    var repeatUpdateSecsInterval = 5
+
+    /**
+     * Enable/disable periodic refresh interval of view
+     */
+    open val periodicUpdateDataView: Boolean? = null
+    var periodicUpdateViewInterval = 5
     abstract var urlParams: UrlParams?
     abstract fun Container.displayPage()
 
