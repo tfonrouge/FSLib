@@ -34,7 +34,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
-): Container {
+): ViewList<T, E, U> {
     val viewList = configView.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
@@ -51,7 +51,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
-): Container {
+): ViewList<T, E, U> {
     viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
     val stateFunction = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
@@ -158,7 +158,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
         }
     }
     viewList.installUpdate(true)
-    return this
+    return viewList
 }
 
 fun <T : BaseModel<*>> Tabulator<T>.update(list: List<T>?) {
