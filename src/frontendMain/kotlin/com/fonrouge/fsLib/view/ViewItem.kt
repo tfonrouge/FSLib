@@ -119,9 +119,9 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                         if (formPanel?.validate() == true) {
                             acceptUpsertAction {
                                 if (it.isOk) {
-                                    Toast.success("Info", "Operation successful")
+                                    Toast.success("Info", it.msgOk)
                                 } else {
-                                    Toast.warning("!", "Operation error: ${it.msgError}")
+                                    Toast.warning("!", it.msgError)
                                 }
                                 js("history.back()")
                                 Unit
