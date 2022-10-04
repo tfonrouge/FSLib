@@ -13,10 +13,14 @@ import io.ktor.http.*
 import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
+import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import kotlin.reflect.KClass
@@ -129,6 +133,13 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     }
 
     /**
+     * Override to build indexes
+     */
+    @Suppress("unused")
+    open suspend fun CoroutineCollection<T>.ensureIndexes() {
+    }
+
+    /**
      * Find [bson] expression in collection and returns a list of [T] items
      *
      * @param bson bson expression
@@ -190,7 +201,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
                 return ItemContainer(isOk = false, msgError = e.message)
             }
         }
-        return ItemContainer(isOk = false, msgError = "insertOne(): item contains null value...")
+        return ItemContainer(isOk = false, msgError = "insertOne(): state.item contains null value...")
     }
 
     @Suppress("unused")
@@ -347,5 +358,10 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     init {
         @Suppress("LeakingThis")
         map1[this::class] = this
+        CoroutineScope(Dispatchers.IO).launch {
+            with(coroutineColl) {
+                ensureIndexes()
+            }
+        }
     }
 }
