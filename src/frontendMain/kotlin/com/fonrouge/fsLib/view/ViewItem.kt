@@ -61,6 +61,22 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
+    fun acceptUpsertAction(block: ((ItemContainer<T>) -> Unit)? = null) {
+        val crudAction = urlParams?.crudAction
+        if (crudAction != null && crudAction in arrayOf(CrudAction.Create, CrudAction.Update)) {
+            configView.callItemService(
+                crudAction = crudAction,
+                callType = StateItem.CallType.Action,
+                itemId = JSON.stringify(itemId),
+                item = formPanel?.getData(),
+                contextDataUrl = urlParams?.contextDataUrl
+            ) { itemContainer ->
+                block?.let { it(itemContainer) }
+                itemContainer
+            }
+        }
+    }
+
     fun callUpdateItemService() {
         if (urlParams?.actionUpsert == true) {
             formPanel?.getData()?.let {
@@ -72,6 +88,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                     contextDataUrl = urlParams?.contextDataUrl
                 ) { itemContainer ->
                     dataContainer.value = itemContainer
+                    itemContainer
                 }
             }
         }
@@ -100,19 +117,14 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 //                                marginLeft = 10.px
                     onClick {
                         if (formPanel?.validate() == true) {
-                            configView.callItemService(
-                                crudAction = crudAction,
-                                callType = StateItem.CallType.Action,
-                                itemId = JSON.stringify(itemId),
-                                item = formPanel?.getData(),
-                                contextDataUrl = urlParams?.contextDataUrl
-                            ) {
+                            acceptUpsertAction {
                                 if (it.isOk) {
                                     Toast.success("Info", "Operation successful")
                                 } else {
                                     Toast.warning("!", "Operation error: ${it.msgError}")
                                 }
-                                js("history.back()") as? Unit
+                                js("history.back()")
+                                Unit
                             }
                         } else {
                             Toast.warning(
@@ -262,6 +274,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                                         options = toastOptions
                                                     )
                                                 }
+                                                itemContainer
                                             }
                                         }
                                     }
@@ -277,6 +290,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                                 options = toastOptions
                             )
                         }
+                        itemContainer
                     }
                 } ?: displayDefault(urlParams)
             }
@@ -303,6 +317,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                 contextDataUrl = urlParams?.contextDataUrl
             ) { itemContainer ->
                 dataContainer.value = itemContainer
+                itemContainer
             }
         }
     }

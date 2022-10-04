@@ -81,7 +81,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         itemId: String? = JSON.stringify(null),
         item: T? = null,
         contextDataUrl: ContextDataUrl? = null,
-        block: (ItemContainer<T>) -> Unit,
+        block: (ItemContainer<T>) -> ItemContainer<T>,
     ) {
         val (url, method) = serverManager.requireCall(function)
         val callAgent = CallAgent()
