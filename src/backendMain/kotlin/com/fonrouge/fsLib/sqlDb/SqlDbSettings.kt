@@ -64,7 +64,7 @@ abstract class SqlDbSettings(
                     }
                 }
             } catch (e: ExposedSQLException) {
-                val s = "SQL findItem() error: ${e.message}"
+                val s = "SQL findItem() error: ${e.message} on SQL string: $sql"
                 System.err.println(s)
                 println(s)
             }
@@ -86,7 +86,7 @@ abstract class SqlDbSettings(
                     }
                 }
             } catch (e: ExposedSQLException) {
-                val s = "SQL findList() error: ${e.message}"
+                val s = "SQL findList() error: ${e.message} on SQL string: $sql"
                 System.err.println(s)
                 println(s)
             }
