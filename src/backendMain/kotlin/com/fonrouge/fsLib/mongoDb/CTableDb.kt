@@ -50,7 +50,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      * for the aggregation operation
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    var constPipelineList: List<List<Bson>>? = null
+    var constPipelineList: List<Bson>? = null
     var lookup: List<LookupBuilder<T, *, *, *>>? = null
         get() {
             if (field == null) {
@@ -103,10 +103,8 @@ abstract class CTableDb<T : BaseModel<U>, U>(
                     lookupBuilder.addToPipeline(pipeline, modelLookup)
                 }
         }
-        constPipelineList?.forEach { itemList ->
-            itemList.forEach {
-                pipeline.add(it)
-            }
+        constPipelineList?.forEach {
+            pipeline.add(it)
         }
         return pipeline
     }
