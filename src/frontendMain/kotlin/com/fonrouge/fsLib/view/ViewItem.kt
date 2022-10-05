@@ -61,18 +61,37 @@ abstract class ViewItem<T : BaseModel<U>, U>(
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.refreshViewItemPeriodic
 
+    /**
+     * Performs an API call to an upsert action on the backend,
+     * requires [formPanel] and checks validity before the API request
+     *
+     * @param block optional, executes with the API result [ItemContainer] as parameter
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun acceptUpsertAction(block: ((ItemContainer<T>) -> Unit)? = null) {
         val crudAction = urlParams?.crudAction
-        if (crudAction != null && crudAction in arrayOf(CrudAction.Create, CrudAction.Update)) {
-            configView.callItemService(
-                crudAction = crudAction,
-                callType = StateItem.CallType.Action,
-                itemId = JSON.stringify(itemId),
-                item = formPanel?.getData(),
-                contextDataUrl = urlParams?.contextDataUrl
-            ) { itemContainer ->
-                block?.let { it(itemContainer) }
-                itemContainer
+        formPanel?.let { formPanel ->
+            if (crudAction != null && crudAction in arrayOf(CrudAction.Create, CrudAction.Update)) {
+                if (formPanel.validate()) {
+                    configView.callItemService(
+                        crudAction = crudAction,
+                        callType = StateItem.CallType.Action,
+                        itemId = JSON.stringify(itemId),
+                        item = formPanel.getData(),
+                        contextDataUrl = urlParams?.contextDataUrl
+                    ) { itemContainer ->
+                        block?.let { it(itemContainer) }
+                        itemContainer
+                    }
+                } else {
+                    Toast.warning(
+                        message = "Form has incomplete data",
+                        options = ToastOptions(
+                            positionClass = ToastPosition.BOTTOMRIGHT,
+                            progressBar = true,
+                        )
+                    )
+                }
             }
         }
     }
@@ -116,24 +135,14 @@ abstract class ViewItem<T : BaseModel<U>, U>(
                 button("Accept", style = ButtonStyle.OUTLINESUCCESS) {
 //                                marginLeft = 10.px
                     onClick {
-                        if (formPanel?.validate() == true) {
-                            acceptUpsertAction {
-                                if (it.isOk) {
-                                    Toast.success("Info", it.msgOk)
-                                } else {
-                                    Toast.warning("!", it.msgError)
-                                }
-                                js("history.back()")
-                                Unit
+                        acceptUpsertAction {
+                            if (it.isOk) {
+                                Toast.success("Info", it.msgOk)
+                            } else {
+                                Toast.warning("!", it.msgError)
                             }
-                        } else {
-                            Toast.warning(
-                                message = "Form has incomplete data",
-                                options = ToastOptions(
-                                    positionClass = ToastPosition.BOTTOMRIGHT,
-                                    progressBar = true,
-                                )
-                            )
+                            js("history.back()")
+                            Unit
                         }
                     }
                 }
