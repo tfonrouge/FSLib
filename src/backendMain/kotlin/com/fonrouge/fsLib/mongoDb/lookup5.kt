@@ -9,7 +9,7 @@ fun lookup5(
     localField: String,
     foreignField: String,
     let: Document? = null,
-    pipeline: List<Bson>,
+    pipeline: List<Bson>? = null,
     newAs: String,
 ): Bson {
     val document = Document()
@@ -17,7 +17,7 @@ fun lookup5(
         .append("localField", localField)
         .append("foreignField", foreignField)
     let?.let { document.append("let", it) }
-    document.append("pipeline", pipeline)
+    pipeline?.let { document.append("pipeline", pipeline) }
     document.append("as", newAs).toBsonDocument()
     return BsonDocument("\$lookup", document.toBsonDocument())
 }

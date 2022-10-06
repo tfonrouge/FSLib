@@ -50,15 +50,15 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      * for the aggregation operation
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    var constPipelineList: List<Bson>? = null
-    var lookup: List<LookupBuilder<T, *, *, *>>? = null
+    var constLookupList: List<LookupPipelineBuilder<T, *, *>>? = null
+    var lookup: List<LookupPipelineBuilder<T, *, *>>? = null
         get() {
             if (field == null) {
                 field = lookupFun?.invoke() ?: listOf()
             }
             return field
         }
-    open val lookupFun: (() -> List<LookupBuilder<T, *, *, *>>)? = null
+    open val lookupFun: (() -> List<LookupPipelineBuilder<T, *, *>>)? = null
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
 
     @Suppress("unused")
@@ -70,7 +70,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      * Is the base for the find(), findOne(), findOneById()
      * accept a custom pipeline (list of Bson) argument and
      * also accept a list of ModelLookup to be added to the
-     * final pipelina on the aggregate operation
+     * final pipeline on the aggregate operation
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregate(
@@ -97,14 +97,14 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      */
     fun buildLookup(vararg modelLookup: ModelLookup<*, *>): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        lookup?.forEach { lookupBuilder ->
-            modelLookup.firstOrNull { lookupBuilder.resultProperty == it.resultProperty }
+        lookup?.forEach { lookupPipelineBuilder ->
+            modelLookup.firstOrNull { lookupPipelineBuilder.resultProperty == it.resultProperty }
                 ?.let { modelLookup: ModelLookup<*, *> ->
-                    lookupBuilder.addToPipeline(pipeline, modelLookup)
+                    pipeline += lookupPipelineBuilder.pipelineList(modelLookup)
                 }
         }
-        constPipelineList?.forEach {
-            pipeline.add(it)
+        constLookupList?.forEach {
+            pipeline.add(it.lookup())
         }
         return pipeline
     }

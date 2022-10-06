@@ -11,15 +11,17 @@ var AppUserRoleDb: CTableDb<AppUserRole, String> = object : CTableDb<AppUserRole
 ) {
     override val lookupFun = {
         listOf(
-            LookupBuilder(
+            lookupField(
                 cTableDb = AppUserDb::class,
-                localToForeign = AppUserRole::appUser_id localToForeign AppUser::_id,
-                resultProperty = AppUserRole::appUser,
+                localField = AppUserRole::appUser_id,
+                foreignField = AppUser::_id,
+                resultField = AppUserRole::appUser,
             ),
-            LookupBuilder(
+            lookupField(
                 cTableDb = AppRoleDb::class,
-                localToForeign = AppUserRole::appRole_id localToForeign AppRole::_id,
-                resultProperty = AppUserRole::appRole,
+                localField = AppUserRole::appRole_id,
+                foreignField = AppRole::_id,
+                resultField = AppUserRole::appRole,
             )
         )
     }
