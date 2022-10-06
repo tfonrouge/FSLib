@@ -41,8 +41,6 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
-    val resultProperties: List<KProperty1<T, *>> = mutableListOf()
-
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
@@ -54,7 +52,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      */
     @Suppress("MemberVisibilityCanBePrivate")
     var constLookupList: List<KProperty1<T, *>>? = null
-    var lookup: List<LookupPipelineBuilder<T, *, *>>? = null
+    var lookupPipelineBuilderList: List<LookupPipelineBuilder<T, *, *>>? = null
         get() {
             if (field == null) {
                 field = lookupFun?.invoke() ?: listOf()
@@ -93,16 +91,16 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     /**
      * Builds a list of bson (pipeline) to be used in the *lookup* stage of the aggregate operation.
      *
-     * Accepts a list of ModelLookup and appends the content of [constPipelineList]
+     * Always appends the content result properties from the [constLookupList]
      *
-     * @param modelLookup array of ModelLookup items
+     * @param arrayOfModelLookups array of ModelLookup items to extract lookup info
      * @return List<Bson>
      */
-    fun buildLookup(vararg modelLookup: ModelLookup<*, *>): List<Bson> {
+    fun buildLookup(vararg arrayOfModelLookups: ModelLookup<*, *>): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         val includedResultProperties = mutableSetOf<KProperty1<T, *>>()
-        lookup?.forEach { lookupPipelineBuilder ->
-            modelLookup.firstOrNull { lookupPipelineBuilder.resultProperty == it.resultProperty }
+        lookupPipelineBuilderList?.forEach { lookupPipelineBuilder ->
+            arrayOfModelLookups.firstOrNull { lookupPipelineBuilder.resultProperty == it.resultProperty }
                 ?.let { modelLookup: ModelLookup<*, *> ->
                     pipeline += lookupPipelineBuilder.pipelineList(modelLookup)
                     includedResultProperties.add(lookupPipelineBuilder.resultProperty)
@@ -110,10 +108,10 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         }
         constLookupList?.forEach { kProperty1 ->
             if (!includedResultProperties.contains(kProperty1)) {
-                lookup?.find { it.resultProperty == kProperty1 } {
-
+                lookupPipelineBuilderList?.find { it.resultProperty == kProperty1 }?.let { lookupPipelineBuilder ->
+                    pipeline.addAll(lookupPipelineBuilder.pipelineList())
+                    includedResultProperties.add(lookupPipelineBuilder.resultProperty)
                 }
-                pipeline.add(kProperty1.lookup())
             }
         }
         return pipeline
