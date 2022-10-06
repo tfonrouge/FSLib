@@ -25,6 +25,7 @@ import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
@@ -40,6 +41,8 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
+    val resultProperties: List<KProperty1<T,*>> = mutableListOf()
+
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
@@ -50,7 +53,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      * for the aggregation operation
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    var constLookupList: List<LookupPipelineBuilder<T, *, *>>? = null
+    var constLookupList: List<KProperty1<T, *>>? = null
     var lookup: List<LookupPipelineBuilder<T, *, *>>? = null
         get() {
             if (field == null) {
@@ -97,14 +100,18 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      */
     fun buildLookup(vararg modelLookup: ModelLookup<*, *>): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
+        val includedResultProperties = mutableSetOf<KProperty1<T,*>>()
         lookup?.forEach { lookupPipelineBuilder ->
             modelLookup.firstOrNull { lookupPipelineBuilder.resultProperty == it.resultProperty }
                 ?.let { modelLookup: ModelLookup<*, *> ->
                     pipeline += lookupPipelineBuilder.pipelineList(modelLookup)
+                    includedResultProperties.add(lookupPipelineBuilder.resultProperty)
                 }
         }
         constLookupList?.forEach {
-            pipeline.add(it.lookup())
+            if(!includedResultProperties.contains(it)) {
+                pipeline.add(it.lookup())
+            }
         }
         return pipeline
     }

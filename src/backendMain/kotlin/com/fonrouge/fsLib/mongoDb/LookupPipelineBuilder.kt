@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.mongoDb.CTableDb.Companion.map1
 import com.mongodb.client.model.UnwindOptions
 import org.bson.conversions.Bson
-import org.litote.kmongo.coroutine.singleResult
 import org.litote.kmongo.unwind
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -67,7 +66,7 @@ abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W>(
         val pipeline = mutableListOf<Bson>()
         pipeline += lookup(pip2)
         if (resultUnit == ResultUnit.One) {
-            pipeline += resultProperty.unwind(UnwindOptions().preserveNullAndEmptyArrays(true))
+            resultProperty.let { pipeline += resultProperty.unwind(UnwindOptions().preserveNullAndEmptyArrays(true)) }
         }
         return pipeline
     }
@@ -78,7 +77,7 @@ abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W>(
             localField = localField.name,
             foreignField = foreignField.name,
             pipeline = pipeline ?: this.pipeline,
-            newAs = resultProperty?.name ?: "",
+            newAs = resultProperty.name,
         )
     }
 
