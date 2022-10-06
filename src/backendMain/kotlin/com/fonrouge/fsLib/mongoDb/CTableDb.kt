@@ -41,7 +41,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
-    val resultProperties: List<KProperty1<T,*>> = mutableListOf()
+    val resultProperties: List<KProperty1<T, *>> = mutableListOf()
 
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
@@ -100,7 +100,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      */
     fun buildLookup(vararg modelLookup: ModelLookup<*, *>): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        val includedResultProperties = mutableSetOf<KProperty1<T,*>>()
+        val includedResultProperties = mutableSetOf<KProperty1<T, *>>()
         lookup?.forEach { lookupPipelineBuilder ->
             modelLookup.firstOrNull { lookupPipelineBuilder.resultProperty == it.resultProperty }
                 ?.let { modelLookup: ModelLookup<*, *> ->
@@ -108,9 +108,12 @@ abstract class CTableDb<T : BaseModel<U>, U>(
                     includedResultProperties.add(lookupPipelineBuilder.resultProperty)
                 }
         }
-        constLookupList?.forEach {
-            if(!includedResultProperties.contains(it)) {
-                pipeline.add(it.lookup())
+        constLookupList?.forEach { kProperty1 ->
+            if (!includedResultProperties.contains(kProperty1)) {
+                lookup?.find { it.resultProperty == kProperty1 } {
+
+                }
+                pipeline.add(kProperty1.lookup())
             }
         }
         return pipeline
