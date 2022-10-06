@@ -7,6 +7,7 @@ import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.model.base.IAppUser
+import com.mongodb.client.model.UpdateOptions
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
@@ -341,13 +342,18 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     }
 
     @Suppress("unused")
-    suspend fun updateOne(_id: U?, state: StateItem<T>): ItemContainer<T> {
+    suspend fun updateOne(
+        _id: U?,
+        state: StateItem<T>,
+        updateOptions: UpdateOptions = UpdateOptions()
+    ): ItemContainer<T> {
         try {
             state.item?.let {
                 checkDontPersist(it)
                 val result = mongoColl.coroutine.updateOne(
                     filter = it::_id eq _id,
-                    target = it
+                    target = it,
+                    options = updateOptions
                 )
                 return ItemContainer(isOk = result.modifiedCount == 1L)
             }
