@@ -126,6 +126,32 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         }
     }
 
+    private fun checkSignatures(json: String): BsonDocument {
+        val result = BsonDocument.parse(json)
+        val bson = BsonDocument()
+        val properties = klass.memberProperties
+        result.forEach { entry ->
+            properties.find { it.name == entry.key }?.let { kProperty: KProperty1<T, *> ->
+                if (!kProperty.hasAnnotation<DontPersist>()) {
+                    when (kProperty.returnType.classifier) {
+                        Double::class -> bson.append(
+                            entry.key, when (entry.value.bsonType) {
+                                BsonType.DOUBLE -> entry.value
+                                BsonType.INT32 -> BsonDouble((entry.value as BsonInt32).doubleValue())
+                                BsonType.INT64 -> BsonDouble((entry.value as BsonInt64).doubleValue())
+                                else -> entry.value.asDouble() // 'll throw exception
+                            }
+                        )
+
+
+                        else -> bson.append(entry.key, entry.value)
+                    }
+                }
+            }
+        }
+        return bson
+    }
+
     @Suppress("unused")
     suspend fun deleteOneById(_id: U?): ItemContainer<T> {
         if (_id != null) {
@@ -193,6 +219,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         }
     }
 
+    // TODO: Implement collect data from [state.json]
     @Suppress("unused")
     suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
         state.item?.let {
@@ -360,7 +387,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             state.json?.let {
                 val result = mongoColl.coroutine.updateOne(
                     filter = BaseModel<*>::_id eq _id,
-                    update = BsonDocument("\$set", BsonDocument.parse(it)),
+                    update = BsonDocument("\$set", checkSignatures(it)),
                     options = updateOptions
                 )
                 return ItemContainer(isOk = result.modifiedCount == 1L)
