@@ -259,7 +259,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             filter.forEach { remoteFilter ->
                 val kfield = kProperty1s.firstOrNull { it.name == remoteFilter.field }
                 val value: BsonValue? = when (kfield?.returnType?.classifier) {
-                    String::class, null -> {
+                    Array<String>::class, String::class, null -> {
                         when (remoteFilter.type) {
                             "like" -> BsonDocument(
                                 "\$regex",
@@ -376,7 +376,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     ): ItemContainer<T> {
         if (state.item != null) {
             checkDontPersist(state.item)
-            val result = try{
+            val result = try {
                 mongoColl.coroutine.updateOne(
                     filter = state.item::_id eq _id,
                     target = state.item,
