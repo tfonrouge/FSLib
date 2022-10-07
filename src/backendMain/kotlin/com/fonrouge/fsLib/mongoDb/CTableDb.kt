@@ -374,26 +374,32 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         state: StateItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemContainer<T> {
-        try {
-            state.item?.let {
-                checkDontPersist(it)
-                val result = mongoColl.coroutine.updateOne(
-                    filter = it::_id eq _id,
-                    target = it,
+        if (state.item != null) {
+            checkDontPersist(state.item)
+            val result = try{
+                mongoColl.coroutine.updateOne(
+                    filter = state.item::_id eq _id,
+                    target = state.item,
                     options = updateOptions
                 )
-                return ItemContainer(isOk = result.modifiedCount == 1L)
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                null
             }
-            state.json?.let {
-                val result = mongoColl.coroutine.updateOne(
-                    filter = BaseModel<*>::_id eq _id,
-                    update = BsonDocument("\$set", checkSignatures(it)),
+            return ItemContainer(isOk = result?.modifiedCount == 1L)
+        } else if (state.json != null) {
+            val b = BaseModel<U>::_id eq _id
+            val result = try {
+                mongoColl.coroutine.updateOne(
+                    filter = b,
+                    update = BsonDocument("\$set", checkSignatures(state.json)),
                     options = updateOptions
                 )
-                return ItemContainer(isOk = result.modifiedCount == 1L)
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                null
             }
-        } catch (e: Exception) {
-            return ItemContainer(isOk = false, msgError = e.message)
+            return ItemContainer(isOk = result?.modifiedCount == 1L)
         }
         return ItemContainer(isOk = false, msgError = "Invalid data on StateItem ...")
     }

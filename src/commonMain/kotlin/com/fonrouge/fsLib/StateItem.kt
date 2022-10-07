@@ -8,9 +8,9 @@ import kotlinx.serialization.json.Json
 
 @Suppress("unused")
 @Serializable
-class StateItem<T : BaseModel<*>>(
-    var item: T? = null,
-    var json: String? = null,
+data class StateItem<T : BaseModel<*>>(
+    val item: T? = null,
+    val json: String? = null,
     val crudAction: CrudAction = CrudAction.Read,
     val callType: CallType = CallType.Query,
     val state: String? = null,
