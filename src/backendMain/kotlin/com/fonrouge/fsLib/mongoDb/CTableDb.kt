@@ -360,7 +360,8 @@ abstract class CTableDb<T : BaseModel<U>, U>(
             state.json?.let {
                 val result = mongoColl.coroutine.updateOne(
                     filter = BaseModel<*>::_id eq _id,
-                    update = BsonDocument("\$set", BsonDocument.parse(it))
+                    update = BsonDocument("\$set", BsonDocument.parse(it)),
+                    options = updateOptions
                 )
                 return ItemContainer(isOk = result.modifiedCount == 1L)
             }
