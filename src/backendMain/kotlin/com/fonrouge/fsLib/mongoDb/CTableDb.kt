@@ -42,6 +42,8 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
+    var afterPipelineList: List<Bson>? = null
+
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
@@ -114,6 +116,9 @@ abstract class CTableDb<T : BaseModel<U>, U>(
                     includedResultProperties.add(lookupPipelineBuilder.resultProperty)
                 }
             }
+        }
+        afterPipelineList?.let {
+            pipeline.addAll(it)
         }
         return pipeline
     }
