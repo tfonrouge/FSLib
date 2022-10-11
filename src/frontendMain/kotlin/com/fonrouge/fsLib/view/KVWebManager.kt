@@ -34,13 +34,13 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
      * Global variable to allow periodic update on [ViewItem]
      * Set to true if periodic update is allowed
      */
-    var refreshViewItemPeriodic = false
+    var periodicUpdateDataViewItem = false
 
     /**
      * Global variable to allow periodic update on [ViewList]
      * Set to true if periodic update is allowed
      */
-    var refreshViewListPeriodic = false
+    var periodicUpdateDataViewList = false
 
     var viewStateObservableValue = ObservableValue<ViewState?>(null)
 

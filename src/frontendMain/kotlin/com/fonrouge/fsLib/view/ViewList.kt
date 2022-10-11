@@ -103,7 +103,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
      * Set to true if periodic update of [dataContainer] is allowed
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
-        get() = field ?: KVWebManager.refreshViewListPeriodic
+        get() = field ?: KVWebManager.periodicUpdateDataViewList
     var tabulator: TabulatorRemote<T, E>? = null
     var selectedIdList: List<Any?>? = null
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}

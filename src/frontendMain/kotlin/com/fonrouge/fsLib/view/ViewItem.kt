@@ -59,7 +59,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
      * Set to true if periodic update of [dataContainer] is allowed
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
-        get() = field ?: KVWebManager.refreshViewItemPeriodic
+        get() = field ?: KVWebManager.periodicUpdateDataViewItem
 
     /**
      * Performs an API call to an upsert action on the backend,

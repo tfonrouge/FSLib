@@ -42,15 +42,13 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
-    var afterPipelineList: List<Bson>? = null
-
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
         else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
 
     /**
-     * [List] of [Bson] that is *always* added in the [buildLookup] function
+     * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function
      * for the aggregation operation
      */
     @Suppress("MemberVisibilityCanBePrivate")
@@ -81,9 +79,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
         pipeline: List<Bson>? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): AggregatePublisher<T> {
-        val pip1 = mutableListOf<Bson>()
-        pipeline?.let { pip1.addAll(it) }
-        pip1.addAll(buildLookup(*modelLookup))
+        val pip1 = buildPipeline(pipeline, modelLookup)
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate:")
             println(pip1.json)
@@ -99,7 +95,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
      * @param arrayOfModelLookups array of ModelLookup items to extract lookup info
      * @return List<Bson>
      */
-    fun buildLookup(vararg arrayOfModelLookups: ModelLookup<*, *>): List<Bson> {
+    fun buildLookupList(vararg arrayOfModelLookups: ModelLookup<*, *>): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         val includedResultProperties = mutableSetOf<KProperty1<T, *>>()
         lookupPipelineBuilderList?.forEach { lookupPipelineBuilder ->
@@ -117,11 +113,25 @@ abstract class CTableDb<T : BaseModel<U>, U>(
                 }
             }
         }
-        afterPipelineList?.let {
-            pipeline.addAll(it)
-        }
         return pipeline
     }
+
+    /**
+     * Builds the aggregation pipeline, including lookups defined with [ModelLookup] lists
+     *
+     * The resulting pipeline (a [Bson] list) is build in the form:
+     * [pipeline] + [modelLookup] (parsed from [buildLookupList] function)
+     *
+     * @param pipeline the pipeline passed to the aggregation function
+     * @param modelLookup array of [ModelLookup] that will be added to the final pipeline
+     */
+    open fun buildPipeline(pipeline: List<Bson>? = null, modelLookup: Array<out ModelLookup<*, *>>): List<Bson> {
+        val result = mutableListOf<Bson>()
+        pipeline?.let { if (it.isNotEmpty()) result.addAll(it) }
+        result.addAll(buildLookupList(*modelLookup))
+        return result
+    }
+
 
     private fun checkDontPersist(item: T) {
         item::class.memberProperties.forEach { kProperty1 ->
