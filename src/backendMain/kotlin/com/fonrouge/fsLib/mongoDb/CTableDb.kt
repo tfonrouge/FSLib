@@ -384,7 +384,7 @@ abstract class CTableDb<T : BaseModel<U>, U>(
     }
 
     @Suppress("unused")
-    suspend fun updateOne(
+    suspend fun updateOneById(
         _id: U?,
         state: StateItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
