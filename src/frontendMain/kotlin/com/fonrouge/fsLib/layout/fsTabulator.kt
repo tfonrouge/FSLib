@@ -28,7 +28,7 @@ import org.w3c.dom.events.Event
 import kotlin.js.Date
 import kotlin.js.json
 
-inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
+inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
@@ -46,7 +46,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
+inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
@@ -56,9 +56,11 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
     val stateFunction = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
-        viewList.masterViewItem?.itemId?.let { itemId ->
-            contextDataUrl.contextClass = viewList.masterViewItem?.configView?.klass?.simpleName
-            contextDataUrl.contextId = JSON.stringify(itemId)
+        viewList.masterViewItem?.let { viewItem ->
+            viewItem.itemId?.let { itemId ->
+                contextDataUrl.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
+                contextDataUrl.contextId =  viewItem.encodedId // JSON.stringify(itemId)
+            }
         }
         contextDataUrl.params = JSON.stringify(urlParams?.params)
         stateJsonFun?.let {
@@ -92,7 +94,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
             pagination = true,
             paginationMode = PaginationMode.REMOTE,
             paginationCounter = "rows",
-            persistenceID = viewList.configView.klass.simpleName,
+            persistenceID = viewList.configView.itemKClass.simpleName,
             persistence = json(
                 "page" to json("page" to true),
             ),

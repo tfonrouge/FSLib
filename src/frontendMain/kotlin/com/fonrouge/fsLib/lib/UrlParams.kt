@@ -44,10 +44,10 @@ data class UrlParams(
             return params?.get("id") as? String
         }
 
-    fun addContext(item: BaseModel<*>?): UrlParams {
+    fun addContext(item: BaseModel<*>?, encodedId: String?): UrlParams {
         if (params == null) params = json()
         params?.set("contextClass", item?.let { item::class.simpleName })
-        params?.set("contextId", JSON.stringify(item?._id))
+        params?.set("contextId", encodedId)
         return this
     }
 

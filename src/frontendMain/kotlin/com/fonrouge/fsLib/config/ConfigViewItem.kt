@@ -21,8 +21,9 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataItem, U>(
-    val klass: KClass<T>,
+abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataItem, U : Any>(
+    val itemKClass: KClass<T>,
+    idKClass: KClass<U>? = null,
     label: String,
     viewFunc: KClass<V>,
     baseUrl: String = viewFunc.simpleName!!,
@@ -30,8 +31,9 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,
     val labelId: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" }
-) : ConfigViewContainer<T, V>(
-    name = klass.simpleName!!,
+) : ConfigViewContainer<T, V, U>(
+    idKClass = idKClass,
+    name = itemKClass.simpleName!!,
     label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl
@@ -88,7 +90,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         val paramList = listOf(
             itemId,
             Json.encodeToString(
-                serializer = StateItem.serializer(klass.serializer()),
+                serializer = StateItem.serializer(itemKClass.serializer()),
                 value = StateItem(
                     item = item,
                     json = null,
@@ -109,7 +111,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
             val itemContainer: ItemContainer<T> =
-                Json.decodeFromDynamic(ItemContainer.serializer(klass.serializer()), result)
+                Json.decodeFromDynamic(ItemContainer.serializer(itemKClass.serializer()), result)
             block(itemContainer)
         }
     }

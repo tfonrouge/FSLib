@@ -16,14 +16,14 @@ import io.kvision.state.ObservableList
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.TabulatorRemote
 import io.kvision.toast.Toast
-import io.kvision.utils.toKotlinObj
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import kotlin.reflect.KClass
+import kotlinx.serialization.serializer
 
 @Suppress("unused")
-abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
+abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     override val configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     configViewItem: ConfigViewItem<T, *, *, U>? = null,
     periodicUpdateDataView: Boolean? = null,
@@ -50,32 +50,10 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             val name = if (viewClassName.contains("ViewList")) {
                 viewClassName.replace("ViewList", "ViewItem")
             } else {
-                "ViewItem${configView.klass.js.name}"
+                "ViewItem${configView.itemKClass.js.name}"
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
         }
-
-    fun actionUrl(crudAction: CrudAction, itemId: U?): String? {
-        val urlParams = if (crudAction == CrudAction.Create) {
-            UrlParams(
-                "action" to CrudAction.Create.name
-            )
-        } else {
-            itemId?.let {
-                UrlParams(
-                    "action" to crudAction.name,
-                    "id" to JSON.stringify(itemId)
-                )
-            }
-        }
-        masterViewItem?.let {
-            urlParams?.addContext(it.dataContainer.value?.item)
-        } ?: urlParams?.addContext(this@ViewList.urlParams?.contextDataUrl)
-        masterViewItem?.callUpdateItemService()
-        return urlParams?.let {
-            configViewItem?.let { it.url + urlParams.toString() }
-        }
-    }
 
     /**
      * Observable that holds data list for the [ViewList]
@@ -86,6 +64,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
             tabulator?.update(dataContainer)
         }
+
     var jsTabulatorBuilt: Boolean = false
     var masterViewItem: ViewItem<*, *>? = null
         set(value) {
@@ -104,14 +83,38 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
+
     var tabulator: TabulatorRemote<T, E>? = null
     var selectedIdList: List<Any?>? = null
+    fun actionUrl(crudAction: CrudAction, item: T?): String? {
+        val urlParams = if (crudAction == CrudAction.Create) {
+            UrlParams(
+                "action" to CrudAction.Create.name
+            )
+        } else {
+            item?.let {
+                UrlParams(
+                    "action" to crudAction.name,
+                    "id" to encodedId(item)
+                )
+            }
+        }
+        masterViewItem?.let { viewItem ->
+            urlParams?.addContext(viewItem.dataContainer.value?.item, viewItem.encodedId)
+        } ?: urlParams?.addContext(this@ViewList.urlParams?.contextDataUrl)
+        masterViewItem?.callUpdateItemService()
+        return urlParams?.let {
+            configViewItem?.let { it.url + urlParams.toString() }
+        }
+    }
+
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
 
+    @OptIn(InternalSerializationApi::class)
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
         val item: T? = overItem?.let {
             try {
-                tabulator?.toKotlinObjTabulator(it, configView.klass)
+                tabulator?.toKotlinObjTabulator(it, configView.itemKClass)
             } catch (e: Exception) {
                 Toast.error(e.message ?: "", "Error decoding (toKotlinObj)")
                 e.printStackTrace()
@@ -119,6 +122,10 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             }
         }
         if (item != null) {
+            val encodedId = if (configView.idKClass != null) {
+                Json.encodeToString(serializer = configView.idKClass!!.serializer(), value = item._id)
+            } else JSON.stringify(item._id)
+            console.warn("item", item, "_id", encodedId, "encodedId", encodedId(item))
             val menu = mutableListOf<TabulatorMenuItem>()
             with(menu) {
                 val labelId = configViewItem?.labelId?.invoke(item)
@@ -131,24 +138,24 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
                 menuItem(
                     label = "Detail of",
                     icon = iconCrud(CrudAction.Read),
-                    url = actionUrl(CrudAction.Read, item._id)
+                    url = actionUrl(CrudAction.Read, item)
                 )
                 if (editable) {
                     menuItem(separator = true)
                     menuItem(
                         label = "Create",
                         icon = iconCrud(CrudAction.Create),
-                        url = actionUrl(CrudAction.Create, item._id)
+                        url = actionUrl(CrudAction.Create, item)
                     )
                     menuItem(
                         label = "Update",
                         icon = iconCrud(CrudAction.Update),
-                        url = actionUrl(CrudAction.Update, item._id)
+                        url = actionUrl(CrudAction.Update, item)
                     )
                     menuItem(
                         label = "Delete",
                         icon = iconCrud(CrudAction.Delete),
-                        url = actionUrl(CrudAction.Delete, item._id)
+                        url = actionUrl(CrudAction.Delete, item)
                     )
                 }
                 contextRowMenu(item)
@@ -156,15 +163,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             return menu.toTypedArray()
         }
         return null
-    }
-
-    open fun onRowSelected(item: T?) {}
-
-    abstract fun Container.pageListBody()
-
-    override fun Container.displayPage() {
-        pageBanner()
-        pageListBody()
     }
 
     override suspend fun dataUpdate() {
@@ -176,13 +174,27 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
         }
     }
 
+    override fun Container.displayPage() {
+        pageBanner()
+        pageListBody()
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    internal fun encodedId(item: T): String {
+        return configView.idKClass?.let { Json.encodeToString(it.serializer(), item._id) } ?: JSON.stringify(item._id)
+    }
+
+    open fun onRowSelected(item: T?) {}
+
+    abstract fun Container.pageListBody()
+
     fun updateLinks(item: T?, size: Int) {
         val id = item?._id
         navbarTabulator?.itemId = id
 //        navbarTabulator?.linkCreate?.url = actionUrl(CrudAction.Create, id)
-        navbarTabulator?.linkRead?.url = actionUrl(CrudAction.Read, id)
-        navbarTabulator?.linkUpdate?.url = actionUrl(CrudAction.Update, id)
-        navbarTabulator?.linkDelete?.url = actionUrl(CrudAction.Delete, id)
+        navbarTabulator?.linkRead?.url = actionUrl(CrudAction.Read, item)
+        navbarTabulator?.linkUpdate?.url = actionUrl(CrudAction.Update, item)
+        navbarTabulator?.linkDelete?.url = actionUrl(CrudAction.Delete, item)
         if (id != null && size == 1) {
             navbarTabulator?.linkRead?.show()
             navbarTabulator?.linkUpdate?.show()

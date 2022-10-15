@@ -20,10 +20,13 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseModel<U>, U>(
+abstract class ViewItem<T : BaseModel<U>, U : Any>(
     override val configView: ConfigViewItem<T, out ViewItem<T, U>, *, U>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
@@ -50,7 +53,7 @@ abstract class ViewItem<T : BaseModel<U>, U>(
 
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
-    var itemId: U? = null
+//    var itemId: U? = null
     var noBackButton = false
     var noPageBanner = false
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
@@ -305,6 +308,16 @@ abstract class ViewItem<T : BaseModel<U>, U>(
             }
         }
     }
+
+    @OptIn(InternalSerializationApi::class)
+    val encodedId: String?
+        get() {
+            return dataContainer.value?.item?._id?.let {
+                configView.idKClass?.let { kClass ->
+                    Json.encodeToString(kClass.serializer(), it)
+                } ?: JSON.stringify(it)
+            }
+        }
 
     override val label: String
         get() {

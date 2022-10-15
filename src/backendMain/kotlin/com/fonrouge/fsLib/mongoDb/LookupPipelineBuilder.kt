@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
 @Suppress("unused")
-fun <T : BaseModel<*>, U : BaseModel<W>, W> lookupField(
+fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupField(
     cTableDb: KClass<out CTableDb<U, W>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
@@ -29,7 +29,7 @@ fun <T : BaseModel<*>, U : BaseModel<W>, W> lookupField(
 }
 
 @Suppress("unused")
-fun <T : BaseModel<*>, U : BaseModel<W>, W> lookupFieldArray(
+fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupFieldArray(
     cTableDb: KClass<out CTableDb<U, W>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
@@ -48,7 +48,7 @@ fun <T : BaseModel<*>, U : BaseModel<W>, W> lookupFieldArray(
     ) {}
 }
 
-abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W>(
+abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W : Any>(
     private val cTableDb: KClass<out CTableDb<U, W>>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,

@@ -32,7 +32,7 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
-abstract class CTableDb<T : BaseModel<U>, U>(
+abstract class CTableDb<T : BaseModel<U>, U : Any>(
     private val klass: KClass<T>,
     var debug: Boolean? = null
 ) {

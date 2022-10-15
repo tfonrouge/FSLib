@@ -18,7 +18,7 @@ fun lookup5(
         .append("foreignField", foreignField)
     let?.let { document.append("let", it) }
     pipeline?.let {
-        if(pipeline.isNotEmpty()) document.append("pipeline", pipeline)
+        if (pipeline.isNotEmpty()) document.append("pipeline", pipeline)
     }
     document.append("as", newAs).toBsonDocument()
     return BsonDocument("\$lookup", document.toBsonDocument())

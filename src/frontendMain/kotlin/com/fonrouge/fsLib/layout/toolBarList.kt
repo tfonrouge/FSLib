@@ -13,7 +13,7 @@ import io.kvision.navbar.navLink
 import io.kvision.tabulator.RowRangeLookup
 import kotlinx.coroutines.launch
 
-fun <T : BaseModel<U>, U> Container.toolBarList(
+fun <T : BaseModel<U>, U : Any> Container.toolBarList(
     viewList: ViewList<T, *, U>,
     minToolbarSize: Boolean = true,
 ): NavbarTabulator<U> {

@@ -22,7 +22,7 @@ abstract class ConfigView<V : View>(
     val labelUrl: Pair<String, String> = label to url
 
     init {
-        if (this !is ConfigViewContainer<*, *>) {
+        if (this !is ConfigViewContainer<*, *, *>) {
             configViewMap[baseUrl] = this
         }
     }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import kotlin.js.Date
 
 abstract class ViewDataContainer<U : Any>(
-    configView: ConfigViewContainer<*, *>,
+    configView: ConfigViewContainer<*, *, *>,
     editable: Boolean = true,
     icon: String? = null,
 ) : View(

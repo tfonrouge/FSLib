@@ -9,15 +9,17 @@ import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IDataList, U>(
-    val klass: KClass<T>,
+abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IDataList, U : Any>(
+    val itemKClass: KClass<T>,
+    idKClass: KClass<U>? = null,
     label: String,
     viewFunc: KClass<V>,
     baseUrl: String = viewFunc.simpleName!!,
     val serverManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
-) : ConfigViewContainer<T, V>(
-    name = klass.simpleName!!,
+) : ConfigViewContainer<T, V, U>(
+    idKClass = idKClass,
+    name = itemKClass.simpleName!!,
     label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl
