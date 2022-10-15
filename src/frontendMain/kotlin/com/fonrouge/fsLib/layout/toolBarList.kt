@@ -22,51 +22,49 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
 
     return navbarTabulator(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
         nav {
-            if (viewList.editable) {
-                viewList.configViewItem?.let { configViewItem ->
-                    linkRead = navLink(
-                        label = if (minToolbarSize) "" else "Detail",
-                        icon = viewList.iconCrud(CrudAction.Read),
-                    ) {
-                        enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
-                    }
-                    navLink(
-                        label = if (minToolbarSize) "" else "Create",
-                        icon = viewList.iconCrud(CrudAction.Create),
-                        url = viewList.actionUrl(CrudAction.Create, null)
-                    ) {
-                        enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
-                    }
-                    linkUpdate = navLink(
-                        label = if (minToolbarSize) "" else "Update",
-                        icon = viewList.iconCrud(CrudAction.Update)
-                    ) {
-                        enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
-                    }
-                    linkDelete = navLink(
-                        label = if (minToolbarSize) "" else "Delete",
-                        icon = viewList.iconCrud(CrudAction.Delete)
-                    ) {
-                        enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
-                    }
+            viewList.configViewItem?.let { configViewItem ->
+                linkRead = navLink(
+                    label = if (minToolbarSize) "" else "Detail",
+                    icon = viewList.iconCrud(CrudAction.Read),
+                ) {
+                    enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                 }
-                navLink(label = "", icon = "fas fa-ellipsis-v")
+                navLink(
+                    label = if (minToolbarSize) "" else "Create",
+                    icon = viewList.iconCrud(CrudAction.Create),
+                    url = viewList.actionUrl(CrudAction.Create, null)
+                ) {
+                    enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
+                }
+                linkUpdate = navLink(
+                    label = if (minToolbarSize) "" else "Update",
+                    icon = viewList.iconCrud(CrudAction.Update)
+                ) {
+                    enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
+                }
+                linkDelete = navLink(
+                    label = if (minToolbarSize) "" else "Delete",
+                    icon = viewList.iconCrud(CrudAction.Delete)
+                ) {
+                    enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
+                }
+            }
+            navLink(label = "", icon = "fas fa-ellipsis-v")
 //                navLink(label = "", icon = "fas fa-clock", url = "JuanaLaCubana")
-                navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
-                    AppScope.launch {
-                        viewList.dataUpdate()
-                    }
+            navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
+                AppScope.launch {
+                    viewList.dataUpdate()
                 }
-                navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print").onClick {
-                    viewList.tabulator?.print(rowRangeLookup = RowRangeLookup.ALL, isStyled = true)
-                }
-                navLink(label = if (minToolbarSize) "" else "Export", icon = "fas fa-file-export").onClick {
-                    viewList.tabulator?.downloadCSV(
-                        fileName = "${viewList.label}.csv",
-                        dataSet = RowRangeLookup.ALL,
-                        includeBOM = true
-                    )
-                }
+            }
+            navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print").onClick {
+                viewList.tabulator?.print(rowRangeLookup = RowRangeLookup.ALL, isStyled = true)
+            }
+            navLink(label = if (minToolbarSize) "" else "Export", icon = "fas fa-file-export").onClick {
+                viewList.tabulator?.downloadCSV(
+                    fileName = "${viewList.label}.csv",
+                    dataSet = RowRangeLookup.ALL,
+                    includeBOM = true
+                )
             }
         }
     }
