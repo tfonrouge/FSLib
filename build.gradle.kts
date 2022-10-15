@@ -18,7 +18,6 @@ version = "1.2.13"
 repositories {
     mavenCentral()
     mavenLocal()
-    jcenter()
     gradlePluginPortal()
 }
 
