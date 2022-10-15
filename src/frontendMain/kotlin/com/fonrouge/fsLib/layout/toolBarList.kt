@@ -10,6 +10,7 @@ import io.kvision.core.enableTooltip
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
+import io.kvision.tabulator.RowRangeLookup
 import kotlinx.coroutines.launch
 
 fun <T : BaseModel<U>, U> Container.toolBarList(
@@ -50,11 +51,20 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                     }
                 }
                 navLink(label = "", icon = "fas fa-ellipsis-v")
-                navLink(label = "", icon = "fas fa-clock", url = "JuanaLaCubana")
+//                navLink(label = "", icon = "fas fa-clock", url = "JuanaLaCubana")
                 navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
                     AppScope.launch {
                         viewList.dataUpdate()
                     }
+                }
+                navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print").onClick {
+                    viewList.tabulator?.print(rowRangeLookup = RowRangeLookup.ALL, isStyled = true)
+                }
+                navLink(label = if (minToolbarSize) "" else "Export", icon = "fas fa-file-export").onClick {
+                    viewList.tabulator?.downloadCSV(
+                        fileName = "${viewList.label}.csv",
+                        dataSet = RowRangeLookup.ALL,
+                    )
                 }
             }
         }
