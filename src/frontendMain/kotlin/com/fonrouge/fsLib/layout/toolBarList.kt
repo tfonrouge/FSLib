@@ -64,6 +64,7 @@ fun <T : BaseModel<U>, U> Container.toolBarList(
                     viewList.tabulator?.downloadCSV(
                         fileName = "${viewList.label}.csv",
                         dataSet = RowRangeLookup.ALL,
+                        includeBOM = true
                     )
                 }
             }
