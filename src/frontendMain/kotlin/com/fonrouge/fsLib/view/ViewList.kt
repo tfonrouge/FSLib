@@ -111,7 +111,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
         val item: T? = overItem?.let {
             try {
-//                dynamicToKotlinObj(it, configView.klass)
                 tabulator?.toKotlinObjTabulator(it, configView.klass)
             } catch (e: Exception) {
                 Toast.error(e.message ?: "", "Error decoding (toKotlinObj)")
@@ -176,18 +175,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U>(
             }
         }
     }
-
-/*
-    fun dynamicToKotlinObj(data: dynamic, kClass: KClass<T>): T {
-        if (data._children != null) {
-            data._children =
-                data._children.unsafeCast<Array<dynamic>>().map { dynamicToKotlinObj(it, kClass) }.toTypedArray()
-        }
-        return serializer?.let {
-            jsonHelper?.decodeFromString(it, JSON.stringify(data))
-        } ?: toKotlinObj(data, kClass)
-    }
-*/
 
     fun updateLinks(item: T?, size: Int) {
         val id = item?._id
