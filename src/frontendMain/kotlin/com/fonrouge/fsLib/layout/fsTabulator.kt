@@ -29,13 +29,13 @@ import kotlin.js.Date
 import kotlin.js.json
 
 inline fun <reified T : BaseModel<U>, E : IDataList, U> Container.fsTabulator(
-    configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
+    configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): ViewList<T, E, U> {
-    val viewList = configView.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
+    val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
