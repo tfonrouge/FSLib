@@ -56,10 +56,12 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     val stateFunction = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
+        console.warn("masterViewItem.dataContainer.value", viewList.masterViewItem?.dataContainer?.value)
         viewList.masterViewItem?.let { viewItem ->
             viewItem.dataContainer.value?.item?.let {
                 contextDataUrl.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
                 contextDataUrl.contextId =  viewItem.encodedId()
+                console.warn("contextDataUrl", contextDataUrl)
             }
         }
         contextDataUrl.params = JSON.stringify(urlParams?.params)

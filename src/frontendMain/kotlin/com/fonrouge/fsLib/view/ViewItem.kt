@@ -338,6 +338,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                 itemId = encodedId(),
                 contextDataUrl = urlParams?.contextDataUrl
             ) { itemContainer ->
+                console.warn("ASSIGNING ViewItem.dataContainer", itemContainer)
                 dataContainer.value = itemContainer
                 itemContainer
             }
