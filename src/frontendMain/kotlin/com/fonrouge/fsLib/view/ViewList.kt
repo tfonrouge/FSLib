@@ -86,6 +86,13 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
 
     var tabulator: TabulatorRemote<T, E>? = null
     var selectedIdList: List<Any?>? = null
+
+    /**
+     * Builds a string URL for the CRUD action and item provided
+     *
+     * @param crudAction [CrudAction] element
+     * @param item the item list selected
+     */
     fun actionUrl(crudAction: CrudAction, item: T?): String? {
         val urlParams = if (crudAction == CrudAction.Create) {
             UrlParams(
