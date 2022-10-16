@@ -108,6 +108,14 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
         }
     }
 
+    /**
+     * Creates an [UrlParams] with the 'contextClass' and 'contextId' values from
+     * the [item] parameter provided.
+     */
+    fun urlContext(item: T?): UrlParams {
+        return UrlParams().addContext(item = item, encodedId(item))
+    }
+
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
 
     @OptIn(InternalSerializationApi::class)
@@ -176,8 +184,10 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     }
 
     @OptIn(InternalSerializationApi::class)
-    internal fun encodedId(item: T): String {
-        return configView.idKClass?.let { Json.encodeToString(it.serializer(), item._id) } ?: JSON.stringify(item._id)
+    internal fun encodedId(item: T?): String {
+        return item?.let {
+            configView.idKClass?.let { Json.encodeToString(it.serializer(), item._id) }
+        } ?: JSON.stringify(item?._id)
     }
 
     open fun onRowSelected(item: T?) {}
