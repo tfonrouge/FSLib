@@ -100,23 +100,6 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
         }
     }
 
-    fun callUpdateItemService() {
-        if (urlParams?.actionUpsert == true) {
-            formPanel?.getData()?.let {
-                configView.callItemService(
-                    crudAction = CrudAction.Update,
-                    callType = StateItem.CallType.Action,
-                    itemId = encodedId(),
-                    item = it,
-                    contextDataUrl = urlParams?.contextDataUrl
-                ) { itemContainer ->
-                    dataContainer.value = itemContainer
-                    itemContainer
-                }
-            }
-        }
-    }
-
     open fun Container.displayDefault(urlParams: UrlParams?) {
         centeredMessage("no CRUD action ...")
     }

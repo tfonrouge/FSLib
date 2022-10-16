@@ -102,7 +102,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
         masterViewItem?.let { viewItem ->
             urlParams?.addContext(viewItem.dataContainer.value?.item, viewItem.encodedId())
         } ?: urlParams?.addContext(this@ViewList.urlParams?.contextDataUrl)
-//        masterViewItem?.callUpdateItemService()
         return urlParams?.let {
             configViewItem?.let { it.url + urlParams.toString() }
         }
