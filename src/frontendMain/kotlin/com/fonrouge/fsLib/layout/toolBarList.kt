@@ -29,24 +29,26 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
                 ) {
                     enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                 }
-                navLink(
-                    label = if (minToolbarSize) "" else "Create",
-                    icon = viewList.iconCrud(CrudAction.Create),
-                    url = viewList.actionUrl(CrudAction.Create, null)
-                ) {
-                    enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
-                }
-                linkUpdate = navLink(
-                    label = if (minToolbarSize) "" else "Update",
-                    icon = viewList.iconCrud(CrudAction.Update)
-                ) {
-                    enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
-                }
-                linkDelete = navLink(
-                    label = if (minToolbarSize) "" else "Delete",
-                    icon = viewList.iconCrud(CrudAction.Delete)
-                ) {
-                    enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
+                if (viewList.editable) {
+                    navLink(
+                        label = if (minToolbarSize) "" else "Create",
+                        icon = viewList.iconCrud(CrudAction.Create),
+                        url = viewList.actionUrl(CrudAction.Create, null)
+                    ) {
+                        enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
+                    }
+                    linkUpdate = navLink(
+                        label = if (minToolbarSize) "" else "Update",
+                        icon = viewList.iconCrud(CrudAction.Update)
+                    ) {
+                        enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
+                    }
+                    linkDelete = navLink(
+                        label = if (minToolbarSize) "" else "Delete",
+                        icon = viewList.iconCrud(CrudAction.Delete)
+                    ) {
+                        enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
+                    }
                 }
             }
             navLink(label = "", icon = "fas fa-ellipsis-v")
