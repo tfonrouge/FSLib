@@ -61,18 +61,18 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         }
 
     fun urlRead(id: U): String {
-        val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Read.name)
+        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudAction.Read.name)
         return url + urlParams.toString()
     }
 
     @Suppress("unused")
     fun urlDelete(id: U): String {
-        val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Delete.name)
+        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudAction.Delete.name)
         return url + urlParams.toString()
     }
 
     fun urlUpdate(id: U): String {
-        val urlParams = UrlParams("id" to JSON.stringify(id), "action" to CrudAction.Update.name)
+        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudAction.Update.name)
         return url + urlParams.toString()
     }
 

@@ -53,7 +53,8 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
 
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
-//    var itemId: U? = null
+
+    //    var itemId: U? = null
     var noBackButton = false
     var noPageBanner = false
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
@@ -79,7 +80,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                     configView.callItemService(
                         crudAction = crudAction,
                         callType = StateItem.CallType.Action,
-                        itemId = JSON.stringify(itemId),
+                        itemId = encodedId(),
                         item = formPanel.getData(),
                         contextDataUrl = urlParams?.contextDataUrl
                     ) { itemContainer ->
@@ -105,7 +106,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                 configView.callItemService(
                     crudAction = CrudAction.Update,
                     callType = StateItem.CallType.Action,
-                    itemId = JSON.stringify(itemId),
+                    itemId = encodedId(),
                     item = it,
                     contextDataUrl = urlParams?.contextDataUrl
                 ) { itemContainer ->
@@ -195,7 +196,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                     ) { itemContainer ->
                         if (crudAction == CrudAction.Create && itemContainer.itemAlreadyOn) {
                             urlParams = UrlParams(
-                                "action" to CrudAction.Update.name, "id" to JSON.stringify(itemContainer.item?._id)
+                                "action" to CrudAction.Update.name, "id" to encodedId(itemContainer.item?._id)
                             )
                             @Suppress("UNUSED_VARIABLE")
                             val url = (configView.url + urlParams.toString()).asDynamic()
@@ -224,7 +225,6 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                         )
                         val crudAction1 = urlParams?.crudAction
                         if (itemContainer.isOk && crudAction1 != null) {
-                            itemId = itemContainer.item?._id
                             dataContainer.value = itemContainer
                             if (crudAction1 != CrudAction.Delete) {
                                 displayForm(crudAction1)
@@ -236,7 +236,8 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                     alignItems = AlignItems.CENTER,
                                     spacing = 10
                                 ) {
-                                    val id = itemContainer.item?.let { configView.labelId?.invoke(it) } ?: itemId
+                                    val id = itemContainer.item?.let { configView.labelId?.invoke(it) }
+                                        ?: itemContainer.item?._id
                                     div(content = "Please confirm delete of ${this@ViewItem.configView.label} '$id'") {
                                         fontSize = 1.5.em
                                     }
@@ -310,14 +311,13 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     }
 
     @OptIn(InternalSerializationApi::class)
-    val encodedId: String?
-        get() {
-            return dataContainer.value?.item?._id?.let {
-                configView.idKClass?.let { kClass ->
-                    Json.encodeToString(kClass.serializer(), it)
-                } ?: JSON.stringify(it)
+    fun encodedId(_id: U? = dataContainer.value?.item?._id): String {
+        return _id?.let {
+            configView.idKClass?.let { kClass ->
+                Json.encodeToString(kClass.serializer(), it)
             }
-        }
+        } ?: JSON.stringify(_id)
+    }
 
     override val label: String
         get() {
@@ -335,7 +335,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
             configView.callItemService(
                 crudAction = crudAction,
                 callType = StateItem.CallType.Query,
-                itemId = JSON.stringify(itemId),
+                itemId = encodedId(),
                 contextDataUrl = urlParams?.contextDataUrl
             ) { itemContainer ->
                 dataContainer.value = itemContainer

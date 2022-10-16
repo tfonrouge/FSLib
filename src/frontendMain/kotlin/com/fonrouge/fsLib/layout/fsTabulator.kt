@@ -57,9 +57,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
         viewList.masterViewItem?.let { viewItem ->
-            viewItem.itemId?.let { itemId ->
+            viewItem.dataContainer.value?.item?.let {
                 contextDataUrl.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
-                contextDataUrl.contextId =  viewItem.encodedId // JSON.stringify(itemId)
+                contextDataUrl.contextId =  viewItem.encodedId()
             }
         }
         contextDataUrl.params = JSON.stringify(urlParams?.params)

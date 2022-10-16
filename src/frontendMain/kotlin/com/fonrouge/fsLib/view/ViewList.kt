@@ -100,7 +100,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
             }
         }
         masterViewItem?.let { viewItem ->
-            urlParams?.addContext(viewItem.dataContainer.value?.item, viewItem.encodedId)
+            urlParams?.addContext(viewItem.dataContainer.value?.item, viewItem.encodedId())
         } ?: urlParams?.addContext(this@ViewList.urlParams?.contextDataUrl)
         masterViewItem?.callUpdateItemService()
         return urlParams?.let {
@@ -122,10 +122,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
             }
         }
         if (item != null) {
-            val encodedId = if (configView.idKClass != null) {
-                Json.encodeToString(serializer = configView.idKClass!!.serializer(), value = item._id)
-            } else JSON.stringify(item._id)
-            console.warn("item", item, "_id", encodedId, "encodedId", encodedId(item))
             val menu = mutableListOf<TabulatorMenuItem>()
             with(menu) {
                 val labelId = configViewItem?.labelId?.invoke(item)
