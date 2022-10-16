@@ -5,7 +5,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @Serializable
-class ContextDataUrl(
+data class ContextDataUrl(
     var filter: String? = null,
     var sorter: String? = null,
     var contextClass: String? = null,
