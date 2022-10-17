@@ -177,7 +177,6 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                         itemId = urlParams?.id,
                         contextDataUrl = urlParams?.contextDataUrl
                     ) { itemContainer ->
-                        console.warn("itemContainer.item", itemContainer.item)
                         if (crudAction == CrudAction.Create && itemContainer.itemAlreadyOn) {
                             urlParams = UrlParams(
                                 "action" to CrudAction.Update.name, "id" to encodedId(itemContainer.item?._id)
