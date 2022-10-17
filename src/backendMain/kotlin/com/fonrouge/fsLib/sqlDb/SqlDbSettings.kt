@@ -87,6 +87,7 @@ abstract class SqlDbSettings(
                     }
                 }
             } catch (e: ExposedSQLException) {
+                e.printStackTrace()
                 val s = "SQL findList() error: ${e.message} on SQL string: $sql"
                 System.err.println(s)
                 println(s)
@@ -138,25 +139,9 @@ abstract class SqlDbSettings(
                 result
             }
 
-            LocalDateTime::class -> when (resultSet) {
+            LocalDateTime::class, OffsetDateTime::class -> when (resultSet) {
                 is SQLServerResultSet -> {
                     val result = resultSet.getDateTime(index)?.toLocalDateTime()?.format(
-                        DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT)
-                    )
-                    field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
-                    result
-                }
-
-                else -> {
-                    val result = resultSet.getString(index)
-                    field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
-                    result
-                }
-            }
-
-            OffsetDateTime::class -> when (resultSet) {
-                is SQLServerResultSet -> {
-                    val result = resultSet.getDateTimeOffset(index)?.offsetDateTime?.toLocalDateTime()?.format(
                         DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT)
                     )
                     field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
