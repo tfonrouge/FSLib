@@ -156,7 +156,7 @@ abstract class SqlDbSettings(
 
             OffsetDateTime::class -> when (resultSet) {
                 is SQLServerResultSet -> {
-                    val result = resultSet.getDateTimeOffset(index)?. getDateTime(index)?.toLocalDateTime()?.format(
+                    val result = resultSet.getDateTimeOffset(index)?.offsetDateTime?.toLocalDateTime()?.format(
                         DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT)
                     )
                     field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
