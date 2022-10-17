@@ -59,7 +59,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         viewList.masterViewItem?.let { viewItem ->
             viewItem.dataContainer.value?.item?.let {
                 contextDataUrl.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
-                contextDataUrl.contextId =  viewItem.encodedId()
+                contextDataUrl.contextId = viewItem.encodedId()
             }
         }
         contextDataUrl.params = JSON.stringify(urlParams?.params)

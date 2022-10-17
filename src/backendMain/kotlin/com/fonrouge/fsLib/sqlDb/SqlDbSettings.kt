@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.sqlDb
 
 import com.fonrouge.fsLib.annotations.SqlField
 import com.fonrouge.fsLib.annotations.SqlOneToOne
-import com.fonrouge.fsLib.serializers.FSLocalDateTimeSerializer
+import com.fonrouge.fsLib.serializers.KV_DEFAULT_DATETIME_FORMAT
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -140,7 +141,23 @@ abstract class SqlDbSettings(
             LocalDateTime::class -> when (resultSet) {
                 is SQLServerResultSet -> {
                     val result = resultSet.getDateTime(index)?.toLocalDateTime()?.format(
-                        DateTimeFormatter.ofPattern(FSLocalDateTimeSerializer.KV_DEFAULT_DATETIME_FORMAT)
+                        DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT)
+                    )
+                    field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                    result
+                }
+
+                else -> {
+                    val result = resultSet.getString(index)
+                    field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                    result
+                }
+            }
+
+            OffsetDateTime::class -> when (resultSet) {
+                is SQLServerResultSet -> {
+                    val result = resultSet.getDateTimeOffset(index)?. getDateTime(index)?.toLocalDateTime()?.format(
+                        DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT)
                     )
                     field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
                     result

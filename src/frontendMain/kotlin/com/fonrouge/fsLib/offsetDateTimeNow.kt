@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib
 
-import io.kvision.types.LocalDateTime
+import io.kvision.types.OffsetDateTime
 import kotlin.js.Date
 
 @Suppress("unused", "RedundantVisibilityModifier")
-public actual fun localDateTimeNow(): LocalDateTime = Date()
+public actual fun offsetDateTimeNow(): OffsetDateTime = Date()
