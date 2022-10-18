@@ -39,10 +39,11 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     /**
      * Observable that holds data for the [ViewItem]
      */
-    var dataContainer: ObservableValue<ItemContainer<T>?> = ObservableValue(null)
+    internal var data: ObservableValue<ItemContainer<T>?> = ObservableValue(null)
+    val item: T? get() = data.value?.item
 
     init {
-        dataContainer.subscribe {
+        data.subscribe {
             it?.item?.let { item ->
                 labelBanner = label
                 formPanel?.setData(item)
@@ -60,7 +61,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
 
     /**
-     * Set to true if periodic update of [dataContainer] is allowed
+     * Set to true if periodic update of [data] is allowed
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewItem
@@ -143,18 +144,18 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
         }
         when (crudAction) {
             CrudAction.Create -> {
-                dataContainer.value?.item?.let {
+                item?.let {
                     formPanel?.setData(it)
                 }
             }
 
             CrudAction.Read -> {
-                dataContainer.value?.item?.let { formPanel?.setData(it) }
+                item?.let { formPanel?.setData(it) }
                 installUpdate(false)
             }
 
             CrudAction.Update -> {
-                dataContainer.value?.item?.let {
+                item?.let {
                     labelBanner = label
                     formPanel?.setData(it)
                 }
@@ -208,7 +209,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                         )
                         val crudAction1 = urlParams?.crudAction
                         if (itemContainer.isOk && crudAction1 != null) {
-                            dataContainer.value = itemContainer
+                            data.value = itemContainer
                             if (crudAction1 != CrudAction.Delete) {
                                 displayForm(crudAction1)
                             } else {
@@ -294,7 +295,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     }
 
     @OptIn(InternalSerializationApi::class)
-    fun encodedId(_id: U? = dataContainer.value?.item?._id): String {
+    fun encodedId(_id: U? = item?._id): String {
         return _id?.let {
             configView.idKClass?.let { kClass ->
                 Json.encodeToString(kClass.serializer(), it)
@@ -304,7 +305,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
 
     override val label: String
         get() {
-            return "${configView.label}: ${configView.labelId?.invoke(dataContainer.value?.item) ?: " < no - item > "}"
+            return "${configView.label}: ${configView.labelId?.invoke(item) ?: " < no - item > "}"
         }
 
     open fun onChangeDataContainer(itemContainer: ItemContainer<T>?) {
@@ -321,7 +322,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                 itemId = encodedId(),
                 contextDataUrl = urlParams?.contextDataUrl
             ) { itemContainer ->
-                dataContainer.value = itemContainer
+                data.value = itemContainer
                 itemContainer
             }
         }

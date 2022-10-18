@@ -58,13 +58,12 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     /**
      * Observable that holds data list for the [ViewList]
      */
-    var dataContainer: ObservableList<T>? = null
+    var data: ObservableList<T>? = null
         set(value) {
             field = value
             pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
-            tabulator?.update(dataContainer)
+            tabulator?.update(data)
         }
-
     var jsTabulatorBuilt: Boolean = false
     var masterViewItem: ViewItem<*, *>? = null
         set(value) {
@@ -73,13 +72,13 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
         }
     val parentContextUrlParams: String
         get() {
-            return masterViewItem?.dataContainer?.value?.let {
+            return masterViewItem?.data?.value?.let {
                 "&contextClass=${it::class.simpleName}&contextId=${it.item?._id}"
             } ?: ""
         }
 
     /**
-     * Set to true if periodic update of [dataContainer] is allowed
+     * Set to true if periodic update of [data] is allowed
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
@@ -107,7 +106,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
             }
         }
         masterViewItem?.let { viewItem ->
-            urlParams?.addContext(viewItem.dataContainer.value?.item, viewItem.encodedId())
+            urlParams?.addContext(viewItem.item, viewItem.encodedId())
         } ?: urlParams?.addContext(this@ViewList.urlParams?.contextDataUrl)
         return urlParams?.let {
             configViewItem?.let { it.url + urlParams.toString() }
