@@ -11,7 +11,7 @@ abstract class ConfigViewContainer<T : BaseModel<U>, V : ViewDataContainer<*>, U
     val idKClass: KClass<U>? = null,
     name: String,
     label: String,
-    viewFunc: KClass<V>,
+    viewFunc: KClass<out V>,
     baseUrl: String,
 ) : ConfigView<V>(
     name = name,
