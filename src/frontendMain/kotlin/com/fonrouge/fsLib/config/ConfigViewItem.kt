@@ -110,9 +110,14 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         )
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            val itemContainer: ItemContainer<T> =
-                Json.decodeFromDynamic(ItemContainer.serializer(itemKClass.serializer()), result)
-            block(itemContainer)
+            try {
+                val itemContainer: ItemContainer<T> =
+                    Json.decodeFromDynamic(ItemContainer.serializer(itemKClass.serializer()), result)
+                block(itemContainer)
+            } catch (e: Exception) {
+                console.error("Error decoding KClass", itemKClass, "with serialized value", result, "exception:", e)
+                e.printStackTrace()
+            }
         }
     }
 
