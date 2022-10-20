@@ -53,7 +53,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): ViewList<T, E, U> {
-    val stateFunction = {
+    viewList.stateFunction = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
         viewList.masterViewItem?.let { viewItem ->
@@ -84,18 +84,20 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     vPanel {
         viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
         viewList.tabulator = tabulatorRemote(
-            serviceManager = viewList.configView.serverManager,
+            serviceManager = viewList.configView.serviceManager,
             function = viewList.configView.function,
-            stateFunction = stateFunction,
+            stateFunction = viewList.stateFunction,
             serializer = viewList.serializer,
             options = TabulatorOptions(
                 columns = viewList.columnDefinitionList,
-                height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
+//                height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
                 layout = Layout.FITDATASTRETCH,
                 layoutColumnsOnNewData = true,
                 pagination = true,
                 paginationMode = PaginationMode.REMOTE,
                 paginationCounter = "rows",
+                paginationSize = 10,
+                paginationSizeSelector = true,
                 persistenceID = viewList.configView.itemKClass.simpleName,
                 persistence = json(
                     "page" to json("page" to true),
@@ -104,9 +106,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
                 filterMode = FilterMode.REMOTE,
                 sortMode = SortMode.REMOTE,
                 dataLoader = false,
-                dataLoaderLoading = "Loading.........",
-                paginationSize = 10,
-                paginationSizeSelector = true,
+//                dataLoaderLoading = "Loading.........",
                 autoResize = true,
             ),
         ) {

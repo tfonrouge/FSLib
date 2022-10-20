@@ -34,6 +34,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     editable = editable,
     icon = icon,
 ) {
+    var stateFunction: (() -> String)? = null
     var jsonHelper: Json? = null
     var serializer: KSerializer<T>? = null
     var module: SerializersModule? = null

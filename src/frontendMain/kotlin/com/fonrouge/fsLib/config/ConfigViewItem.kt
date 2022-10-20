@@ -27,7 +27,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
-    private val serverManager: KVServiceManager<E>,
+    private val serviceManager: KVServiceManager<E>,
     private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
     private val stateFunction: (() -> String)? = null,
     val labelId: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" }
@@ -85,7 +85,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         contextDataUrl: ContextDataUrl? = null,
         block: (ItemContainer<T>) -> ItemContainer<T>,
     ) {
-        val (url, method) = serverManager.requireCall(function)
+        val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
             itemId,

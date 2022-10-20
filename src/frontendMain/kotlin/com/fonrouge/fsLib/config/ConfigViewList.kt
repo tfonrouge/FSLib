@@ -15,7 +15,7 @@ abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IData
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
-    val serverManager: KVServiceManager<E>,
+    val serviceManager: KVServiceManager<E>,
     val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
 ) : ConfigViewContainer<T, V, U>(
     idKClass = idKClass,
