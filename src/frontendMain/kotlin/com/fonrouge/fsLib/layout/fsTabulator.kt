@@ -11,6 +11,7 @@ import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
+import io.kvision.panel.vPanel
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.types.DateSerializer
@@ -52,7 +53,6 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): ViewList<T, E, U> {
-    viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
     val stateFunction = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
@@ -81,81 +81,84 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         }.overwriteWith(serializersModule)
     }
 
-    viewList.tabulator = tabulatorRemote(
-        serviceManager = viewList.configView.serverManager,
-        function = viewList.configView.function,
-        stateFunction = stateFunction,
-        serializer = viewList.serializer,
-        options = TabulatorOptions(
-            columns = viewList.columnDefinitionList,
-            height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
-            layout = Layout.FITDATASTRETCH,
-            layoutColumnsOnNewData = true,
-            pagination = true,
-            paginationMode = PaginationMode.REMOTE,
-            paginationCounter = "rows",
-            persistenceID = viewList.configView.itemKClass.simpleName,
-            persistence = json(
-                "page" to json("page" to true),
+    vPanel {
+        viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
+        viewList.tabulator = tabulatorRemote(
+            serviceManager = viewList.configView.serverManager,
+            function = viewList.configView.function,
+            stateFunction = stateFunction,
+            serializer = viewList.serializer,
+            options = TabulatorOptions(
+                columns = viewList.columnDefinitionList,
+                height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
+                layout = Layout.FITDATASTRETCH,
+                layoutColumnsOnNewData = true,
+                pagination = true,
+                paginationMode = PaginationMode.REMOTE,
+                paginationCounter = "rows",
+                persistenceID = viewList.configView.itemKClass.simpleName,
+                persistence = json(
+                    "page" to json("page" to true),
+                ),
+                rowContextMenu = { viewList.contextRowMenuGenerator() },
+                filterMode = FilterMode.REMOTE,
+                sortMode = SortMode.REMOTE,
+                dataLoader = false,
+                dataLoaderLoading = "Loading.........",
+                paginationSize = 10,
+                paginationSizeSelector = true,
+                autoResize = true,
             ),
-            rowContextMenu = { viewList.contextRowMenuGenerator() },
-            filterMode = FilterMode.REMOTE,
-            sortMode = SortMode.REMOTE,
-            dataLoader = false,
-            dataLoaderLoading = "Loading.........",
-            paginationSize = 10,
-            paginationSizeSelector = true,
-            autoResize = true,
-        ),
-    ) {
-        init?.invoke(this)
-        id = viewList.urlParams?.toString()
-        fontSize = 0.75.em
-        onEvent {
-            rowSelectionChangedTabulator = {
-                val tList = self.getSelectedData()
-                val item = tList.let {
-                    if (it.isEmpty()) null else it[0]
+        ) {
+            init?.invoke(this)
+            id = viewList.urlParams?.toString()
+            fontSize = 0.75.em
+            onEvent {
+                rowSelectionChangedTabulator = {
+                    val tList = self.getSelectedData()
+                    val item = tList.let {
+                        if (it.isEmpty()) null else it[0]
+                    }
+                    viewList.updateLinks(item, tList.size)
+                    viewList.onRowSelected(item)
                 }
-                viewList.updateLinks(item, tList.size)
-                viewList.onRowSelected(item)
-            }
-            rowClickTabulator = {
-                self.toggleSelectRow(it.detail.asDynamic()._row)
-                it.preventDefault()
-            }
-        }
-        addAfterInsertHook {
-            /*
-            TODO: implement this in KVision
-             */
-            jsTabulator?.on("rowMouseOver") { event: Event, row: RowComponent ->
-                if (!event.defaultPrevented) {
-                    viewList.overItem = row.getData()
-                    ViewDataContainer.clearStartTime()
+                rowClickTabulator = {
+                    self.toggleSelectRow(it.detail.asDynamic()._row)
+                    it.preventDefault()
                 }
             }
-            jsTabulator?.on("menuOpened") {
-                viewList.menuOpenedState = true
-            }
-            jsTabulator?.on("menuClosed") {
-                viewList.menuOpenedState = false
-            }
-            jsTabulator?.on("tableBuilt") {
-                viewList.jsTabulatorBuilt = true
-            }
-            jsTabulator?.on("dataProcessing") {
-                window.setTimeout(
-                    {
-                        val list = viewList.selectedIdList
-                        if (list?.isNotEmpty() == true) {
-                            jsTabulator?.getRows("")?.firstOrNull {
-                                it.getData().asDynamic()["_id"] == list[0]
-                            }?.select?.invoke()
-                        }
-                    },
-                    0
-                )
+            addAfterInsertHook {
+                /*
+                TODO: implement this in KVision
+                 */
+                jsTabulator?.on("rowMouseOver") { event: Event, row: RowComponent ->
+                    if (!event.defaultPrevented) {
+                        viewList.overItem = row.getData()
+                        ViewDataContainer.clearStartTime()
+                    }
+                }
+                jsTabulator?.on("menuOpened") {
+                    viewList.menuOpenedState = true
+                }
+                jsTabulator?.on("menuClosed") {
+                    viewList.menuOpenedState = false
+                }
+                jsTabulator?.on("tableBuilt") {
+                    viewList.jsTabulatorBuilt = true
+                }
+                jsTabulator?.on("dataProcessing") {
+                    window.setTimeout(
+                        {
+                            val list = viewList.selectedIdList
+                            if (list?.isNotEmpty() == true) {
+                                jsTabulator?.getRows("")?.firstOrNull {
+                                    it.getData().asDynamic()["_id"] == list[0]
+                                }?.select?.invoke()
+                            }
+                        },
+                        0
+                    )
+                }
             }
         }
     }
