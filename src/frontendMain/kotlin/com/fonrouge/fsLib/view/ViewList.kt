@@ -6,18 +6,22 @@ import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.layout.NavbarTabulator
 import com.fonrouge.fsLib.layout.TabulatorMenuItem
 import com.fonrouge.fsLib.layout.menuItem
-import com.fonrouge.fsLib.layout.update
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
-import io.kvision.state.ObservableList
+import io.kvision.remote.CallAgent
+import io.kvision.remote.HttpMethod
+import io.kvision.remote.JsonRpcRequest
+import io.kvision.remote.RemoteSorter
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.TabulatorRemote
 import io.kvision.toast.Toast
+import io.kvision.utils.Serialization
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
@@ -34,6 +38,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     editable = editable,
     icon = icon,
 ) {
+    var apiUrl: String = ""
+    var apiMethod: HttpMethod = HttpMethod.GET
+    var apiCallAgent: CallAgent? = null
     var stateFunction: (() -> String)? = null
     var jsonHelper: Json? = null
     var serializer: KSerializer<T>? = null
@@ -56,15 +63,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
         }
 
-    /**
-     * Observable that holds data list for the [ViewList]
-     */
-    var data: ObservableList<T>? = null
-        set(value) {
-            field = value
-            pageBannerLink?.let { onUpdatePageBannerLink?.invoke(it) }
-            tabulator?.update(data)
-        }
     var jsTabulatorBuilt: Boolean = false
     var masterViewItem: ViewItem<*, *>? = null
         set(value) {
@@ -178,9 +176,52 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
             if (menuOpenedState != true) {
+                console.warn("dataUpdate...")
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
-                tabulator?.setPage(tabulator?.getPage() ?: 1)
+//                tabulator?.setPage(tabulator?.getPage() ?: 1)
+                apiCall()
             }
+        }
+    }
+
+    private fun apiCall() {
+        val page = tabulator?.jsTabulator?.getPage()?.toString()
+        val size = tabulator?.jsTabulator?.getPageSize()?.toString()
+        val filters = tabulator?.jsTabulator?.getHeaderFilters()?.let { JSON.stringify(it) }
+        val sorters =
+            tabulator?.jsTabulator?.getSorters()?.map {
+                RemoteSorter(it.field, it.dir)
+            }?.let { Json.encodeToString(it) }
+        val state = null
+        val requestFilter = null
+        val data1 =
+            Serialization.plain.encodeToString(
+                JsonRpcRequest(
+                    0, apiUrl,
+                    listOf(page, size, filters, sorters, state)
+                )
+            )
+        console.warn("PARAMS ->", data1)
+        apiCallAgent?.remoteCall(
+            apiUrl,
+            data1,
+            method = HttpMethod.valueOf(apiMethod.name),
+            requestFilter = requestFilter
+        )?.then { r: dynamic ->
+            val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+            console.warn("remoteCall result ->", result)
+            if (page != null) {
+                if (result.data == undefined) {
+                    result.data = js("[]")
+                }
+                result
+            } else if (result.data == undefined) {
+                js("[]")
+            } else {
+                result.data
+            }
+//            tabulator?.jsTabulator?.updateData(result.data)
+            tabulator?.jsTabulator?.replaceData(result.data, null, null)
         }
     }
 

@@ -12,6 +12,7 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
 import io.kvision.panel.vPanel
+import io.kvision.remote.CallAgent
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.types.DateSerializer
@@ -53,6 +54,13 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
 ): ViewList<T, E, U> {
+
+    viewList.configView.serviceManager.requireCall(viewList.configView.function).let {
+        viewList.apiUrl = it.first
+        viewList.apiMethod = it.second
+    }
+    viewList.apiCallAgent = CallAgent()
+
     viewList.stateFunction = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
