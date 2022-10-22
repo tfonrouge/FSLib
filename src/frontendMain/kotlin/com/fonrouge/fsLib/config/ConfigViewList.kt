@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.config
 
+import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.ListContainer
 import com.fonrouge.fsLib.model.base.BaseModel
@@ -16,7 +17,7 @@ abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IData
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     val serviceManager: KVServiceManager<E>,
-    val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> ListContainer<T>,
+    val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, ContextDataUrl?) -> ListContainer<T>,
 ) : ConfigViewContainer<T, V, U>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,

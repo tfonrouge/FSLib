@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.layout
 
+import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.model.ListContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
@@ -19,7 +20,7 @@ import kotlin.reflect.KClass
 
 class TabulatorListContainer<T : BaseModel<*>, E : Any>(
     serviceManager: KVServiceMgr<E>,
-    function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> ListContainer<T>,
+    function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, ContextDataUrl?) -> ListContainer<T>,
     stateFunction: (() -> String)?,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
@@ -105,7 +106,7 @@ class TabulatorListContainer<T : BaseModel<*>, E : Any>(
 
 inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> ListContainer<T>,
+    noinline function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, ContextDataUrl?) -> ListContainer<T>,
     noinline stateFunction: (() -> String)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),

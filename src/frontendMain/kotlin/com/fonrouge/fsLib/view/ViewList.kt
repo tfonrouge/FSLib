@@ -192,7 +192,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
             tabulator?.jsTabulator?.getSorters()?.map {
                 RemoteSorter(it.field, it.dir)
             }?.let { Json.encodeToString(it) }
-        val state = null
+        val state = stateFunction?.invoke()
         val requestFilter = null
         val data1 =
             Serialization.plain.encodeToString(
