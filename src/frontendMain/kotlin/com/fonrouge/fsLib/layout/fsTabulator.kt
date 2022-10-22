@@ -34,7 +34,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
-    noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
+    noinline contextDataUrlBlock: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E>.() -> Unit)? = null
 ): ViewList<T, E, U> {
     val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
@@ -42,7 +42,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     return fsTabulator(
         viewList = viewList,
         minToolbarSize = minToolbarSize,
-        stateJsonFun = stateJsonFun,
+        contextDataUrlBlock = contextDataUrlBlock,
         init = init
     )
 }
@@ -51,7 +51,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     minToolbarSize: Boolean = true,
-    noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
+    noinline contextDataUrlBlock: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E>.() -> Unit)? = null
 ): ViewList<T, E, U> {
 
@@ -71,7 +71,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
             }
         }
         contextDataUrl.params = JSON.stringify(urlParams?.params)
-        stateJsonFun?.let {
+        contextDataUrlBlock?.let {
             contextDataUrl.json = it(contextDataUrl).let { json -> JSON.stringify(json) }
         }
         Json.encodeToString(contextDataUrl)

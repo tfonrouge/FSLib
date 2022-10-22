@@ -41,7 +41,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     var apiUrl: String = ""
     var apiMethod: HttpMethod = HttpMethod.GET
     var apiCallAgent: CallAgent? = null
-    var stateFunction: (() -> String)? = null
     var jsonHelper: Json? = null
     var serializer: KSerializer<T>? = null
     var module: SerializersModule? = null
@@ -192,7 +191,8 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
             tabulator?.jsTabulator?.getSorters()?.map {
                 RemoteSorter(it.field, it.dir)
             }?.let { Json.encodeToString(it) }
-        val state = stateFunction?.invoke()
+//        val state = stateFunction?.invoke()
+        val state = null
         val requestFilter = null
         val data1 =
             Serialization.plain.encodeToString(
