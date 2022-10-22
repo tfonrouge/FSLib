@@ -1,10 +1,10 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.model.IDataList
+import com.fonrouge.fsLib.model.ListContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
-import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlin.reflect.KClass
@@ -16,7 +16,7 @@ abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IData
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     val serviceManager: KVServiceManager<E>,
-    val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> RemoteData<T>,
+    val function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, String?) -> ListContainer<T>,
 ) : ConfigViewContainer<T, V, U>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,

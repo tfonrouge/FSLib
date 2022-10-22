@@ -35,7 +35,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
-    noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
+    noinline init: (TabulatorListContainer<T, E>.() -> Unit)? = null
 ): ViewList<T, E, U> {
     val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
     viewList.masterViewItem = masterViewItem
@@ -52,7 +52,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     viewList: ViewList<T, E, U>,
     minToolbarSize: Boolean = true,
     noinline stateJsonFun: (ContextDataUrl.() -> Unit)? = null,
-    noinline init: (TabulatorRemote<T, E>.() -> Unit)? = null
+    noinline init: (TabulatorListContainer<T, E>.() -> Unit)? = null
 ): ViewList<T, E, U> {
 
     viewList.configView.serviceManager.requireCall(viewList.configView.function).let {
@@ -91,7 +91,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 
     vPanel {
         viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
-        viewList.tabulator = tabulatorRemote(
+        viewList.tabulator = tabulatorListContainer(
             serviceManager = viewList.configView.serviceManager,
             function = viewList.configView.function,
             stateFunction = viewList.stateFunction,

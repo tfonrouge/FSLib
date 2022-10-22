@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.layout.NavbarTabulator
+import com.fonrouge.fsLib.layout.TabulatorListContainer
 import com.fonrouge.fsLib.layout.TabulatorMenuItem
 import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.lib.UrlParams
@@ -16,7 +17,6 @@ import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.RemoteSorter
 import io.kvision.tabulator.ColumnDefinition
-import io.kvision.tabulator.TabulatorRemote
 import io.kvision.toast.Toast
 import io.kvision.utils.Serialization
 import kotlinx.serialization.InternalSerializationApi
@@ -82,7 +82,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
 
-    var tabulator: TabulatorRemote<T, E>? = null
+    var tabulator: TabulatorListContainer<T, E>? = null
     var selectedIdList: List<Any?>? = null
 
     /**

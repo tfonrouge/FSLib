@@ -5,13 +5,13 @@ import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.annotations.MongoDoc
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemContainer
+import com.fonrouge.fsLib.model.ListContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.model.base.IAppUser
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
-import io.kvision.remote.RemoteData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.CoroutineScope
@@ -342,11 +342,11 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun remoteData(
+    suspend fun listContainer(
         firstStage: FirstStage,
         vararg modelLookup: ModelLookup<*, *>
-    ): RemoteData<T> {
-        return RemoteData(
+    ): ListContainer<T> {
+        return ListContainer(
             data = aggregate(firstStage.pipeline, *modelLookup).toList(),
             last_page = firstStage.last_page,
             last_row = firstStage.last_row,
@@ -354,12 +354,12 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     /**
-     * Returns a [RemoteData] builded with the parameters provided
+     * Returns a [ListContainer] builded with the parameters provided
      *
      * @param other is an optional Bson list to be added at *end* of builded pipeline
      */
     @Suppress("unused")
-    suspend fun remoteData(
+    suspend fun listContainer(
         match: Bson? = null,
         sort: Bson? = null,
         page: Int? = null,
@@ -368,8 +368,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         sorter: List<RemoteSorter>? = null,
         other: List<Bson>? = null,
         vararg modelLookup: ModelLookup<*, *>
-    ): RemoteData<T> {
-        return remoteData(
+    ): ListContainer<T> {
+        return listContainer(
             firstStage = listFirstStage(
                 match = match,
                 sort = sort,
