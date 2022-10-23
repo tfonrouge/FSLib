@@ -45,6 +45,7 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     serializer = serializer,
     module = module
 ) {
+    var checksum: String? = null
     private var url: String
     private var method: HttpMethod
     private val callAgent: CallAgent
@@ -73,14 +74,19 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
         val sorters: List<RemoteSorter>? = jsTabulator?.getSorters()?.map {
             RemoteSorter(field = it.field, dir = it.dir)
         }
-        console.warn("PARAMS ->", data)
         promise(
             page = page,
             size = size,
             filters = filters,
             sorters = sorters,
         ).then { result: dynamic ->
-            jsTabulator?.replaceData(result.data, null, null)
+            console.warn("RESULT ->", result)
+            checksum = result.responseStatus.checksum as? String
+            val canIgnore = result.responseStatus.canIgnore as? Boolean
+            console.warn("CHECKSUM ->", checksum, "CAN IGNORE", canIgnore)
+            if (canIgnore != true) {
+                jsTabulator?.replaceData(result.data, null, null)
+            }
         }
     }
 
@@ -93,8 +99,9 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
         val contextDataUrl = contextDataUrlBlock?.invoke()?.copy(
             tabPage = page,
             tabSize = size,
-            tabFilters = filters,
-            tabSorters = sorters
+            tabFilter = filters,
+            tabSorter = sorters,
+            checksum = checksum,
         )
         val data =
             Serialization.plain.encodeToString(
@@ -112,7 +119,6 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
             requestFilter = requestFilter
         ).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            console.warn("remoteCall result ->", result)
             if (page != null) {
                 if (result.data == undefined) {
                     result.data = js("[]")

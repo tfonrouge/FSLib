@@ -160,9 +160,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
             if (menuOpenedState != true) {
-                console.warn("dataUpdate...")
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
-//                tabulator?.setPage(tabulator?.getPage() ?: 1)
                 tabulator?.apiCall()
             }
         }
