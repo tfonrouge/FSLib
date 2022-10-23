@@ -12,37 +12,29 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
 import io.kvision.panel.vPanel
-import io.kvision.remote.CallAgent
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
-import io.kvision.types.DateSerializer
-import io.kvision.utils.Serialization
 import io.kvision.utils.createInstance
 import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
-import kotlin.js.Date
 import kotlin.js.json
 
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     minToolbarSize: Boolean = true,
-    noinline contextDataUrlBlock: (ContextDataUrl.() -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E>.() -> Unit)? = null
+    noinline contextDataUrl: (ContextDataUrl.() -> Unit)? = null,
+    noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
     val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
         minToolbarSize = minToolbarSize,
-        contextDataUrlBlock = contextDataUrlBlock,
+        contextDataUrl = contextDataUrl,
         init = init
     )
 }
@@ -51,42 +43,24 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     minToolbarSize: Boolean = true,
-    noinline contextDataUrlBlock: (ContextDataUrl.() -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E>.() -> Unit)? = null
+    noinline contextDataUrl: (ContextDataUrl.() -> Unit)? = null,
+    noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
 
-    viewList.configView.serviceManager.requireCall(viewList.configView.function).let {
-        viewList.apiUrl = it.first
-        viewList.apiMethod = it.second
-    }
-    viewList.apiCallAgent = CallAgent()
-
-    viewList.stateFunction = {
+    val block = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
-        val contextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
+        val result: ContextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
         viewList.masterViewItem?.let { viewItem ->
             viewItem.item?.let {
-                contextDataUrl.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
-                contextDataUrl.contextId = viewItem.encodedId()
+                result.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
+                result.contextId = viewItem.encodedId()
             }
         }
-        contextDataUrl.params = JSON.stringify(urlParams?.params)
-        contextDataUrlBlock?.let {
-            contextDataUrl.json = it(contextDataUrl).let { json -> JSON.stringify(json) }
+        result.params = JSON.stringify(urlParams?.params)
+        contextDataUrl?.let {
+            result.json = it(result).let { json -> JSON.stringify(json) }
         }
-        Json.encodeToString(contextDataUrl)
-    }
-
-    viewList.serializer = T::class.serializer()
-    viewList.module = null
-    viewList.jsonHelper = Json(from = (Serialization.customConfiguration ?: Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    })) {
-        serializersModule = SerializersModule {
-            contextual(Date::class, DateSerializer)
-            viewList.module?.let { this.include(it) }
-        }.overwriteWith(serializersModule)
+        result
     }
 
     vPanel {
@@ -94,8 +68,8 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         viewList.tabulator = tabulatorListContainer(
             serviceManager = viewList.configView.serviceManager,
             function = viewList.configView.function,
-            stateFunction = viewList.stateFunction,
-            serializer = viewList.serializer,
+            contextDataUrlBlock = block,
+            serializer = T::class.serializer(),
             options = TabulatorOptions(
                 columns = viewList.columnDefinitionList,
 //                height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,

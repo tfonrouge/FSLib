@@ -12,18 +12,10 @@ import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
-import io.kvision.remote.CallAgent
-import io.kvision.remote.HttpMethod
-import io.kvision.remote.JsonRpcRequest
-import io.kvision.remote.RemoteSorter
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
-import io.kvision.utils.Serialization
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 
 @Suppress("unused")
@@ -38,13 +30,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     editable = editable,
     icon = icon,
 ) {
-    var apiUrl: String = ""
-    var apiMethod: HttpMethod = HttpMethod.GET
-    var apiCallAgent: CallAgent? = null
-    var jsonHelper: Json? = null
-    var serializer: KSerializer<T>? = null
-    var module: SerializersModule? = null
-
     /* dynamic content only used to get _id */
     var overItem: Any? = null
     var menuOpenedState: Boolean? = null
@@ -76,12 +61,12 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
         }
 
     /**
-     * Set to true if periodic update of [data] is allowed
+     * Set to true if periodic update of table data is allowed
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
 
-    var tabulator: TabulatorListContainer<T, E>? = null
+    var tabulator: TabulatorListContainer<T, E, U>? = null
     var selectedIdList: List<Any?>? = null
 
     /**
@@ -178,50 +163,8 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
                 console.warn("dataUpdate...")
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
 //                tabulator?.setPage(tabulator?.getPage() ?: 1)
-                apiCall()
+                tabulator?.apiCall()
             }
-        }
-    }
-
-    private fun apiCall() {
-        val page = tabulator?.jsTabulator?.getPage()?.toString()
-        val size = tabulator?.jsTabulator?.getPageSize()?.toString()
-        val filters = tabulator?.jsTabulator?.getHeaderFilters()?.let { JSON.stringify(it) }
-        val sorters =
-            tabulator?.jsTabulator?.getSorters()?.map {
-                RemoteSorter(it.field, it.dir)
-            }?.let { Json.encodeToString(it) }
-//        val state = stateFunction?.invoke()
-        val state = null
-        val requestFilter = null
-        val data1 =
-            Serialization.plain.encodeToString(
-                JsonRpcRequest(
-                    0, apiUrl,
-                    listOf(page, size, filters, sorters, state)
-                )
-            )
-        console.warn("PARAMS ->", data1)
-        apiCallAgent?.remoteCall(
-            apiUrl,
-            data1,
-            method = HttpMethod.valueOf(apiMethod.name),
-            requestFilter = requestFilter
-        )?.then { r: dynamic ->
-            val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            console.warn("remoteCall result ->", result)
-            if (page != null) {
-                if (result.data == undefined) {
-                    result.data = js("[]")
-                }
-                result
-            } else if (result.data == undefined) {
-                js("[]")
-            } else {
-                result.data
-            }
-//            tabulator?.jsTabulator?.updateData(result.data)
-            tabulator?.jsTabulator?.replaceData(result.data, null, null)
         }
     }
 

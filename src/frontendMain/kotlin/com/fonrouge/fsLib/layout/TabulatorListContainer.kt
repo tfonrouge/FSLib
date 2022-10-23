@@ -1,11 +1,14 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.ContextDataUrl
+import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.ListContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.remote.*
-import io.kvision.tabulator.*
+import io.kvision.tabulator.TableType
+import io.kvision.tabulator.Tabulator
+import io.kvision.tabulator.TabulatorOptions
 import io.kvision.utils.Serialization
 import kotlinx.browser.window
 import kotlinx.serialization.KSerializer
@@ -16,19 +19,20 @@ import kotlinx.serialization.modules.overwriteWith
 import org.w3c.dom.get
 import org.w3c.fetch.RequestInit
 import kotlin.js.JSON
+import kotlin.js.Promise
 import kotlin.reflect.KClass
 
-class TabulatorListContainer<T : BaseModel<*>, E : Any>(
+class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, ContextDataUrl?) -> ListContainer<T>,
-    stateFunction: (() -> String)?,
+    private val contextDataUrlBlock: (() -> ContextDataUrl)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
     className: String?,
     kClass: KClass<T>?,
     serializer: KSerializer<T>?,
     module: SerializersModule?,
-    requestFilter: (suspend RequestInit.() -> Unit)?
+    private val requestFilter: (suspend RequestInit.() -> Unit)?
 ) : Tabulator<T>(
     data = null,
     dataUpdateOnEdit = false,
@@ -39,6 +43,10 @@ class TabulatorListContainer<T : BaseModel<*>, E : Any>(
     serializer = serializer,
     module = module
 ) {
+    private var url: String
+    private var method: HttpMethod
+    private val callAgent: CallAgent
+
     override val jsonHelper = if (serializer != null) Json(
         from = (RemoteSerialization.customConfiguration ?: Serialization.customConfiguration ?: Json {
             ignoreUnknownKeys = true
@@ -54,73 +62,114 @@ class TabulatorListContainer<T : BaseModel<*>, E : Any>(
     private val kvUrlPrefix = window["kv_remote_url_prefix"]
     private val urlPrefix: String = if (kvUrlPrefix != undefined) "$kvUrlPrefix/" else ""
 
+    internal fun apiCall() {
+        val page = jsTabulator?.getPage()?.toString()
+        val size = jsTabulator?.getPageSize()?.toString()
+        val filters = jsTabulator?.getHeaderFilters()?.let { JSON.stringify(it) }
+        val sorters =
+            jsTabulator?.getSorters()?.map {
+                RemoteSorter(it.field, it.dir)
+            }?.let { Json.encodeToString(it) }
+        console.warn("PARAMS ->", data)
+        promise(
+            page = page,
+            size = size,
+            filters = filters,
+            sorters = sorters,
+        ).then { result: dynamic ->
+            jsTabulator?.replaceData(result.data, null, null)
+        }
+    }
+
+    private fun promise(
+        page: String?,
+        size: String?,
+        filters: String?,
+        sorters: String?,
+    ): Promise<dynamic> {
+        val contextDataUrl = contextDataUrlBlock?.invoke()
+        val data =
+            Serialization.plain.encodeToString(
+                JsonRpcRequest(
+                    0, url,
+                    listOf(
+                        page,
+                        size,
+                        filters,
+                        sorters,
+                        contextDataUrl?.let { Json.encodeToString(it) }
+                    )
+                )
+            )
+        return callAgent.remoteCall(
+            url,
+            data,
+            method = HttpMethod.valueOf(method.name),
+            requestFilter = requestFilter
+        ).then { r: dynamic ->
+            val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+            console.warn("remoteCall result ->", result)
+            if (page != null) {
+                if (result.data == undefined) {
+                    result.data = js("[]")
+                }
+                result
+            } else if (result.data == undefined) {
+                js("[]")
+            } else {
+                result.data
+            }
+            //            tabulator?.jsTabulator?.updateData(result.data)
+        }
+    }
+
     init {
-        val (url, method) = serviceManager.requireCall(function)
-
-        val callAgent = CallAgent()
-
+        serviceManager.requireCall(function).let {
+            url = it.first
+            method = it.second
+        }
+        callAgent = CallAgent()
         options.ajaxURL = urlPrefix + url.drop(1)
         options.ajaxRequestFunc = { _, _, params ->
-            @Suppress("UnsafeCastFromDynamic")
             val page = if (params.page != null) "" + params.page else null
-
-            @Suppress("UnsafeCastFromDynamic")
             val size = if (params.size != null) "" + params.size else null
-
-            @Suppress("UnsafeCastFromDynamic")
             val filters = if (params.filter != null) {
                 JSON.stringify(params.filter)
             } else {
                 null
             }
-
-            @Suppress("UnsafeCastFromDynamic")
             val sorters = if (params.sort != null) {
                 JSON.stringify(params.sort)
             } else {
                 null
             }
-            val state = stateFunction?.invoke()?.let { JSON.stringify(it) }
-
-            @Suppress("UnsafeCastFromDynamic")
-            val data =
-                Serialization.plain.encodeToString(JsonRpcRequest(0, url, listOf(page, size, filters, sorters, state)))
-            callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name), requestFilter = requestFilter)
-                .then { r: dynamic ->
-                    val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-                    @Suppress("UnsafeCastFromDynamic")
-                    if (page != null) {
-                        if (result.data == undefined) {
-                            result.data = js("[]")
-                        }
-                        result
-                    } else if (result.data == undefined) {
-                        js("[]")
-                    } else {
-                        result.data
-                    }
-                }
+            promise(
+                page = page,
+                size = size,
+                filters = filters,
+                sorters = sorters,
+            )
         }
     }
 }
 
-inline fun <reified T : BaseModel<*>, E : Any> Container.tabulatorListContainer(
+inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
     noinline function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, ContextDataUrl?) -> ListContainer<T>,
-    noinline stateFunction: (() -> String)? = null,
+    noinline contextDataUrlBlock: (() -> ContextDataUrl)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
     className: String? = null,
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
     noinline requestFilter: (suspend RequestInit.() -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E>.() -> Unit)? = null
-): TabulatorListContainer<T, E> {
+    noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
+): TabulatorListContainer<T, E, U> {
     val tabulatorListContainer =
         TabulatorListContainer(
             serviceManager,
             function,
-            stateFunction,
+            contextDataUrlBlock,
             options,
             types,
             className,
