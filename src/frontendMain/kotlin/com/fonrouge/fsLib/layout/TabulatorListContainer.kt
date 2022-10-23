@@ -11,8 +11,8 @@ import io.kvision.tabulator.Tabulator
 import io.kvision.tabulator.TabulatorOptions
 import io.kvision.utils.Serialization
 import kotlinx.browser.window
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
@@ -22,9 +22,10 @@ import kotlin.js.JSON
 import kotlin.js.Promise
 import kotlin.reflect.KClass
 
+@OptIn(InternalSerializationApi::class)
 class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
-    function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, ContextDataUrl?) -> ListContainer<T>,
+    function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
     private val contextDataUrlBlock: (() -> ContextDataUrl)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
@@ -63,13 +64,14 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     private val urlPrefix: String = if (kvUrlPrefix != undefined) "$kvUrlPrefix/" else ""
 
     internal fun apiCall() {
-        val page = jsTabulator?.getPage()?.toString()
-        val size = jsTabulator?.getPageSize()?.toString()
-        val filters = jsTabulator?.getHeaderFilters()?.let { JSON.stringify(it) }
-        val sorters =
-            jsTabulator?.getSorters()?.map {
-                RemoteSorter(it.field, it.dir)
-            }?.let { Json.encodeToString(it) }
+        val page: Int? = jsTabulator?.getPage() as? Int
+        val size: Int? = jsTabulator?.getPageSize()?.toInt()
+        val filters: List<RemoteFilter>? = jsTabulator?.getHeaderFilters()?.map {
+            RemoteFilter(field = it.field, type = it.field, value = "${it.value}")
+        }
+        val sorters: List<RemoteSorter>? = jsTabulator?.getSorters()?.map {
+            RemoteSorter(field = it.field, dir = it.dir)
+        }
         console.warn("PARAMS ->", data)
         promise(
             page = page,
@@ -82,21 +84,22 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     }
 
     private fun promise(
-        page: String?,
-        size: String?,
-        filters: String?,
-        sorters: String?,
+        page: Int?,
+        size: Int?,
+        filters: List<RemoteFilter>?,
+        sorters: List<RemoteSorter>?,
     ): Promise<dynamic> {
-        val contextDataUrl = contextDataUrlBlock?.invoke()
+        val contextDataUrl = contextDataUrlBlock?.invoke()?.let {
+            it.tabPage = page
+            it.tabSize = size
+            it.tabFilter = filters
+            it.tabSorter = sorters
+        }
         val data =
             Serialization.plain.encodeToString(
                 JsonRpcRequest(
                     0, url,
                     listOf(
-                        page,
-                        size,
-                        filters,
-                        sorters,
                         contextDataUrl?.let { Json.encodeToString(it) }
                     )
                 )
@@ -131,15 +134,18 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
         callAgent = CallAgent()
         options.ajaxURL = urlPrefix + url.drop(1)
         options.ajaxRequestFunc = { _, _, params ->
-            val page = if (params.page != null) "" + params.page else null
-            val size = if (params.size != null) "" + params.size else null
+            val page: Int? = params.page as? Int
+            val size: Int? = params.size as? Int
             val filters = if (params.filter != null) {
-                JSON.stringify(params.filter)
+                Json.decodeFromString(ListSerializer(RemoteFilter::class.serializer()), JSON.stringify(params.filter))
             } else {
                 null
             }
             val sorters = if (params.sort != null) {
                 JSON.stringify(params.sort)
+                params.sort.forEach {
+                    
+                }
             } else {
                 null
             }
@@ -155,7 +161,7 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
 
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(Int?, Int?, List<RemoteFilter>?, List<RemoteSorter>?, ContextDataUrl?) -> ListContainer<T>,
+    noinline function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
     noinline contextDataUrlBlock: (() -> ContextDataUrl)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),

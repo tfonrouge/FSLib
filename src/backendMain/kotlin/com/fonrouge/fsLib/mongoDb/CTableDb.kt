@@ -18,12 +18,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
+import java.util.zip.CRC32
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
@@ -341,15 +346,21 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         }
     }
 
+    @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
     suspend fun listContainer(
         firstStage: FirstStage,
         vararg modelLookup: ModelLookup<*, *>
     ): ListContainer<T> {
+        val list = aggregate(firstStage.pipeline, *modelLookup).toList()
+        val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
+        val crC32 = CRC32()
+        crC32.update(encoded.toByteArray())
         return ListContainer(
-            data = aggregate(firstStage.pipeline, *modelLookup).toList(),
+            data = list,
             last_page = firstStage.last_page,
             last_row = firstStage.last_row,
+            responseStatus = ListContainer.ResponseStatus(checksum = crC32.value)
         )
     }
 
