@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.annotations.MongoDoc
@@ -12,8 +13,6 @@ import com.mongodb.client.model.UpdateOptions
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
-import io.kvision.remote.RemoteFilter
-import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -265,18 +264,15 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     suspend fun listFirstStage(
         match: Bson? = null,
         sort: Bson? = null,
-        page: Int? = null,
-        size: Int? = null,
-        filter: List<RemoteFilter>? = null,
-        sorter: List<RemoteSorter>? = null,
+        contextDataUrl: ContextDataUrl? = null,
         other: List<Bson>? = null,
     ): FirstStage {
         val pipeline = mutableListOf<Bson>()
         val matchDocument = match?.toBsonDocument()?.get("\$match")?.asDocument() ?: match?.toBsonDocument()
-        val filterDocument = if (!filter.isNullOrEmpty()) {
+        val filterDocument = if (!contextDataUrl?.tabFilters.isNullOrEmpty()) {
             val bdoc = BsonDocument()
             val kProperty1s = klass.memberProperties
-            filter.forEach { remoteFilter ->
+            contextDataUrl?.tabFilters?.forEach { remoteFilter ->
                 val kfield = kProperty1s.firstOrNull { it.name == remoteFilter.field }
                 val value: BsonValue? = when (kfield?.returnType?.classifier) {
                     Array<String>::class, String::class, null -> {
@@ -302,9 +298,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         var sortDocument: BsonDocument? = null
         if (sort != null) {
             sortDocument = sort.toBsonDocument()?.get("\$sort")?.asDocument() ?: sort.toBsonDocument()
-        } else if (!sorter.isNullOrEmpty()) {
+        } else if (!contextDataUrl?.tabSorters.isNullOrEmpty()) {
             sortDocument = BsonDocument()
-            sorter.forEach { remoteSorter ->
+            contextDataUrl?.tabSorters?.forEach { remoteSorter ->
                 sortDocument.append(
                     remoteSorter.field, when (remoteSorter.dir) {
                         "asc" -> BsonInt32(1)
@@ -315,7 +311,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             }
         }
         val count = mongoColl.countDocuments(and(matchDocument, filterDocument)).awaitFirstOrNull() ?: 0L
-        if (page == null) {
+        if (contextDataUrl?.tabPage == null) {
             matchDocument?.let { pipeline.add(match(matchDocument)) }
             filterDocument?.let { pipeline.add(match(filterDocument)) }
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
@@ -327,9 +323,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 last_row = null,
             )
         } else {
-            val nSize = size ?: 10
+            val nSize = contextDataUrl.tabSize ?: 10
             val maxPage = ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt()
-            val nPage = kotlin.math.min(maxPage, page)
+            val nPage = kotlin.math.min(maxPage, contextDataUrl.tabPage)
             val nSkip = nSize * (nPage - 1)
             matchDocument?.let { pipeline.add(match(matchDocument)) }
             filterDocument?.let { pipeline.add(match(filterDocument)) }
@@ -373,10 +369,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     suspend fun listContainer(
         match: Bson? = null,
         sort: Bson? = null,
-        page: Int? = null,
-        size: Int? = null,
-        filter: List<RemoteFilter>? = null,
-        sorter: List<RemoteSorter>? = null,
+        contextDataUrl: ContextDataUrl?,
         other: List<Bson>? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): ListContainer<T> {
@@ -384,10 +377,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             firstStage = listFirstStage(
                 match = match,
                 sort = sort,
-                page = page,
-                size = size,
-                filter = filter,
-                sorter = sorter,
+                contextDataUrl = contextDataUrl,
                 other = other,
             ),
             *modelLookup

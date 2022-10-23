@@ -14,6 +14,7 @@ import kotlinx.browser.window
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
 import org.w3c.dom.get
@@ -22,7 +23,7 @@ import kotlin.js.JSON
 import kotlin.js.Promise
 import kotlin.reflect.KClass
 
-@OptIn(InternalSerializationApi::class)
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
@@ -89,12 +90,12 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
         filters: List<RemoteFilter>?,
         sorters: List<RemoteSorter>?,
     ): Promise<dynamic> {
-        val contextDataUrl = contextDataUrlBlock?.invoke()?.let {
-            it.tabPage = page
-            it.tabSize = size
-            it.tabFilter = filters
-            it.tabSorter = sorters
-        }
+        val contextDataUrl = contextDataUrlBlock?.invoke()?.copy(
+            tabPage = page,
+            tabSize = size,
+            tabFilters = filters,
+            tabSorters = sorters
+        )
         val data =
             Serialization.plain.encodeToString(
                 JsonRpcRequest(
@@ -142,10 +143,17 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
                 null
             }
             val sorters = if (params.sort != null) {
+                val j = js("[]")
                 JSON.stringify(params.sort)
-                params.sort.forEach {
-                    
-                }
+                js(
+                    """
+                    params.sort.forEach(function(value) {
+                        j.push({"field": value["field"], "dir": value["dir"]})
+                    })
+                """
+                )
+                console.warn(">>>", j)
+                Json.decodeFromDynamic(ListSerializer(RemoteSorter::class.serializer()), j)
             } else {
                 null
             }

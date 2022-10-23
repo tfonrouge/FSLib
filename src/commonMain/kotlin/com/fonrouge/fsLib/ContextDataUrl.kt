@@ -8,10 +8,10 @@ import kotlinx.serialization.json.Json
 
 @Serializable
 data class ContextDataUrl(
-    var tabPage: Int? = null,
-    var tabSize: Int? = null,
-    var tabFilter: List<RemoteFilter>? = null,
-    var tabSorter: List<RemoteSorter>? = null,
+    val tabPage: Int? = null,
+    val tabSize: Int? = null,
+    val tabFilters: List<RemoteFilter>? = null,
+    val tabSorters: List<RemoteSorter>? = null,
     var filter: String? = null,
     var sorter: String? = null,
     var contextClass: String? = null,
