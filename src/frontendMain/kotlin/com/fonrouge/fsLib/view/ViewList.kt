@@ -12,7 +12,7 @@ import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
-import io.kvision.tabulator.ColumnDefinition
+import io.kvision.tabulator.*
 import io.kvision.toast.Toast
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
@@ -106,13 +106,12 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
 
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
 
-    @OptIn(InternalSerializationApi::class)
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
         val item: T? = overItem?.let {
             try {
                 tabulator?.toKotlinObjTabulator(it, configView.itemKClass)
             } catch (e: Exception) {
-                Toast.error(e.message ?: "", "Error decoding (toKotlinObj)")
+                Toast.error(e.message ?: "", "Error decoding (toKotlinObjTabulator)")
                 e.printStackTrace()
                 null
             }

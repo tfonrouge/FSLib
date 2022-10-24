@@ -25,6 +25,7 @@ import kotlin.js.json
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
+    options: TabulatorOptions<T>? = null,
     minToolbarSize: Boolean = true,
     noinline contextDataUrl: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
@@ -33,6 +34,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
+        options = options,
         minToolbarSize = minToolbarSize,
         contextDataUrl = contextDataUrl,
         init = init
@@ -42,10 +44,32 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
+    options: TabulatorOptions<T>? = null,
     minToolbarSize: Boolean = true,
     noinline contextDataUrl: (ContextDataUrl.() -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
+    val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
+        columns = viewList.columnDefinitionList,
+//                height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
+        layout = Layout.FITDATASTRETCH,
+        layoutColumnsOnNewData = true,
+        pagination = true,
+        paginationMode = PaginationMode.REMOTE,
+        paginationCounter = "rows",
+        paginationSize = 10,
+        paginationSizeSelector = true,
+        persistenceID = viewList.configView.itemKClass.simpleName,
+        persistence = json(
+            "page" to json("page" to true),
+        ),
+        filterMode = FilterMode.REMOTE,
+        sortMode = SortMode.REMOTE,
+        rowContextMenu = { viewList.contextRowMenuGenerator() },
+        dataLoader = false,
+//                dataLoaderLoading = "Loading.........",
+        autoResize = true,
+    )
 
     val block = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
@@ -70,27 +94,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
             function = viewList.configView.function,
             contextDataUrlBlock = block,
             serializer = T::class.serializer(),
-            options = TabulatorOptions(
-                columns = viewList.columnDefinitionList,
-//                height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
-                layout = Layout.FITDATASTRETCH,
-                layoutColumnsOnNewData = true,
-                pagination = true,
-                paginationMode = PaginationMode.REMOTE,
-                paginationCounter = "rows",
-                paginationSize = 10,
-                paginationSizeSelector = true,
-                persistenceID = viewList.configView.itemKClass.simpleName,
-                persistence = json(
-                    "page" to json("page" to true),
-                ),
-                rowContextMenu = { viewList.contextRowMenuGenerator() },
-                filterMode = FilterMode.REMOTE,
-                sortMode = SortMode.REMOTE,
-                dataLoader = false,
-//                dataLoaderLoading = "Loading.........",
-                autoResize = true,
-            ),
+            options = tabOpt,
         ) {
             init?.invoke(this)
             id = viewList.urlParams?.toString()
