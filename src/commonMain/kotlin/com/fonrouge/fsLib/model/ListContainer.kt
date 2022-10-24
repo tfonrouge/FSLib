@@ -12,6 +12,5 @@ data class ListContainer<T>(
     @Serializable
     class ResponseStatus(
         val checksum: String? = null,
-        val canIgnore: Boolean? = null,
     )
 }

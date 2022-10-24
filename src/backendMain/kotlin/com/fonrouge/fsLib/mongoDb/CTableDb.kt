@@ -364,7 +364,6 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             last_row = firstStage.last_row,
             responseStatus = ListContainer.ResponseStatus(
                 checksum = crC32.value.toString(),
-                canIgnore = checksum == crC32.value.toString()
             )
         )
     }
