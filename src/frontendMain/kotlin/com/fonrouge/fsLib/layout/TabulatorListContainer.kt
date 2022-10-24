@@ -117,7 +117,9 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
             method = HttpMethod.valueOf(method.name),
             requestFilter = requestFilter
         ).then { r: dynamic ->
+            console.warn("r ->", r, "<-")
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+            console.warn("result ->", result, "<-")
             if (page != null) {
                 if (result.data == undefined) {
                     result.data = js("[]")
@@ -128,7 +130,6 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
             } else {
                 result.data
             }
-            //            tabulator?.jsTabulator?.updateData(result.data)
         }
     }
 
