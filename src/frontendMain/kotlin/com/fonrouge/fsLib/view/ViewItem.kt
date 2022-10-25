@@ -82,7 +82,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                         crudAction = crudAction,
                         callType = StateItem.CallType.Action,
                         itemId = encodedId(),
-                        item = formPanel.getData(),
+                        item = dataFormBeforeApiCall(formPanel.getData()),
                         contextDataUrl = urlParams?.contextDataUrl
                     ) { itemContainer ->
                         block?.let { it(itemContainer) }
@@ -99,6 +99,14 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                 }
             }
         }
+    }
+
+    /**
+     * Override this function if you want to process the [formPanel] data content just *before*
+     * the api call to the backend
+     */
+    open fun dataFormBeforeApiCall(item: T): T {
+        return item
     }
 
     open fun Container.displayDefault(urlParams: UrlParams?) {
