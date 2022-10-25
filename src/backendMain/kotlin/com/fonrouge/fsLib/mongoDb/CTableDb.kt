@@ -103,19 +103,13 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
      */
     fun buildLookupList(vararg arrayOfModelLookups: ModelLookup<*, *>): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        val includedResultProperties = mutableSetOf<KProperty1<T, *>>()
         lookupPipelineBuilderList?.forEach { lookupPipelineBuilder ->
-            arrayOfModelLookups.firstOrNull { lookupPipelineBuilder.resultProperty == it.resultProperty }
-                ?.let { modelLookup: ModelLookup<*, *> ->
-                    pipeline += lookupPipelineBuilder.pipelineList(modelLookup)
-                    includedResultProperties.add(lookupPipelineBuilder.resultProperty)
-                }
-        }
-        constLookupList?.forEach { kProperty1 ->
-            if (!includedResultProperties.contains(kProperty1)) {
-                lookupPipelineBuilderList?.find { it.resultProperty == kProperty1 }?.let { lookupPipelineBuilder ->
-                    pipeline.addAll(lookupPipelineBuilder.pipelineList())
-                    includedResultProperties.add(lookupPipelineBuilder.resultProperty)
+            val modelLookup = arrayOfModelLookups.find { lookupPipelineBuilder.resultProperty == it.resultProperty }
+            if (modelLookup != null) {
+                pipeline += lookupPipelineBuilder.pipelineList(modelLookup)
+            } else {
+                constLookupList?.find { kProperty1 -> kProperty1 == lookupPipelineBuilder.resultProperty }?.let {
+                    pipeline += lookupPipelineBuilder.pipelineList()
                 }
             }
         }
