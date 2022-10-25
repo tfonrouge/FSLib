@@ -46,6 +46,7 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     module = module
 ) {
     var checksum: String? = null
+    var diffChecksums: Boolean = false
     private var url: String
     private var method: HttpMethod
     private val callAgent: CallAgent
@@ -80,8 +81,6 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
             filters = filters,
             sorters = sorters,
         ).then { result: dynamic ->
-            val diffChecksums = (result.responseStatus.checksum as? String) != checksum
-            checksum = result.responseStatus.checksum as? String
             console.warn("RESULT ->", result, "CHECKSUM ->", checksum, "diffChecksums", diffChecksums)
             if (diffChecksums) {
                 jsTabulator?.replaceData(result.data, null, null)
@@ -117,9 +116,13 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
             method = HttpMethod.valueOf(method.name),
             requestFilter = requestFilter
         ).then { r: dynamic ->
-            console.warn("r ->", r, "<-")
+//            console.warn("r ->", r, "<-")
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            console.warn("result ->", result, "<-")
+//            console.warn("result ->", result, "<-")
+            if (result.responseStatus != undefined) {
+                diffChecksums = (result.responseStatus.checksum as? String) != checksum
+                checksum = result.responseStatus.checksum as? String
+            }
             if (page != null) {
                 if (result.data == undefined) {
                     result.data = js("[]")
