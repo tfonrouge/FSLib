@@ -103,7 +103,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
 
     /**
      * Override this function if you want to process the [formPanel] data content just *before*
-     * the api call to the backend
+     * to send the data to the backend
      */
     open fun dataFormBeforeApiCall(item: T): T {
         return item
