@@ -5,7 +5,7 @@ import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
-import com.fonrouge.fsLib.model.ItemContainer
+import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.ViewItem
 import io.kvision.remote.CallAgent
@@ -28,7 +28,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     private val serviceManager: KVServiceManager<E>,
-    private val function: suspend E.(U?, StateItem<T>) -> ItemContainer<T>,
+    private val function: suspend E.(U?, StateItem<T>) -> ItemResponse<T>,
     private val stateFunction: (() -> String)? = null,
     val labelId: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" }
 ) : ConfigViewContainer<T, V, U>(
@@ -83,7 +83,7 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         itemId: String? = JSON.stringify(null),
         item: T? = null,
         contextDataUrl: ContextDataUrl? = null,
-        block: (ItemContainer<T>) -> ItemContainer<T>,
+        block: (ItemResponse<T>) -> ItemResponse<T>,
     ) {
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
@@ -111,9 +111,9 @@ abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataIte
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
             try {
-                val itemContainer: ItemContainer<T> =
-                    Json.decodeFromDynamic(ItemContainer.serializer(itemKClass.serializer()), result)
-                block(itemContainer)
+                val itemResponse: ItemResponse<T> =
+                    Json.decodeFromDynamic(ItemResponse.serializer(itemKClass.serializer()), result)
+                block(itemResponse)
             } catch (e: Exception) {
                 console.error("Error decoding KClass", itemKClass, "with serialized value", result, "exception:", e)
                 e.printStackTrace()

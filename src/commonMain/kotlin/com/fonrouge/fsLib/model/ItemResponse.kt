@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ItemContainer<T>(
+data class ItemResponse<T>(
     var item: T? = null,
     val itemAlreadyOn: Boolean = false,
     override var isOk: Boolean = item != null,

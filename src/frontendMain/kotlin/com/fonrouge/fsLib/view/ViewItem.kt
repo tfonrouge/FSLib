@@ -5,7 +5,7 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.ItemContainer
+import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.*
 import io.kvision.form.FormPanel
@@ -39,7 +39,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     /**
      * Observable that holds data for the [ViewItem]
      */
-    internal var data: ObservableValue<ItemContainer<T>?> = ObservableValue(null)
+    internal var data: ObservableValue<ItemResponse<T>?> = ObservableValue(null)
     val item: T? get() = data.value?.item
 
     init {
@@ -70,10 +70,10 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
      * Performs an API call to an upsert action on the backend,
      * requires [formPanel] and checks validity before the API request
      *
-     * @param block optional, executes with the API result [ItemContainer] as parameter
+     * @param block optional, executes with the API result [ItemResponse] as parameter
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    fun acceptUpsertAction(block: ((ItemContainer<T>) -> Unit)? = null) {
+    fun acceptUpsertAction(block: ((ItemResponse<T>) -> Unit)? = null) {
         val crudAction = urlParams?.crudAction
         formPanel?.let { formPanel ->
             if (crudAction != null && crudAction in arrayOf(CrudAction.Create, CrudAction.Update)) {
@@ -308,7 +308,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
             return "${configView.label}: ${configView.labelId?.invoke(item) ?: " < no - item > "}"
         }
 
-    open fun onChangeDataContainer(itemContainer: ItemContainer<T>?) {
+    open fun onChangeDataContainer(itemResponse: ItemResponse<T>?) {
 
     }
 

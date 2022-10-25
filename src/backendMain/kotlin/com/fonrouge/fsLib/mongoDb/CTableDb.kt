@@ -5,7 +5,7 @@ import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.annotations.MongoDoc
 import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.ItemContainer
+import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.ListContainer
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.model.base.IAppUser
@@ -174,19 +174,19 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun deleteOneById(_id: U?): ItemContainer<T> {
+    suspend fun deleteOneById(_id: U?): ItemResponse<T> {
         if (_id != null) {
             return try {
-                ItemContainer(
+                ItemResponse(
                     isOk = mongoColl
                         .deleteOne(BaseModel<*>::_id eq _id)
                         .awaitFirstOrNull()?.deletedCount == 1L
                 )
             } catch (e: Exception) {
-                ItemContainer(isOk = false, msgError = e.message)
+                ItemResponse(isOk = false, msgError = e.message)
             }
         }
-        return ItemContainer(isOk = false, msgError = "_id not valid ...")
+        return ItemResponse(isOk = false, msgError = "_id not valid ...")
     }
 
     /**
@@ -230,25 +230,25 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     suspend fun getItemContainer(
         _id: U?,
         vararg modelLookup: ModelLookup<*, *>
-    ): ItemContainer<T> {
+    ): ItemResponse<T> {
         return try {
-            ItemContainer(
+            ItemResponse(
                 item = findOneById(_id = _id, modelLookup = modelLookup)
             )
         } catch (e: Exception) {
-            ItemContainer(isOk = false, msgError = e.message)
+            ItemResponse(isOk = false, msgError = e.message)
         }
     }
 
     // TODO: Implement collect data from [state.json]
     @Suppress("unused")
-    suspend fun insertOne(state: StateItem<T>): ItemContainer<T> {
+    suspend fun insertOne(state: StateItem<T>): ItemResponse<T> {
         state.item?.let {
             checkDontPersist(it)
             try {
                 val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
                 val result = insertOneResult?.insertedId != null
-                return ItemContainer(
+                return ItemResponse(
                     item = it,
                     isOk = result,
                     itemAlreadyOn = result &&
@@ -256,10 +256,10 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                             state.crudAction == CrudAction.Create
                 )
             } catch (e: Exception) {
-                return ItemContainer(isOk = false, msgError = e.message)
+                return ItemResponse(isOk = false, msgError = e.message)
             }
         }
-        return ItemContainer(isOk = false, msgError = "insertOne(): state.item contains null value...")
+        return ItemResponse(isOk = false, msgError = "insertOne(): state.item contains null value...")
     }
 
     @Suppress("unused")
@@ -401,7 +401,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         _id: U?,
         state: StateItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemContainer<T> {
+    ): ItemResponse<T> {
         if (state.item != null) {
             checkDontPersist(state.item)
             val result = try {
@@ -414,7 +414,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 e.printStackTrace()
                 null
             }
-            return ItemContainer(isOk = result?.modifiedCount == 1L)
+            return ItemResponse(isOk = result?.modifiedCount == 1L)
         } else if (state.json != null) {
             val b = BaseModel<U>::_id eq _id
             val result = try {
@@ -427,9 +427,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 e.printStackTrace()
                 null
             }
-            return ItemContainer(isOk = result?.modifiedCount == 1L)
+            return ItemResponse(isOk = result?.modifiedCount == 1L)
         }
-        return ItemContainer(isOk = false, msgError = "Invalid data on StateItem ...")
+        return ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
     }
 
     init {
