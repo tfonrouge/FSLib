@@ -11,6 +11,7 @@ import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
+import io.kvision.core.widget
 import io.kvision.panel.vPanel
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
@@ -51,7 +52,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 ): ViewList<T, E, U> {
     val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
         columns = viewList.columnDefinitionList,
-//        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
+//        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else "calc(100vh - 50vh)",
         height = "calc(100vh - 30vh)",
         layout = Layout.FITDATASTRETCH,
         layoutColumnsOnNewData = true,
