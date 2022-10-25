@@ -51,7 +51,8 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 ): ViewList<T, E, U> {
     val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
         columns = viewList.columnDefinitionList,
-//                height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
+//        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else null,
+        height = "calc(100vh - 30vh)",
         layout = Layout.FITDATASTRETCH,
         layoutColumnsOnNewData = true,
         pagination = true,
