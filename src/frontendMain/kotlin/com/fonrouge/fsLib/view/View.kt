@@ -3,11 +3,15 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
-import io.kvision.core.*
+import io.kvision.core.Container
+import io.kvision.html.ButtonStyle
 import io.kvision.html.Link
+import io.kvision.html.button
 import io.kvision.html.link
-import io.kvision.panel.flexPanel
+import io.kvision.navbar.nav
+import io.kvision.navbar.navbar
 import io.kvision.utils.em
+import io.kvision.utils.px
 
 abstract class View(
     open val configView: ConfigView<*>,
@@ -56,20 +60,22 @@ abstract class View(
     }
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
-        flexPanel(
-            FlexDirection.ROW,
-            FlexWrap.NOWRAP,
-            JustifyContent.FLEXSTART,
-            AlignItems.BASELINE,
-            className = "container-fluid mainBanner"
-        ) {
+        navbar(label = label) {
             linkBanner = link(
-                label = label,
+                label = label ?: "",
                 url = navigoUrlWithParams,
                 className = "navbar-brand mainBanner",
                 icon = iconCrud()
             ) {
                 setStyle("color", "white")
+            }
+            nav(rightAlign = true) {
+                if (urlParams?.actionUpsert == true) {
+                    button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER)
+                    button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
+                        marginLeft = 20.px
+                    }
+                }
             }
             onUpdatePageBannerLink?.let {
 //                onUpdatePageBannerLink = it
