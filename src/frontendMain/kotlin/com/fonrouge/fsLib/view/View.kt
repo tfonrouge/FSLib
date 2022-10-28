@@ -3,11 +3,16 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
+import io.kvision.core.Background
+import io.kvision.core.BsBgColor
 import io.kvision.core.Container
+import io.kvision.core.style
 import io.kvision.html.ButtonStyle
 import io.kvision.html.Link
 import io.kvision.html.button
 import io.kvision.html.link
+import io.kvision.navbar.NavbarColor
+import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.utils.em
@@ -60,18 +65,28 @@ abstract class View(
     }
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
-        navbar {
+        /* TODO: find out how make horizontally scrollable */
+        navbar(bgColor = BsBgColor.LIGHT) {
             linkBanner = link(
-                label = "",
+                label = this@View.label,
                 url = navigoUrlWithParams,
                 className = "navbar-brand",
                 icon = iconCrud()
             )
             nav(rightAlign = true) {
-                if (urlParams?.actionUpsert == true) {
-                    button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER)
-                    button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
-                        marginLeft = 20.px
+                if (this@View is ViewItem<*, *>) {
+                    if (urlParams?.actionUpsert == true) {
+                        button(text = "", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
+                            fontSize = 0.75.em
+                        }.onClick {
+                            this@View.cancelUpsertAction()
+                        }
+                        button(text = "", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
+                            fontSize = 0.75.em
+                            marginLeft = 20.px
+                        }.onClick {
+                            this@View.acceptUpsertAction()
+                        }
                     }
                 }
             }

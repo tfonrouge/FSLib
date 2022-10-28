@@ -396,6 +396,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         state: StateItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemResponse<T> {
+        val msgError = "No data was modified ..."
         if (state.item != null) {
             checkDontPersist(state.item)
             val result = try {
@@ -408,7 +409,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 e.printStackTrace()
                 null
             }
-            return ItemResponse(isOk = result?.modifiedCount == 1L)
+            return ItemResponse(isOk = result?.modifiedCount == 1L, msgError = msgError)
         } else if (state.json != null) {
             val b = BaseModel<U>::_id eq _id
             val result = try {
@@ -421,7 +422,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 e.printStackTrace()
                 null
             }
-            return ItemResponse(isOk = result?.modifiedCount == 1L)
+            return ItemResponse(isOk = result?.modifiedCount == 1L, msgError = msgError)
         }
         return ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
     }

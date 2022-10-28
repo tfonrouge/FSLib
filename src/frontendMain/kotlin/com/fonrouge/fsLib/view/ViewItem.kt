@@ -73,7 +73,17 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
      * @param block optional, executes with the API result [ItemResponse] as parameter
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    fun acceptUpsertAction(block: ((ItemResponse<T>) -> Unit)? = null) {
+    fun acceptUpsertAction(
+        block: ((ItemResponse<T>) -> Unit)? = {
+            if (it.isOk) {
+                Toast.success("Info", it.msgOk)
+            } else {
+                Toast.warning("!", it.msgError)
+            }
+            js("history.back()")
+            Unit
+        }
+    ) {
         val crudAction = urlParams?.crudAction
         formPanel?.let { formPanel ->
             if (crudAction != null && crudAction in arrayOf(CrudAction.Create, CrudAction.Update)) {
@@ -101,7 +111,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
         }
     }
 
-    internal fun clickCancel() = js("history.back()") as? Unit
+    fun cancelUpsertAction() = js("history.back()") as? Unit
 
     /**
      * Override this function if you want to process the [formPanel] data content just *before*
@@ -125,25 +135,13 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
         flexPanel(direction = FlexDirection.ROW, justify = JustifyContent.CENTER, spacing = 20) {
             marginTop = 1.em
             if (urlParams?.actionUpsert == true) {
-                button("Cancel", style = ButtonStyle.OUTLINEDANGER) {
-                    onClick {
-                        clickCancel()
-                    }
+                button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER).onClick {
+                    cancelUpsertAction()
                 }
-                button("Accept", style = ButtonStyle.OUTLINESUCCESS) {
-//                                marginLeft = 10.px
-                    onClick {
-                        acceptUpsertAction {
-                            if (it.isOk) {
-                                Toast.success("Info", it.msgOk)
-                            } else {
-                                Toast.warning("!", it.msgError)
-                            }
-                            js("history.back()")
-                            Unit
-                        }
-                    }
+                button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS).onClick {
+                    acceptUpsertAction()
                 }
+
             } else {
                 if (!noBackButton) {
                     button("Back", icon = "fa-solid fa-arrow-rotate-left").onClick {
