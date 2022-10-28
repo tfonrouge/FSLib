@@ -221,7 +221,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun getItemContainer(
+    suspend fun itemResponse(
         _id: U?,
         vararg modelLookup: ModelLookup<*, *>
     ): ItemResponse<T> {
