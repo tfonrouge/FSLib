@@ -7,21 +7,22 @@ import io.ktor.server.application.*
 import org.litote.kmongo.reactivestreams.KMongo
 import java.util.*
 
-//private var database: String? = "test"
-private var plugin: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
+interface ITables
+
+private var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
 
 val mongoClient by lazy {
-    plugin.let { KMongo.createClient(it.connectionString) }
+    mongoDbPluginConfiguration.let { KMongo.createClient(it.connectionString) }
 }
 
 @Suppress("unused")
 val mongoDatabase: MongoDatabase by lazy {
-    mongoClient.getDatabase(plugin.database)
+    mongoClient.getDatabase(mongoDbPluginConfiguration.database)
 }
 
 @Suppress("unused")
 fun collation(
-    locale: String = plugin.locale,
+    locale: String = mongoDbPluginConfiguration.locale,
     collationStrength: CollationStrength = CollationStrength.PRIMARY
 ): Collation {
     return Collation.builder().locale(locale).collationStrength(collationStrength).build()
@@ -32,9 +33,8 @@ val MongoDbPlugin = createApplicationPlugin(
     name = "MongoDbPlugin",
     createConfiguration = ::MongoDbPluginConfiguration
 ) {
-//    database = pluginConfig.database
-    plugin = pluginConfig
-    println("MongoDbPlugin is installed: host=${plugin.serverUrl}, database=${plugin.database}")
+    mongoDbPluginConfiguration = pluginConfig
+    println("MongoDbPlugin is installed: host=${mongoDbPluginConfiguration.serverUrl}, database=${mongoDbPluginConfiguration.database}")
 }
 
 class MongoDbPluginConfiguration {
@@ -45,7 +45,6 @@ class MongoDbPluginConfiguration {
     var password: String? = null
     var database: String = "test"
     var locale: String = Locale.getDefault().language
-    lateinit var tableList: CTableDb<*, *>
 
     val connectionString
         get() = "mongodb://" + if (user != null || password != null) {
@@ -55,5 +54,4 @@ class MongoDbPluginConfiguration {
         }.let {
             "$it$serverUrl:$serverPort" + if (authSource != null) "/?authSource=$authSource" else ""
         }
-
 }
