@@ -11,7 +11,6 @@ import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
-import io.kvision.core.widget
 import io.kvision.panel.vPanel
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent

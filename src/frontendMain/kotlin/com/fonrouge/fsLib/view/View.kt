@@ -3,16 +3,12 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
-import io.kvision.core.Background
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
-import io.kvision.core.style
 import io.kvision.html.ButtonStyle
 import io.kvision.html.Link
 import io.kvision.html.button
 import io.kvision.html.link
-import io.kvision.navbar.NavbarColor
-import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.utils.em
