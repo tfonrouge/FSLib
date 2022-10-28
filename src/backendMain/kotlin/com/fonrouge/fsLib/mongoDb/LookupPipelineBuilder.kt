@@ -72,8 +72,9 @@ abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W : Any
     }
 
     fun lookup(pipeline: List<Bson>? = null): Bson {
+        val collectionName = map1[cTableDb]?.mongoColl?.namespace?.collectionName
         return lookup5(
-            from = map1[cTableDb]?.mongoColl?.namespace?.collectionName ?: "?",
+            from = collectionName ?: "?",
             localField = localField.name,
             foreignField = foreignField.name,
             pipeline = pipeline ?: this.pipeline,

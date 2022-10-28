@@ -45,6 +45,7 @@ class MongoDbPluginConfiguration {
     var password: String? = null
     var database: String = "test"
     var locale: String = Locale.getDefault().language
+    lateinit var tableList: CTableDb<*, *>
 
     val connectionString
         get() = "mongodb://" + if (user != null || password != null) {

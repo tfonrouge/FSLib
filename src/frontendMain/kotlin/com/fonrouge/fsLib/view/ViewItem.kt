@@ -101,6 +101,8 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
         }
     }
 
+    internal fun clickCancel() = js("history.back()") as? Unit
+
     /**
      * Override this function if you want to process the [formPanel] data content just *before*
      * to send the data to the backend
@@ -125,7 +127,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
             if (urlParams?.actionUpsert == true) {
                 button("Cancel", style = ButtonStyle.OUTLINEDANGER) {
                     onClick {
-                        js("history.back()") as? Unit
+                        clickCancel()
                     }
                 }
                 button("Accept", style = ButtonStyle.OUTLINESUCCESS) {

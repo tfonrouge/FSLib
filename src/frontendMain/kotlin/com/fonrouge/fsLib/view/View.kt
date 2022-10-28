@@ -60,15 +60,13 @@ abstract class View(
     }
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
-        navbar(label = label) {
+        navbar {
             linkBanner = link(
-                label = label ?: "",
+                label = "",
                 url = navigoUrlWithParams,
-                className = "navbar-brand mainBanner",
+                className = "navbar-brand",
                 icon = iconCrud()
-            ) {
-                setStyle("color", "white")
-            }
+            )
             nav(rightAlign = true) {
                 if (urlParams?.actionUpsert == true) {
                     button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER)
