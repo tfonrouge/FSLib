@@ -70,7 +70,7 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
         val page: Int? = jsTabulator?.getPage() as? Int
         val size: Int? = jsTabulator?.getPageSize()?.toInt()
         val filters: List<RemoteFilter>? = jsTabulator?.getHeaderFilters()?.map {
-            RemoteFilter(field = it.field, type = it.field, value = "${it.value}")
+            RemoteFilter(field = it.field, type = it.type, value = "${it.value}")
         }
         val sorters: List<RemoteSorter>? = jsTabulator?.getSorters()?.map {
             RemoteSorter(field = it.field, dir = it.dir)
@@ -161,7 +161,7 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
                     })
                 """
                 )
-                console.warn(">>>", j)
+//                console.warn(">>>", j)
                 Json.decodeFromDynamic(ListSerializer(RemoteSorter::class.serializer()), j)
             } else {
                 null
