@@ -28,6 +28,7 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
     private val contextDataUrlBlock: (() -> ContextDataUrl)? = null,
+    private val onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
     className: String?,
@@ -119,9 +120,10 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
 //            console.warn("r ->", r, "<-")
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
 //            console.warn("result ->", result, "<-")
-            if (result.responseStatus != undefined) {
-                diffChecksums = (result.responseStatus.checksum as? String) != checksum
-                checksum = result.responseStatus.checksum as? String
+            onResult?.let { it(result) }
+            if (result.checksum != undefined) {
+                diffChecksums = (result.checksum as? String) != checksum
+                checksum = result.checksum as? String
             }
             if (page != null) {
                 if (result.data == undefined) {
@@ -180,6 +182,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.tabulato
     serviceManager: KVServiceMgr<E>,
     noinline function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
     noinline contextDataUrlBlock: (() -> ContextDataUrl)? = null,
+    noinline onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
     className: String? = null,
@@ -193,6 +196,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.tabulato
             serviceManager,
             function,
             contextDataUrlBlock,
+            onResult,
             options,
             types,
             className,

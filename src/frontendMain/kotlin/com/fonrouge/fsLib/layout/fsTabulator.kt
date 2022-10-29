@@ -28,6 +28,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     options: TabulatorOptions<T>? = null,
     minToolbarSize: Boolean = true,
     noinline contextDataUrl: (ContextDataUrl.() -> Unit)? = null,
+    noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
     val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
@@ -37,6 +38,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         options = options,
         minToolbarSize = minToolbarSize,
         contextDataUrl = contextDataUrl,
+        onResult = onResult,
         init = init
     )
 }
@@ -47,6 +49,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     options: TabulatorOptions<T>? = null,
     minToolbarSize: Boolean = true,
     noinline contextDataUrl: (ContextDataUrl.() -> Unit)? = null,
+    noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
     val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
@@ -94,6 +97,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
             serviceManager = viewList.configView.serviceManager,
             function = viewList.configView.function,
             contextDataUrlBlock = block,
+            onResult = onResult,
             serializer = T::class.serializer(),
             options = tabOpt,
         ) {

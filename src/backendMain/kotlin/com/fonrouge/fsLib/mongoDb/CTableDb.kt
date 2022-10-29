@@ -356,9 +356,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             data = list,
             last_page = firstStage.last_page,
             last_row = firstStage.last_row,
-            responseStatus = ListContainer.ResponseStatus(
-                checksum = crC32.value.toString(),
-            )
+            checksum = crC32.value.toString(),
         )
     }
 
