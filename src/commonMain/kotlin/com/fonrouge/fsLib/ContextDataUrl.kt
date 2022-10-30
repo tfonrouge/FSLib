@@ -8,16 +8,15 @@ import kotlinx.serialization.json.Json
 
 @Serializable
 data class ContextDataUrl(
-    val tabPage: Int? = null,
-    val tabSize: Int? = null,
-    val tabFilter: List<RemoteFilter>? = null,
-    val tabSorter: List<RemoteSorter>? = null,
+    var tabPage: Int? = null,
+    var tabSize: Int? = null,
+    var tabFilter: List<RemoteFilter>? = null,
+    var tabSorter: List<RemoteSorter>? = null,
     var filter: String? = null,
     var sorter: String? = null,
     var contextClass: String? = null,
     var contextId: String? = null,
     var params: String? = null,
-    var json: String? = null,
     var checksum: String? = null,
 ) {
     @Suppress("unused")

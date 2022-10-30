@@ -22,12 +22,25 @@ import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 import kotlin.js.json
 
+data class Pagination(
+    val paginationMode: PaginationMode = PaginationMode.REMOTE,
+    val paginationSize: Int = 10,
+    val paginationSizeSelector: Boolean = true,
+    val paginationElement: dynamic = null,
+    val paginationAddRow: AddRowMode? = null,
+    val paginationButtonCount: Int? = null,
+    val paginationInitialPage: Int? = null,
+    val paginationCounter: String = "rows",
+    val paginationCounterElement: dynamic = null,
+)
+
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     options: TabulatorOptions<T>? = null,
+    pagination: Pagination? = Pagination(),
     minToolbarSize: Boolean = true,
-    noinline contextDataUrl: (ContextDataUrl.() -> Unit)? = null,
+    noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
@@ -36,8 +49,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     return fsTabulator(
         viewList = viewList,
         options = options,
+        pagination = pagination,
         minToolbarSize = minToolbarSize,
-        contextDataUrl = contextDataUrl,
+        contextDataUrlUpdate = contextDataUrlUpdate,
         onResult = onResult,
         init = init
     )
@@ -47,8 +61,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     options: TabulatorOptions<T>? = null,
+    pagination: Pagination? = Pagination(),
     minToolbarSize: Boolean = true,
-    noinline contextDataUrl: (ContextDataUrl.() -> Unit)? = null,
+    noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
@@ -58,11 +73,16 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         height = "calc(100vh - 30vh)",
         layout = Layout.FITDATASTRETCH,
         layoutColumnsOnNewData = true,
-        pagination = true,
+        pagination = pagination != null,
         paginationMode = PaginationMode.REMOTE,
-        paginationCounter = "rows",
-        paginationSize = 10,
-        paginationSizeSelector = true,
+        paginationSize = pagination?.paginationSize,
+        paginationSizeSelector = pagination?.paginationSizeSelector,
+        paginationElement = pagination?.paginationElement,
+        paginationAddRow = pagination?.paginationAddRow,
+        paginationButtonCount = pagination?.paginationButtonCount,
+        paginationInitialPage = pagination?.paginationInitialPage,
+        paginationCounter = pagination?.paginationCounter,
+        paginationCounterElement = pagination?.paginationCounterElement,
         persistenceID = viewList.configView.itemKClass.simpleName,
         persistence = json(
             "page" to json("page" to true),
@@ -75,7 +95,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         autoResize = true,
     )
 
-    val block = {
+    val contextDataUrlBlock: () -> ContextDataUrl = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val result: ContextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
         viewList.masterViewItem?.let { viewItem ->
@@ -85,9 +105,6 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
             }
         }
         result.params = JSON.stringify(urlParams?.params)
-        contextDataUrl?.let {
-            result.json = it(result).let { json -> JSON.stringify(json) }
-        }
         result
     }
 
@@ -96,7 +113,8 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         viewList.tabulator = tabulatorListContainer(
             serviceManager = viewList.configView.serviceManager,
             function = viewList.configView.function,
-            contextDataUrlBlock = block,
+            contextDataUrlBlock = contextDataUrlBlock,
+            contextDataUrlUpdate = contextDataUrlUpdate,
             onResult = onResult,
             serializer = T::class.serializer(),
             options = tabOpt,

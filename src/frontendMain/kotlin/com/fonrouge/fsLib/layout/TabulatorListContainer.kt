@@ -27,7 +27,8 @@ import kotlin.reflect.KClass
 class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
-    private val contextDataUrlBlock: (() -> ContextDataUrl)? = null,
+    private val contextDataUrlBlock: (() -> ContextDataUrl),
+    private val contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
     private val onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
@@ -95,19 +96,21 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
         filters: List<RemoteFilter>?,
         sorters: List<RemoteSorter>?,
     ): Promise<dynamic> {
-        val contextDataUrl = contextDataUrlBlock?.invoke()?.copy(
-            tabPage = page,
-            tabSize = size,
-            tabFilter = filters,
-            tabSorter = sorters,
-            checksum = checksum,
-        )
+        val contextDataUrl = contextDataUrlBlock.invoke().apply {
+            contextDataUrlUpdate
+            tabPage = page
+            tabSize = size
+            tabFilter = filters
+            tabSorter = sorters
+            checksum = this@TabulatorListContainer.checksum
+        }
+        contextDataUrlUpdate?.invoke(contextDataUrl)
         val data =
             Serialization.plain.encodeToString(
                 JsonRpcRequest(
                     0, url,
                     listOf(
-                        contextDataUrl?.let { Json.encodeToString(it) }
+                        contextDataUrl.let { Json.encodeToString(it) }
                     )
                 )
             )
@@ -181,7 +184,8 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
     noinline function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
-    noinline contextDataUrlBlock: (() -> ContextDataUrl)? = null,
+    noinline contextDataUrlBlock: (() -> ContextDataUrl),
+    noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
@@ -193,17 +197,18 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.tabulato
 ): TabulatorListContainer<T, E, U> {
     val tabulatorListContainer =
         TabulatorListContainer(
-            serviceManager,
-            function,
-            contextDataUrlBlock,
-            onResult,
-            options,
-            types,
-            className,
-            T::class,
-            serializer,
-            module,
-            requestFilter
+            serviceManager = serviceManager,
+            function = function,
+            contextDataUrlBlock = contextDataUrlBlock,
+            contextDataUrlUpdate = contextDataUrlUpdate,
+            onResult = onResult,
+            options = options,
+            types = types,
+            className = className,
+            kClass = T::class,
+            serializer = serializer,
+            module = module,
+            requestFilter = requestFilter
         )
     init?.invoke(tabulatorListContainer)
     this.add(tabulatorListContainer)
