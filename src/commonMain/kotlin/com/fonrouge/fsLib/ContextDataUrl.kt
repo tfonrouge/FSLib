@@ -18,10 +18,16 @@ data class ContextDataUrl(
     var contextId: String? = null,
     var params: String? = null,
     var checksum: String? = null,
+    var state: String? = null,
 ) {
     @Suppress("unused")
     inline fun <reified T> contextIdValue(): T? {
         return contextId?.let { Json.decodeFromString(it) }
+    }
+
+    @Suppress("unused")
+    inline fun <reified T> stateValue(): T? {
+        return state?.let { Json.decodeFromString(it) }
     }
 }
 
