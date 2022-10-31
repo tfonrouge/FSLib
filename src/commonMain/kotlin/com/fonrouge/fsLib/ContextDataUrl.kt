@@ -6,6 +6,13 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
+/**
+ * Data structure passed to backend which contains parameters from tabulator (frontEnd)
+ *
+ * @param contextClass the class name for the master item (if any) of the data list
+ * @param contextId the id for the item in the master item (if any)
+ * @param state can contain a arbitrary data which can be instantiated with [stateValue]
+ */
 @Serializable
 data class ContextDataUrl(
     var tabPage: Int? = null,
