@@ -11,7 +11,7 @@ import kotlinx.serialization.json.Json
  *
  * @param contextClass the class name for the master item (if any) of the data list
  * @param contextId the id for the item in the master item (if any)
- * @param state can contain a arbitrary data which can be instantiated with [stateValue]
+ * @param state can contain an arbitrary data which can be instantiated with [stateValue]
  */
 @Serializable
 data class ContextDataUrl(
