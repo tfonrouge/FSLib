@@ -72,14 +72,14 @@ abstract class View(
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *>) {
                     if (urlParams?.actionUpsert == true) {
-                        button(text = "", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
-                            fontSize = 0.75.em
+                        button(text = " ", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
+                            fontSize = 0.5.em
                         }.onClick {
                             this@View.cancelUpsertAction()
                         }
-                        button(text = "", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
-                            fontSize = 0.75.em
-                            marginLeft = 20.px
+                        button(text = " ", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
+                            fontSize = 0.5.em
+                            marginLeft = 5.px
                         }.onClick {
                             this@View.acceptUpsertAction()
                         }
