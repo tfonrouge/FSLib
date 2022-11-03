@@ -41,6 +41,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
      */
     internal var data: ObservableValue<ItemResponse<T>?> = ObservableValue(null)
     val item: T? get() = data.value?.item
+    var state: String? = null
 
     init {
         data.subscribe {
@@ -94,9 +95,9 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                         itemId = encodedId(),
                         item = dataFormBeforeApiCall(formPanel.getData()),
                         contextDataUrl = urlParams?.contextDataUrl
-                    ) { itemContainer ->
-                        block?.let { it(itemContainer) }
-                        itemContainer
+                    ) { itemResponse ->
+                        block?.let { it(itemResponse) }
+                        itemResponse
                     }
                 } else {
                     Toast.warning(
@@ -185,17 +186,18 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                         callType = StateItem.CallType.Query,
                         itemId = urlParams?.id,
                         contextDataUrl = urlParams?.contextDataUrl
-                    ) { itemContainer ->
-                        if (crudAction == CrudAction.Create && itemContainer.itemAlreadyOn) {
+                    ) { itemResponse ->
+                        this@ViewItem.state = itemResponse.state
+                        if (crudAction == CrudAction.Create && itemResponse.itemAlreadyOn) {
                             urlParams = UrlParams(
-                                "action" to CrudAction.Update.name, "id" to encodedId(itemContainer.item?._id)
+                                "action" to CrudAction.Update.name, "id" to encodedId(itemResponse.item?._id)
                             )
                             @Suppress("UNUSED_VARIABLE")
                             val url = (configView.url + urlParams.toString()).asDynamic()
 
                             @Suppress("UNUSED_VARIABLE")
                             val stateObj =
-                                "{${itemContainer::class.simpleName}: \"${itemContainer.item?._id}\"}".asDynamic()
+                                "{${itemResponse::class.simpleName}: \"${itemResponse.item?._id}\"}".asDynamic()
                             js("""history.replaceState(stateObj,"createToUpdate",url)""")
                         }
                         var buttonCancel: Button? = null
@@ -216,8 +218,8 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                             closeHtml = "<button type=\"button\">Close</button>"
                         )
                         val crudAction1 = urlParams?.crudAction
-                        if (itemContainer.isOk && crudAction1 != null) {
-                            data.value = itemContainer
+                        if (itemResponse.isOk && crudAction1 != null) {
+                            data.value = itemResponse
                             if (crudAction1 != CrudAction.Delete) {
                                 displayForm(crudAction1)
                             } else {
@@ -228,8 +230,8 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                     alignItems = AlignItems.CENTER,
                                     spacing = 10
                                 ) {
-                                    val id = itemContainer.item?.let { configView.labelId?.invoke(it) }
-                                        ?: itemContainer.item?._id
+                                    val id = itemResponse.item?.let { configView.labelId?.invoke(it) }
+                                        ?: itemResponse.item?._id
                                     div(content = "Please confirm delete of ${this@ViewItem.configView.label} '$id'") {
                                         fontSize = 1.5.em
                                     }
@@ -260,26 +262,26 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                                 callType = StateItem.CallType.Action,
                                                 itemId = urlParams?.id,
                                                 contextDataUrl = urlParams?.contextDataUrl,
-                                            ) { itemContainer ->
+                                            ) { itemResponse1 ->
                                                 buttonCancel?.hide()
                                                 buttonAccept?.hide()
                                                 buttonBack?.show()
-                                                if (itemContainer.isOk) {
+                                                if (itemResponse1.isOk) {
                                                     Toast.success(
-                                                        message = itemContainer.msgOk
+                                                        message = itemResponse1.msgOk
                                                             ?: "$crudAction1 action successful ...",
                                                         title = "$crudAction1 success",
                                                         options = toastOptions
                                                     )
                                                 } else {
                                                     Toast.warning(
-                                                        message = itemContainer.msgError
+                                                        message = itemResponse1.msgError
                                                             ?: "$crudAction1 action failed ...",
                                                         title = "$crudAction1 failed",
                                                         options = toastOptions
                                                     )
                                                 }
-                                                itemContainer
+                                                itemResponse1
                                             }
                                         }
                                     }
@@ -290,12 +292,12 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                 centeredMessage("$crudAction1 action denied ...")
                             }
                             Toast.warning(
-                                message = itemContainer.msgError ?: "$crudAction1 action denied ...",
+                                message = itemResponse.msgError ?: "$crudAction1 action denied ...",
                                 title = "Action denied",
                                 options = toastOptions
                             )
                         }
-                        itemContainer
+                        itemResponse
                     }
                 } ?: displayDefault(urlParams)
             }
@@ -329,9 +331,9 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                 callType = StateItem.CallType.Query,
                 itemId = encodedId(),
                 contextDataUrl = urlParams?.contextDataUrl
-            ) { itemContainer ->
-                data.value = itemContainer
-                itemContainer
+            ) { itemResponse ->
+                data.value = itemResponse
+                itemResponse
             }
         }
     }

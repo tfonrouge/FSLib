@@ -9,13 +9,13 @@ data class ItemResponse<T>(
     override var isOk: Boolean = item != null,
     override var msgOk: String? = "Operation successful ...",
     override var msgError: String? = "Operation Failed ...",
-    override var data: String? = null
+    override var state: String? = null
 ) : ISimpleResponse {
     @Suppress("unused")
     constructor(simpleResponse: SimpleResponse) : this(
         isOk = simpleResponse.isOk,
         msgOk = simpleResponse.msgOk,
         msgError = simpleResponse.msgError,
-        data = simpleResponse.data
+        state = simpleResponse.state
     )
 }

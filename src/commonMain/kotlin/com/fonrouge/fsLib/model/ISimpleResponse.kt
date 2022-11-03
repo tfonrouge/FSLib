@@ -4,5 +4,5 @@ interface ISimpleResponse {
     var isOk: Boolean
     var msgOk: String?
     var msgError: String?
-    var data: String?
+    var state: String?
 }
