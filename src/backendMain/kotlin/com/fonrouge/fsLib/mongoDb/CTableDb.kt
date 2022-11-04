@@ -167,6 +167,16 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         return bson
     }
 
+    suspend fun deleteOne(filter: Bson): ItemResponse<T> {
+        return try {
+            ItemResponse(
+                isOk = coroutineColl.deleteOne(filter = filter).deletedCount == 1L
+            )
+        } catch (e: Exception) {
+            ItemResponse(isOk = false, msgError = e.message)
+        }
+    }
+
     @Suppress("unused")
     suspend fun deleteOneById(_id: U?): ItemResponse<T> {
         if (_id != null) {
@@ -191,25 +201,25 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     /**
-     * Find [bson] expression in collection and returns a list of [T] items
+     * Find [filter] expression in collection and returns a list of [T] items
      *
-     * @param bson bson expression
+     * @param filter bson expression
      * @param modelLookup array of ModelLookup
      * @return list of T items
      */
     suspend fun find(
-        bson: Bson? = null,
+        filter: Bson? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): List<T> {
-        return aggregate(bson?.let { listOf(match(bson)) }, *modelLookup).toList()
+        return aggregate(filter?.let { listOf(match(filter)) }, *modelLookup).toList()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOne(
-        bson: Bson? = null,
+        filter: Bson? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): T? {
-        return aggregate(bson?.let { listOf(match(bson)) }, *modelLookup).awaitFirstOrNull()
+        return aggregate(filter?.let { listOf(match(filter)) }, *modelLookup).awaitFirstOrNull()
     }
 
     @Suppress("unused")
@@ -345,7 +355,6 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun listContainer(
         firstStage: FirstStage,
-        checksum: String? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): ListContainer<T> {
         val list = aggregate(firstStage.pipeline, *modelLookup).toList()
@@ -383,7 +392,6 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 sorter = contextDataUrl?.tabSorter,
                 other = other,
             ),
-            checksum = contextDataUrl?.checksum,
             modelLookup = modelLookup
         )
     }
