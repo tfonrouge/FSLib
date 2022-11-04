@@ -97,6 +97,17 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     }
 
     /**
+     * On calling crud actions Create or Update on this list, checks if it has a masterViewItem
+     * which is currently on Update action, if so, then performs an update call to back end before
+     * calling the list crud action required
+     */
+    open fun checkIfmasterViewItemUpdate() {
+        if (masterViewItem?.urlParams?.crudAction == CrudAction.Update) {
+            masterViewItem?.acceptUpsertAction(block = null)
+        }
+    }
+
+    /**
      * Creates an [UrlParams] with the 'contextClass' and 'contextId' values from
      * the [item] parameter provided.
      */
@@ -136,12 +147,18 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
                     menuItem(
                         label = "Create",
                         icon = iconCrud(CrudAction.Create),
-                        url = actionUrl(CrudAction.Create, item)
+                        url = actionUrl(CrudAction.Create, item),
+                        action = { e, c ->
+                            checkIfmasterViewItemUpdate()
+                        }
                     )
                     menuItem(
                         label = "Update",
                         icon = iconCrud(CrudAction.Update),
-                        url = actionUrl(CrudAction.Update, item)
+                        url = actionUrl(CrudAction.Update, item),
+                        action = { e, c ->
+                            checkIfmasterViewItemUpdate()
+                        }
                     )
                     menuItem(
                         label = "Delete",

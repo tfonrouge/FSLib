@@ -35,12 +35,18 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
                         icon = viewList.iconCrud(CrudAction.Create),
                         url = viewList.actionUrl(CrudAction.Create, null)
                     ) {
+                        onClick {
+                            viewList.checkIfmasterViewItemUpdate()
+                        }
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                     }
                     linkUpdate = navLink(
                         label = if (minToolbarSize) "" else "Update",
                         icon = viewList.iconCrud(CrudAction.Update)
                     ) {
+                        onClick {
+                            viewList.checkIfmasterViewItemUpdate()
+                        }
                         enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                     }
                     linkDelete = navLink(
