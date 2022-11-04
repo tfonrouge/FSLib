@@ -397,8 +397,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun updateOneById(
-        _id: U?,
+    suspend fun updateOne(
+        filter: Bson,
         state: StateItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemResponse<T> {
@@ -407,7 +407,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             checkDontPersist(state.item)
             val result = try {
                 mongoColl.coroutine.updateOne(
-                    filter = state.item::_id eq _id,
+                    filter = filter,
                     target = state.item,
                     options = updateOptions
                 )
@@ -417,10 +417,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             }
             return ItemResponse(isOk = result?.modifiedCount == 1L, msgError = msgError)
         } else if (state.json != null) {
-            val b = BaseModel<U>::_id eq _id
             val result = try {
                 mongoColl.coroutine.updateOne(
-                    filter = b,
+                    filter = filter,
                     update = BsonDocument("\$set", checkSignatures(state.json)),
                     options = updateOptions
                 )
@@ -431,6 +430,19 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             return ItemResponse(isOk = result?.modifiedCount == 1L, msgError = msgError)
         }
         return ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
+    }
+
+    @Suppress("unused")
+    suspend fun updateOneById(
+        _id: U?,
+        state: StateItem<T>,
+        updateOptions: UpdateOptions = UpdateOptions()
+    ): ItemResponse<T> {
+        return updateOne(
+            filter = BaseModel<U>::_id eq _id,
+            state = state,
+            updateOptions = updateOptions
+        )
     }
 
     init {
