@@ -77,7 +77,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     fun acceptUpsertAction(
         block: ((ItemResponse<T>) -> Unit)? = {
             if (it.isOk) {
-                Toast.success("Info", it.msgOk)
+                Toast.success("Info", if (it.noDataModified == true) "No data was modified ..." else it.msgOk)
             } else {
                 Toast.warning("!", it.msgError)
             }
