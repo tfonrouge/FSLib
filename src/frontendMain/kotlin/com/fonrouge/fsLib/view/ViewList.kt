@@ -14,6 +14,7 @@ import com.fonrouge.fsLib.model.base.BaseModel
 import io.kvision.core.Container
 import io.kvision.tabulator.*
 import io.kvision.toast.Toast
+import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -97,13 +98,21 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     }
 
     /**
-     * On calling crud actions Create or Update on this list, checks if it has a masterViewItem
+     * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem
      * which is currently on Update action, if so, then performs an update call to back end before
      * calling the list crud action required
      */
-    open fun checkIfmasterViewItemUpdate() {
+    open fun checkIfmasterViewItemUpdate(url: String?) {
         if (masterViewItem?.urlParams?.crudAction == CrudAction.Update) {
-            masterViewItem?.acceptUpsertAction(block = null)
+            masterViewItem?.acceptUpsertAction { itemResponse ->
+                if (itemResponse.isOk) {
+                    url?.let { window.location.href = url }
+                } else {
+                    Toast.error(itemResponse.msgError ?: "unknown error", "Cannot update master view item data ...")
+                }
+            }
+        } else {
+            url?.let { window.location.href = url }
         }
     }
 
@@ -137,27 +146,33 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
                     header = true
                 )
                 menuItem(separator = true)
+                val urlRead = actionUrl(CrudAction.Read, item)
                 menuItem(
                     label = "Detail of",
                     icon = iconCrud(CrudAction.Read),
-                    url = actionUrl(CrudAction.Read, item)
+                    url = urlRead,
+                    action = { e, c ->
+                        checkIfmasterViewItemUpdate(urlRead)
+                    }
                 )
                 if (editable) {
+                    val urlCreate = actionUrl(CrudAction.Create, item)
+                    val urlUpdate = actionUrl(CrudAction.Update, item)
                     menuItem(separator = true)
                     menuItem(
                         label = "Create",
                         icon = iconCrud(CrudAction.Create),
-                        url = actionUrl(CrudAction.Create, item),
+                        url = urlCreate,
                         action = { e, c ->
-                            checkIfmasterViewItemUpdate()
+                            checkIfmasterViewItemUpdate(urlCreate)
                         }
                     )
                     menuItem(
                         label = "Update",
                         icon = iconCrud(CrudAction.Update),
-                        url = actionUrl(CrudAction.Update, item),
+                        url = urlUpdate,
                         action = { e, c ->
-                            checkIfmasterViewItemUpdate()
+                            checkIfmasterViewItemUpdate(urlUpdate)
                         }
                     )
                     menuItem(

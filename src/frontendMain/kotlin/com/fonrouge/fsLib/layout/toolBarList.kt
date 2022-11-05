@@ -27,6 +27,10 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
                     label = if (minToolbarSize) "" else "Detail",
                     icon = viewList.iconCrud(CrudAction.Read),
                 ) {
+                    onClick {
+                        it.preventDefault()
+                        viewList.checkIfmasterViewItemUpdate(url)
+                    }
                     enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                 }
                 if (viewList.editable) {
@@ -36,7 +40,8 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
                         url = viewList.actionUrl(CrudAction.Create, null)
                     ) {
                         onClick {
-                            viewList.checkIfmasterViewItemUpdate()
+                            it.preventDefault()
+                            viewList.checkIfmasterViewItemUpdate(url)
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                     }
@@ -45,7 +50,8 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
                         icon = viewList.iconCrud(CrudAction.Update)
                     ) {
                         onClick {
-                            viewList.checkIfmasterViewItemUpdate()
+                            it.preventDefault()
+                            viewList.checkIfmasterViewItemUpdate(url)
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                     }

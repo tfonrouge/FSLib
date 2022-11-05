@@ -415,7 +415,11 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 e.printStackTrace()
                 null
             }
-            return ItemResponse(isOk = result?.modifiedCount == 1L, msgError = msgError)
+            return ItemResponse(
+                isOk = result?.matchedCount == 1L,
+                noDataModified = result?.modifiedCount == 0L,
+                msgError = msgError
+            )
         } else if (state.json != null) {
             val result = try {
                 mongoColl.coroutine.updateOne(
@@ -427,7 +431,11 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 e.printStackTrace()
                 null
             }
-            return ItemResponse(isOk = result?.modifiedCount == 1L, msgError = msgError)
+            return ItemResponse(
+                isOk = result?.matchedCount == 1L,
+                noDataModified = result?.modifiedCount == 0L,
+                msgError = msgError
+            )
         }
         return ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
     }

@@ -7,9 +7,10 @@ data class ItemResponse<T>(
     var item: T? = null,
     val itemAlreadyOn: Boolean = false,
     override var isOk: Boolean = item != null,
+    val noDataModified: Boolean? = null,
     override var msgOk: String? = "Operation successful ...",
     override var msgError: String? = "Operation Failed ...",
-    override var state: String? = null
+    override var state: String? = null,
 ) : ISimpleResponse {
     @Suppress("unused")
     constructor(simpleResponse: SimpleResponse) : this(

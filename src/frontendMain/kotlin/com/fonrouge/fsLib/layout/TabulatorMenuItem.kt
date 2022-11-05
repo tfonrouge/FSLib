@@ -12,15 +12,9 @@ class TabulatorMenuItem(
     var menu: TabulatorMenuItem? = null,
     var header: Boolean = false,
     var url: String? = null,
-    action: ((e: Event, c: dynamic) -> Unit)? = null
+    var action: ((e: Event, c: dynamic) -> Unit),
 ) {
     var label = if (!header) "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>" else label
-    var action: ((e: Event, c: dynamic) -> Unit) = { e, c ->
-        url?.let {
-            window.location.href = it
-        }
-        action?.invoke(e, c)
-    }
 }
 
 fun MutableList<TabulatorMenuItem>.menuItem(
@@ -31,7 +25,11 @@ fun MutableList<TabulatorMenuItem>.menuItem(
     menu: TabulatorMenuItem? = null,
     header: Boolean = false,
     url: String? = null,
-    action: ((e: Event, c: dynamic) -> Unit)? = null
+    action: ((e: Event, c: dynamic) -> Unit) = { e, c ->
+        url?.let {
+            window.location.href = it
+        }
+    }
 ): TabulatorMenuItem {
     val tabulatorMenuItem = TabulatorMenuItem(
         label = label,
