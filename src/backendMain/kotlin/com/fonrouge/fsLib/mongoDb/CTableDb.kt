@@ -44,13 +44,12 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
 ) {
     companion object {
         var globalDebug = false
-        var sysUsersCollectionName = "__sysUsers"
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
-        if (klass.isSubclassOf(ISysUser::class)) sysUsersCollectionName
+        if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
         else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
 
     /**

@@ -9,7 +9,7 @@ import java.util.*
 
 interface ITables
 
-private var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
+internal var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
 
 val mongoClient by lazy {
     mongoDbPluginConfiguration.let { KMongo.createClient(it.connectionString) }
@@ -45,6 +45,12 @@ class MongoDbPluginConfiguration {
     var password: String? = null
     var database: String = "test"
     var locale: String = Locale.getDefault().language
+
+    /**
+     * Name of collection for implementation of ISysUser, any collection name given to implemented
+     * subclasses will be ignored
+     */
+    var sysUsersCollectionName = "__sysUsers"
 
     val connectionString
         get() = "mongodb://" + if (user != null || password != null) {

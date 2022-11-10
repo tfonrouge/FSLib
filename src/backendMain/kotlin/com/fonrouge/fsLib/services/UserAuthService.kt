@@ -12,21 +12,27 @@ import kotlin.jvm.internal.FunctionReferenceImpl
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
-fun ApplicationCall.getSysUser(): SysUser? {
+@Suppress("unused")
+inline fun <reified T : ISysUser> ApplicationCall.getSysUser(): T? {
     return sessions.get()
 }
 
 @Suppress("unused")
-suspend fun <RESP> ApplicationCall.withSysUser(block: suspend (SysUser) -> RESP): RESP {
-    return getSysUser()?.let {
+inline fun <reified T : ISysUser> ApplicationCall.setSysUser(sysUser: T) {
+    sessions.set(sysUser)
+}
+
+@Suppress("unused")
+inline fun <RESP, reified U : ISysUser> ApplicationCall.withSysUser(block: (U) -> RESP): RESP {
+    return getSysUser<U>()?.let {
         block(it)
     } ?: throw ServiceException("App User not set!")
 }
 
 @Suppress("unused")
-suspend fun ApplicationCall?.getUserPermission(kCallable: KCallable<*>): SimpleResponse {
+suspend inline fun <reified U : ISysUser> ApplicationCall?.getUserPermission(kCallable: KCallable<*>): SimpleResponse {
     this ?: return SimpleResponse(isOk = false, msgError = "Operation denied ...")
-    val user = getSysUser() ?: return SimpleResponse(isOk = false, msgError = "User not valid ...")
+    val user = getSysUser<U>() ?: return SimpleResponse(isOk = false, msgError = "User not valid ...")
     if (user.rootUser) {
         return SimpleResponse(isOk = true)
     }

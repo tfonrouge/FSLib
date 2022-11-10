@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.model.base.AppRole
-import com.fonrouge.fsLib.model.base.SysUser
+import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.base.SysUserRole
 import kotlinx.coroutines.runBlocking
 
@@ -14,7 +14,7 @@ var SysUserRoleDb: CTableDb<SysUserRole, String> = object : CTableDb<SysUserRole
             lookupField(
                 cTableDb = SysUserDb::class,
                 localField = SysUserRole::sysUser_id,
-                foreignField = SysUser::_id,
+                foreignField = ISysUser::_id,
                 resultField = SysUserRole::sysUser,
             ),
             lookupField(
