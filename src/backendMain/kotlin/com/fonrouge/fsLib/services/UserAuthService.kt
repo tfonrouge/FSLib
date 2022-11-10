@@ -2,11 +2,11 @@ package com.fonrouge.fsLib.services
 
 import com.fonrouge.fsLib.model.SimpleResponse
 import com.fonrouge.fsLib.model.base.AppRole
-import com.fonrouge.fsLib.model.base.AppUser
-import com.fonrouge.fsLib.model.base.AppUserRole
+import com.fonrouge.fsLib.model.base.SysUser
+import com.fonrouge.fsLib.model.base.SysUserRole
 import com.fonrouge.fsLib.model.base.PermissionType
 import com.fonrouge.fsLib.mongoDb.AppRoleDb
-import com.fonrouge.fsLib.mongoDb.AppUserRoleDb
+import com.fonrouge.fsLib.mongoDb.SysUserRoleDb
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
 import io.kvision.remote.ServiceException
@@ -15,14 +15,13 @@ import kotlin.jvm.internal.FunctionReferenceImpl
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
-@Suppress("unused")
-fun CurrentSession.getAppUser(): AppUser? {
-    return get()
+fun ApplicationCall.getSysUser(): SysUser? {
+    return sessions.get()
 }
 
 @Suppress("unused")
-suspend fun <RESP> ApplicationCall.withAppUser(block: suspend (AppUser) -> RESP): RESP {
-    return sessions.getAppUser()?.let {
+suspend fun <RESP> ApplicationCall.withSysUser(block: suspend (SysUser) -> RESP): RESP {
+    return getSysUser()?.let {
         block(it)
     } ?: throw ServiceException("App User not set!")
 }
@@ -30,7 +29,7 @@ suspend fun <RESP> ApplicationCall.withAppUser(block: suspend (AppUser) -> RESP)
 @Suppress("unused")
 suspend fun ApplicationCall?.getUserPermission(kCallable: KCallable<*>): SimpleResponse {
     this ?: return SimpleResponse(isOk = false, msgError = "Operation denied ...")
-    val user = sessions.getAppUser() ?: return SimpleResponse(isOk = false, msgError = "User not valid ...")
+    val user = getSysUser() ?: return SimpleResponse(isOk = false, msgError = "User not valid ...")
     if (user.rootUser) {
         return SimpleResponse(isOk = true)
     }
@@ -40,8 +39,8 @@ suspend fun ApplicationCall?.getUserPermission(kCallable: KCallable<*>): SimpleR
         AppRole::classOwner eq classOwner,
         AppRole::funcName eq funcName
     ) ?: return SimpleResponse(isOk = false, msgError = "App role doesn't exist '$classOwner::$funcName' ... ")
-    AppUserRoleDb.coroutineColl.find(
-        filter = AppUserRole::appUser_id eq user._id
+    SysUserRoleDb.coroutineColl.find(
+        filter = SysUserRole::sysUser_id eq user._id
     ).toList().forEach { userRole ->
         if (userRole.appRole_id == appRole._id)
             return if (userRole.permission == PermissionType.Allow

@@ -9,14 +9,14 @@ import kotlin.js.JsExport
 @MongoDoc(collection = "__userRoles")
 @Serializable
 @JsExport
-class AppUserRole(
+class SysUserRole(
     override var _id: String = newObjectId(),
-    var appUser_id: String,
+    var sysUser_id: String,
     var appRole_id: String?,
     var permission: PermissionType = PermissionType.Allow
 ) : BaseModel<String> {
     @DontPersist
-    var appUser: AppUser? = null
+    var sysUser: SysUser? = null
 
     @DontPersist
     var appRole: AppRole? = null

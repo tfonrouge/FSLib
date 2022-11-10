@@ -8,7 +8,7 @@ import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.ListContainer
 import com.fonrouge.fsLib.model.base.BaseModel
-import com.fonrouge.fsLib.model.base.IAppUser
+import com.fonrouge.fsLib.model.base.ISysUser
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
@@ -44,13 +44,13 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
 ) {
     companion object {
         var globalDebug = false
-        var appUsersCollectionName = "__appUsers"
+        var sysUsersCollectionName = "__sysUsers"
         internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
-        if (klass.isSubclassOf(IAppUser::class)) appUsersCollectionName
+        if (klass.isSubclassOf(ISysUser::class)) sysUsersCollectionName
         else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
 
     /**

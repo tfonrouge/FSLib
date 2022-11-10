@@ -1,16 +1,16 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.model.base.AppUser
+import com.fonrouge.fsLib.model.base.SysUser
 import com.mongodb.client.model.IndexOptions
 import kotlinx.coroutines.runBlocking
 
-var AppUserDb: CTableDb<AppUser, String> = object : CTableDb<AppUser, String>(
-    klass = AppUser::class
+var SysUserDb: CTableDb<SysUser, String> = object : CTableDb<SysUser, String>(
+    klass = SysUser::class
 ) {
     init {
         runBlocking {
             coroutineColl.ensureUniqueIndex(
-                AppUser::code,
+                SysUser::code,
                 indexOptions = IndexOptions()
                     .collation(collation())
             )
