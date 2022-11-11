@@ -5,7 +5,6 @@ import kotlin.js.JsExport
 @JsExport
 interface ISysUser : BaseModel<String> {
     override val _id: String
-    var code: String
     var name: String
     var rootUser: Boolean
     var password: String
