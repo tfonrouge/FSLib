@@ -81,6 +81,7 @@ kotlin {
                 api("io.ktor:ktor-server-http-redirect:$ktorVersion")
                 api("io.ktor:ktor-server-partial-content:$ktorVersion")
                 api("org.litote.kmongo:kmongo-coroutine-serialization:$kmongoVersion")
+                api("org.litote.kmongo:kmongo-id-serialization:$kmongoVersion")
                 api("org.jetbrains.exposed:exposed-core:$exposedVersion")
                 api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
                 api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
