@@ -1,9 +1,11 @@
 package com.fonrouge.fsLib.model.base
 
 import kotlinx.serialization.Serializable
+import kotlin.js.JsExport
 
 @Serializable
-data class SysUser2(
+@JsExport
+data class SysUser(
     override val _id: String,
     override var name: String,
     override var rootUser: Boolean = false,
