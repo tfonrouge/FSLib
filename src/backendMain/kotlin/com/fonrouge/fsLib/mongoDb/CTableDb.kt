@@ -81,7 +81,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregate(
-        pipeline: List<Bson>? = null,
+        pipeline: MutableList<Bson>,
         vararg modelLookup: ModelLookup<*, *>
     ): AggregatePublisher<T> {
         val pip1 = buildPipeline(pipeline, modelLookup)
@@ -124,13 +124,13 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
      * @param pipeline the pipeline passed to the aggregation function
      * @param modelLookup array of [ModelLookup] that will be added to the final pipeline
      */
-    open fun buildPipeline(pipeline: List<Bson>? = null, modelLookup: Array<out ModelLookup<*, *>>): List<Bson> {
-        val result = mutableListOf<Bson>()
-        pipeline?.let { if (it.isNotEmpty()) result.addAll(it) }
-        result.addAll(buildLookupList(*modelLookup))
-        return result
+    open fun buildPipeline(
+        pipeline: MutableList<Bson>,
+        modelLookup: Array<out ModelLookup<*, *>>
+    ): List<Bson> {
+        pipeline.addAll(buildLookupList(*modelLookup))
+        return pipeline
     }
-
 
     private fun checkDontPersist(item: T) {
         item::class.memberProperties.forEach { kProperty1 ->
@@ -210,7 +210,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         filter: Bson? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): List<T> {
-        return aggregate(filter?.let { listOf(match(filter)) }, *modelLookup).toList()
+        return aggregate(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(), *modelLookup).toList()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -218,7 +218,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         filter: Bson? = null,
         vararg modelLookup: ModelLookup<*, *>
     ): T? {
-        return aggregate(filter?.let { listOf(match(filter)) }, *modelLookup).awaitFirstOrNull()
+        return aggregate(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
+            *modelLookup).awaitFirstOrNull()
     }
 
     @Suppress("unused")

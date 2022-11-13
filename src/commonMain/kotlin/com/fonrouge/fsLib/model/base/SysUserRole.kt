@@ -16,7 +16,7 @@ class SysUserRole(
     var permission: PermissionType = PermissionType.Allow
 ) : BaseModel<String> {
     @DontPersist
-    var sysUser: SysUser? = null
+    var sysUser: ISysUser? = null
 
     @DontPersist
     var appRole: AppRole? = null
