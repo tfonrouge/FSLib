@@ -295,7 +295,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                 alignItems = AlignItems.CENTER,
                                 spacing = 10
                             ) {
-                                div(content = "<i>[$crudAction1]</i> action denied: <b>${itemResponse.msgError}</b>",rich = true) {
+                                div(content = "<i><b>[$crudAction1]</b></i> action denied: <b>${itemResponse.msgError}</b>",rich = true) {
                                     fontSize = 1.5.em
                                 }
                                 flexPanel(
