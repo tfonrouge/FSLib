@@ -5,7 +5,7 @@ import kotlin.js.JsExport
 
 @Serializable
 @JsExport
-data class SysUser(
+internal data class SysUser(
     override val _id: String,
     override var name: String,
     override var rootUser: Boolean = false,
