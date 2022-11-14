@@ -288,8 +288,26 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                 }
                             }
                         } else {
-                            vPanel(className = "showItem") {
-                                centeredMessage("$crudAction1 action denied ...")
+                            flexPanel(
+                                direction = FlexDirection.COLUMN,
+                                justify = JustifyContent.CENTER,
+                                alignContent = AlignContent.CENTER,
+                                alignItems = AlignItems.CENTER,
+                                spacing = 10
+                            ) {
+                                div(content = "<i>[$crudAction1]</i> action denied: <b>${itemResponse.msgError}</b>",rich = true) {
+                                    fontSize = 1.5.em
+                                }
+                                flexPanel(
+                                    direction = FlexDirection.ROW,
+                                    justify = JustifyContent.CENTER,
+                                    spacing = 20
+                                ) {
+                                    buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left").onClick {
+                                        alreadyBack = true
+                                        js("history.back()") as? Unit
+                                    }
+                                }
                             }
                             Toast.warning(
                                 message = itemResponse.msgError ?: "$crudAction1 action denied ...",
