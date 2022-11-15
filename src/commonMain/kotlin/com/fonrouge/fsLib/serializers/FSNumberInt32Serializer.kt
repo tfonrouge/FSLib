@@ -2,4 +2,4 @@ package com.fonrouge.fsLib.serializers
 
 import kotlinx.serialization.KSerializer
 
-expect object FSNumberDoubleSerializer : KSerializer<Double>
+expect object FSNumberInt32Serializer : KSerializer<Int>

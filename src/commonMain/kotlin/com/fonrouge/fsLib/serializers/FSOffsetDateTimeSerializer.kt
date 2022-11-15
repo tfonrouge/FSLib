@@ -5,5 +5,4 @@ import kotlinx.serialization.KSerializer
 
 const val KV_DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss"
 
-@Suppress("RedundantVisibilityModifier")
-public expect object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime>
+expect object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime>

@@ -82,9 +82,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregate(
         pipeline: MutableList<Bson>,
-        vararg modelLookup: ModelLookup<*, *>
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): AggregatePublisher<T> {
-        val pip1 = buildPipeline(pipeline, modelLookup)
+        val pip1 = buildPipeline(pipeline, modelLookups)
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate:")
             println(pip1.json)
@@ -100,7 +100,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
      * @param arrayOfModelLookups array of ModelLookup items to extract lookup info
      * @return List<Bson>
      */
-    fun buildLookupList(vararg arrayOfModelLookups: ModelLookup<*, *>): List<Bson> {
+    fun buildLookupList(arrayOfModelLookups: Array<out ModelLookup<*, *>> = emptyArray()): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         lookupPipelineBuilderList?.forEach { lookupPipelineBuilder ->
             val modelLookup = arrayOfModelLookups.find { lookupPipelineBuilder.resultProperty == it.resultProperty }
@@ -128,7 +128,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         pipeline: MutableList<Bson>,
         modelLookup: Array<out ModelLookup<*, *>>
     ): List<Bson> {
-        pipeline.addAll(buildLookupList(*modelLookup))
+        pipeline.addAll(buildLookupList(modelLookup))
         return pipeline
     }
 
@@ -203,41 +203,41 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
      * Find [filter] expression in collection and returns a list of [T] items
      *
      * @param filter bson expression
-     * @param modelLookup array of ModelLookup
+     * @param modelLookups array of ModelLookup
      * @return list of T items
      */
     suspend fun find(
         filter: Bson? = null,
-        vararg modelLookup: ModelLookup<*, *>
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): List<T> {
-        return aggregate(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(), *modelLookup).toList()
+        return aggregate(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(), modelLookups).toList()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOne(
         filter: Bson? = null,
-        vararg modelLookup: ModelLookup<*, *>
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): T? {
         return aggregate(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
-            *modelLookup).awaitFirstOrNull()
+            modelLookups).awaitFirstOrNull()
     }
 
     @Suppress("unused")
     suspend fun findOneById(
         _id: U?,
-        vararg modelLookup: ModelLookup<*, *>
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): T? {
-        return findOne(BaseModel<*>::_id eq _id, *modelLookup)
+        return findOne(BaseModel<*>::_id eq _id, modelLookups)
     }
 
     @Suppress("unused")
     suspend fun itemResponse(
         _id: U?,
-        vararg modelLookup: ModelLookup<*, *>
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): ItemResponse<T> {
         return try {
             ItemResponse(
-                item = findOneById(_id = _id, modelLookup = modelLookup)
+                item = findOneById(_id = _id, modelLookups = modelLookups)
             )
         } catch (e: Exception) {
             ItemResponse(isOk = false, msgError = e.message)
@@ -272,6 +272,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         sort: Bson? = null,
         page: Int? = null,
         size: Int? = null,
+        strictCounter: Boolean = true,
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
         other: List<Bson>? = null,
@@ -319,7 +320,11 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 )
             }
         }
-        val count = mongoColl.countDocuments(and(matchDocument, filterDocument)).awaitFirstOrNull() ?: 0L
+        val count = if (strictCounter) {
+            mongoColl.countDocuments(and(matchDocument, filterDocument)).awaitFirstOrNull() ?: 0L
+        } else {
+            mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
+        }
         if (page == null) {
             matchDocument?.let { pipeline.add(match(matchDocument)) }
             filterDocument?.let { pipeline.add(match(filterDocument)) }
@@ -355,9 +360,9 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("unused")
     suspend fun listContainer(
         firstStage: FirstStage,
-        vararg modelLookup: ModelLookup<*, *>
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): ListContainer<T> {
-        val list = aggregate(firstStage.pipeline, *modelLookup).toList()
+        val list = aggregate(firstStage.pipeline, modelLookups).toList()
         val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
         val crC32 = CRC32()
         crC32.update(encoded.toByteArray())
@@ -378,9 +383,10 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     suspend fun listContainer(
         match: Bson? = null,
         sort: Bson? = null,
+        strictCounter: Boolean = true,
         contextDataUrl: ContextDataUrl?,
         other: List<Bson>? = null,
-        vararg modelLookup: ModelLookup<*, *>
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): ListContainer<T> {
         return listContainer(
             firstStage = listFirstStage(
@@ -388,11 +394,12 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 sort = sort,
                 page = contextDataUrl?.tabPage,
                 size = contextDataUrl?.tabSize,
+                strictCounter = strictCounter,
                 filter = contextDataUrl?.tabFilter,
                 sorter = contextDataUrl?.tabSorter,
                 other = other,
             ),
-            modelLookup = modelLookup
+            modelLookups = modelLookups
         )
     }
 

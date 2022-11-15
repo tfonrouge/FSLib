@@ -32,7 +32,7 @@ var SysUserRoleDb: CTableDb<SysUserRole, String> = object : CTableDb<SysUserRole
                 SysUserRole::appRole.unwind(unwindOptions = UnwindOptions().preserveNullAndEmptyArrays(true)),
             )
         )
-        pipeline.addAll(buildLookupList(*modelLookup))
+        pipeline.addAll(buildLookupList(modelLookup))
         return pipeline
     }
 

@@ -11,26 +11,26 @@ import kotlinx.serialization.encoding.Encoder
 import org.bson.BsonType
 
 @Suppress("unused")
-actual object FSNumberDoubleSerializer : KSerializer<Double> {
+actual object FSNumberInt32Serializer : KSerializer<Int> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("Number as Double Serializer", PrimitiveKind.DOUBLE)
+        PrimitiveSerialDescriptor("Number as Int Serializer", PrimitiveKind.DOUBLE)
 
-    override fun deserialize(decoder: Decoder): Double {
+    override fun deserialize(decoder: Decoder): Int {
         return if (decoder is BsonFlexibleDecoder) {
             when (decoder.reader.currentBsonType) {
-                BsonType.INT32 -> decoder.decodeInt().toDouble()
-                BsonType.INT64 -> decoder.decodeLong().toDouble()
-                BsonType.DOUBLE -> decoder.decodeDouble()
+                BsonType.INT32 -> decoder.decodeInt()
+                BsonType.INT64 -> decoder.decodeLong().toInt()
+                BsonType.DOUBLE -> decoder.decodeDouble().toInt()
                 else -> {
-                    throw ServiceException("NumberDoubleSerializer: Unknown how to decode type '${decoder.reader.currentBsonType}'")
+                    throw ServiceException("NumberIntSerializer: Unknown how to decode type '${decoder.reader.currentBsonType}'")
                 }
             }
         } else {
-            decoder.decodeDouble()
+            decoder.decodeInt()
         }
     }
 
-    override fun serialize(encoder: Encoder, value: Double) {
-        return encoder.encodeDouble(value = value)
+    override fun serialize(encoder: Encoder, value: Int) {
+        return encoder.encodeInt(value = value)
     }
 }

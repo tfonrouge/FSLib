@@ -8,16 +8,15 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
 @Suppress("unused")
-actual object FSNumberDoubleSerializer : KSerializer<Double> {
-
+actual object FSNumberInt32Serializer : KSerializer<Int> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("Number as Double Serializer", PrimitiveKind.DOUBLE)
+        PrimitiveSerialDescriptor("Number as Int Serializer", PrimitiveKind.DOUBLE)
 
-    override fun deserialize(decoder: Decoder): Double {
-        return decoder.decodeDouble()
+    override fun deserialize(decoder: Decoder): Int {
+        return decoder.decodeInt()
     }
 
-    override fun serialize(encoder: Encoder, value: Double) {
-        encoder.encodeDouble(value = value)
+    override fun serialize(encoder: Encoder, value: Int) {
+        encoder.encodeInt(value = value)
     }
 }
