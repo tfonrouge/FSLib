@@ -78,13 +78,19 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
      * accept a custom pipeline (list of Bson) argument and
      * also accept a list of ModelLookup to be added to the
      * final pipeline on the aggregate operation
+     *
+     * @param pipeline [Bson] list
+     * @param modelLookups list of lookups to be included [ModelLookup]
+     * @param blockPipeline block that allow to post process the resulted [Bson] list
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregate(
-        pipeline: MutableList<Bson>,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
+        pipeline: MutableList<Bson> = mutableListOf(),
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
+        blockPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
         val pip1 = buildPipeline(pipeline, modelLookups)
+        blockPipeline?.let { it(pip1) }
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate:")
             println(pip1.json)
@@ -127,7 +133,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     open fun buildPipeline(
         pipeline: MutableList<Bson>,
         modelLookup: Array<out ModelLookup<*, *>>
-    ): List<Bson> {
+    ): MutableList<Bson> {
         pipeline.addAll(buildLookupList(modelLookup))
         return pipeline
     }
