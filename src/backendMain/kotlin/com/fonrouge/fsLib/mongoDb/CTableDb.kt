@@ -278,7 +278,11 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         other: List<Bson>? = null,
     ): FirstStage {
         val pipeline = mutableListOf<Bson>()
-        val matchDocument = match?.toBsonDocument()?.get("\$match")?.asDocument() ?: match?.toBsonDocument()
+        match?.toString()?.let {
+            // TODO: add OffsetDateTime codec to avoid error using it on match()
+            if (it.contains("\$match")) throw Exception("Don't use match() function ...")
+        }
+//        val matchDocument = match?.toBsonDocument()?.get("\$match")?.asDocument() ?: match?.toBsonDocument()
         val filterDocument = if (!filter.isNullOrEmpty()) {
             val bdoc = BsonDocument()
             val kProperty1s = klass.memberProperties
@@ -321,12 +325,12 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             }
         }
         val count = if (strictCounter) {
-            mongoColl.countDocuments(and(matchDocument, filterDocument)).awaitFirstOrNull() ?: 0L
+            mongoColl.countDocuments(and(match, filterDocument)).awaitFirstOrNull() ?: 0L
         } else {
             mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
         }
         if (page == null) {
-            matchDocument?.let { pipeline.add(match(matchDocument)) }
+            match?.let { pipeline.add(match(match)) }
             filterDocument?.let { pipeline.add(match(filterDocument)) }
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
             other?.let { pipeline.addAll(it) }
@@ -341,7 +345,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             val maxPage = ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt()
             val nPage = kotlin.math.min(maxPage, page)
             val nSkip = nSize * (nPage - 1)
-            matchDocument?.let { pipeline.add(match(matchDocument)) }
+            match?.let { pipeline.add(match(match)) }
             filterDocument?.let { pipeline.add(match(filterDocument)) }
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
             kotlin.math.max(nSkip, 0).let { if (it > 0) pipeline.add(skip(it)) }
