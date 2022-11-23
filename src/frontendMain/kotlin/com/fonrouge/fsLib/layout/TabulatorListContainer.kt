@@ -119,9 +119,9 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
             method = HttpMethod.valueOf(method.name),
             requestFilter = requestFilter
         ).then { r: dynamic ->
-            console.warn("r ->", r, "<-")
+//            console.warn("r ->", r, "<-")
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            console.warn("result ->", result, "<-")
+//            console.warn("result ->", result, "<-")
             onResult?.let { it(result) }
             if (result.checksum != undefined) {
                 diffChecksums = (result.checksum as? String) != checksum
