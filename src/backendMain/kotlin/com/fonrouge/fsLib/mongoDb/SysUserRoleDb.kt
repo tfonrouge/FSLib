@@ -13,7 +13,10 @@ var SysUserRoleDb: CTableDb<SysUserRole, String> = object : CTableDb<SysUserRole
     klass = SysUserRole::class,
     debug = true
 ) {
-    override fun buildPipeline(pipeline: MutableList<Bson>, modelLookup: Array<out ModelLookup<*, *>>): MutableList<Bson> {
+    override fun buildPipeline(
+        pipeline: MutableList<Bson>,
+        modelLookup: Array<out ModelLookup<*, *>>
+    ): MutableList<Bson> {
         pipeline.addAll(
             listOf(
                 lookup5(
