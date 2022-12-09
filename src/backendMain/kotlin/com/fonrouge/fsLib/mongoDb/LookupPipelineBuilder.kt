@@ -15,7 +15,8 @@ fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupField(
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
-    resultField: KProperty1<T, U?>
+    resultField: KProperty1<T, U?>,
+    preserveNullAndEmptyArrays: Boolean = true,
 ): LookupPipelineBuilder<T, U, W> {
     return object : LookupPipelineBuilder<T, U, W>(
         cTableDb = cTableDb,
@@ -23,6 +24,7 @@ fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupField(
         foreignField = foreignField,
         pipeline = pipeline,
         resultProperty = resultField,
+        preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
         limit = 1,
         resultUnit = ResultUnit.One
     ) {}
@@ -35,6 +37,7 @@ fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupFieldArray(
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
     resultFieldArray: KProperty1<T, Array<U>?>,
+    preserveNullAndEmptyArrays: Boolean = true,
     limit: Int? = null,
 ): LookupPipelineBuilder<T, U, W> {
     return object : LookupPipelineBuilder<T, U, W>(
@@ -43,6 +46,7 @@ fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupFieldArray(
         foreignField = foreignField,
         pipeline = pipeline,
         resultProperty = resultFieldArray,
+        preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
         limit = limit,
         resultUnit = ResultUnit.List
     ) {}
@@ -54,6 +58,7 @@ abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W : Any
     private val foreignField: KProperty<*>,
     private val pipeline: List<Bson>? = null,
     internal val resultProperty: KProperty1<T, *>,
+    internal val preserveNullAndEmptyArrays: Boolean = true,
     internal val limit: Int? = null,
     val resultUnit: ResultUnit,
 ) {
@@ -66,7 +71,13 @@ abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W : Any
         val pipeline = mutableListOf<Bson>()
         pipeline += lookup(pip2)
         if (resultUnit == ResultUnit.One) {
-            resultProperty.let { pipeline += resultProperty.unwind(UnwindOptions().preserveNullAndEmptyArrays(true)) }
+            resultProperty.let {
+                pipeline += resultProperty.unwind(
+                    UnwindOptions().preserveNullAndEmptyArrays(
+                        preserveNullAndEmptyArrays
+                    )
+                )
+            }
         }
         return pipeline
     }
