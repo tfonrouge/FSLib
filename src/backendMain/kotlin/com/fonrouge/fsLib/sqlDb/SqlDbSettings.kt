@@ -83,14 +83,16 @@ abstract class SqlDbSettings(
             try {
                 exec(sql, args, explicitStatementType) { resultSet ->
                     while (resultSet.next()) {
-                        result.add(sqlEntityTo(resultSet))
+                        try {
+                            result.add(sqlEntityTo(resultSet))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             } catch (e: ExposedSQLException) {
+                System.err.println("SQL findList() error: ${e.message} on SQL string: $sql")
                 e.printStackTrace()
-                val s = "SQL findList() error: ${e.message} on SQL string: $sql"
-                System.err.println(s)
-                println(s)
             }
         }
         return result
