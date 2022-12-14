@@ -63,45 +63,4 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
         afterInitialize?.invoke()
     }
-
-    internal fun showToastApiRemoteRequest(code: Int, title: String, message: String) {
-
-        val msgDetail = if (code == 403) {
-//            handleInterval = null
-            authenticated = false
-            """
-<p>-<p>
-The resource requires authentication which was not supplied with the request<br>
-<b>Please Login
-"""
-        } else {
-            ""
-        }
-        showToastApiError(title, message + msgDetail, 10000) {
-            if (!authenticated) {
-                routing.navigate("login")
-            }
-        }
-    }
-
-    fun showToastApiError(title: String, message: String, timeOut: Int = 5000, onHidden: (() -> Unit)? = null) {
-        Toast.error(
-            message = message,
-            title = title,
-            options = ToastOptions(
-                positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                progressBar = true,
-                closeButton = true,
-                timeOut = timeOut,
-                onHidden = onHidden,
-            ),
-        )
-    }
-
-//    fun dispatchViewListPage(
-//        configViewList: ConfigViewList<*, *>,
-//        match: Match
-//    ) {
-//        configViewList.dispatchViewPage(urlParams = UrlParams(match = match))
-//    }
 }
