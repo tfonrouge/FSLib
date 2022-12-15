@@ -77,9 +77,9 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     fun acceptUpsertAction(
         block: ((ItemResponse<T>) -> Unit)? = {
             if (it.isOk) {
-                Toast.success("Info", if (it.noDataModified == true) "No data was modified ..." else it.msgOk)
+                Toast.info(if (it.noDataModified == true) "No data was modified ..." else it.msgOk ?: "info...")
             } else {
-                Toast.warning("!", it.msgError)
+                Toast.warning(it.msgError ?: "!")
             }
             js("history.back()")
             Unit
@@ -103,8 +103,8 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                     Toast.warning(
                         message = "Form has incomplete data",
                         options = ToastOptions(
-                            positionClass = ToastPosition.BOTTOMRIGHT,
-                            progressBar = true,
+                            position = ToastPosition.BOTTOMRIGHT,
+                            stopOnFocus = true
                         )
                     )
                 }
@@ -205,17 +205,15 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                         var buttonBack: Button?
                         var alreadyBack = false
                         val toastOptions = ToastOptions(
-                            positionClass = ToastPosition.BOTTOMFULLWIDTH,
-                            progressBar = true,
-                            closeDuration = 10,
-                            extendedTimeOut = 20,
-                            closeButton = true,
-                            onHidden = {
+                            position = ToastPosition.BOTTOMRIGHT,
+                            stopOnFocus = true,
+                            duration = 10000,
+                            close = true,
+                            callback = {
                                 if (!alreadyBack) js("history.back()")
                                 Unit
                             },
                             escapeHtml = true,
-                            closeHtml = "<button type=\"button\">Close</button>"
                         )
                         val crudAction1 = urlParams?.crudAction
                         if (itemResponse.isOk && crudAction1 != null) {
@@ -252,7 +250,6 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                             buttonBack?.show()
                                             Toast.warning(
                                                 message = "$crudAction1 action cancelled ...",
-                                                title = "$crudAction1 cancelled",
                                                 options = toastOptions
                                             )
                                         }
@@ -270,14 +267,12 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                                     Toast.success(
                                                         message = itemResponse1.msgOk
                                                             ?: "$crudAction1 action successful ...",
-                                                        title = "$crudAction1 success",
                                                         options = toastOptions
                                                     )
                                                 } else {
                                                     Toast.warning(
                                                         message = itemResponse1.msgError
                                                             ?: "$crudAction1 action failed ...",
-                                                        title = "$crudAction1 failed",
                                                         options = toastOptions
                                                     )
                                                 }
@@ -314,7 +309,6 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                             }
                             Toast.warning(
                                 message = itemResponse.msgError ?: "$crudAction1 action denied ...",
-                                title = "Action denied",
                                 options = toastOptions
                             )
                         }

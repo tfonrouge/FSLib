@@ -9,8 +9,6 @@ import io.kvision.routing.Routing
 import io.kvision.routing.routing
 import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
-import io.kvision.toast.ToastOptions
-import io.kvision.toast.ToastPosition
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

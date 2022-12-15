@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.2.24"
+version = "1.3.0"
 
 repositories {
     mavenCentral()
@@ -97,18 +97,18 @@ kotlin {
                 api("io.kvision:kvision-bootstrap-datetime:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-dialog:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-icons:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-select:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-select-remote:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-spinner:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-typeahead:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-typeahead-remote:$kvisionVersion")
+//                api("io.kvision:kvision-bootstrap-select:$kvisionVersion")
+//                api("io.kvision:kvision-bootstrap-select-remote:$kvisionVersion")
+//                api("io.kvision:kvision-bootstrap-spinner:$kvisionVersion")
+//                api("io.kvision:kvision-bootstrap-typeahead:$kvisionVersion")
+//                api("io.kvision:kvision-bootstrap-typeahead-remote:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-upload:$kvisionVersion")
                 api("io.kvision:kvision-datetime:$kvisionVersion")
                 api("io.kvision:kvision-chart:$kvisionVersion")
-                api("io.kvision:kvision-datacontainer:$kvisionVersion")
+//                api("io.kvision:kvision-datacontainer:$kvisionVersion")
                 api("io.kvision:kvision-fontawesome:$kvisionVersion")
                 api("io.kvision:kvision-jquery:$kvisionVersion")
-                api("io.kvision:kvision-moment:$kvisionVersion")
+//                api("io.kvision:kvision-moment:$kvisionVersion")
                 api("io.kvision:kvision-pace:$kvisionVersion")
                 api("io.kvision:kvision-print:$kvisionVersion")
                 api("io.kvision:kvision-react:$kvisionVersion")
@@ -118,7 +118,10 @@ kotlin {
                 api("io.kvision:kvision-routing-navigo-ng:$kvisionVersion")
                 api("io.kvision:kvision-tabulator:$kvisionVersion")
                 api("io.kvision:kvision-tabulator-remote:$kvisionVersion")
-                api("io.kvision:kvision-toast:$kvisionVersion")
+//                api("io.kvision:kvision-toast:$kvisionVersion")
+                api("io.kvision:kvision-toastify:$kvisionVersion")
+                api("io.kvision:kvision-tom-select:$kvisionVersion")
+                api("io.kvision:kvision-tom-select-remote:$kvisionVersion")
             }
             kotlin.srcDir("build/generated-src/frontend")
         }

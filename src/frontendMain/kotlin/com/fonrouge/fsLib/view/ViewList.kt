@@ -108,7 +108,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
                 if (itemResponse.isOk) {
                     url?.let { window.location.href = url }
                 } else {
-                    Toast.error(itemResponse.msgError ?: "unknown error", "Cannot update master view item data ...")
+                    Toast.danger(itemResponse.msgError ?: "unknown error")
                 }
             }
         } else {
@@ -131,7 +131,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
             try {
                 tabulator?.toKotlinObjTabulator(it, configView.itemKClass)
             } catch (e: Exception) {
-                Toast.error(e.message ?: "", "Error decoding (toKotlinObjTabulator)")
+                Toast.danger(e.message ?: "")
                 e.printStackTrace()
                 null
             }
