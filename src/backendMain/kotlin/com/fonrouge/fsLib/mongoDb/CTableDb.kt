@@ -243,7 +243,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     ): ItemResponse<T> {
         return try {
             ItemResponse(
-                item = findOneById(_id = _id, modelLookups = modelLookups)
+                item = findOneById(_id = _id, modelLookups = modelLookups),
+                msgError = "_id '$_id' (${klass.simpleName}) not found..."
             )
         } catch (e: Exception) {
             ItemResponse(isOk = false, msgError = e.message)
