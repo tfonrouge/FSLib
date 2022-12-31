@@ -26,8 +26,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var configViewHome: ConfigViewHome<*>? = null
 
-    private var authenticated = false
-
     /**
      * Global variable to allow periodic update on [ViewItem]
      * Set to true if periodic update is allowed
