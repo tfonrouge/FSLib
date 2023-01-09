@@ -56,6 +56,8 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
 
+    val labelId get() = configView.labelIdFunc?.let { it(item) }
+
     //    var itemId: U? = null
     var noBackButton = false
     var noPageBanner = false
@@ -228,55 +230,71 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                     alignItems = AlignItems.CENTER,
                                     spacing = 10
                                 ) {
-                                    val id = itemResponse.item?.let { configView.labelId?.invoke(it) }
-                                        ?: itemResponse.item?._id
-                                    div(content = "Please confirm delete of ${this@ViewItem.configView.label} '$id'") {
-                                        fontSize = 1.5.em
-                                    }
-                                    flexPanel(
-                                        direction = FlexDirection.ROW,
-                                        justify = JustifyContent.CENTER,
-                                        spacing = 20
-                                    ) {
-                                        buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left") {
-                                            hide()
-                                        }.onClick {
-                                            alreadyBack = true
-                                            js("history.back()") as? Unit
+                                    val labelId = itemResponse.item?.let { configView.labelIdFunc?.invoke(it) }
+                                    if (itemResponse.item != null && labelId != null) {
+                                        div(content = "Please confirm delete of ${this@ViewItem.configView.label} '$labelId'") {
+                                            fontSize = 1.5.em
                                         }
-                                        buttonCancel = button("Cancel", style = ButtonStyle.OUTLINEDANGER).onClick {
-                                            buttonCancel?.hide()
-                                            buttonAccept?.hide()
-                                            buttonBack?.show()
-                                            Toast.warning(
-                                                message = "$crudAction1 action cancelled ...",
-                                                options = toastOptions
-                                            )
-                                        }
-                                        buttonAccept = button("Accept", style = ButtonStyle.OUTLINESUCCESS).onClick {
-                                            configView.callItemService(
-                                                crudAction = CrudAction.Delete,
-                                                callType = StateItem.CallType.Action,
-                                                itemId = urlParams?.id,
-                                                contextDataUrl = urlParams?.contextDataUrl,
-                                            ) { itemResponse1 ->
+                                        flexPanel(
+                                            direction = FlexDirection.ROW,
+                                            justify = JustifyContent.CENTER,
+                                            spacing = 20
+                                        ) {
+                                            buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left") {
+                                                hide()
+                                            }.onClick {
+                                                alreadyBack = true
+                                                js("history.back()") as? Unit
+                                            }
+                                            buttonCancel = button("Cancel", style = ButtonStyle.OUTLINEDANGER).onClick {
                                                 buttonCancel?.hide()
                                                 buttonAccept?.hide()
                                                 buttonBack?.show()
-                                                if (itemResponse1.isOk) {
-                                                    Toast.success(
-                                                        message = itemResponse1.msgOk
-                                                            ?: "$crudAction1 action successful ...",
-                                                        options = toastOptions
-                                                    )
-                                                } else {
-                                                    Toast.warning(
-                                                        message = itemResponse1.msgError
-                                                            ?: "$crudAction1 action failed ...",
-                                                        options = toastOptions
-                                                    )
+                                                Toast.warning(
+                                                    message = "$crudAction1 action cancelled ...",
+                                                    options = toastOptions
+                                                )
+                                            }
+                                            buttonAccept =
+                                                button("Accept", style = ButtonStyle.OUTLINESUCCESS).onClick {
+                                                    configView.callItemService(
+                                                        crudAction = CrudAction.Delete,
+                                                        callType = StateItem.CallType.Action,
+                                                        itemId = urlParams?.id,
+                                                        contextDataUrl = urlParams?.contextDataUrl,
+                                                    ) { itemResponse1 ->
+                                                        buttonCancel?.hide()
+                                                        buttonAccept?.hide()
+                                                        buttonBack?.show()
+                                                        if (itemResponse1.isOk) {
+                                                            Toast.success(
+                                                                message = itemResponse1.msgOk
+                                                                    ?: "$crudAction1 action successful ...",
+                                                                options = toastOptions
+                                                            )
+                                                        } else {
+                                                            Toast.warning(
+                                                                message = itemResponse1.msgError
+                                                                    ?: "$crudAction1 action failed ...",
+                                                                options = toastOptions
+                                                            )
+                                                        }
+                                                        itemResponse1
+                                                    }
                                                 }
-                                                itemResponse1
+                                        }
+                                    } else {
+                                        div(content = "Error on Delete Query: item or item id reference null ...") {
+                                            fontSize = 1.5.em
+                                        }
+                                        flexPanel(
+                                            direction = FlexDirection.ROW,
+                                            justify = JustifyContent.CENTER,
+                                            spacing = 20
+                                        ) {
+                                            button("Back", icon = "fa-solid fa-arrow-rotate-left").onClick {
+                                                alreadyBack = true
+                                                js("history.back()") as? Unit
                                             }
                                         }
                                     }
@@ -330,7 +348,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
 
     override val label: String
         get() {
-            return "${configView.label}: ${configView.labelId?.invoke(item) ?: " < no - item > "}"
+            return "${configView.label}: ${configView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
 
     open fun onChangeDataContainer(itemResponse: ItemResponse<T>?) {
