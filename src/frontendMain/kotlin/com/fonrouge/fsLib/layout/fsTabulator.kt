@@ -135,6 +135,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
                     self.toggleSelectRow(it.detail.asDynamic()._row)
                     it.preventDefault()
                 }
+                viewList.onDataLoadedTabulator?.let { func ->
+                    dataLoadedTabulator = { func(it.detail.unsafeCast<List<T>>()) }
+                }
             }
             addAfterInsertHook {
                 /*

@@ -35,6 +35,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     var overItem: Any? = null
     var menuOpenedState: Boolean? = null
     var navbarTabulator: NavbarTabulator<U>? = null
+    var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     var configViewItem: ConfigViewItem<T, *, *, U>? = configViewItem
         get() {
