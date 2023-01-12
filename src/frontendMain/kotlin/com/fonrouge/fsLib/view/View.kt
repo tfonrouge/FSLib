@@ -20,26 +20,6 @@ abstract class View(
     val icon: String? = null,
     open val label: String = configView.label
 ) {
-    private var linkBanner: Link? = null
-    val navigoUrlWithParams: String
-        get() {
-            return configView.url + if (urlParams != null) urlParams else ""
-        }
-    var pageBannerLink: Link? = null
-    var onUpdatePageBannerLink: ((Link) -> Unit)? = null
-
-    /**
-     * Enable/disable periodic refresh interval of view
-     */
-    open val periodicUpdateDataView: Boolean? = null
-    var periodicUpdateViewInterval = 5
-    abstract var urlParams: UrlParams?
-    abstract fun Container.displayPage()
-
-    open fun onBeforeDisplayPage(container: Container) {}
-
-    open fun onBeforeDispose() {}
-
     open var labelBanner: String?
         get() {
             return linkBanner?.label
@@ -49,6 +29,37 @@ abstract class View(
                 linkBanner?.label = value
             }
         }
+    private var linkBanner: Link? = null
+    val navigoUrlWithParams: String
+        get() {
+            return configView.url + if (urlParams != null) urlParams else ""
+        }
+    var pageBannerLink: Link? = null
+
+    var onUpdatePageBannerLink: ((Link) -> Unit)? = null
+
+    /**
+     * Enable/disable periodic refresh interval of view
+     */
+    open val periodicUpdateDataView: Boolean? = null
+    var periodicUpdateViewInterval = 5
+    abstract var urlParams: UrlParams?
+
+    /**
+     * Allows to insert the whole view to the current DSL container
+     */
+    fun Container.add(view: View): Container {
+        view.apply {
+            displayPage()
+        }
+        return this
+    }
+
+    abstract fun Container.displayPage()
+
+    open fun onBeforeDisplayPage(container: Container) {}
+
+    open fun onBeforeDispose() {}
 
     fun iconCrud(crudAction: CrudAction? = null): String? {
         return when (crudAction ?: urlParams?.crudAction) {
