@@ -369,11 +369,18 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
 
     @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
+    /**
+     * Builds a [ListContainer] back to frontend
+     *
+     * @param preprocess Allows to pre-process the List<[T]> before send it to the frontend
+     */
     suspend fun listContainer(
         firstStage: FirstStage,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
+        preprocess: ((List<T>) -> Unit)? = null,
     ): ListContainer<T> {
         val list = aggregate(firstStage.pipeline, modelLookups).toList()
+        preprocess?.let { it(list) }
         val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
         val crC32 = CRC32()
         crC32.update(encoded.toByteArray())
@@ -397,7 +404,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         strictCounter: Boolean = true,
         contextDataUrl: ContextDataUrl?,
         other: List<Bson>? = null,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
+        modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
+        preprocess: ((List<T>) -> Unit)? = null,
     ): ListContainer<T> {
         return listContainer(
             firstStage = listFirstStage(
@@ -410,7 +418,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 sorter = contextDataUrl?.tabSorter,
                 other = other,
             ),
-            modelLookups = modelLookups
+            modelLookups = modelLookups,
+            preprocess = preprocess
         )
     }
 
