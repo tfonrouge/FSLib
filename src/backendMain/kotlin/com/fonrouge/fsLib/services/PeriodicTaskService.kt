@@ -40,7 +40,7 @@ fun Application.startPeriodicTask(
     koin {
         val periodicTask by inject<IPeriodicTaskService>(klass.java)
         flow {
-            println("Installing ${klass.simpleName} with $timeUnit periodicity ...")
+            println("Installing ${klass.simpleName} with [$timeUnit] periodicity ...")
             while (true) {
                 emit(Unit)
                 delay(1000)
