@@ -83,6 +83,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         paginationInitialPage = pagination?.paginationInitialPage,
         paginationCounter = pagination?.paginationCounter,
         paginationCounterElement = pagination?.paginationCounterElement,
+        selectable = 1,
         persistenceID = viewList.configView.itemKClass.simpleName,
         persistence = json(
             "page" to json("page" to true),
@@ -130,10 +131,6 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
                     }
                     viewList.updateLinks(item, tList.size)
                     viewList.onRowSelected(item)
-                }
-                rowClickTabulator = {
-                    self.toggleSelectRow(it.detail.asDynamic()._row)
-                    it.preventDefault()
                 }
                 viewList.onDataLoadedTabulator?.let { func ->
                     dataLoadedTabulator = { func(it.detail.unsafeCast<List<T>>()) }
