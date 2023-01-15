@@ -86,7 +86,7 @@ abstract class View(
                         button(text = " ", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
                             fontSize = 0.5.em
                         }.onClick {
-                            this@View.cancelUpsertAction()
+                            this@View.backCloseAction()
                         }
                         button(text = " ", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
                             fontSize = 0.5.em

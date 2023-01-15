@@ -20,6 +20,7 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
+import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -78,13 +79,21 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     @Suppress("MemberVisibilityCanBePrivate")
     fun acceptUpsertAction(
         block: ((ItemResponse<T>) -> Unit)? = {
+            val toastOptions = ToastOptions(
+                callback = { backCloseAction() }
+            )
             if (it.isOk) {
-                Toast.info(if (it.noDataModified == true) "No data was modified ..." else it.msgOk ?: "info...")
+                Toast.info(
+                    message = if (it.noDataModified == true) "No data was modified ..." else it.msgOk ?: "info...",
+                    options = toastOptions
+                )
             } else {
-                Toast.warning(it.msgError ?: "!")
+                Toast.warning(
+                    message = it.msgError ?: "!",
+                    options = toastOptions
+                )
             }
-            js("history.back()")
-            Unit
+//            backCloseAction()
         }
     ) {
         val crudAction = urlParams?.crudAction
@@ -114,7 +123,13 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
         }
     }
 
-    fun cancelUpsertAction() = js("history.back()") as? Unit
+    fun backCloseAction() {
+        if (window.history.length > 1) {
+            window.history.back()
+        } else {
+            window.close()
+        }
+    }
 
     /**
      * Override this function if you want to process the [formPanel] data content just *before*
@@ -139,7 +154,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
             marginTop = 1.em
             if (urlParams?.actionUpsert == true) {
                 button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER).onClick {
-                    cancelUpsertAction()
+                    backCloseAction()
                 }
                 button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS).onClick {
                     acceptUpsertAction()
@@ -147,8 +162,10 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
 
             } else {
                 if (!noBackButton) {
-                    button("Back", icon = "fa-solid fa-arrow-rotate-left").onClick {
-                        js("history.back()") as? Unit
+                    val histLength = window.history.length
+                    val label = if (histLength > 1) "Back" else "Close"
+                    button(text = label, icon = "fa-solid fa-arrow-rotate-left").onClick {
+                        backCloseAction()
                     }
                 }
             }
