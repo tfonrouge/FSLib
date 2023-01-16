@@ -5,10 +5,7 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
-import io.kvision.html.ButtonStyle
-import io.kvision.html.Link
-import io.kvision.html.button
-import io.kvision.html.link
+import io.kvision.html.*
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.utils.em
@@ -30,6 +27,8 @@ abstract class View(
             }
         }
     private var linkBanner: Link? = null
+    var navButtonCancel: Button? = null
+    var navButtonAccept: Button? = null
     val navigoUrlWithParams: String
         get() {
             return configView.url + if (urlParams != null) urlParams else ""
@@ -83,17 +82,18 @@ abstract class View(
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *>) {
                     if (urlParams?.actionUpsert == true) {
-                        button(text = " ", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
+                        navButtonCancel = button(text = " ", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
                             fontSize = 0.5.em
                         }.onClick {
                             this@View.backCloseAction()
                         }
-                        button(text = " ", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
-                            fontSize = 0.5.em
-                            marginLeft = 5.px
-                        }.onClick {
-                            this@View.acceptUpsertAction()
-                        }
+                        navButtonAccept =
+                            button(text = " ", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
+                                fontSize = 0.5.em
+                                marginLeft = 5.px
+                            }.onClick {
+                                this@View.acceptUpsertAction()
+                            }
                     }
                 }
             }

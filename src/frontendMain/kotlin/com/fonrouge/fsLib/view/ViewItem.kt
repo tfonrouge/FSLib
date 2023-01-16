@@ -42,6 +42,8 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
      */
     internal var data: ObservableValue<ItemResponse<T>?> = ObservableValue(null)
     val item: T? get() = data.value?.item
+    var buttonCancel: Button? = null
+    var buttonAccept: Button? = null
     var state: String? = null
 
     init {
@@ -79,8 +81,15 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     @Suppress("MemberVisibilityCanBePrivate")
     fun acceptUpsertAction(
         block: ((ItemResponse<T>) -> Unit)? = {
+            navButtonCancel?.disabled = true
+            navButtonAccept?.disabled = true
+            buttonCancel?.disabled = true
+            buttonAccept?.disabled = true
+            backCloseAction()
             val toastOptions = ToastOptions(
-                callback = { backCloseAction() }
+//                callback = { backCloseAction() },
+                close = true,
+                stopOnFocus = true
             )
             if (it.isOk) {
                 Toast.info(
@@ -153,12 +162,14 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
         flexPanel(direction = FlexDirection.ROW, justify = JustifyContent.CENTER, spacing = 20) {
             marginTop = 1.em
             if (urlParams?.actionUpsert == true) {
-                button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER).onClick {
-                    backCloseAction()
-                }
-                button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS).onClick {
-                    acceptUpsertAction()
-                }
+                buttonCancel =
+                    button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER).onClick {
+                        backCloseAction()
+                    }
+                buttonAccept =
+                    button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS).onClick {
+                        acceptUpsertAction()
+                    }
 
             } else {
                 if (!noBackButton) {

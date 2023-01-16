@@ -23,6 +23,7 @@ import org.w3c.dom.events.Event
 import kotlin.js.json
 
 data class Pagination(
+    val height: String? = "calc(100vh - 35vh)",
     val paginationMode: PaginationMode = PaginationMode.REMOTE,
     val paginationSize: Int = 10,
     val paginationSizeSelector: Boolean = true,
@@ -70,7 +71,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
         columns = viewList.columnDefinitionList,
 //        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else "calc(100vh - 50vh)",
-        height = "calc(100vh - 30vh)",
+        height = pagination?.height,
         layout = Layout.FITDATASTRETCH,
         layoutColumnsOnNewData = true,
         pagination = pagination != null,
