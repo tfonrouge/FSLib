@@ -81,16 +81,16 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
      *
      * @param pipeline [Bson] list
      * @param modelLookups list of lookups to be included [ModelLookup]
-     * @param blockPipeline block that allow to post process the resulted [Bson] list
+     * @param postProcessPipeline allow to post-process the resulted [Bson] list before call aggregate
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregate(
         pipeline: MutableList<Bson> = mutableListOf(),
         modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
-        blockPipeline: ((MutableList<Bson>) -> Unit)? = null,
+        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
         val pip1 = buildPipeline(pipeline, modelLookups)
-        blockPipeline?.let { it(pip1) }
+        postProcessPipeline?.let { it(pip1) }
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate:")
             println(pip1.json)
@@ -372,15 +372,20 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     /**
      * Builds a [ListContainer] back to frontend
      *
-     * @param preprocess Allows to pre-process the List<[T]> before send it to the frontend
+     * @param preprocessList Allows to pre-process the List<[T]> before send it to the frontend
      */
     suspend fun listContainer(
         firstStage: FirstStage,
         modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
-        preprocess: ((List<T>) -> Unit)? = null,
+        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
+        preprocessList: ((List<T>) -> Unit)? = null,
     ): ListContainer<T> {
-        val list = aggregate(firstStage.pipeline, modelLookups).toList()
-        preprocess?.let { it(list) }
+        val list = aggregate(
+            pipeline = firstStage.pipeline,
+            modelLookups = modelLookups,
+            postProcessPipeline = postProcessPipeline,
+        ).toList()
+        preprocessList?.let { it(list) }
         val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
         val crC32 = CRC32()
         crC32.update(encoded.toByteArray())
@@ -405,7 +410,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         contextDataUrl: ContextDataUrl?,
         other: List<Bson>? = null,
         modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
-        preprocess: ((List<T>) -> Unit)? = null,
+        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
+        preprocessList: ((List<T>) -> Unit)? = null,
     ): ListContainer<T> {
         return listContainer(
             firstStage = listFirstStage(
@@ -419,7 +425,8 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 other = other,
             ),
             modelLookups = modelLookups,
-            preprocess = preprocess
+            postProcessPipeline = postProcessPipeline,
+            preprocessList = preprocessList
         )
     }
 
