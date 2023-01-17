@@ -85,7 +85,7 @@ abstract class View(
                         navButtonCancel = button(text = " ", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
                             fontSize = 0.5.em
                         }.onClick {
-                            this@View.backCloseAction()
+                            this@View.backCloseAction(confirmCancel = true)
                         }
                         navButtonAccept =
                             button(text = " ", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {

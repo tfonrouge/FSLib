@@ -25,6 +25,7 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
+import web.prompts.confirm
 
 @Suppress("unused")
 abstract class ViewItem<T : BaseModel<U>, U : Any>(
@@ -132,11 +133,22 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
         }
     }
 
-    fun backCloseAction() {
-        if (window.history.length > 1) {
-            window.history.back()
-        } else {
-            window.close()
+    @OptIn(InternalSerializationApi::class)
+    fun backCloseAction(confirmCancel: Boolean = false) {
+        var proceedClose = true
+        if (confirmCancel && formPanel != null) {
+            val s1 = formPanel?.getData()?.let { Json.encodeToString(configView.itemKClass.serializer(), it) }
+            val s2 = item?.let { Json.encodeToString(configView.itemKClass.serializer(), it) }
+            if (s1 != s2) {
+                proceedClose = confirm("Cancel and forget current changes ?")
+            }
+        }
+        if (proceedClose) {
+            if (window.history.length > 1) {
+                window.history.back()
+            } else {
+                window.close()
+            }
         }
     }
 
@@ -164,7 +176,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
             if (urlParams?.actionUpsert == true) {
                 buttonCancel =
                     button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER).onClick {
-                        backCloseAction()
+                        backCloseAction(confirmCancel = true)
                     }
                 buttonAccept =
                     button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS).onClick {
