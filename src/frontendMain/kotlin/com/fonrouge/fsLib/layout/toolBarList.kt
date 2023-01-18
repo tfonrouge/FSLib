@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.layout
 
+import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.view.AppScope
@@ -25,7 +26,7 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
             viewList.configViewItem?.let { configViewItem ->
                 linkRead = navLink(
                     label = if (minToolbarSize) "" else "Detail",
-                    icon = viewList.iconCrud(CrudAction.Read),
+                    icon = iconCrud(CrudAction.Read),
                 ) {
                     onClick {
                         it.preventDefault()
@@ -36,7 +37,7 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
                 if (viewList.editable) {
                     navLink(
                         label = if (minToolbarSize) "" else "Create",
-                        icon = viewList.iconCrud(CrudAction.Create),
+                        icon = iconCrud(CrudAction.Create),
                         url = viewList.actionUrl(CrudAction.Create, null)
                     ) {
                         onClick {
@@ -47,7 +48,7 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
                     }
                     linkUpdate = navLink(
                         label = if (minToolbarSize) "" else "Update",
-                        icon = viewList.iconCrud(CrudAction.Update)
+                        icon = iconCrud(CrudAction.Update)
                     ) {
                         onClick {
                             it.preventDefault()
@@ -57,14 +58,13 @@ fun <T : BaseModel<U>, U : Any> Container.toolBarList(
                     }
                     linkDelete = navLink(
                         label = if (minToolbarSize) "" else "Delete",
-                        icon = viewList.iconCrud(CrudAction.Delete)
+                        icon = iconCrud(CrudAction.Delete)
                     ) {
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                     }
                 }
             }
             navLink(label = "", icon = "fas fa-ellipsis-v")
-//                navLink(label = "", icon = "fas fa-clock", url = "JuanaLaCubana")
             navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
                 AppScope.launch {
                     viewList.dataUpdate()

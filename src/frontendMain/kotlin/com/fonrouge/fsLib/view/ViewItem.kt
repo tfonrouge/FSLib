@@ -137,7 +137,9 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
     fun backCloseAction(confirmCancel: Boolean = false) {
         var proceedClose = true
         if (confirmCancel && formPanel != null) {
-            val s1 = formPanel?.getData()?.let { Json.encodeToString(configView.itemKClass.serializer(), it) }
+            val s1 = formPanel?.getData()?.let {
+                Json.encodeToString(configView.itemKClass.serializer(), dataFormBeforeApiCall(it))
+            }
             val s2 = item?.let { Json.encodeToString(configView.itemKClass.serializer(), it) }
             if (s1 != s2) {
                 proceedClose = confirm("Cancel and forget current changes ?")

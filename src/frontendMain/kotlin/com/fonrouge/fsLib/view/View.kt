@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.CrudAction
+import com.fonrouge.fsLib.lib.iconCrud
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
 import io.kvision.html.*
@@ -59,17 +59,6 @@ abstract class View(
     open fun onBeforeDisplayPage(container: Container) {}
 
     open fun onBeforeDispose() {}
-
-    fun iconCrud(crudAction: CrudAction? = null): String? {
-        return when (crudAction ?: urlParams?.crudAction) {
-            CrudAction.Create -> "fas fa-plus"
-            CrudAction.Read -> "fas fa-eye"
-            CrudAction.Update -> "fas fa-edit"
-            CrudAction.Delete -> "fas fa-trash-alt"
-            null -> null
-        }
-    }
-
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
         navbar(bgColor = BsBgColor.LIGHT) {
@@ -77,7 +66,7 @@ abstract class View(
                 label = this@View.label,
                 url = navigoUrlWithParams,
                 className = "navbar-brand",
-                icon = iconCrud()
+                icon = iconCrud(urlParams?.crudAction)
             )
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *>) {
