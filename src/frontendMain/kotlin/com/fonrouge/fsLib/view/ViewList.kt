@@ -153,7 +153,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
                     label = "Detail of",
                     icon = iconCrud(CrudAction.Read),
                     url = urlRead,
-                    action = { e, c ->
+                    action = { _, _ ->
                         checkIfmasterViewItemUpdate(urlRead)
                     }
                 )
@@ -165,7 +165,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
                         label = "Create",
                         icon = iconCrud(CrudAction.Create),
                         url = urlCreate,
-                        action = { e, c ->
+                        action = { _, _ ->
                             checkIfmasterViewItemUpdate(urlCreate)
                         }
                     )
@@ -173,7 +173,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
                         label = "Update",
                         icon = iconCrud(CrudAction.Update),
                         url = urlUpdate,
-                        action = { e, c ->
+                        action = { _, _ ->
                             checkIfmasterViewItemUpdate(urlUpdate)
                         }
                     )
@@ -194,6 +194,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
         if (jsTabulatorBuilt) {
             if (menuOpenedState != true) {
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
+                console.warn("dataUpdate calling apiCall ...")
                 tabulator?.apiCall()
             }
         }

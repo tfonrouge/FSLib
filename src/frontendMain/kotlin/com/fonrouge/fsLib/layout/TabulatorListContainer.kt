@@ -29,7 +29,7 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
     private val contextDataUrlBlock: (() -> ContextDataUrl),
     private val contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
-    private val onResult: ((dynamic) -> Unit)? = null,
+    var onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
     className: String?,
@@ -47,8 +47,8 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     serializer = serializer,
     module = module
 ) {
-    var checksum: String? = null
-    var diffChecksums: Boolean = false
+    private var checksum: String? = null
+    private var diffChecksums: Boolean = false
     private var url: String
     private var method: HttpMethod
     private val callAgent: CallAgent
