@@ -40,6 +40,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>? = null,
     options: TabulatorOptions<T>? = null,
+    types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
@@ -51,6 +52,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     return fsTabulator(
         viewList = viewList,
         options = options,
+        types = types,
         fsTabOptions = fsTabOptions,
         minToolbarSize = minToolbarSize,
         contextDataUrlUpdate = contextDataUrlUpdate,
@@ -63,6 +65,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     options: TabulatorOptions<T>? = null,
+    types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
@@ -121,6 +124,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
             onResult = onResult,
             serializer = T::class.serializer(),
             options = tabOpt,
+            types = types,
         ) {
             init?.invoke(this)
             id = viewList.urlParams?.toString()
@@ -175,18 +179,4 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     }
     viewList.installUpdate(true)
     return viewList
-}
-
-fun <T : BaseModel<*>> Tabulator<T>.update(list: List<T>?) {
-    if (list == null) {
-        clearData()
-    } else {
-        val selectedId = getSelectedData().let {
-            if (it.isNotEmpty()) it[0]._id else null
-        }
-        replaceData(list.toTypedArray())
-        if (selectedId != null) {
-            selectRow(selectedId)
-        }
-    }
 }
