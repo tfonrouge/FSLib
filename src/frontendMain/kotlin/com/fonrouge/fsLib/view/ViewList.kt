@@ -201,7 +201,9 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     }
 
     override fun Container.displayPage() {
-        pageBanner()
+        if (!noPageBanner) {
+            pageBanner()
+        }
         pageListBody()
     }
 

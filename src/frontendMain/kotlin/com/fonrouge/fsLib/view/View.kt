@@ -35,9 +35,11 @@ abstract class View(
         get() {
             return configView.url + if (urlParams != null) urlParams else ""
         }
+    /**
+     * Set to true to don't display the [pageBanner]
+     */
+    var noPageBanner = false
     var pageBannerLink: Link? = null
-
-    var onUpdatePageBannerLink: ((Link) -> Unit)? = null
 
     /**
      * Enable/disable periodic refresh interval of view

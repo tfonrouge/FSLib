@@ -64,7 +64,7 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
 
     //    var itemId: U? = null
     var noBackButton = false
-    var noPageBanner = false
+
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
 
     /**
