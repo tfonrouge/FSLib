@@ -38,9 +38,9 @@ data class FSTabOptions(
 
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
-    masterViewItem: ViewItem<*, *>,
+    masterViewItem: ViewItem<*, *>? = null,
     options: TabulatorOptions<T>? = null,
-    FSTabOptions: FSTabOptions? = FSTabOptions(),
+    fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
@@ -51,7 +51,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     return fsTabulator(
         viewList = viewList,
         options = options,
-        fsTabOptions = FSTabOptions,
+        fsTabOptions = fsTabOptions,
         minToolbarSize = minToolbarSize,
         contextDataUrlUpdate = contextDataUrlUpdate,
         onResult = onResult,
