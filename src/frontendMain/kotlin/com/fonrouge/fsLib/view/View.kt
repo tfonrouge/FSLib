@@ -6,6 +6,7 @@ import com.fonrouge.fsLib.lib.iconCrud
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
 import io.kvision.html.*
+import io.kvision.navbar.Navbar
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.utils.em
@@ -27,6 +28,7 @@ abstract class View(
             }
         }
     private var linkBanner: Link? = null
+    var navbar: Navbar? = null
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
     val navigoUrlWithParams: String
@@ -61,7 +63,7 @@ abstract class View(
     open fun onBeforeDispose() {}
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
-        navbar(bgColor = BsBgColor.LIGHT) {
+        navbar = navbar(bgColor = BsBgColor.LIGHT) {
             linkBanner = link(
                 label = this@View.label,
                 url = navigoUrlWithParams,

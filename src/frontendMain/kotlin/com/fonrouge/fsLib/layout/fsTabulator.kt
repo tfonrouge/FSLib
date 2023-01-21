@@ -22,8 +22,9 @@ import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 import kotlin.js.json
 
-data class Pagination(
+data class FSTabOptions(
     val height: String? = "calc(100vh - 35vh)",
+    val pagination: Boolean = true,
     val paginationMode: PaginationMode = PaginationMode.REMOTE,
     val paginationSize: Int = 10,
     val paginationSizeSelector: Boolean = true,
@@ -31,7 +32,7 @@ data class Pagination(
     val paginationAddRow: AddRowMode? = null,
     val paginationButtonCount: Int? = null,
     val paginationInitialPage: Int? = null,
-    val paginationCounter: String = "rows",
+    val paginationCounter: dynamic = "rows",
     val paginationCounterElement: dynamic = null,
 )
 
@@ -39,7 +40,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     masterViewItem: ViewItem<*, *>,
     options: TabulatorOptions<T>? = null,
-    pagination: Pagination? = Pagination(),
+    FSTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
@@ -50,7 +51,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     return fsTabulator(
         viewList = viewList,
         options = options,
-        pagination = pagination,
+        fsTabOptions = FSTabOptions,
         minToolbarSize = minToolbarSize,
         contextDataUrlUpdate = contextDataUrlUpdate,
         onResult = onResult,
@@ -62,7 +63,7 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
 inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabulator(
     viewList: ViewList<T, E, U>,
     options: TabulatorOptions<T>? = null,
-    pagination: Pagination? = Pagination(),
+    fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
@@ -71,19 +72,19 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
     val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
         columns = viewList.columnDefinitionList,
 //        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else "calc(100vh - 50vh)",
-        height = pagination?.height,
+        height = fsTabOptions?.height,
         layout = Layout.FITDATASTRETCH,
         layoutColumnsOnNewData = true,
-        pagination = pagination != null,
+        pagination = fsTabOptions?.pagination,
         paginationMode = PaginationMode.REMOTE,
-        paginationSize = pagination?.paginationSize,
-        paginationSizeSelector = pagination?.paginationSizeSelector,
-        paginationElement = pagination?.paginationElement,
-        paginationAddRow = pagination?.paginationAddRow,
-        paginationButtonCount = pagination?.paginationButtonCount,
-        paginationInitialPage = pagination?.paginationInitialPage,
-        paginationCounter = pagination?.paginationCounter,
-        paginationCounterElement = pagination?.paginationCounterElement,
+        paginationSize = fsTabOptions?.paginationSize,
+        paginationSizeSelector = fsTabOptions?.paginationSizeSelector,
+        paginationElement = fsTabOptions?.paginationElement,
+        paginationAddRow = fsTabOptions?.paginationAddRow,
+        paginationButtonCount = fsTabOptions?.paginationButtonCount,
+        paginationInitialPage = fsTabOptions?.paginationInitialPage,
+        paginationCounter = fsTabOptions?.paginationCounter,
+        paginationCounterElement = fsTabOptions?.paginationCounterElement,
         selectable = 1,
         persistenceID = viewList.configView.itemKClass.simpleName,
         persistence = json(

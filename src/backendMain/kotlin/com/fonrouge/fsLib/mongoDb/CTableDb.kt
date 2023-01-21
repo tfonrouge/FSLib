@@ -348,6 +348,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
                 last_row = null,
             )
         } else {
+            require(size == null || size > 0)
             val nSize = size ?: 10
             val maxPage = ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt()
             val nPage = kotlin.math.min(maxPage, page)
