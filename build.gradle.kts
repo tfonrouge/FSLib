@@ -26,6 +26,7 @@ val serializationVersion: String by project
 val exposedVersion: String by project
 val ktorVersion: String by project
 val kmongoVersion: String by project
+val kotlinxDatetimeVersion: String by project
 val commonsCodecVersion: String by project
 //val logbackVersion: String by project
 
@@ -85,6 +86,7 @@ kotlin {
                 api("org.jetbrains.exposed:exposed-core:$exposedVersion")
                 api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
                 api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+                api("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$kotlinxDatetimeVersion")
                 api("net.sourceforge.jtds:jtds:1.3.1")
                 api("com.microsoft.sqlserver:mssql-jdbc:8.2.1.jre8")
             }
