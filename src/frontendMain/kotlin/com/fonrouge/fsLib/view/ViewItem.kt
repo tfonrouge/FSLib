@@ -216,7 +216,14 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
 
             else -> {}
         }
+
+        onAfterDisplayForm(crudAction)
     }
+
+    /**
+     * Calls after form panel is displayed and data is assigned (formPanel.setData)
+     */
+    open fun onAfterDisplayForm(crudAction: CrudAction) {}
 
     override fun Container.displayPage() {
         vPanel(className = "showItem") {

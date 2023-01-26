@@ -108,13 +108,13 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
         if (masterViewItem?.urlParams?.crudAction == CrudAction.Update) {
             masterViewItem?.acceptUpsertAction { itemResponse ->
                 if (itemResponse.isOk) {
-                    url?.let { window.location.href = url }
+                    url?.let { window.open(url = it, target = "_blank") }
                 } else {
                     Toast.danger(itemResponse.msgError ?: "unknown error")
                 }
             }
         } else {
-            url?.let { window.location.href = url }
+            url?.let { window.open(url = url, target = "_blank") }
         }
     }
 
@@ -224,6 +224,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
 //        navbarTabulator?.linkCreate?.url = actionUrl(CrudAction.Create, id)
         navbarTabulator?.linkRead?.url = actionUrl(CrudAction.Read, item)
         navbarTabulator?.linkUpdate?.url = actionUrl(CrudAction.Update, item)
+        navbarTabulator?.linkUpdate?.target = "_blank"
         navbarTabulator?.linkDelete?.url = actionUrl(CrudAction.Delete, item)
         if (id != null && size == 1) {
             navbarTabulator?.linkRead?.show()
