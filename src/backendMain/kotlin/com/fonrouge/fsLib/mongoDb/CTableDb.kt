@@ -84,7 +84,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
      * @param postProcessPipeline allow to post-process the resulted [Bson] list before call aggregate
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    fun aggregate(
+    fun aggregateLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
         modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -216,7 +216,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         filter: Bson? = null,
         modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): List<T> {
-        return aggregate(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(), modelLookups).toList()
+        return aggregateLookup(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(), modelLookups).toList()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -224,7 +224,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         filter: Bson? = null,
         modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): T? {
-        return aggregate(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
+        return aggregateLookup(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
             modelLookups).awaitFirstOrNull()
     }
 
@@ -381,7 +381,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         preprocessList: ((List<T>) -> Unit)? = null,
     ): ListContainer<T> {
-        val list = aggregate(
+        val list = aggregateLookup(
             pipeline = firstStage.pipeline,
             modelLookups = modelLookups,
             postProcessPipeline = postProcessPipeline,
