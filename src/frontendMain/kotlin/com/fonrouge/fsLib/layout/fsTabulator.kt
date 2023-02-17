@@ -10,12 +10,12 @@ import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
+import io.kvision.core.CssSize
 import io.kvision.core.onEvent
 import io.kvision.panel.vPanel
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.utils.createInstance
-import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
@@ -24,6 +24,7 @@ import kotlin.js.json
 
 data class FSTabOptions(
     val height: String? = "calc(100vh - 35vh)",
+    val fontSize: CssSize? = null,
     val pagination: Boolean = true,
     val paginationMode: PaginationMode = PaginationMode.REMOTE,
     val paginationSize: Int = 10,
@@ -128,7 +129,9 @@ inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.fsTabula
         ) {
             init?.invoke(this)
             id = viewList.urlParams?.toString()
-            fontSize = 0.75.em
+            fsTabOptions?.fontSize?.let {
+                fontSize = it
+            }
             onEvent {
                 rowSelectionChangedTabulator = {
                     val tList = self.getSelectedData()
