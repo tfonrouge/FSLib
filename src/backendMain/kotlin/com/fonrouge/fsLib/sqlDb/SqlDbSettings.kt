@@ -10,6 +10,7 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.IColumnType
+import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.statements.StatementType
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.ResultSet
@@ -198,5 +199,9 @@ abstract class SqlDbSettings(
     inline fun <reified T> sqlEntityTo(resultSet: ResultSet): T {
         val jsonObject = buildJsonFromResultSet(T::class, resultSet)
         return Json.decodeFromJsonElement(jsonObject)
+    }
+
+    fun <T> transaction(trans: Transaction.() -> T): T {
+        return transaction(db = sqlDb, trans)
     }
 }
