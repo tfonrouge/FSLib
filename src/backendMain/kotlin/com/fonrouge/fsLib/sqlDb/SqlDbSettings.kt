@@ -126,7 +126,11 @@ abstract class SqlDbSettings(
         jsonObjectBuilder: JsonObjectBuilder? = null
     ): Any? {
         if (resultSet.getObject(index) == null) {
-            field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, null) }
+            field?.let { kCallable ->
+                if (kCallable.returnType.isMarkedNullable) {
+                    kCallable.name.let { fieldName -> jsonObjectBuilder?.put(fieldName, null) }
+                }
+            }
             return null
         }
         return when (kClass) {
