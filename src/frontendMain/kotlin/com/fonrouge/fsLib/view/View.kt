@@ -35,6 +35,7 @@ abstract class View(
         get() {
             return configView.url + if (urlParams != null) urlParams else ""
         }
+
     /**
      * Set to true to don't display the [pageBanner]
      */
@@ -77,15 +78,17 @@ abstract class View(
                     if (urlParams?.actionUpsert == true) {
                         navButtonCancel = button(text = " ", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
                             fontSize = 0.5.em
-                        }.onClick {
-                            this@View.backCloseAction(confirmCancel = true)
+                            onClick {
+                                this@View.backCloseAction(confirmCancel = true)
+                            }
                         }
                         navButtonAccept =
                             button(text = " ", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
                                 fontSize = 0.5.em
                                 marginLeft = 5.px
-                            }.onClick {
-                                this@View.acceptUpsertAction()
+                                onClick {
+                                    this@View.acceptUpsertAction()
+                                }
                             }
                     }
                 }

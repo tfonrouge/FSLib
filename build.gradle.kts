@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.3.0"
+version = "1.4.0"
 
 repositories {
     mavenCentral()
@@ -34,18 +34,18 @@ kotlin {
     jvm("backend") {
         compilations.all {
             java {
-                targetCompatibility = JavaVersion.VERSION_1_8
+                targetCompatibility = JavaVersion.VERSION_17
             }
             kotlinOptions {
-                jvmTarget = "1.8"
+                jvmTarget = "17"
                 freeCompilerArgs = listOf("-Xjsr305=strict")
             }
         }
     }
-    js("frontend", IR) {
+    js("frontend") {
         browser {
             commonWebpackConfig {
-                cssSupport.enabled = true
+                outputFileName = "main.bundle.js"
             }
         }
         binaries.library()
@@ -96,9 +96,9 @@ kotlin {
             dependencies {
                 api("io.kvision:kvision:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-css:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-datetime:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-dialog:$kvisionVersion")
+//                api("io.kvision:kvision-bootstrap-css:$kvisionVersion")
+//                api("io.kvision:kvision-bootstrap-datetime:$kvisionVersion")
+//                api("io.kvision:kvision-bootstrap-dialog:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap-icons:$kvisionVersion")
 //                api("io.kvision:kvision-bootstrap-select:$kvisionVersion")
 //                api("io.kvision:kvision-bootstrap-select-remote:$kvisionVersion")

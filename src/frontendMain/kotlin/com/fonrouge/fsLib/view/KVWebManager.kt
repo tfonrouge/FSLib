@@ -6,7 +6,6 @@ import com.fonrouge.fsLib.config.ConfigViewHome
 import com.fonrouge.fsLib.config.IConfigView
 import com.fonrouge.fsLib.routing.initialize
 import io.kvision.routing.Routing
-import io.kvision.routing.routing
 import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import kotlinx.browser.window
@@ -43,6 +42,8 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var iConfigView: IConfigView? = null
 
     var afterInitialize: (() -> Unit)? = null
+
+    var routing = Routing.init()
 
     fun initialize(block: (KVWebManager.() -> Unit)? = null) {
 

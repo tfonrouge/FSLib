@@ -177,12 +177,16 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
             marginTop = 1.em
             if (urlParams?.actionUpsert == true) {
                 buttonCancel =
-                    button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER).onClick {
-                        backCloseAction(confirmCancel = true)
+                    button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
+                        onClick {
+                            backCloseAction(confirmCancel = true)
+                        }
                     }
                 buttonAccept =
-                    button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS).onClick {
-                        acceptUpsertAction()
+                    button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
+                        onClick {
+                            acceptUpsertAction()
+                        }
                     }
 
             } else {
@@ -291,44 +295,49 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                         ) {
                                             buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left") {
                                                 hide()
-                                            }.onClick {
-                                                alreadyBack = true
-                                                js("history.back()") as? Unit
+                                                onClick {
+                                                    alreadyBack = true
+                                                    js("history.back()") as? Unit
+                                                }
                                             }
-                                            buttonCancel = button("Cancel", style = ButtonStyle.OUTLINEDANGER).onClick {
-                                                buttonCancel?.hide()
-                                                buttonAccept?.hide()
-                                                buttonBack?.show()
-                                                Toast.warning(
-                                                    message = "$crudAction1 action cancelled ...",
-                                                    options = toastOptions
-                                                )
+                                            buttonCancel = button("Cancel", style = ButtonStyle.OUTLINEDANGER) {
+                                                onClick {
+                                                    buttonCancel?.hide()
+                                                    buttonAccept?.hide()
+                                                    buttonBack?.show()
+                                                    Toast.warning(
+                                                        message = "$crudAction1 action cancelled ...",
+                                                        options = toastOptions
+                                                    )
+                                                }
                                             }
                                             buttonAccept =
-                                                button("Accept", style = ButtonStyle.OUTLINESUCCESS).onClick {
-                                                    configView.callItemService(
-                                                        crudAction = CrudAction.Delete,
-                                                        callType = StateItem.CallType.Action,
-                                                        itemId = urlParams?.id,
-                                                        contextDataUrl = urlParams?.contextDataUrl,
-                                                    ) { itemResponse1 ->
-                                                        buttonCancel?.hide()
-                                                        buttonAccept?.hide()
-                                                        buttonBack?.show()
-                                                        if (itemResponse1.isOk) {
-                                                            Toast.success(
-                                                                message = itemResponse1.msgOk
-                                                                    ?: "$crudAction1 action successful ...",
-                                                                options = toastOptions
-                                                            )
-                                                        } else {
-                                                            Toast.warning(
-                                                                message = itemResponse1.msgError
-                                                                    ?: "$crudAction1 action failed ...",
-                                                                options = toastOptions
-                                                            )
+                                                button("Accept", style = ButtonStyle.OUTLINESUCCESS) {
+                                                    onClick {
+                                                        configView.callItemService(
+                                                            crudAction = CrudAction.Delete,
+                                                            callType = StateItem.CallType.Action,
+                                                            itemId = urlParams?.id,
+                                                            contextDataUrl = urlParams?.contextDataUrl,
+                                                        ) { itemResponse1 ->
+                                                            buttonCancel?.hide()
+                                                            buttonAccept?.hide()
+                                                            buttonBack?.show()
+                                                            if (itemResponse1.isOk) {
+                                                                Toast.success(
+                                                                    message = itemResponse1.msgOk
+                                                                        ?: "$crudAction1 action successful ...",
+                                                                    options = toastOptions
+                                                                )
+                                                            } else {
+                                                                Toast.warning(
+                                                                    message = itemResponse1.msgError
+                                                                        ?: "$crudAction1 action failed ...",
+                                                                    options = toastOptions
+                                                                )
+                                                            }
+                                                            itemResponse1
                                                         }
-                                                        itemResponse1
                                                     }
                                                 }
                                         }
@@ -368,9 +377,11 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
                                     justify = JustifyContent.CENTER,
                                     spacing = 20
                                 ) {
-                                    buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left").onClick {
-                                        alreadyBack = true
-                                        js("history.back()") as? Unit
+                                    buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left") {
+                                        onClick {
+                                            alreadyBack = true
+                                            js("history.back()") as? Unit
+                                        }
                                     }
                                 }
                             }

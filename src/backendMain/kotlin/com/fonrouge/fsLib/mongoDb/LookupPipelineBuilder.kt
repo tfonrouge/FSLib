@@ -65,7 +65,7 @@ abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W : Any
     internal fun pipelineList(modelLookup: ModelLookup<*, *>? = null): List<Bson> {
         val pip2 = mutableListOf<Bson>()
         this.pipeline?.let { bsonList -> pip2 += bsonList }
-        map1[cTableDb]?.buildLookupList(*(modelLookup?.modelLookups ?: emptyArray()))?.let { bsonList ->
+        map1[cTableDb]?.buildLookupList((modelLookup?.modelLookups ?: emptyArray()))?.let { bsonList ->
             pip2 += bsonList
         }
         val pipeline = mutableListOf<Bson>()
