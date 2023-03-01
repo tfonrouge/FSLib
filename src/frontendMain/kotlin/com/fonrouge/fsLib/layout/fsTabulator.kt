@@ -28,7 +28,7 @@ data class FSTabOptions(
     val pagination: Boolean = true,
     val paginationMode: PaginationMode = PaginationMode.REMOTE,
     val paginationSize: Int = 10,
-    val paginationSizeSelector: Boolean = true,
+    val paginationSizeSelector: dynamic = arrayOf(10, 20, 50, 100),
     val paginationElement: dynamic = null,
     val paginationAddRow: AddRowMode? = null,
     val paginationButtonCount: Int? = null,
