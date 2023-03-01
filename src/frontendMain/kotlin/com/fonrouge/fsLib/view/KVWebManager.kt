@@ -43,14 +43,11 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var afterInitialize: (() -> Unit)? = null
 
-    var routing = Routing.init()
+    var routing: Routing = Routing.init()
 
     fun initialize(block: (KVWebManager.() -> Unit)? = null) {
 
         block?.invoke(this)
-
-//        Routing.init(root = null, useHash = true, strategy = Strategy.ONE)
-        Routing.init()
 
         routing.initialize().resolve()
 
