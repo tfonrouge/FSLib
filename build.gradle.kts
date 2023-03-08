@@ -94,6 +94,7 @@ kotlin {
         val backendTest by getting
         val frontendMain by getting {
             dependencies {
+                api("org.litote.kmongo:kmongo-id:$kmongoVersion")
                 api("io.kvision:kvision:$kvisionVersion")
                 api("io.kvision:kvision-bootstrap:$kvisionVersion")
 //                api("io.kvision:kvision-bootstrap-css:$kvisionVersion")
