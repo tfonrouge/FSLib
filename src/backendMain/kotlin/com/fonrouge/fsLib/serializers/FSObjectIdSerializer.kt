@@ -2,13 +2,17 @@ package com.fonrouge.fsLib.serializers
 
 import com.github.jershell.kbson.BsonEncoder
 import com.github.jershell.kbson.BsonFlexibleDecoder
+import com.mongodb.client.model.Filters
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.bson.conversions.Bson
 import org.bson.types.ObjectId
+import org.litote.kmongo.path
+import kotlin.reflect.KProperty
 
 @Suppress("unused")
 actual object FSObjectIdSerializer : KSerializer<String> {
@@ -32,3 +36,11 @@ actual object FSObjectIdSerializer : KSerializer<String> {
         }
     }
 }
+
+/**
+ * Equality filter to use with the [FSObjectIdSerializer] serializer
+ *
+ * @param value - the ObjectId
+ */
+@Suppress("unused")
+infix fun KProperty<String?>.eq(value: ObjectId?): Bson = Filters.eq(path(), value)
