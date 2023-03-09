@@ -14,7 +14,7 @@ class FSId<T : BaseModel<*>>(
     val id: String = newObjectId(),
     @Suppress("NON_EXPORTABLE_TYPE") private val klass: KClass<T>? = null
 ) {
-    fun name(): String? {
+    val name: String? get() {
         return klass?.simpleName
     }
 }
