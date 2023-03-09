@@ -16,20 +16,20 @@ import org.bson.types.ObjectId
 import org.litote.kmongo.path
 import kotlin.reflect.KProperty
 
-actual object FSIdSerializer : KSerializer<FSId<BaseModel<*>>> {
-    override fun deserialize(decoder: Decoder): FSId<BaseModel<*>> {
+actual object IdSerializer : KSerializer<Id<BaseModel<*>>> {
+    override fun deserialize(decoder: Decoder): Id<BaseModel<*>> {
         return if (decoder is BsonFlexibleDecoder) {
             val objectId = decoder.reader.readObjectId()
-            FSId(id = objectId.toHexString())
+            Id(id = objectId.toHexString())
         } else {
-            FSId(decoder.decodeString())
+            Id(decoder.decodeString())
         }
     }
 
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("ObjectId MP Serializer", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: FSId<BaseModel<*>>) {
+    override fun serialize(encoder: Encoder, value: Id<BaseModel<*>>) {
         if (encoder is BsonEncoder) {
             encoder.encodeObjectId(ObjectId(value.id))
         } else {
@@ -39,5 +39,10 @@ actual object FSIdSerializer : KSerializer<FSId<BaseModel<*>>> {
     }
 }
 
+/**
+ * Equality filter to use with the [Id] ObjectId container
+ *
+ * @param value - the [Id] value
+ */
 @Suppress("unused")
-infix fun KProperty<FSId<*>?>.eqId(value: FSId<*>?): Bson = BsonDocument(path(), BsonObjectId(ObjectId(value?.id)))
+infix fun KProperty<Id<*>?>.eqId(value: Id<*>?): Bson = BsonDocument(path(), BsonObjectId(ObjectId(value?.id)))

@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.model.base
 
 import com.fonrouge.fsLib.annotations.MongoDoc
-import com.fonrouge.fsLib.newObjectId
+import com.fonrouge.fsLib.objectIdHexString
 import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
 
@@ -9,7 +9,7 @@ import kotlin.js.JsExport
 @Serializable
 @JsExport
 class AppRole(
-    override val _id: String = newObjectId(),
+    override val _id: String = objectIdHexString(),
     val classOwner: String,
     var funcName: String,
     val roleType: RoleType,

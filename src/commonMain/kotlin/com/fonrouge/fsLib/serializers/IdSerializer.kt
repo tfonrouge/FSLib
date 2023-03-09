@@ -3,4 +3,4 @@ package com.fonrouge.fsLib.serializers
 import com.fonrouge.fsLib.model.base.BaseModel
 import kotlinx.serialization.KSerializer
 
-expect object FSIdSerializer : KSerializer<FSId<BaseModel<*>>>
+expect object IdSerializer : KSerializer<Id<BaseModel<*>>>
