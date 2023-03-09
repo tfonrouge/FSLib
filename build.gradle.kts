@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.4.0"
+version = "1.4.1"
 
 repositories {
     mavenCentral()
@@ -81,6 +81,7 @@ kotlin {
                 api("io.ktor:ktor-server-auto-head-response:$ktorVersion")
                 api("io.ktor:ktor-server-http-redirect:$ktorVersion")
                 api("io.ktor:ktor-server-partial-content:$ktorVersion")
+                api("io.ktor:ktor-server-content-negotiation:$ktorVersion")
                 api("org.litote.kmongo:kmongo-coroutine-serialization:$kmongoVersion")
                 api("org.litote.kmongo:kmongo-id-serialization:$kmongoVersion")
                 api("org.jetbrains.exposed:exposed-core:$exposedVersion")
