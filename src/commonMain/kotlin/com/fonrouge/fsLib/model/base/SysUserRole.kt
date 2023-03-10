@@ -12,7 +12,7 @@ import kotlin.js.JsExport
 class SysUserRole(
     override var _id: Id<SysUserRole> = Id(),
     var sysUser_id: Id<ISysUser>,
-    var appRole_id: String?,
+    var appRole_id: Id<AppRole>?,
     var permission: PermissionType = PermissionType.Allow
 ) : BaseModel<Id<SysUserRole>> {
     @DontPersist
