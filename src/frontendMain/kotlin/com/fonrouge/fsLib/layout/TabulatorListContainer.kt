@@ -19,7 +19,6 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
 import org.w3c.dom.get
 import org.w3c.fetch.RequestInit
-import kotlin.js.JSON
 import kotlin.js.Promise
 import kotlin.reflect.KClass
 
