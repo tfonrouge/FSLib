@@ -1,11 +1,13 @@
 package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.model.base.SysUser
+import com.fonrouge.fsLib.serializers.IdSerializer
 import com.mongodb.client.model.Collation
 import com.mongodb.client.model.CollationStrength
 import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
 import org.litote.kmongo.reactivestreams.KMongo
+import org.litote.kmongo.serialization.registerSerializer
 import java.util.*
 
 interface ITables
@@ -64,4 +66,8 @@ class MongoDbPluginConfiguration {
         }.let {
             "$it$serverUrl:$serverPort" + if (authSource != null) "/?authSource=$authSource" else ""
         }
+
+    init {
+        registerSerializer(IdSerializer)
+    }
 }

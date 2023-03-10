@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.serializers
 import com.fonrouge.fsLib.model.base.BaseModel
 import com.fonrouge.fsLib.objectIdHexString
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 import kotlin.reflect.KClass
@@ -12,9 +13,12 @@ import kotlin.reflect.KClass
 @JsExport
 class Id<T : BaseModel<*>>(
     val id: String = objectIdHexString(),
-    @Suppress("NON_EXPORTABLE_TYPE") private val klass: KClass<T>? = null
+    @Suppress("NON_EXPORTABLE_TYPE")
+    @Transient
+    private val klass: KClass<T>? = null
 ) {
-    val name: String? get() {
-        return klass?.simpleName
-    }
+    val name: String?
+        get() {
+            return klass?.simpleName
+        }
 }

@@ -12,6 +12,7 @@ import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.serializers.Id
 import io.kvision.core.Container
 import io.kvision.tabulator.*
 import io.kvision.toast.Toast
@@ -84,10 +85,10 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
                 "action" to CrudAction.Create.name
             )
         } else {
-            item?.let {
+            encodedId(item)?.let { id ->
                 UrlParams(
                     "action" to crudAction.name,
-                    "id" to encodedId(item)
+                    "id" to id
                 )
             }
         }
@@ -131,7 +132,7 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
         val item: T? = overItem?.let {
             try {
-                tabulator?.toKotlinObjTabulator(it, configView.itemKClass)
+                tabulator?.toKotlinObj(it)
             } catch (e: Exception) {
                 Toast.danger(e.message ?: "")
                 e.printStackTrace()
@@ -208,10 +209,19 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     }
 
     @OptIn(InternalSerializationApi::class)
-    internal fun encodedId(item: T?): String {
-        return item?.let {
-            configView.idKClass?.let { Json.encodeToString(it.serializer(), item._id) }
-        } ?: JSON.stringify(item?._id)
+    internal fun encodedId(item: T?): String? {
+        return when {
+            item == null -> null
+            item._id is Id<*> -> {
+                JSON.stringify((item._id as Id<*>).id)
+            }
+
+            else -> {
+                item.let {
+                    configView.idKClass?.let { Json.encodeToString(it.serializer(), item._id) }
+                } ?: JSON.stringify(item._id)
+            }
+        }
     }
 
     open fun onRowSelected(item: T?) {}

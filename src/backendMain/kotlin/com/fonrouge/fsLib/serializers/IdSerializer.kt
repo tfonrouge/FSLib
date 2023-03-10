@@ -9,18 +9,12 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import org.bson.BsonDocument
-import org.bson.BsonObjectId
-import org.bson.conversions.Bson
 import org.bson.types.ObjectId
-import org.litote.kmongo.path
-import kotlin.reflect.KProperty
 
-actual object IdSerializer : KSerializer<Id<BaseModel<*>>> {
-    override fun deserialize(decoder: Decoder): Id<BaseModel<*>> {
+actual object IdSerializer : KSerializer<Id<out BaseModel<*>>> {
+    override fun deserialize(decoder: Decoder): Id<out BaseModel<*>> {
         return if (decoder is BsonFlexibleDecoder) {
-            val objectId = decoder.reader.readObjectId()
-            Id(id = objectId.toHexString())
+            Id(id = decoder.reader.readObjectId().toHexString())
         } else {
             Id(decoder.decodeString())
         }
@@ -29,20 +23,16 @@ actual object IdSerializer : KSerializer<Id<BaseModel<*>>> {
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("ObjectId MP Serializer", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: Id<BaseModel<*>>) {
+    override fun serialize(encoder: Encoder, value: Id<out BaseModel<*>>) {
         if (encoder is BsonEncoder) {
             encoder.encodeObjectId(ObjectId(value.id))
         } else {
-            val s = "{\"\$oid\": \"${value.id}\"}"
-            encoder.encodeString(s)
+            encoder.encodeString(value.id)
         }
     }
 }
 
-/**
- * Equality filter to use with the [Id] ObjectId container
- *
- * @param value - the [Id] value
- */
 @Suppress("unused")
-infix fun KProperty<Id<*>?>.eqId(value: Id<*>?): Bson = BsonDocument(path(), BsonObjectId(ObjectId(value?.id)))
+fun Id<out BaseModel<*>>?.toObjectId(): ObjectId? {
+    return this?.id?.let { ObjectId(it) }
+}
