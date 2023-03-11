@@ -11,11 +11,11 @@ import kotlin.reflect.KClass
 @OptIn(ExperimentalJsExport::class)
 @Serializable(with = IdSerializer::class)
 @JsExport
-class Id<T : BaseModel<*>>(
+data class Id<T : BaseModel<*>>(
     val id: String = objectIdHexString(),
     @Suppress("NON_EXPORTABLE_TYPE")
     @Transient
-    private val klass: KClass<T>? = null
+    val klass: KClass<T>? = null
 ) {
     val name: String?
         get() {
