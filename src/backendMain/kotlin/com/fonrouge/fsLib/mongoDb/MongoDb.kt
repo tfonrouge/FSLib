@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.model.base.SysUser
-import com.fonrouge.fsLib.serializers.IdSerializer
+import com.fonrouge.fsLib.serializers.OIdSerializer
 import com.mongodb.client.model.Collation
 import com.mongodb.client.model.CollationStrength
 import com.mongodb.reactivestreams.client.MongoDatabase
@@ -68,6 +68,6 @@ class MongoDbPluginConfiguration {
         }
 
     init {
-        registerSerializer(IdSerializer)
+        registerSerializer(OIdSerializer)
     }
 }

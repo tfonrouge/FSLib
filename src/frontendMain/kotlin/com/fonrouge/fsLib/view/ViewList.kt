@@ -12,7 +12,7 @@ import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
-import com.fonrouge.fsLib.serializers.Id
+import com.fonrouge.fsLib.serializers.OId
 import io.kvision.core.Container
 import io.kvision.tabulator.*
 import io.kvision.toast.Toast
@@ -212,8 +212,8 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
     internal fun encodedId(item: T?): String? {
         return when {
             item == null -> null
-            item._id is Id<*> -> {
-                JSON.stringify((item._id as Id<*>).id)
+            item._id is OId<*> -> {
+                JSON.stringify((item._id as OId<*>).id)
             }
 
             else -> {

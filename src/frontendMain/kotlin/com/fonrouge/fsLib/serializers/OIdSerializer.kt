@@ -7,15 +7,15 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-actual object IdSerializer : KSerializer<Id<Any>> {
-    override fun deserialize(decoder: Decoder): Id<Any> {
-        return Id(id = decoder.decodeString())
+actual object OIdSerializer : KSerializer<OId<Any>> {
+    override fun deserialize(decoder: Decoder): OId<Any> {
+        return OId(id = decoder.decodeString())
     }
 
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("ObjectId MP Serializer", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: Id<Any>) {
+    override fun serialize(encoder: Encoder, value: OId<Any>) {
         encoder.encodeString(value.id)
     }
 }

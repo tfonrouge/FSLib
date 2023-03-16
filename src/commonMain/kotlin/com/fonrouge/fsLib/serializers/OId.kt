@@ -6,8 +6,8 @@ import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 
 @OptIn(ExperimentalJsExport::class)
-@Serializable(with = IdSerializer::class)
+@Serializable(with = OIdSerializer::class)
 @JsExport
-data class Id<@Suppress("unused") T>(
+data class OId<@Suppress("unused") T>(
     val id: String = objectIdHexString(),
 )

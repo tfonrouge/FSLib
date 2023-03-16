@@ -4,13 +4,13 @@ import com.fonrouge.fsLib.model.base.AppRole
 import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.base.SysUser
 import com.fonrouge.fsLib.model.base.SysUserRole
-import com.fonrouge.fsLib.serializers.Id
+import com.fonrouge.fsLib.serializers.OId
 import com.mongodb.client.model.UnwindOptions
 import kotlinx.coroutines.runBlocking
 import org.bson.conversions.Bson
 import org.litote.kmongo.unwind
 
-var SysUserRoleDb: CTableDb<SysUserRole, Id<SysUserRole>> = object : CTableDb<SysUserRole, Id<SysUserRole>>(
+var SysUserRoleDb: CTableDb<SysUserRole, OId<SysUserRole>> = object : CTableDb<SysUserRole, OId<SysUserRole>>(
     klass = SysUserRole::class,
     debug = true
 ) {
