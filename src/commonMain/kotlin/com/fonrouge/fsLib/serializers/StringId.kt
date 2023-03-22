@@ -10,4 +10,8 @@ import kotlin.js.JsExport
 @JsExport
 data class StringId<@Suppress("unused") T>(
     val id: String = objectIdHexString(),
-)
+) {
+    override fun toString(): String {
+        return id
+    }
+}
