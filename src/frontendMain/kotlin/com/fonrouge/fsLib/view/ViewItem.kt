@@ -7,6 +7,7 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.serializers.OId
 import io.kvision.core.*
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
@@ -399,11 +400,12 @@ abstract class ViewItem<T : BaseModel<U>, U : Any>(
 
     @OptIn(InternalSerializationApi::class)
     fun encodedId(_id: U? = item?._id): String {
-        return _id?.let {
-            configView.idKClass?.let { kClass ->
-                Json.encodeToString(kClass.serializer(), it)
-            }
-        } ?: JSON.stringify(_id)
+        val idKClass = configView.idKClass
+        return when {
+            _id != null && idKClass != null -> Json.encodeToString(idKClass.serializer(), _id)
+            _id != null && _id is OId<*> -> JSON.stringify(_id.id)
+            else -> JSON.stringify(_id)
+        }
     }
 
     override val label: String
