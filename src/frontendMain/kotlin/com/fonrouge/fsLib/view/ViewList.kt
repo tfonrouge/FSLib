@@ -12,14 +12,10 @@ import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseModel
-import com.fonrouge.fsLib.serializers.OId
 import io.kvision.core.Container
 import io.kvision.tabulator.*
 import io.kvision.toast.Toast
 import kotlinx.browser.window
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
 @Suppress("unused")
 abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
@@ -208,20 +204,8 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
         pageListBody()
     }
 
-    @OptIn(InternalSerializationApi::class)
-    internal fun encodedId(item: T?): String? {
-        return when {
-            item == null -> null
-            item._id is OId<*> -> {
-                JSON.stringify((item._id as OId<*>).id)
-            }
-
-            else -> {
-                item.let {
-                    configView.idKClass?.let { Json.encodeToString(it.serializer(), item._id) }
-                } ?: JSON.stringify(item._id)
-            }
-        }
+    private fun encodedId(item: T?): String? {
+        return item?.let { configView.encodedId(it._id) }
     }
 
     open fun onRowSelected(item: T?) {}

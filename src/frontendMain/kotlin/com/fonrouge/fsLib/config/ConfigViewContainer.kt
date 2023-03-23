@@ -1,6 +1,9 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.serializers.IntId
+import com.fonrouge.fsLib.serializers.OId
+import com.fonrouge.fsLib.serializers.StringId
 import com.fonrouge.fsLib.view.ViewDataContainer
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
@@ -20,7 +23,15 @@ abstract class ConfigViewContainer<T : BaseModel<U>, V : ViewDataContainer<*>, U
     baseUrl = baseUrl,
 ) {
     @OptIn(InternalSerializationApi::class)
-    fun encodedId(_id: U): String {
-        return idKClass?.let { Json.encodeToString(it.serializer(), _id) } ?: JSON.stringify(_id)
+    fun encodedId(_id: U?): String {
+        val r = when {
+            _id != null && idKClass != null -> Json.encodeToString(idKClass.serializer(), _id)
+            _id != null && _id is OId<*> -> JSON.stringify(_id.id)
+            _id != null && _id is StringId<*> -> JSON.stringify(_id.id)
+            _id != null && _id is IntId<*> -> JSON.stringify(_id.id)
+            else -> JSON.stringify(_id)
+        }
+        console.warn("encodedId($_id):", r)
+        return r
     }
 }
