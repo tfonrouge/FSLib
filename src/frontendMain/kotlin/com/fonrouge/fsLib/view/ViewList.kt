@@ -191,7 +191,6 @@ abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
         if (jsTabulatorBuilt) {
             if (menuOpenedState != true) {
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
-                console.warn("dataUpdate calling apiCall ...")
                 tabulator?.apiCall()
             }
         }

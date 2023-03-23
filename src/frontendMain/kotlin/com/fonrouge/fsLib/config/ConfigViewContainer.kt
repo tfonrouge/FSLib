@@ -24,14 +24,12 @@ abstract class ConfigViewContainer<T : BaseModel<U>, V : ViewDataContainer<*>, U
 ) {
     @OptIn(InternalSerializationApi::class)
     fun encodedId(_id: U?): String {
-        val r = when {
+        return when {
             _id != null && idKClass != null -> Json.encodeToString(idKClass.serializer(), _id)
             _id != null && _id is OId<*> -> JSON.stringify(_id.id)
             _id != null && _id is StringId<*> -> JSON.stringify(_id.id)
             _id != null && _id is IntId<*> -> JSON.stringify(_id.id)
             else -> JSON.stringify(_id)
         }
-        console.warn("encodedId($_id):", r)
-        return r
     }
 }
