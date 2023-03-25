@@ -4,7 +4,7 @@ import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.serializers.OId
 import kotlinx.serialization.Serializable
 
-@Collection(collection = "__appRoles")
+@Collection(name = "__appRoles")
 @Serializable
 class AppRole(
     override val _id: OId<AppRole> = OId(),

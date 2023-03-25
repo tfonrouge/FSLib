@@ -50,7 +50,7 @@ abstract class CTableDb<T : BaseDoc<U>, U : Any>(
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
-        else klass.findAnnotation<Collection>()?.collection ?: klass.simpleName!!
+        else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
 
     /**
      * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function

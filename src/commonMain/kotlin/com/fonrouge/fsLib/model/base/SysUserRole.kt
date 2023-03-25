@@ -5,7 +5,7 @@ import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.serializers.OId
 import kotlinx.serialization.Serializable
 
-@Collection(collection = "__userRoles")
+@Collection(name = "__userRoles")
 @Serializable
 class SysUserRole(
     override var _id: OId<SysUserRole> = OId(),
