@@ -2,10 +2,8 @@ package com.fonrouge.fsLib.model.base
 
 import com.fonrouge.fsLib.serializers.OId
 import kotlinx.serialization.Serializable
-import kotlin.js.JsExport
 
 @Serializable
-@JsExport
 data class SysUser(
     override val _id: OId<ISysUser>,
     override var name: String,

@@ -11,14 +11,14 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
 import io.kvision.tabulator.*
 import io.kvision.toast.Toast
 import kotlinx.browser.window
 
 @Suppress("unused")
-abstract class ViewList<T : BaseModel<U>, E : IDataList, U : Any>(
+abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
     override val configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
     configViewItem: ConfigViewItem<T, *, *, U>? = null,
     periodicUpdateDataView: Boolean? = null,

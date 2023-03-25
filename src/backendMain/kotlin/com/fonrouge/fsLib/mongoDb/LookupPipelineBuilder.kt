@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.mongoDb.CTableDb.Companion.map1
 import com.mongodb.client.model.UnwindOptions
 import org.bson.conversions.Bson
@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
 @Suppress("unused")
-fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupField(
+fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupField(
     cTableDb: KClass<out CTableDb<U, W>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
@@ -31,7 +31,7 @@ fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupField(
 }
 
 @Suppress("unused")
-fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupFieldArray(
+fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupFieldArray(
     cTableDb: KClass<out CTableDb<U, W>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
@@ -52,7 +52,7 @@ fun <T : BaseModel<*>, U : BaseModel<W>, W : Any> lookupFieldArray(
     ) {}
 }
 
-abstract class LookupPipelineBuilder<T : BaseModel<*>, U : BaseModel<W>, W : Any>(
+abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<W>, W : Any>(
     private val cTableDb: KClass<out CTableDb<U, W>>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,

@@ -6,7 +6,7 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemResponse
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewItem
 import io.kvision.remote.CallAgent
 import io.kvision.remote.HttpMethod
@@ -21,7 +21,7 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseModel<U>, V : ViewItem<T, U>, E : IDataItem, U : Any>(
+abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem, U : Any>(
     val itemKClass: KClass<T>,
     idKClass: KClass<U>? = null,
     label: String,

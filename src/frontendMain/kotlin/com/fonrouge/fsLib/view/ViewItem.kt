@@ -6,7 +6,7 @@ import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemResponse
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.*
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
@@ -28,7 +28,7 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseModel<U>, U : Any>(
+abstract class ViewItem<T : BaseDoc<U>, U : Any>(
     override val configView: ConfigViewItem<T, out ViewItem<T, U>, *, U>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,

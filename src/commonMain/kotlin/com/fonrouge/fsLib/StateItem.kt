@@ -1,14 +1,14 @@
 package com.fonrouge.fsLib
 
 import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @Suppress("unused")
 @Serializable
-data class StateItem<T : BaseModel<*>>(
+data class StateItem<T : BaseDoc<*>>(
     val item: T? = null,
     val json: String? = null,
     val crudAction: CrudAction = CrudAction.Read,

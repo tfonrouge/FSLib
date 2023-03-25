@@ -3,12 +3,12 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.ListContainer
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<T : BaseModel<U>, V : ViewList<T, E, U>, E : IDataList, U : Any>(
+abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U>, E : IDataList, U : Any>(
     val itemKClass: KClass<T>,
     idKClass: KClass<U>? = null,
     label: String,

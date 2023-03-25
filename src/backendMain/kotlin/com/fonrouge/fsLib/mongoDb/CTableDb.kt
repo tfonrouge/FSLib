@@ -2,12 +2,12 @@ package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.StateItem
+import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
-import com.fonrouge.fsLib.annotations.MongoDoc
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.ListContainer
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.base.ISysUser
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.reactivestreams.client.AggregatePublisher
@@ -38,7 +38,7 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
-abstract class CTableDb<T : BaseModel<U>, U : Any>(
+abstract class CTableDb<T : BaseDoc<U>, U : Any>(
     private val klass: KClass<T>,
     var debug: Boolean? = null
 ) {
@@ -50,7 +50,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
     @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
-        else klass.findAnnotation<MongoDoc>()?.collection ?: klass.simpleName!!
+        else klass.findAnnotation<Collection>()?.collection ?: klass.simpleName!!
 
     /**
      * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function
@@ -188,7 +188,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
             return try {
                 ItemResponse(
                     isOk = mongoColl
-                        .deleteOne(BaseModel<*>::_id eq _id)
+                        .deleteOne(BaseDoc<*>::_id eq _id)
                         .awaitFirstOrNull()?.deletedCount == 1L
                 )
             } catch (e: Exception) {
@@ -233,7 +233,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         _id: U?,
         modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
     ): T? {
-        return findOne(BaseModel<*>::_id eq _id, modelLookups)
+        return findOne(BaseDoc<*>::_id eq _id, modelLookups)
     }
 
     @Suppress("unused")
@@ -482,7 +482,7 @@ abstract class CTableDb<T : BaseModel<U>, U : Any>(
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemResponse<T> {
         return updateOne(
-            filter = BaseModel<U>::_id eq _id,
+            filter = BaseDoc<U>::_id eq _id,
             state = state,
             updateOptions = updateOptions
         )

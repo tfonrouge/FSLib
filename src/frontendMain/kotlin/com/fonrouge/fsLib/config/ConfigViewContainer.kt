@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.OId
 import com.fonrouge.fsLib.serializers.StringId
@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewContainer<T : BaseModel<U>, V : ViewDataContainer<*>, U : Any>(
+abstract class ConfigViewContainer<T : BaseDoc<U>, V : ViewDataContainer<*>, U : Any>(
     val idKClass: KClass<U>? = null,
     name: String,
     label: String,

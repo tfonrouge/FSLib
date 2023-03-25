@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
@@ -14,7 +14,7 @@ import io.kvision.navbar.navLink
 import io.kvision.tabulator.RowRangeLookup
 import kotlinx.coroutines.launch
 
-fun <T : BaseModel<U>, U : Any> Container.toolBarList(
+fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
     viewList: ViewList<T, *, U>,
     minToolbarSize: Boolean = true,
 ): NavbarTabulator<U> {

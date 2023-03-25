@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.lib
 
 import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.navigo.Match
 import kotlin.js.Json
 import kotlin.js.json
@@ -44,7 +44,7 @@ data class UrlParams(
             return params?.get("id") as? String
         }
 
-    fun addContext(item: BaseModel<*>?, encodedId: String?): UrlParams {
+    fun addContext(item: BaseDoc<*>?, encodedId: String?): UrlParams {
         if (params == null) params = json()
         params?.set("contextClass", item?.let { item::class.simpleName })
         params?.set("contextId", encodedId)

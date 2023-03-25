@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.layout
 import com.fonrouge.fsLib.ContextDataUrl
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.ListContainer
-import com.fonrouge.fsLib.model.base.BaseModel
+import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
 import io.kvision.remote.*
 import io.kvision.tabulator.TableType
@@ -23,7 +23,7 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
+class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
     private val contextDataUrlBlock: (() -> ContextDataUrl),
@@ -179,7 +179,7 @@ class TabulatorListContainer<T : BaseModel<U>, E : IDataList, U : Any>(
     }
 }
 
-inline fun <reified T : BaseModel<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
     noinline function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
     noinline contextDataUrlBlock: (() -> ContextDataUrl),
