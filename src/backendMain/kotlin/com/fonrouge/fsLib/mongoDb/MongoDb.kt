@@ -12,8 +12,6 @@ import org.litote.kmongo.reactivestreams.KMongo
 import org.litote.kmongo.serialization.registerSerializer
 import java.util.*
 
-interface ITables
-
 internal var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
 
 val mongoClient by lazy {
