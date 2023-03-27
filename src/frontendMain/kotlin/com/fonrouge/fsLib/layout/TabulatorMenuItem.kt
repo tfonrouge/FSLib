@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.layout
 import kotlinx.browser.window
 import org.w3c.dom.events.Event
 
+@JsExport
 class TabulatorMenuItem(
     label: String? = null,
     var icon: String? = null,
