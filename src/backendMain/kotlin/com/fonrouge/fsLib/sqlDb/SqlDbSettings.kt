@@ -2,7 +2,9 @@ package com.fonrouge.fsLib.sqlDb
 
 import com.fonrouge.fsLib.annotations.SqlField
 import com.fonrouge.fsLib.annotations.SqlOneToOne
+import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.KV_DEFAULT_DATETIME_FORMAT
+import com.fonrouge.fsLib.serializers.StringId
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
@@ -134,13 +136,13 @@ abstract class SqlDbSettings(
             return null
         }
         return when (kClass) {
-            String::class -> {
+            String::class, StringId::class -> {
                 val result = resultSet.getString(index)
                 field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
                 result
             }
 
-            Integer::class -> {
+            Integer::class, IntId::class -> {
                 val result: Int = resultSet.getInt(index)
                 field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
                 result

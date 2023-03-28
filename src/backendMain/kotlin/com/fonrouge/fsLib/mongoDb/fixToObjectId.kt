@@ -24,14 +24,14 @@ import org.litote.kmongo.coroutine.toList
 import java.util.*
 
 @Suppress("unused")
-suspend fun fixToObjectId(cTableDb: CTableDb<*, *>): Boolean {
-    val collName = cTableDb.collectionName
+suspend fun fixToObjectId(coll: Coll<*, *>): Boolean {
+    val collName = coll.collectionName
     val newCollName = "new$collName"
     if (collName !in mongoDatabase.listCollectionNames().toList()) return false
     if (newCollName in mongoDatabase.listCollectionNames().toList()) return false
-    val coll = mongoDatabase.getCollection(collName)
+    val documentColl = mongoDatabase.getCollection(collName)
     val list = mutableListOf<WriteModel<Document>>()
-    coll.find().asFlow().collect { document ->
+    documentColl.find().asFlow().collect { document ->
         when (val id = document["_id"]) {
             is String -> {
                 document["_id"] = when (id.length) {

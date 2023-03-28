@@ -38,13 +38,13 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
-abstract class CTableDb<T : BaseDoc<U>, U : Any>(
+abstract class Coll<T : BaseDoc<U>, U : Any>(
     private val klass: KClass<T>,
     var debug: Boolean? = null
 ) {
     companion object {
         var globalDebug = false
-        internal val map1 = mutableMapOf<KClass<*>, CTableDb<*, *>>()
+        internal val map1 = mutableMapOf<KClass<*>, Coll<*, *>>()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
