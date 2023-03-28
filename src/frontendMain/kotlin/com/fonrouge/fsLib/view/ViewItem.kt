@@ -86,9 +86,9 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
             navButtonAccept?.disabled = true
             buttonCancel?.disabled = true
             buttonAccept?.disabled = true
-            backCloseAction()
+//            backCloseAction()
             val toastOptions = ToastOptions(
-//                callback = { backCloseAction() },
+                callback = { backCloseAction() },
                 close = true,
                 stopOnFocus = true
             )
@@ -103,7 +103,6 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                     options = toastOptions
                 )
             }
-//            backCloseAction()
         }
     ) {
         val crudAction = urlParams?.crudAction
