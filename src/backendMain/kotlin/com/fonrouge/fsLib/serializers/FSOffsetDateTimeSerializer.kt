@@ -34,8 +34,12 @@ actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
             if (decoded.contains('T')) {
                 decoded.toOffsetDateTimeF()
             } else {
+                val format = when {
+                    decoded.length > 19 -> "yyyy-MM-dd HH:mm:ss.S"
+                    else -> "yyyy-MM-dd HH:mm:ss"
+                }
                 LocalDateTime
-                    .parse(decoded, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    .parse(decoded.substring(0, format.length), DateTimeFormatter.ofPattern(format))
                     .atZone(ZoneId.systemDefault()).toOffsetDateTime()
             }
         }
