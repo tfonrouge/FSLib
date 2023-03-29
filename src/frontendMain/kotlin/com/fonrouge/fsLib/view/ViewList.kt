@@ -13,7 +13,7 @@ import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
-import io.kvision.tabulator.*
+import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
 import kotlinx.browser.window
 

@@ -10,8 +10,6 @@ import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import java.util.*
-import kotlin.collections.isNotEmpty
-import kotlin.collections.mutableListOf
 import kotlin.collections.set
 
 @Suppress("unused")
