@@ -4,13 +4,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ItemResponse<T>(
-    var item: T? = null,
+    val item: T? = null,
     val itemAlreadyOn: Boolean = false,
-    override var isOk: Boolean = item != null,
+    override val isOk: Boolean = item != null,
     val noDataModified: Boolean? = null,
-    override var msgOk: String? = "Operation successful ...",
-    override var msgError: String? = "Operation Failed ...",
-    override var state: String? = null,
+    override val msgOk: String? = "Operation successful ...",
+    override val msgError: String? = "Operation Failed ...",
+    override val state: String? = null,
 ) : ISimpleResponse {
     @Suppress("unused")
     constructor(simpleResponse: SimpleResponse) : this(

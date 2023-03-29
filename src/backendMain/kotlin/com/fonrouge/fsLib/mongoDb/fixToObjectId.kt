@@ -3,25 +3,16 @@ package com.fonrouge.fsLib.mongoDb
 import com.mongodb.MongoNamespace
 import com.mongodb.client.model.InsertOneModel
 import com.mongodb.client.model.WriteModel
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.plugins.compression.*
-import io.ktor.server.plugins.defaultheaders.*
-import io.ktor.server.plugins.httpsredirect.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.sessions.*
-import io.ktor.util.*
 import kotlinx.coroutines.reactive.asFlow
 import org.bson.BsonObjectId
 import org.bson.Document
 import org.bson.types.ObjectId
-import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import java.util.*
+import kotlin.collections.isNotEmpty
+import kotlin.collections.mutableListOf
+import kotlin.collections.set
 
 @Suppress("unused")
 suspend fun fixToObjectId(coll: Coll<*, *>): Boolean {

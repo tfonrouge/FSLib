@@ -1,8 +1,8 @@
 package com.fonrouge.fsLib.model
 
 interface ISimpleResponse {
-    var isOk: Boolean
-    var msgOk: String?
-    var msgError: String?
-    var state: String?
+    val isOk: Boolean
+    val msgOk: String?
+    val msgError: String?
+    val state: String?
 }

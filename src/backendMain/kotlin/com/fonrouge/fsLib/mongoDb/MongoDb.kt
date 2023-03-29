@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.model.base.SysUser
+import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
 import com.fonrouge.fsLib.serializers.IntIdSerializer
 import com.fonrouge.fsLib.serializers.OIdSerializer
 import com.fonrouge.fsLib.serializers.StringIdSerializer
@@ -71,5 +72,6 @@ class MongoDbPluginConfiguration {
         registerSerializer(OIdSerializer)
         registerSerializer(StringIdSerializer)
         registerSerializer(IntIdSerializer)
+        registerSerializer(FSOffsetDateTimeSerializer)
     }
 }

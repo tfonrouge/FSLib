@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty1
 
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupField(
-    coll: KClass<out Coll<U, W>>,
+    collKClass: KClass<out Coll<U, W>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
@@ -19,7 +19,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupField(
     preserveNullAndEmptyArrays: Boolean = true,
 ): LookupPipelineBuilder<T, U, W> {
     return object : LookupPipelineBuilder<T, U, W>(
-        coll = coll,
+        collKClass = collKClass,
         localField = localField,
         foreignField = foreignField,
         pipeline = pipeline,
@@ -32,7 +32,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupField(
 
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupFieldArray(
-    coll: KClass<out Coll<U, W>>,
+    collKClass: KClass<out Coll<U, W>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
@@ -41,7 +41,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupFieldArray(
     limit: Int? = null,
 ): LookupPipelineBuilder<T, U, W> {
     return object : LookupPipelineBuilder<T, U, W>(
-        coll = coll,
+        collKClass = collKClass,
         localField = localField,
         foreignField = foreignField,
         pipeline = pipeline,
@@ -53,7 +53,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupFieldArray(
 }
 
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<W>, W : Any>(
-    private val coll: KClass<out Coll<U, W>>,
+    private val collKClass: KClass<out Coll<U, W>>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,
     private val pipeline: List<Bson>? = null,
@@ -65,7 +65,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<W>, W : Any>(
     internal fun pipelineList(modelLookup: ModelLookup<*, *>? = null): List<Bson> {
         val pip2 = mutableListOf<Bson>()
         this.pipeline?.let { bsonList -> pip2 += bsonList }
-        map1[coll]?.buildLookupList((modelLookup?.modelLookups ?: emptyArray()))?.let { bsonList ->
+        map1[collKClass]?.buildLookupList((modelLookup?.modelLookups ?: emptyArray()))?.let { bsonList ->
             pip2 += bsonList
         }
         val pipeline = mutableListOf<Bson>()
@@ -83,7 +83,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<W>, W : Any>(
     }
 
     fun lookup(pipeline: List<Bson>? = null): Bson {
-        val collectionName = map1[coll]?.mongoColl?.namespace?.collectionName
+        val collectionName = map1[collKClass]?.mongoColl?.namespace?.collectionName
         return lookup5(
             from = collectionName ?: "?",
             localField = localField.name,
