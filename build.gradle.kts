@@ -1,17 +1,18 @@
 plugins {
     val kotlinVersion: String by System.getProperties()
+    val kvisionVersion: String by System.getProperties()
     kotlin("plugin.serialization") version kotlinVersion
     kotlin("multiplatform") version kotlinVersion
-    val kvisionVersion: String by System.getProperties()
+    id("com.android.library")
     id("io.kvision") version kvisionVersion
-    `maven-publish`
-    `java-library`
+    id("maven-publish")
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.4.5"
+version = "1.5.0"
 
 repositories {
+    google()
     mavenCentral()
     mavenLocal()
     gradlePluginPortal()
@@ -45,6 +46,9 @@ kotlin {
             }
         }
         binaries.library()
+    }
+    android {
+        publishLibraryVariants("release", "debug")
     }
     sourceSets {
         val commonMain by getting {
@@ -116,5 +120,16 @@ kotlin {
             kotlin.srcDir("build/generated-src/frontend")
         }
         val frontendTest by getting
+        val androidMain by getting
+    }
+}
+
+android {
+    namespace = "com.fonrouge.fsLib"
+    compileSdk = 33
+    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    defaultConfig {
+        minSdk = 23
+        targetSdk = 33
     }
 }
