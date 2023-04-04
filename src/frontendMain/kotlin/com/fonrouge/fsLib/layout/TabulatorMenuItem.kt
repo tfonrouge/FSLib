@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.layout
 import kotlinx.browser.window
 import org.w3c.dom.events.Event
 
+@OptIn(ExperimentalJsExport::class)
 @JsExport
 class TabulatorMenuItem(
     label: String? = null,
@@ -25,7 +26,7 @@ fun MutableList<TabulatorMenuItem>.menuItem(
     menu: TabulatorMenuItem? = null,
     header: Boolean = false,
     url: String? = null,
-    action: ((e: Event, c: dynamic) -> Unit) = { e, c ->
+    action: ((e: Event, c: dynamic) -> Unit) = { _, _ ->
         url?.let {
             window.location.href = it
         }

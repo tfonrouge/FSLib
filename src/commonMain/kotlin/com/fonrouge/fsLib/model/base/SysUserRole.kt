@@ -5,6 +5,7 @@ import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.serializers.OId
 import kotlinx.serialization.Serializable
 
+@Suppress("RUNTIME_ANNOTATION_NOT_SUPPORTED")
 @Collection(name = "__userRoles")
 @Serializable
 class SysUserRole(
