@@ -1,3 +1,5 @@
+import com.google.devtools.ksp.gradle.KspTaskMetadata
+
 plugins {
     val kotlinVersion: String by System.getProperties()
     val kvisionVersion: String by System.getProperties()
@@ -127,9 +129,25 @@ kotlin {
 android {
     namespace = "com.fonrouge.fsLib"
     compileSdk = 33
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+//    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 23
         targetSdk = 33
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+/*
+Required to avoid error on dependency not declared on gradle v8.0.2
+TODO: find out how to solve
+ */
+tasks.withType<KspTaskMetadata>() {
+    dependsOn(tasks.getByPath(":compileReleaseKotlinAndroid"))
+    dependsOn(tasks.getByPath(":compileDebugKotlinAndroid"))
+    dependsOn(tasks.getByPath(":androidReleaseSourcesJar"))
+    dependsOn(tasks.getByPath(":androidDebugSourcesJar"))
+    dependsOn(tasks.getByPath(":backendSourcesJar"))
 }
