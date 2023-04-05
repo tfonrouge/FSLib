@@ -9,6 +9,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.bson.types.ObjectId
+import java.time.OffsetDateTime
 
 actual object OIdSerializer : KSerializer<OId<Any>> {
     override fun deserialize(decoder: Decoder): OId<Any> {
@@ -35,3 +36,7 @@ actual object OIdSerializer : KSerializer<OId<Any>> {
 fun OId<Any>?.toObjectId(): ObjectId? {
     return this?.id?.let { ObjectId(it) }
 }
+
+@Suppress("NewApi")
+fun <T> OId(offsetDateTime: OffsetDateTime): OId<T> =
+    OId(offsetDateTime.toEpochSecond().toString(16).padStart(8, ' ') + "0000000000000000")
