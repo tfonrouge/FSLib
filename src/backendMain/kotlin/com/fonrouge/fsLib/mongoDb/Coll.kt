@@ -76,20 +76,20 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
      *
      * Is the base for the find(), findOne(), findOneById()
      * accept a custom pipeline (list of Bson) argument and
-     * also accept a list of ModelLookup to be added to the
+     * also accept a list of [LookupWrapper] to be added to the
      * final pipeline on the aggregate operation
      *
      * @param pipeline [Bson] list
-     * @param modelLookups list of lookups to be included [ModelLookup]
+     * @param lookups list of lookups to be included [LookupWrapper]
      * @param postProcessPipeline allow to post-process the resulted [Bson] list before call aggregate
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregateLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
+        lookups: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        val pip1 = buildPipeline(pipeline, modelLookups)
+        val pip1 = buildPipeline(pipeline, lookups)
         postProcessPipeline?.let { it(pip1) }
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate:")
@@ -103,15 +103,23 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
      *
      * Always appends the content result properties from the [constLookupList]
      *
-     * @param arrayOfModelLookups array of ModelLookup items to extract lookup info
+     * @param lookupWrappers array of [LookupWrapper] items to extract lookup info
      * @return List<Bson>
      */
-    fun buildLookupList(arrayOfModelLookups: Array<out ModelLookup<*, *>> = emptyArray()): List<Bson> {
+    fun buildLookupList(lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        lookupPipelineBuilderList?.forEach { lookupPipelineBuilder ->
-            val modelLookup = arrayOfModelLookups.find { lookupPipelineBuilder.resultProperty == it.resultProperty }
-            if (modelLookup != null) {
-                pipeline += lookupPipelineBuilder.pipelineList(modelLookup)
+        val lookupPipelineBuilders = lookupPipelineBuilderList?.toMutableList()
+            ?.plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null})
+        lookupPipelineBuilders?.forEach { lookupPipelineBuilder ->
+            val lookupWrapper = lookupWrappers.find {
+                lookupPipelineBuilder.resultProperty == when (it) {
+                    is LookupByProperty -> it.resultProperty
+                    is LookupByPipeline<*, *, *> -> it.pipeline.resultProperty
+                    else -> null
+                }
+            }
+            if (lookupWrapper != null) {
+                pipeline += lookupPipelineBuilder.pipelineList(lookupWrapper)
             } else {
                 constLookupList?.find { kProperty1 -> kProperty1 == lookupPipelineBuilder.resultProperty }?.let {
                     pipeline += lookupPipelineBuilder.pipelineList()
@@ -122,19 +130,19 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     /**
-     * Builds the aggregation pipeline, including lookups defined with [ModelLookup] lists
+     * Builds the aggregation pipeline, including lookups defined with [LookupWrapper] lists
      *
      * The resulting pipeline (a [Bson] list) is build in the form:
-     * [pipeline] + [modelLookup] (parsed from [buildLookupList] function)
+     * [pipeline] + [lookupWrappers] (parsed from [buildLookupList] function)
      *
      * @param pipeline the pipeline passed to the aggregation function
-     * @param modelLookup array of [ModelLookup] that will be added to the final pipeline
+     * @param lookupWrappers array of [LookupWrapper] that will be added to the final pipeline
      */
     open fun buildPipeline(
         pipeline: MutableList<Bson>,
-        modelLookup: Array<out ModelLookup<*, *>>
+        lookupWrappers: Array<out LookupWrapper<*, *>>
     ): MutableList<Bson> {
-        pipeline.addAll(buildLookupList(modelLookup))
+        pipeline.addAll(buildLookupList(lookupWrappers))
         return pipeline
     }
 
@@ -209,41 +217,41 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
      * Find [filter] expression in collection and returns a list of [T] items
      *
      * @param filter bson expression
-     * @param modelLookups array of ModelLookup
+     * @param lookupWrappers array of [LookupWrapper]
      * @return list of T items
      */
     suspend fun find(
         filter: Bson? = null,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): List<T> {
-        return aggregateLookup(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(), modelLookups).toList()
+        return aggregateLookup(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(), lookupWrappers).toList()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOne(
         filter: Bson? = null,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): T? {
         return aggregateLookup(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
-            modelLookups).awaitFirstOrNull()
+            lookupWrappers).awaitFirstOrNull()
     }
 
     @Suppress("unused")
     suspend fun findOneById(
         _id: U?,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): T? {
-        return findOne(BaseDoc<*>::_id eq _id, modelLookups)
+        return findOne(BaseDoc<*>::_id eq _id, lookupWrappers)
     }
 
     @Suppress("unused")
     suspend fun itemResponse(
         _id: U?,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray()
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): ItemResponse<T> {
         return try {
             ItemResponse(
-                item = findOneById(_id = _id, modelLookups = modelLookups),
+                item = findOneById(_id = _id, lookupWrappers = lookupWrappers),
                 msgError = "_id '$_id' (${klass.simpleName}) not found..."
             )
         } catch (e: Exception) {
@@ -377,13 +385,13 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
      */
     suspend fun listContainer(
         firstStage: FirstStage,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         preprocessList: ((List<T>) -> Unit)? = null,
     ): ListContainer<T> {
         val list = aggregateLookup(
             pipeline = firstStage.pipeline,
-            modelLookups = modelLookups,
+            lookups = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
         ).toList()
         preprocessList?.let { it(list) }
@@ -410,7 +418,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         strictCounter: Boolean = true,
         contextDataUrl: ContextDataUrl?,
         other: List<Bson>? = null,
-        modelLookups: Array<out ModelLookup<*, *>> = emptyArray(),
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         preprocessList: ((List<T>) -> Unit)? = null,
     ): ListContainer<T> {
@@ -425,7 +433,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
                 sorter = contextDataUrl?.tabSorter,
                 other = other,
             ),
-            modelLookups = modelLookups,
+            lookupWrappers = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
             preprocessList = preprocessList
         )
