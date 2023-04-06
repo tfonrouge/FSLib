@@ -16,7 +16,7 @@ var SysUserRoleDb: Coll<SysUserRole, OId<SysUserRole>> = object : Coll<SysUserRo
 ) {
     override fun buildPipeline(
         pipeline: MutableList<Bson>,
-        lookups: Array<out LookupWrapper<*, *>>
+        lookupWrappers: Array<out LookupWrapper<*, *>>
     ): MutableList<Bson> {
         pipeline.addAll(
             listOf(
@@ -36,7 +36,7 @@ var SysUserRoleDb: Coll<SysUserRole, OId<SysUserRole>> = object : Coll<SysUserRo
                 SysUserRole::appRole.unwind(unwindOptions = UnwindOptions().preserveNullAndEmptyArrays(true)),
             )
         )
-        pipeline.addAll(buildLookupList(lookups))
+        pipeline.addAll(buildLookupList(lookupWrappers))
         return pipeline
     }
 
