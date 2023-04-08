@@ -150,4 +150,5 @@ tasks.withType<KspTaskMetadata>() {
     dependsOn(tasks.getByPath(":androidReleaseSourcesJar"))
     dependsOn(tasks.getByPath(":androidDebugSourcesJar"))
     dependsOn(tasks.getByPath(":backendSourcesJar"))
+    dependsOn(tasks.getByPath(":sourcesJar"))
 }
