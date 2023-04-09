@@ -47,7 +47,6 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         internal val map1 = mutableMapOf<KClass<*>, Coll<*, *>>()
     }
 
-    @Suppress("MemberVisibilityCanBePrivate")
     val collectionName =
         if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
         else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
@@ -68,7 +67,6 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     open val lookupFun: (() -> List<LookupPipelineBuilder<T, *, *>>)? = null
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
 
-    @Suppress("unused")
     val coroutineColl = mongoColl.coroutine
 
     /**
@@ -209,7 +207,6 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     /**
      * Override to build indexes
      */
-    @Suppress("unused")
     open suspend fun CoroutineCollection<T>.ensureIndexes() {
     }
 
@@ -236,7 +233,6 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
             lookupWrappers).awaitFirstOrNull()
     }
 
-    @Suppress("unused")
     suspend fun findOneById(
         _id: U?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
@@ -281,7 +277,6 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         return ItemResponse(isOk = false, msgError = "insertOne(): state.item contains null value...")
     }
 
-    @Suppress("unused")
     private suspend fun listFirstStage(
         match: Bson? = null,
         sort: Bson? = null,
@@ -377,7 +372,6 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     @OptIn(InternalSerializationApi::class)
-    @Suppress("unused")
     /**
      * Builds a [ListContainer] back to frontend
      *
@@ -439,7 +433,6 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         )
     }
 
-    @Suppress("unused")
     suspend fun updateOne(
         filter: Bson,
         state: StateItem<T>,

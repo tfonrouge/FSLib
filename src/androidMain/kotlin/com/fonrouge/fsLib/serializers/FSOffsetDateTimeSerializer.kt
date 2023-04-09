@@ -1,5 +1,7 @@
 package com.fonrouge.fsLib.serializers
 
+import android.annotation.TargetApi
+import android.os.Build
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -11,11 +13,11 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@Suppress("unused")
 actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("OffsetDateTime backEnd Serializer", PrimitiveKind.STRING)
 
+    @TargetApi(Build.VERSION_CODES.O)
     override fun deserialize(decoder: Decoder): OffsetDateTime {
         return run {
             val decoded = decoder.decodeString()

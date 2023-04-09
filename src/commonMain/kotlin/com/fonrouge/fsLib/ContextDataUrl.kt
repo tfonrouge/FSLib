@@ -27,12 +27,10 @@ data class ContextDataUrl(
     var checksum: String? = null,
     var state: String? = null,
 ) {
-    @Suppress("unused")
     inline fun <reified T> contextIdValue(): T? {
         return contextId?.let { Json.decodeFromString(it) }
     }
 
-    @Suppress("unused")
     inline fun <reified T> stateValue(): T? {
         return state?.let { Json.decodeFromString(it) }
     }

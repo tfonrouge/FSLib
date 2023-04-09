@@ -10,7 +10,6 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlin.js.Date
 
-@Suppress("unused")
 actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("OffsetDateTime frontEnd Serializer", PrimitiveKind.STRING)

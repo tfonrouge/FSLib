@@ -7,7 +7,6 @@ import io.kvision.html.div
 import io.kvision.utils.px
 import io.kvision.utils.vh
 
-@Suppress("unused")
 fun Container.centeredMessage(message: String, init: (Div.() -> Unit)? = null): Div {
     return div(content = message) {
         fontSize = 20.px

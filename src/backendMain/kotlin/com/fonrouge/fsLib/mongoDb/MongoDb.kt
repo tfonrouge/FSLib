@@ -19,7 +19,6 @@ val mongoClient by lazy {
     mongoDbPluginConfiguration.let { KMongo.createClient(it.connectionString) }
 }
 
-@Suppress("unused")
 val mongoDatabase: MongoDatabase by lazy {
     mongoClient.getDatabase(mongoDbPluginConfiguration.database)
 }
