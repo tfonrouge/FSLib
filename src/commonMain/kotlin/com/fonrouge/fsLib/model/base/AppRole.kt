@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.serializers.OId
 import kotlinx.serialization.Serializable
 
+@Suppress("unused")
 @Collection(name = "__appRoles")
 @Serializable
 class AppRole(

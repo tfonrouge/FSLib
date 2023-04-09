@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 
 var progressCount = 0
 
+@Suppress("unused")
 fun CoroutineScope.withProgress(block: suspend () -> Unit): Job {
     Pace.show()
     progressCount++
