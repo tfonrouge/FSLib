@@ -241,7 +241,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun itemResponse(
+    suspend fun findOneByIdResponse(
         _id: U?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): ItemResponse<T> {
