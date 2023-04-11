@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.mongoDb
 
 import org.bson.conversions.Bson
 
+@Suppress("unused")
 class FirstStage(
     val pipeline: MutableList<Bson>,
     val count: Long,

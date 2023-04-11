@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.5.0"
+version = "1.5.1-SNAPSHOT"
 
 repositories {
     google()
@@ -150,4 +150,5 @@ tasks.withType<KspTaskMetadata>() {
     dependsOn(tasks.getByPath(":androidReleaseSourcesJar"))
     dependsOn(tasks.getByPath(":androidDebugSourcesJar"))
     dependsOn(tasks.getByPath(":backendSourcesJar"))
+    dependsOn(tasks.getByPath(":sourcesJar"))
 }

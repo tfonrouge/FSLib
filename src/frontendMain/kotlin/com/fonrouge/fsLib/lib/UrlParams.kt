@@ -17,7 +17,7 @@ data class UrlParams(
     }
 
     init {
-        match?.let { params = match.params }
+        match?.let { params = match.params.unsafeCast<Json?>() }
     }
 
     val crudAction: CrudAction?

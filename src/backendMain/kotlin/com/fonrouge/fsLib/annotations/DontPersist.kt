@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.annotations
 
 /**
- * Simply set a null value on the item property before [CTableDb.updateOne] or [CTable.insertOne] funcs
+ * Simply set a null value on the item property before Coll.updateOne or Coll.insertOne funcs
  */
 @Suppress("RedundantVisibilityModifier")
 @Target(AnnotationTarget.PROPERTY)

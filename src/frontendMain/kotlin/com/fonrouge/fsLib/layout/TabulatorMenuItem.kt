@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.layout
 import kotlinx.browser.window
 import org.w3c.dom.events.Event
 
+@Suppress("unused")
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class TabulatorMenuItem(

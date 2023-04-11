@@ -17,7 +17,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@Suppress("unused")
 actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("OffsetDateTime backEnd Serializer", PrimitiveKind.STRING)

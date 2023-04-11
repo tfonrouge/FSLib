@@ -79,7 +79,6 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
      *
      * @param block optional, executes with the API result [ItemResponse] as parameter
      */
-    @Suppress("MemberVisibilityCanBePrivate")
     fun acceptUpsertAction(
         block: ((ItemResponse<T>) -> Unit)? = {
             navButtonCancel?.disabled = true

@@ -37,6 +37,6 @@ fun OId<Any>?.toObjectId(): ObjectId? {
     return this?.id?.let { ObjectId(it) }
 }
 
-@Suppress("NewApi")
+@Suppress("NewApi", "unused")
 fun <T> OId(offsetDateTime: OffsetDateTime): OId<T> =
     OId(offsetDateTime.toEpochSecond().toString(16).padStart(8, ' ') + "0000000000000000")

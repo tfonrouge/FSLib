@@ -15,7 +15,6 @@ import kotlin.jvm.internal.FunctionReferenceImpl
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
-@Suppress("unused")
 inline fun <reified T : ISysUser> ApplicationCall.getSysUser(): T? {
     return sessions.get()
 }
