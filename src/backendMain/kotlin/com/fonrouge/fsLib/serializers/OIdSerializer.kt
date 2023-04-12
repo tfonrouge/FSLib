@@ -27,7 +27,7 @@ actual object OIdSerializer : KSerializer<OId<Any>> {
         if (encoder is BsonEncoder) {
             encoder.encodeObjectId(ObjectId(value.id))
         } else {
-            encoder.encodeString(value.id)
+            encoder.encodeString("${value.id}")
         }
     }
 }

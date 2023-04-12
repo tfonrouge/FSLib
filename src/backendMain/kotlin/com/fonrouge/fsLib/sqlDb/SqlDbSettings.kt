@@ -80,6 +80,7 @@ abstract class SqlDbSettings(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
+        noinline decodeBlock: ((ResultSet) -> T)? = null
     ): List<T> {
         val result = mutableListOf<T>()
         transaction(db = sqlDb) {
@@ -87,7 +88,8 @@ abstract class SqlDbSettings(
                 exec(sql, args, explicitStatementType) { resultSet ->
                     while (resultSet.next()) {
                         try {
-                            result.add(sqlEntityTo(resultSet))
+                            val t = decodeBlock?.let { it(resultSet) } ?: sqlEntityTo(resultSet)
+                            result.add(t)
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }

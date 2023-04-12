@@ -16,6 +16,6 @@ actual object OIdSerializer : KSerializer<OId<Any>> {
         get() = PrimitiveSerialDescriptor("ObjectId MP Serializer", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: OId<Any>) {
-        encoder.encodeString(value.id)
+        encoder.encodeString("${value.id}")
     }
 }
