@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.sqlDb
 
 import com.fonrouge.fsLib.annotations.SqlField
 import com.fonrouge.fsLib.annotations.SqlOneToOne
+import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.KV_DEFAULT_DATETIME_FORMAT
 import com.fonrouge.fsLib.serializers.StringId
@@ -182,6 +183,7 @@ abstract class SqlDbSettings(
     fun buildJsonFromResultSet(klass: KClass<*>, resultSet: ResultSet): JsonObject {
         val metaData = resultSet.metaData
         val decodeMap = getDecodeMap(klass, metaData)
+        var addedBaseDocPrimaryKeyField = false
         return buildJsonObject {
             for (index in 1..metaData.columnCount) {
                 decodeMap.stringIntMap[metaData.getColumnName(index).uppercase()]?.let { indexMap ->
@@ -192,12 +194,22 @@ abstract class SqlDbSettings(
                         index = index,
                         jsonObjectBuilder = this@buildJsonObject
                     )
+                    if (field.name == BaseDoc<*>::_id.name) {
+                        addedBaseDocPrimaryKeyField = true
+                    }
                 }
             }
             decodeMap.oneToOneFields.forEach { field ->
                 field.findAnnotation<SqlOneToOne>()?.let {
                     (field.returnType.classifier as? KClass<*>)?.let {
                         put(field.name, buildJsonFromResultSet(it, resultSet))
+                    }
+                }
+            }
+            if (klass.isSubclassOf(BaseDoc::class) && !addedBaseDocPrimaryKeyField) {
+                (klass.memberProperties.find { it.name == BaseDoc<*>::_id.name }?.returnType?.classifier as? KClass<*>)?.let {
+                    if (!it.isSubclassOf(Comparable::class)) {
+                        put(BaseDoc<*>::_id.name, buildJsonFromResultSet(it, resultSet))
                     }
                 }
             }
