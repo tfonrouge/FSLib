@@ -90,7 +90,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
         }
         masterViewItem?.let { viewItem ->
             urlParams?.addContext(viewItem.item, viewItem.encodedId())
-        } ?: urlParams?.addContext(this@ViewList.urlParams?.contextDataUrl)
+        } ?: urlParams?.addContext(this@ViewList.urlParams?.stateList)
         return urlParams?.let {
             configViewItem?.let { it.url + urlParams.toString() }
         }

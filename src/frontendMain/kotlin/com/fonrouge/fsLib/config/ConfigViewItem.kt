@@ -1,12 +1,11 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.model.ContextDataUrl
-import com.fonrouge.fsLib.model.StateItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.StateItem
 import com.fonrouge.fsLib.view.ViewItem
 import io.kvision.remote.CallAgent
 import io.kvision.remote.HttpMethod
@@ -82,7 +81,7 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
         callType: StateItem.CallType,
         itemId: String? = JSON.stringify(null),
         item: T? = null,
-        contextDataUrl: ContextDataUrl? = null,
+        urlParams: UrlParams? = null,
         block: (ItemResponse<T>) -> ItemResponse<T>,
     ) {
         val (url, method) = serviceManager.requireCall(function)
@@ -96,7 +95,8 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
                     crudAction = crudAction,
                     callType = callType,
                     state = stateFunction?.invoke(),
-                    contextDataUrl = contextDataUrl
+                    contextClass = urlParams?.contextClass,
+                    contextId = urlParams?.contextId,
                 )
             )
         )

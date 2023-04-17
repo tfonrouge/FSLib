@@ -1,8 +1,8 @@
 package com.fonrouge.fsLib.lib
 
-import com.fonrouge.fsLib.model.ContextDataUrl
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.StateList
 import io.kvision.navigo.Match
 import kotlin.js.Json
 import kotlin.js.json
@@ -30,12 +30,14 @@ data class UrlParams(
             return params?.get("action") in listOf(CrudAction.Create.name, CrudAction.Update.name)
         }
 
-    val contextDataUrl: ContextDataUrl?
+    val contextClass: String? get() = params?.get("contextClass") as? String
+    val contextId: String? get() = params?.get("contextId") as? String
+    val stateList: StateList?
         get() {
             val contextClass = params?.get("contextClass") as? String
             val contextId = params?.get("contextId") as? String
             return if (contextClass != null && contextId != null) {
-                return ContextDataUrl(contextClass = contextClass, contextId = contextId)
+                return StateList(contextClass = contextClass, contextId = contextId)
             } else null
         }
 
@@ -51,9 +53,9 @@ data class UrlParams(
         return this
     }
 
-    fun addContext(contextDataUrl1: ContextDataUrl?): UrlParams {
+    fun addContext(stateList: StateList?): UrlParams {
         if (params == null) params = json()
-        contextDataUrl1?.let {
+        stateList?.let {
             params?.set("contextClass", it.contextClass)
             params?.set("contextId", it.contextId)
         }

@@ -5,6 +5,8 @@ import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.model.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.base.ISysUser
+import com.fonrouge.fsLib.model.state.StateItem
+import com.fonrouge.fsLib.model.state.StateList
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
@@ -406,7 +408,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         match: Bson? = null,
         sort: Bson? = null,
         strictCounter: Boolean = true,
-        contextDataUrl: ContextDataUrl?,
+        stateList: StateList?,
         other: List<Bson>? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -416,11 +418,11 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
             firstStage = listFirstStage(
                 match = match,
                 sort = sort,
-                page = contextDataUrl?.tabPage,
-                size = contextDataUrl?.tabSize,
+                page = stateList?.tabPage,
+                size = stateList?.tabSize,
                 strictCounter = strictCounter,
-                filter = contextDataUrl?.tabFilter,
-                sorter = contextDataUrl?.tabSorter,
+                filter = stateList?.tabFilter,
+                sorter = stateList?.tabSorter,
                 other = other,
             ),
             lookupWrappers = lookupWrappers,
@@ -450,7 +452,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
             noDataModified = result?.modifiedCount == 0L,
             msgError = "No data was modified ..."
         )
-    } ?:  ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
+    } ?: ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
 
     @Suppress("unused")
     suspend fun updateOneById(

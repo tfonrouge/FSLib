@@ -1,12 +1,12 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.model.StateItem
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.StateItem
 import io.kvision.core.*
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
@@ -113,7 +113,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                         callType = StateItem.CallType.Action,
                         itemId = encodedId(),
                         item = dataFormBeforeApiCall(formPanel.getData()),
-                        contextDataUrl = urlParams?.contextDataUrl
+                        urlParams = urlParams,
                     ) { itemResponse ->
                         block?.let { it(itemResponse) }
                         itemResponse
@@ -238,7 +238,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                         crudAction = crudAction,
                         callType = StateItem.CallType.Query,
                         itemId = urlParams?.id,
-                        contextDataUrl = urlParams?.contextDataUrl
+                        urlParams = urlParams,
                     ) { itemResponse ->
                         this@ViewItem.state = itemResponse.state
                         if (crudAction == CrudAction.Create && itemResponse.itemAlreadyOn) {
@@ -316,7 +316,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                                                             crudAction = CrudAction.Delete,
                                                             callType = StateItem.CallType.Action,
                                                             itemId = urlParams?.id,
-                                                            contextDataUrl = urlParams?.contextDataUrl,
+                                                            urlParams = urlParams,
                                                         ) { itemResponse1 ->
                                                             buttonCancel?.hide()
                                                             buttonAccept?.hide()
@@ -416,7 +416,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                 crudAction = crudAction,
                 callType = StateItem.CallType.Query,
                 itemId = encodedId(),
-                contextDataUrl = urlParams?.contextDataUrl
+                urlParams = urlParams,
             ) { itemResponse ->
                 data.value = itemResponse
                 itemResponse

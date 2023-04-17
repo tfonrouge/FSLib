@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.model
+package com.fonrouge.fsLib.model.state
 
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
@@ -14,30 +14,22 @@ import kotlinx.serialization.json.Json
  * @param state can contain an arbitrary data which can be instantiated with [stateValue]
  */
 @Serializable
-data class ContextDataUrl(
+data class StateList(
     var tabPage: Int? = null,
     var tabSize: Int? = null,
     var tabFilter: List<RemoteFilter>? = null,
     var tabSorter: List<RemoteSorter>? = null,
     var filter: String? = null,
     var sorter: String? = null,
-    var contextClass: String? = null,
-    var contextId: String? = null,
     var params: String? = null,
     var checksum: String? = null,
-    var state: String? = null,
-) {
-    inline fun <reified T> contextIdValue(): T? {
-        return contextId?.let { Json.decodeFromString(it) }
-    }
-
-    inline fun <reified T> stateValue(): T? {
-        return state?.let { Json.decodeFromString(it) }
-    }
-}
+    override var contextId: String? = null,
+    override var contextClass: String? = null,
+    override var state: String? = null,
+) : ContexState()
 
 @Suppress("unused")
-val String?.contextDataUrl: ContextDataUrl?
+val String?.stateList: StateList?
     get() {
-        return this?.let { Json.decodeFromString<ContextDataUrl>(it) }
+        return this?.let { Json.decodeFromString<StateList>(it) }
     }

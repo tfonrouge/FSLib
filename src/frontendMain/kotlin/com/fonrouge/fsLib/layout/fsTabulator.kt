@@ -2,10 +2,10 @@
 
 package com.fonrouge.fsLib.layout
 
-import com.fonrouge.fsLib.model.ContextDataUrl
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.StateList
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
@@ -44,7 +44,7 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
     types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
-    noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
+    noinline stateListUpdate: (StateList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
@@ -56,7 +56,7 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
         types = types,
         fsTabOptions = fsTabOptions,
         minToolbarSize = minToolbarSize,
-        contextDataUrlUpdate = contextDataUrlUpdate,
+        stateListUpdate = stateListUpdate,
         onResult = onResult,
         init = init
     )
@@ -69,7 +69,7 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
     types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
-    noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
+    noinline stateListUpdate: (StateList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
 ): ViewList<T, E, U> {
@@ -102,9 +102,9 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
         autoResize = true,
     )
 
-    val contextDataUrlBlock: () -> ContextDataUrl = {
+    val stateListBlock: () -> StateList = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
-        val result: ContextDataUrl = urlParams?.contextDataUrl ?: ContextDataUrl()
+        val result: StateList = urlParams?.stateList ?: StateList()
         viewList.masterViewItem?.let { viewItem ->
             viewItem.item?.let {
                 result.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
@@ -120,8 +120,8 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
         viewList.tabulator = tabulatorListContainer(
             serviceManager = viewList.configView.serviceManager,
             function = viewList.configView.function,
-            contextDataUrlBlock = contextDataUrlBlock,
-            contextDataUrlUpdate = contextDataUrlUpdate,
+            stateListBlock = stateListBlock,
+            stateListUpdate = stateListUpdate,
             onResult = onResult,
             serializer = T::class.serializer(),
             options = tabOpt,

@@ -1,9 +1,9 @@
 package com.fonrouge.fsLib.layout
 
-import com.fonrouge.fsLib.model.ContextDataUrl
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.ListContainer
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.StateList
 import io.kvision.core.Container
 import io.kvision.remote.*
 import io.kvision.tabulator.TableType
@@ -25,9 +25,9 @@ import kotlin.reflect.KClass
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
-    function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
-    private val contextDataUrlBlock: (() -> ContextDataUrl),
-    private val contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
+    function: suspend E.(StateList?) -> ListContainer<T>,
+    private val stateListBlock: (() -> StateList),
+    private val stateListUpdate: (StateList.() -> Unit)? = null,
     var onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
@@ -95,14 +95,14 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
         filters: List<RemoteFilter>?,
         sorters: List<RemoteSorter>?,
     ): Promise<dynamic> {
-        val contextDataUrl = contextDataUrlBlock.invoke().apply {
+        val contextDataUrl = stateListBlock.invoke().apply {
             tabPage = page
             tabSize = size
             tabFilter = filters
             tabSorter = sorters
             checksum = this@TabulatorListContainer.checksum
         }
-        contextDataUrlUpdate?.invoke(contextDataUrl)
+        stateListUpdate?.invoke(contextDataUrl)
         val data =
             Serialization.plain.encodeToString(
                 JsonRpcRequest(
@@ -181,9 +181,9 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
 
 inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(ContextDataUrl?) -> ListContainer<T>,
-    noinline contextDataUrlBlock: (() -> ContextDataUrl),
-    noinline contextDataUrlUpdate: (ContextDataUrl.() -> Unit)? = null,
+    noinline function: suspend E.(StateList?) -> ListContainer<T>,
+    noinline stateListBlock: (() -> StateList),
+    noinline stateListUpdate: (StateList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
@@ -197,8 +197,8 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.tabulatorL
         TabulatorListContainer(
             serviceManager = serviceManager,
             function = function,
-            contextDataUrlBlock = contextDataUrlBlock,
-            contextDataUrlUpdate = contextDataUrlUpdate,
+            stateListBlock = stateListBlock,
+            stateListUpdate = stateListUpdate,
             onResult = onResult,
             options = options,
             types = types,
