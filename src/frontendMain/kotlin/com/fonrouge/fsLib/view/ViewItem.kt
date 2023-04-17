@@ -242,9 +242,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                     ) { itemResponse ->
                         this@ViewItem.state = itemResponse.state
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
-                            urlParams = UrlParams(
-                                "action" to CrudTask.Update.name, "id" to encodedId(itemResponse.item?._id)
-                            )
+                            urlParams?.params?.set("action", CrudTask.Update.name)
                             @Suppress("UNUSED_VARIABLE")
                             val url = (configView.url + urlParams.toString()).asDynamic()
 
