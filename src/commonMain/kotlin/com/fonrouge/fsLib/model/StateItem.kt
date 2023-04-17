@@ -9,7 +9,6 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class StateItem<T : BaseDoc<*>>(
     val item: T? = null,
-    val json: String? = null,
     val crudAction: CrudAction = CrudAction.Read,
     val callType: CallType = CallType.Query,
     val state: String? = null,
