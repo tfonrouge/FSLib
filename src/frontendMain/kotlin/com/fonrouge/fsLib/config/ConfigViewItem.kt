@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.ContextDataUrl
-import com.fonrouge.fsLib.StateItem
+import com.fonrouge.fsLib.model.ContextDataUrl
+import com.fonrouge.fsLib.model.StateItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.IDataItem
@@ -93,7 +93,6 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
                 serializer = StateItem.serializer(itemKClass.serializer()),
                 value = StateItem(
                     item = item,
-                    json = null,
                     crudAction = crudAction,
                     callType = callType,
                     state = stateFunction?.invoke(),

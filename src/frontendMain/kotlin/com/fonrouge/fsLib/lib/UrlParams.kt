@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.lib
 
-import com.fonrouge.fsLib.ContextDataUrl
+import com.fonrouge.fsLib.model.ContextDataUrl
 import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.navigo.Match

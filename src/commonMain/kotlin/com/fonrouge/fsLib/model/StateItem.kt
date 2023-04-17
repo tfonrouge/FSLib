@@ -1,6 +1,5 @@
-package com.fonrouge.fsLib
+package com.fonrouge.fsLib.model
 
-import com.fonrouge.fsLib.model.CrudAction
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString

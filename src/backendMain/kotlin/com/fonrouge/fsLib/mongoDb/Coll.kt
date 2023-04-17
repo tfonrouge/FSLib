@@ -1,12 +1,8 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.ContextDataUrl
-import com.fonrouge.fsLib.StateItem
 import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
-import com.fonrouge.fsLib.model.CrudAction
-import com.fonrouge.fsLib.model.ItemResponse
-import com.fonrouge.fsLib.model.ListContainer
+import com.fonrouge.fsLib.model.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.base.ISysUser
 import com.mongodb.client.model.UpdateOptions
@@ -107,7 +103,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     fun buildLookupList(lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         val lookupPipelineBuilders = lookupPipelineBuilderList?.toMutableList()
-            ?.plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null})
+            ?.plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null })
         lookupPipelineBuilders?.forEach { lookupPipelineBuilder ->
             val lookupWrapper = lookupWrappers.find {
                 lookupPipelineBuilder.resultProperty == when (it) {
@@ -437,44 +433,24 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         filter: Bson,
         state: StateItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemResponse<T> {
-        val msgError = "No data was modified ..."
-        if (state.item != null) {
-            checkDontPersist(state.item)
-            val result = try {
-                mongoColl.coroutine.updateOne(
-                    filter = filter,
-                    target = state.item,
-                    options = updateOptions
-                )
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-                null
-            }
-            return ItemResponse(
-                isOk = result?.matchedCount == 1L,
-                noDataModified = result?.modifiedCount == 0L,
-                msgError = msgError
+    ): ItemResponse<T> = state.item?.let {
+        checkDontPersist(state.item)
+        val result = try {
+            mongoColl.coroutine.updateOne(
+                filter = filter,
+                target = state.item,
+                options = updateOptions
             )
-        } else if (state.json != null) {
-            val result = try {
-                mongoColl.coroutine.updateOne(
-                    filter = filter,
-                    update = BsonDocument("\$set", checkSignatures(state.json)),
-                    options = updateOptions
-                )
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-                null
-            }
-            return ItemResponse(
-                isOk = result?.matchedCount == 1L,
-                noDataModified = result?.modifiedCount == 0L,
-                msgError = msgError
-            )
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+            null
         }
-        return ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
-    }
+        ItemResponse<T>(
+            isOk = result?.matchedCount == 1L,
+            noDataModified = result?.modifiedCount == 0L,
+            msgError = "No data was modified ..."
+        )
+    } ?:  ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
 
     @Suppress("unused")
     suspend fun updateOneById(

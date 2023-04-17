@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.ContextDataUrl
+import com.fonrouge.fsLib.model.ContextDataUrl
 import com.fonrouge.fsLib.model.base.BaseDoc
 import org.bson.conversions.Bson
 import org.litote.kmongo.eq

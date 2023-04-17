@@ -2,7 +2,7 @@
 
 package com.fonrouge.fsLib.layout
 
-import com.fonrouge.fsLib.ContextDataUrl
+import com.fonrouge.fsLib.model.ContextDataUrl
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseDoc

@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib
+package com.fonrouge.fsLib.model
 
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter

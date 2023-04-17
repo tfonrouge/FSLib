@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.StateItem
+import com.fonrouge.fsLib.model.StateItem
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
