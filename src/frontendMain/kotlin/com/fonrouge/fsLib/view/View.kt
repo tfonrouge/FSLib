@@ -71,7 +71,7 @@ abstract class View(
                 label = this@View.label,
                 url = navigoUrlWithParams,
                 className = "navbar-brand",
-                icon = iconCrud(urlParams?.crudAction)
+                icon = iconCrud(urlParams?.crudTask)
             )
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *>) {

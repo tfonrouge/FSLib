@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.lib
 
-import com.fonrouge.fsLib.model.CrudAction
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.StateList
 import io.kvision.navigo.Match
@@ -20,14 +20,14 @@ data class UrlParams(
         match?.let { params = match.params.unsafeCast<Json?>() }
     }
 
-    val crudAction: CrudAction?
+    val crudTask: CrudTask?
         get() {
-            return CrudAction.values().find { it.name == params?.get("action") }
+            return CrudTask.values().find { it.name == params?.get("action") }
         }
 
     val actionUpsert: Boolean
         get() {
-            return params?.get("action") in listOf(CrudAction.Create.name, CrudAction.Update.name)
+            return params?.get("action") in listOf(CrudTask.Create.name, CrudTask.Update.name)
         }
 
     val contextClass: String? get() = params?.get("contextClass") as? String

@@ -266,7 +266,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
                     isOk = result,
                     itemAlreadyOn = result &&
                             state.callType == StateItem.CallType.Query &&
-                            state.crudAction == CrudAction.Create
+                            state.crudTask == CrudTask.Create
                 )
             } catch (e: Exception) {
                 return ItemResponse(isOk = false, msgError = e.message)

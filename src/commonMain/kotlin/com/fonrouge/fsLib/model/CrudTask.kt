@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class CrudAction {
+enum class CrudTask {
     Create,
     Read,
     Update,

@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.CrudAction
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.StateItem
@@ -104,12 +104,12 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
             }
         }
     ) {
-        val crudAction = urlParams?.crudAction
+        val crudAction = urlParams?.crudTask
         formPanel?.let { formPanel ->
-            if (crudAction != null && crudAction in arrayOf(CrudAction.Create, CrudAction.Update)) {
+            if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
                 if (formPanel.validate()) {
                     configView.callItemService(
-                        crudAction = crudAction,
+                        crudTask = crudAction,
                         callType = StateItem.CallType.Action,
                         itemId = encodedId(),
                         item = dataFormBeforeApiCall(formPanel.getData()),
@@ -164,7 +164,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
         centeredMessage("no CRUD action ...")
     }
 
-    private fun Container.displayForm(crudAction: CrudAction) {
+    private fun Container.displayForm(crudTask: CrudTask) {
         formPanel = pageItemBody()
         if (urlParams?.actionUpsert != true) {
             formPanel?.form?.fields?.forEach { entry ->
@@ -197,19 +197,19 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                 }
             }
         }
-        when (crudAction) {
-            CrudAction.Create -> {
+        when (crudTask) {
+            CrudTask.Create -> {
                 item?.let {
                     formPanel?.setData(it)
                 }
             }
 
-            CrudAction.Read -> {
+            CrudTask.Read -> {
                 item?.let { formPanel?.setData(it) }
                 installUpdate(false)
             }
 
-            CrudAction.Update -> {
+            CrudTask.Update -> {
                 item?.let {
                     labelBanner = label
                     formPanel?.setData(it)
@@ -219,13 +219,13 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
             else -> {}
         }
 
-        onAfterDisplayForm(crudAction)
+        onAfterDisplayForm(crudTask)
     }
 
     /**
      * Calls after form panel is displayed and data is assigned (formPanel.setData)
      */
-    open fun onAfterDisplayForm(crudAction: CrudAction) {}
+    open fun onAfterDisplayForm(crudTask: CrudTask) {}
 
     override fun Container.displayPage() {
         vPanel(className = "showItem") {
@@ -233,17 +233,17 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                 if (!noPageBanner) {
                     pageBanner()
                 }
-                urlParams?.crudAction?.let { crudAction ->
+                urlParams?.crudTask?.let { crudAction ->
                     configView.callItemService(
-                        crudAction = crudAction,
+                        crudTask = crudAction,
                         callType = StateItem.CallType.Query,
                         itemId = urlParams?.id,
                         urlParams = urlParams,
                     ) { itemResponse ->
                         this@ViewItem.state = itemResponse.state
-                        if (crudAction == CrudAction.Create && itemResponse.itemAlreadyOn) {
+                        if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams = UrlParams(
-                                "action" to CrudAction.Update.name, "id" to encodedId(itemResponse.item?._id)
+                                "action" to CrudTask.Update.name, "id" to encodedId(itemResponse.item?._id)
                             )
                             @Suppress("UNUSED_VARIABLE")
                             val url = (configView.url + urlParams.toString()).asDynamic()
@@ -268,10 +268,10 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                             },
                             escapeHtml = true,
                         )
-                        val crudAction1 = urlParams?.crudAction
+                        val crudAction1 = urlParams?.crudTask
                         if (itemResponse.isOk && crudAction1 != null) {
                             data.value = itemResponse
-                            if (crudAction1 != CrudAction.Delete) {
+                            if (crudAction1 != CrudTask.Delete) {
                                 displayForm(crudAction1)
                             } else {
                                 flexPanel(
@@ -313,7 +313,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                                                 button("Accept", style = ButtonStyle.OUTLINESUCCESS) {
                                                     onClick {
                                                         configView.callItemService(
-                                                            crudAction = CrudAction.Delete,
+                                                            crudTask = CrudTask.Delete,
                                                             callType = StateItem.CallType.Action,
                                                             itemId = urlParams?.id,
                                                             urlParams = urlParams,
@@ -411,9 +411,9 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
     override suspend fun dataUpdate() {
-        urlParams?.crudAction?.let { crudAction ->
+        urlParams?.crudTask?.let { crudAction ->
             configView.callItemService(
-                crudAction = crudAction,
+                crudTask = crudAction,
                 callType = StateItem.CallType.Query,
                 itemId = encodedId(),
                 urlParams = urlParams,

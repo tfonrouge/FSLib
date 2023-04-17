@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.model.state
 
-import com.fonrouge.fsLib.model.CrudAction
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.serialization.Serializable
 
@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class StateItem<T : BaseDoc<*>>(
     val item: T? = null,
-    val crudAction: CrudAction = CrudAction.Read,
+    val crudTask: CrudTask = CrudTask.Read,
     val callType: CallType = CallType.Query,
     override val contextClass: String? = null,
     override val contextId: String? = null,

@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.CrudAction
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.ItemResponse
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -55,29 +55,29 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
     @Suppress("unused")
     val urlCreate: String
         get() {
-            val urlParams = UrlParams("action" to CrudAction.Create.name)
+            val urlParams = UrlParams("action" to CrudTask.Create.name)
             return url + urlParams.toString()
         }
 
     fun urlRead(id: U): String {
-        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudAction.Read.name)
+        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudTask.Read.name)
         return url + urlParams.toString()
     }
 
     @Suppress("unused")
     fun urlDelete(id: U): String {
-        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudAction.Delete.name)
+        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudTask.Delete.name)
         return url + urlParams.toString()
     }
 
     fun urlUpdate(id: U): String {
-        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudAction.Update.name)
+        val urlParams = UrlParams("id" to encodedId(id), "action" to CrudTask.Update.name)
         return url + urlParams.toString()
     }
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     fun callItemService(
-        crudAction: CrudAction,
+        crudTask: CrudTask,
         callType: StateItem.CallType,
         itemId: String? = JSON.stringify(null),
         item: T? = null,
@@ -92,7 +92,7 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
                 serializer = StateItem.serializer(itemKClass.serializer()),
                 value = StateItem(
                     item = item,
-                    crudAction = crudAction,
+                    crudTask = crudTask,
                     callType = callType,
                     state = stateFunction?.invoke(),
                     contextClass = urlParams?.contextClass,

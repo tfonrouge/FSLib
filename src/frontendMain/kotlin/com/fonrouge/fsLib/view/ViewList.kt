@@ -9,7 +9,7 @@ import com.fonrouge.fsLib.layout.TabulatorMenuItem
 import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
-import com.fonrouge.fsLib.model.CrudAction
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
@@ -72,18 +72,18 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
     /**
      * Builds a string URL for the CRUD action and item provided
      *
-     * @param crudAction [CrudAction] element
+     * @param crudTask [CrudTask] element
      * @param item the item list selected
      */
-    fun actionUrl(crudAction: CrudAction, item: T?): String? {
-        val urlParams = if (crudAction == CrudAction.Create) {
+    fun actionUrl(crudTask: CrudTask, item: T?): String? {
+        val urlParams = if (crudTask == CrudTask.Create) {
             UrlParams(
-                "action" to CrudAction.Create.name
+                "action" to CrudTask.Create.name
             )
         } else {
             encodedId(item)?.let { id ->
                 UrlParams(
-                    "action" to crudAction.name,
+                    "action" to crudTask.name,
                     "id" to id
                 )
             }
@@ -102,7 +102,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
      * calling the list crud action required
      */
     open fun checkIfmasterViewItemUpdate(url: String?) {
-        if (masterViewItem?.urlParams?.crudAction == CrudAction.Update) {
+        if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
             masterViewItem?.acceptUpsertAction { itemResponse ->
                 if (itemResponse.isOk) {
                     url?.let { window.open(url = it, target = "_blank") }
@@ -145,22 +145,22 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
                     header = true
                 )
                 menuItem(separator = true)
-                val urlRead = actionUrl(CrudAction.Read, item)
+                val urlRead = actionUrl(CrudTask.Read, item)
                 menuItem(
                     label = "Detail of",
-                    icon = iconCrud(CrudAction.Read),
+                    icon = iconCrud(CrudTask.Read),
                     url = urlRead,
                     action = { _, _ ->
                         checkIfmasterViewItemUpdate(urlRead)
                     }
                 )
                 if (editable) {
-                    val urlCreate = actionUrl(CrudAction.Create, item)
-                    val urlUpdate = actionUrl(CrudAction.Update, item)
+                    val urlCreate = actionUrl(CrudTask.Create, item)
+                    val urlUpdate = actionUrl(CrudTask.Update, item)
                     menuItem(separator = true)
                     menuItem(
                         label = "Create",
-                        icon = iconCrud(CrudAction.Create),
+                        icon = iconCrud(CrudTask.Create),
                         url = urlCreate,
                         action = { _, _ ->
                             checkIfmasterViewItemUpdate(urlCreate)
@@ -168,7 +168,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
                     )
                     menuItem(
                         label = "Update",
-                        icon = iconCrud(CrudAction.Update),
+                        icon = iconCrud(CrudTask.Update),
                         url = urlUpdate,
                         action = { _, _ ->
                             checkIfmasterViewItemUpdate(urlUpdate)
@@ -176,8 +176,8 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
                     )
                     menuItem(
                         label = "Delete",
-                        icon = iconCrud(CrudAction.Delete),
-                        url = actionUrl(CrudAction.Delete, item)
+                        icon = iconCrud(CrudTask.Delete),
+                        url = actionUrl(CrudTask.Delete, item)
                     )
                 }
                 contextRowMenu(item)
@@ -215,10 +215,10 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
         val id = item?._id
         navbarTabulator?.itemId = id
 //        navbarTabulator?.linkCreate?.url = actionUrl(CrudAction.Create, id)
-        navbarTabulator?.linkRead?.url = actionUrl(CrudAction.Read, item)
-        navbarTabulator?.linkUpdate?.url = actionUrl(CrudAction.Update, item)
+        navbarTabulator?.linkRead?.url = actionUrl(CrudTask.Read, item)
+        navbarTabulator?.linkUpdate?.url = actionUrl(CrudTask.Update, item)
         navbarTabulator?.linkUpdate?.target = "_blank"
-        navbarTabulator?.linkDelete?.url = actionUrl(CrudAction.Delete, item)
+        navbarTabulator?.linkDelete?.url = actionUrl(CrudTask.Delete, item)
         if (id != null && size == 1) {
             navbarTabulator?.linkRead?.show()
             navbarTabulator?.linkUpdate?.show()

@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.lib.iconCrud
-import com.fonrouge.fsLib.model.CrudAction
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
@@ -26,7 +26,7 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
             viewList.configViewItem?.let { configViewItem ->
                 linkRead = navLink(
                     label = if (minToolbarSize) "" else "Detail",
-                    icon = iconCrud(CrudAction.Read),
+                    icon = iconCrud(CrudTask.Read),
                 ) {
                     onClick {
                         it.preventDefault()
@@ -37,8 +37,8 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                 if (viewList.editable) {
                     navLink(
                         label = if (minToolbarSize) "" else "Create",
-                        icon = iconCrud(CrudAction.Create),
-                        url = viewList.actionUrl(CrudAction.Create, null)
+                        icon = iconCrud(CrudTask.Create),
+                        url = viewList.actionUrl(CrudTask.Create, null)
                     ) {
                         onClick {
                             it.preventDefault()
@@ -48,7 +48,7 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                     }
                     linkUpdate = navLink(
                         label = if (minToolbarSize) "" else "Update",
-                        icon = iconCrud(CrudAction.Update)
+                        icon = iconCrud(CrudTask.Update)
                     ) {
                         onClick {
                             it.preventDefault()
@@ -58,7 +58,7 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                     }
                     linkDelete = navLink(
                         label = if (minToolbarSize) "" else "Delete",
-                        icon = iconCrud(CrudAction.Delete)
+                        icon = iconCrud(CrudTask.Delete)
                     ) {
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                     }
