@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class StateItem<T : BaseDoc<*>>(
     val item: T? = null,
-    val crudTask: CrudTask = CrudTask.Read,
     val callType: CallType = CallType.Query,
+    val crudTask: CrudTask = CrudTask.Read,
     override val contextClass: String? = null,
     override val contextId: String? = null,
     override val state: String? = null,

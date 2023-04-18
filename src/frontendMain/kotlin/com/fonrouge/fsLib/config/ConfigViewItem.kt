@@ -92,11 +92,11 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
                 serializer = StateItem.serializer(itemKClass.serializer()),
                 value = StateItem(
                     item = item,
-                    crudTask = crudTask,
                     callType = callType,
-                    state = stateFunction?.invoke(),
+                    crudTask = crudTask,
                     contextClass = urlParams?.contextClass,
                     contextId = urlParams?.contextId,
+                    state = stateFunction?.invoke(),
                 )
             )
         )

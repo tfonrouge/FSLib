@@ -105,6 +105,7 @@ kotlin {
                 api("io.kvision:kvision-datetime:$kvisionVersion")
                 api("io.kvision:kvision-chart:$kvisionVersion")
                 api("io.kvision:kvision-fontawesome:$kvisionVersion")
+                api("io.kvision:kvision-imask:$kvisionVersion")
                 api("io.kvision:kvision-jquery:$kvisionVersion")
                 api("io.kvision:kvision-pace:$kvisionVersion")
                 api("io.kvision:kvision-print:$kvisionVersion")

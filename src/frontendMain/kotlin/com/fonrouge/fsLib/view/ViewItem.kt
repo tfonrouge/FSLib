@@ -41,15 +41,15 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
     /**
      * Observable that holds data for the [ViewItem]
      */
-    internal var data: ObservableValue<ItemResponse<T>?> = ObservableValue(null)
-    val item: T? get() = data.value?.item
+    var data: ObservableValue<ItemResponse<T>> = ObservableValue(ItemResponse())
+    val item: T? get() = data.value.item
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
     var state: String? = null
 
     init {
         data.subscribe {
-            it?.item?.let { item ->
+            it.item?.let { item ->
                 labelBanner = label
                 formPanel?.setData(item)
             }
