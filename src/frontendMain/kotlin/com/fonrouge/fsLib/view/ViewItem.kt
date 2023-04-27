@@ -43,6 +43,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
      */
     var data: ObservableValue<ItemResponse<T>> = ObservableValue(ItemResponse())
     val item: T? get() = data.value.item
+    var buttonBack: Button? = null
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
     var state: String? = null
@@ -81,11 +82,12 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
      */
     fun acceptUpsertAction(
         block: ((ItemResponse<T>) -> Unit)? = {
-            navButtonCancel?.disabled = true
-            navButtonAccept?.disabled = true
-            buttonCancel?.disabled = true
-            buttonAccept?.disabled = true
-//            backCloseAction()
+            navButtonCancel?.hide()
+            navButtonAccept?.hide()
+            navButtonBack?.show()
+            buttonCancel?.hide()
+            buttonAccept?.hide()
+            buttonBack?.show()
             val toastOptions = ToastOptions(
                 callback = { backCloseAction() },
                 close = true,
@@ -178,6 +180,13 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
         flexPanel(direction = FlexDirection.ROW, justify = JustifyContent.CENTER, spacing = 20) {
             marginTop = 1.em
             if (urlParams?.actionUpsert == true) {
+                buttonBack =
+                    button(text = "Back", icon = "fas fa-reply", style = ButtonStyle.OUTLINEPRIMARY) {
+                        hide()
+                        onClick {
+                            backCloseAction()
+                        }
+                    }
                 buttonCancel =
                     button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
                         onClick {

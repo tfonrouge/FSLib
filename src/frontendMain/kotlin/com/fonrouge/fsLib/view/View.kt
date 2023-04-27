@@ -31,6 +31,7 @@ abstract class View(
     var navbar: Navbar? = null
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
+    var navButtonBack: Button? = null
     val navigoUrlWithParams: String
         get() {
             return configView.url + if (urlParams != null) urlParams else ""
@@ -76,6 +77,12 @@ abstract class View(
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *>) {
                     if (urlParams?.actionUpsert == true) {
+                        navButtonBack = button(text = " ", icon = "fas fa-reply", style = ButtonStyle.OUTLINEPRIMARY) {
+                            hide()
+                            onClick {
+                                this@View.backCloseAction()
+                            }
+                        }
                         navButtonCancel = button(text = " ", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
                             fontSize = 0.5.em
                             onClick {
