@@ -4,9 +4,9 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
-import com.fonrouge.fsLib.model.ItemResponse
+import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.StateItem
+import com.fonrouge.fsLib.model.apiData.ApiItem
 import io.kvision.core.*
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
@@ -41,7 +41,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
     /**
      * Observable that holds data for the [ViewItem]
      */
-    var data: ObservableValue<ItemResponse<T>> = ObservableValue(ItemResponse())
+    var data: ObservableValue<ItemState<T>> = ObservableValue(ItemState())
     val item: T? get() = data.value.item
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
@@ -78,10 +78,10 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
      * Performs an API call to an upsert action on the backend,
      * requires [formPanel] and checks validity before the API request
      *
-     * @param block optional, executes with the API result [ItemResponse] as parameter
+     * @param block optional, executes with the API result [ItemState] as parameter
      */
     fun acceptUpsertAction(
-        block: ((ItemResponse<T>) -> Unit)? = {
+        block: ((ItemState<T>) -> Unit)? = {
             navButtonCancel?.hide()
             navButtonAccept?.hide()
             navButtonBack?.show()
@@ -112,7 +112,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                 if (formPanel.validate()) {
                     configView.callItemService(
                         crudTask = crudAction,
-                        callType = StateItem.CallType.Action,
+                        callType = ApiItem.CallType.Action,
                         itemId = encodedId(),
                         item = dataFormBeforeApiCall(formPanel.getData()),
                         urlParams = urlParams,
@@ -249,7 +249,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                 urlParams?.crudTask?.let { crudAction ->
                     configView.callItemService(
                         crudTask = crudAction,
-                        callType = StateItem.CallType.Query,
+                        callType = ApiItem.CallType.Query,
                         itemId = urlParams?.id,
                         urlParams = urlParams,
                     ) { itemResponse ->
@@ -325,7 +325,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
                                                     onClick {
                                                         configView.callItemService(
                                                             crudTask = CrudTask.Delete,
-                                                            callType = StateItem.CallType.Action,
+                                                            callType = ApiItem.CallType.Action,
                                                             itemId = urlParams?.id,
                                                             urlParams = urlParams,
                                                         ) { itemResponse1 ->
@@ -415,7 +415,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
             return "${configView.label}: ${configView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
 
-    open fun onChangeDataContainer(itemResponse: ItemResponse<T>?) {
+    open fun onChangeDataContainer(itemResponse: ItemState<T>?) {
 
     }
 
@@ -425,7 +425,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
         urlParams?.crudTask?.let { crudAction ->
             configView.callItemService(
                 crudTask = crudAction,
-                callType = StateItem.CallType.Query,
+                callType = ApiItem.CallType.Query,
                 itemId = encodedId(),
                 urlParams = urlParams,
             ) { itemResponse ->

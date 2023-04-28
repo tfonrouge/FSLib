@@ -5,8 +5,10 @@ import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.model.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.base.ISysUser
-import com.fonrouge.fsLib.model.state.StateItem
-import com.fonrouge.fsLib.model.state.StateList
+import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.state.ItemState
+import com.fonrouge.fsLib.model.state.ListState
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
@@ -176,30 +178,30 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         return bson
     }
 
-    suspend fun deleteOne(filter: Bson): ItemResponse<T> {
+    suspend fun deleteOne(filter: Bson): ItemState<T> {
         return try {
-            ItemResponse(
+            ItemState(
                 isOk = coroutineColl.deleteOne(filter = filter).deletedCount == 1L
             )
         } catch (e: Exception) {
-            ItemResponse(isOk = false, msgError = e.message)
+            ItemState(isOk = false, msgError = e.message)
         }
     }
 
     @Suppress("unused")
-    suspend fun deleteOneById(_id: U?): ItemResponse<T> {
+    suspend fun deleteOneById(_id: U?): ItemState<T> {
         if (_id != null) {
             return try {
-                ItemResponse(
+                ItemState(
                     isOk = mongoColl
                         .deleteOne(BaseDoc<*>::_id eq _id)
                         .awaitFirstOrNull()?.deletedCount == 1L
                 )
             } catch (e: Exception) {
-                ItemResponse(isOk = false, msgError = e.message)
+                ItemState(isOk = false, msgError = e.message)
             }
         }
-        return ItemResponse(isOk = false, msgError = "_id not valid ...")
+        return ItemState(isOk = false, msgError = "_id not valid ...")
     }
 
     /**
@@ -242,37 +244,37 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     suspend fun findOneByIdResponse(
         _id: U?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
-    ): ItemResponse<T> {
+    ): ItemState<T> {
         return try {
-            ItemResponse(
+            ItemState(
                 item = findOneById(_id = _id, lookupWrappers = lookupWrappers),
                 msgError = "_id '$_id' (${klass.simpleName}) not found..."
             )
         } catch (e: Exception) {
-            ItemResponse(isOk = false, msgError = e.message)
+            ItemState(isOk = false, msgError = e.message)
         }
     }
 
     // TODO: Implement collect data from [state.json]
     @Suppress("unused")
-    suspend fun insertOne(state: StateItem<T>): ItemResponse<T> {
+    suspend fun insertOne(state: ApiItem<T>): ItemState<T> {
         state.item?.let {
             checkDontPersist(it)
             try {
                 val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
                 val result = insertOneResult?.insertedId != null
-                return ItemResponse(
+                return ItemState(
                     item = it,
                     isOk = result,
                     itemAlreadyOn = result &&
-                            state.callType == StateItem.CallType.Query &&
+                            state.callType == ApiItem.CallType.Query &&
                             state.crudTask == CrudTask.Create
                 )
             } catch (e: Exception) {
-                return ItemResponse(isOk = false, msgError = e.message)
+                return ItemState(isOk = false, msgError = e.message)
             }
         }
-        return ItemResponse(isOk = false, msgError = "insertOne(): state.item contains null value...")
+        return ItemState(isOk = false, msgError = "insertOne(): state.item contains null value...")
     }
 
     private suspend fun listFirstStage(
@@ -371,7 +373,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
 
     @OptIn(InternalSerializationApi::class)
     /**
-     * Builds a [ListContainer] back to frontend
+     * Builds a [ListState] back to frontend
      *
      * @param preprocessList Allows to pre-process the List<[T]> before send it to the frontend
      */
@@ -380,7 +382,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         preprocessList: ((List<T>) -> Unit)? = null,
-    ): ListContainer<T> {
+    ): ListState<T> {
         val list = aggregateLookup(
             pipeline = firstStage.pipeline,
             lookups = lookupWrappers,
@@ -390,7 +392,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
         val crC32 = CRC32()
         crC32.update(encoded.toByteArray())
-        return ListContainer(
+        return ListState(
             data = list,
             last_page = firstStage.last_page,
             last_row = firstStage.last_row,
@@ -399,7 +401,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     /**
-     * Returns a [ListContainer] builded with the parameters provided
+     * Returns a [ListState] builded with the parameters provided
      *
      * @param other is an optional Bson list to be added at *end* of builded pipeline
      */
@@ -408,21 +410,21 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         match: Bson? = null,
         sort: Bson? = null,
         strictCounter: Boolean = true,
-        stateList: StateList?,
+        apiList: ApiList?,
         other: List<Bson>? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         preprocessList: ((List<T>) -> Unit)? = null,
-    ): ListContainer<T> {
+    ): ListState<T> {
         return listContainer(
             firstStage = listFirstStage(
                 match = match,
                 sort = sort,
-                page = stateList?.tabPage,
-                size = stateList?.tabSize,
+                page = apiList?.tabPage,
+                size = apiList?.tabSize,
                 strictCounter = strictCounter,
-                filter = stateList?.tabFilter,
-                sorter = stateList?.tabSorter,
+                filter = apiList?.tabFilter,
+                sorter = apiList?.tabSorter,
                 other = other,
             ),
             lookupWrappers = lookupWrappers,
@@ -433,9 +435,9 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
 
     suspend fun updateOne(
         filter: Bson,
-        state: StateItem<T>,
+        state: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemResponse<T> = state.item?.let {
+    ): ItemState<T> = state.item?.let {
         checkDontPersist(state.item)
         val result = try {
             mongoColl.coroutine.updateOne(
@@ -447,19 +449,19 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
             e.printStackTrace()
             null
         }
-        ItemResponse<T>(
+        ItemState<T>(
             isOk = result?.matchedCount == 1L,
             noDataModified = result?.modifiedCount == 0L,
             msgError = "No data was modified ..."
         )
-    } ?: ItemResponse(isOk = false, msgError = "Invalid data on StateItem ...")
+    } ?: ItemState(isOk = false, msgError = "Invalid data on StateItem ...")
 
     @Suppress("unused")
     suspend fun updateOneById(
         _id: U?,
-        state: StateItem<T>,
+        state: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemResponse<T> {
+    ): ItemState<T> {
         return updateOne(
             filter = BaseDoc<U>::_id eq _id,
             state = state,

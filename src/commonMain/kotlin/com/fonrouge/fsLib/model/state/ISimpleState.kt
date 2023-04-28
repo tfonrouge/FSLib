@@ -1,6 +1,6 @@
-package com.fonrouge.fsLib.model
+package com.fonrouge.fsLib.model.state
 
-interface ISimpleResponse {
+interface ISimpleState {
     val isOk: Boolean
     val msgOk: String?
     val msgError: String?

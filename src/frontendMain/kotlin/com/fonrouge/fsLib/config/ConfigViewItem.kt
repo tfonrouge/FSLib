@@ -3,9 +3,9 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataItem
-import com.fonrouge.fsLib.model.ItemResponse
+import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.StateItem
+import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.view.ViewItem
 import io.kvision.remote.CallAgent
 import io.kvision.remote.HttpMethod
@@ -27,7 +27,7 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     private val serviceManager: KVServiceManager<E>,
-    private val function: suspend E.(U?, StateItem<T>) -> ItemResponse<T>,
+    private val function: suspend E.(U?, ApiItem<T>) -> ItemState<T>,
     private val stateFunction: (() -> String)? = null,
     val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" }
 ) : ConfigViewContainer<T, V, U>(
@@ -78,19 +78,19 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     fun callItemService(
         crudTask: CrudTask,
-        callType: StateItem.CallType,
+        callType: ApiItem.CallType,
         itemId: String? = JSON.stringify(null),
         item: T? = null,
         urlParams: UrlParams? = null,
-        block: (ItemResponse<T>) -> ItemResponse<T>,
+        block: (ItemState<T>) -> ItemState<T>,
     ) {
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
         val paramList = listOf(
             itemId,
             Json.encodeToString(
-                serializer = StateItem.serializer(itemKClass.serializer()),
-                value = StateItem(
+                serializer = ApiItem.serializer(itemKClass.serializer()),
+                value = ApiItem(
                     item = item,
                     callType = callType,
                     crudTask = crudTask,
@@ -110,8 +110,8 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
             try {
-                val itemResponse: ItemResponse<T> =
-                    Json.decodeFromDynamic(ItemResponse.serializer(itemKClass.serializer()), result)
+                val itemResponse: ItemState<T> =
+                    Json.decodeFromDynamic(ItemState.serializer(itemKClass.serializer()), result)
                 block(itemResponse)
             } catch (e: Exception) {
                 console.error("Error decoding KClass", itemKClass, "with serialized value", result, "exception:", e)

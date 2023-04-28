@@ -1,6 +1,6 @@
-package com.fonrouge.fsLib.model.state
+package com.fonrouge.fsLib.model.apiData
 
-interface IContextState {
+interface IContextApi {
     val contextClass: String?
     val contextId: String?
     val state: String?

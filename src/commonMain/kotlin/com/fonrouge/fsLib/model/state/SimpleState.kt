@@ -1,11 +1,11 @@
-package com.fonrouge.fsLib.model
+package com.fonrouge.fsLib.model.state
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-open class SimpleResponse(
+data class SimpleState(
     override var isOk: Boolean,
     override var msgOk: String? = null,
     override var msgError: String? = null,
     override var state: String? = null,
-) : ISimpleResponse
+) : ISimpleState

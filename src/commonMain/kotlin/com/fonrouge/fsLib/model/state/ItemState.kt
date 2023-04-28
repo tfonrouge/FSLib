@@ -1,9 +1,9 @@
-package com.fonrouge.fsLib.model
+package com.fonrouge.fsLib.model.state
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ItemResponse<T>(
+data class ItemState<T>(
     val item: T? = null,
     val itemAlreadyOn: Boolean = false,
     override val isOk: Boolean = item != null,
@@ -11,9 +11,9 @@ data class ItemResponse<T>(
     override val msgOk: String? = "Operation successful ...",
     override val msgError: String? = "Operation Failed ...",
     override val state: String? = null,
-) : ISimpleResponse {
+) : ISimpleState {
     @Suppress("unused")
-    constructor(simpleResponse: SimpleResponse) : this(
+    constructor(simpleResponse: SimpleState) : this(
         isOk = simpleResponse.isOk,
         msgOk = simpleResponse.msgOk,
         msgError = simpleResponse.msgError,

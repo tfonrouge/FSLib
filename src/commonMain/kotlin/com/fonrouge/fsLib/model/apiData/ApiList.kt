@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.model.state
+package com.fonrouge.fsLib.model.apiData
 
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
  * @param state can contain an arbitrary data which can be instantiated with [stateValue]
  */
 @Serializable
-data class StateList(
+data class ApiList(
     var tabPage: Int? = null,
     var tabSize: Int? = null,
     var tabFilter: List<RemoteFilter>? = null,
@@ -26,10 +26,10 @@ data class StateList(
     override var contextId: String? = null,
     override var contextClass: String? = null,
     override var state: String? = null,
-) : ContexState()
+) : ContexApi()
 
 @Suppress("unused")
-val String?.stateList: StateList?
+val String?.apiList: ApiList?
     get() {
-        return this?.let { Json.decodeFromString<StateList>(it) }
+        return this?.let { Json.decodeFromString<ApiList>(it) }
     }

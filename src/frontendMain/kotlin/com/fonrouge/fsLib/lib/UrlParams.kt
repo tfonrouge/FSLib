@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.lib
 
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.StateList
+import com.fonrouge.fsLib.model.apiData.ApiList
 import io.kvision.navigo.Match
 import kotlin.js.Json
 import kotlin.js.json
@@ -32,12 +32,12 @@ data class UrlParams(
 
     val contextClass: String? get() = params?.get("contextClass") as? String
     val contextId: String? get() = params?.get("contextId") as? String
-    val stateList: StateList?
+    val apiList: ApiList?
         get() {
             val contextClass = params?.get("contextClass") as? String
             val contextId = params?.get("contextId") as? String
             return if (contextClass != null && contextId != null) {
-                return StateList(contextClass = contextClass, contextId = contextId)
+                return ApiList(contextClass = contextClass, contextId = contextId)
             } else null
         }
 
@@ -53,9 +53,9 @@ data class UrlParams(
         return this
     }
 
-    fun addContext(stateList: StateList?): UrlParams {
+    fun addContext(apiList: ApiList?): UrlParams {
         if (params == null) params = json()
-        stateList?.let {
+        apiList?.let {
             params?.set("contextClass", it.contextClass)
             params?.set("contextId", it.contextId)
         }

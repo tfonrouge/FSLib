@@ -1,9 +1,9 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.model.IDataList
-import com.fonrouge.fsLib.model.ListContainer
+import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.StateList
+import com.fonrouge.fsLib.model.apiData.ApiList
 import io.kvision.core.Container
 import io.kvision.remote.*
 import io.kvision.tabulator.TableType
@@ -25,9 +25,9 @@ import kotlin.reflect.KClass
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
-    function: suspend E.(StateList?) -> ListContainer<T>,
-    private val stateListBlock: (() -> StateList),
-    private val stateListUpdate: (StateList.() -> Unit)? = null,
+    function: suspend E.(ApiList?) -> ListState<T>,
+    private val apiListBlock: (() -> ApiList),
+    private val apiListUpdate: (ApiList.() -> Unit)? = null,
     var onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
@@ -95,14 +95,14 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
         filters: List<RemoteFilter>?,
         sorters: List<RemoteSorter>?,
     ): Promise<dynamic> {
-        val contextDataUrl = stateListBlock.invoke().apply {
+        val contextDataUrl = apiListBlock.invoke().apply {
             tabPage = page
             tabSize = size
             tabFilter = filters
             tabSorter = sorters
             checksum = this@TabulatorListContainer.checksum
         }
-        stateListUpdate?.invoke(contextDataUrl)
+        apiListUpdate?.invoke(contextDataUrl)
         val data =
             Serialization.plain.encodeToString(
                 JsonRpcRequest(
@@ -181,9 +181,9 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
 
 inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(StateList?) -> ListContainer<T>,
-    noinline stateListBlock: (() -> StateList),
-    noinline stateListUpdate: (StateList.() -> Unit)? = null,
+    noinline function: suspend E.(ApiList?) -> ListState<T>,
+    noinline apiListBlock: (() -> ApiList),
+    noinline apiListUpdate: (ApiList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
@@ -197,8 +197,8 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.tabulatorL
         TabulatorListContainer(
             serviceManager = serviceManager,
             function = function,
-            stateListBlock = stateListBlock,
-            stateListUpdate = stateListUpdate,
+            apiListBlock = apiListBlock,
+            apiListUpdate = apiListUpdate,
             onResult = onResult,
             options = options,
             types = types,
