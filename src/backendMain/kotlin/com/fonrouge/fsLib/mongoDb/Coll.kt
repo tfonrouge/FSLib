@@ -3,10 +3,10 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.model.*
-import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.mongodb.client.model.UpdateOptions
@@ -29,6 +29,7 @@ import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
+import java.util.*
 import java.util.zip.CRC32
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -45,11 +46,12 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     companion object {
         var globalDebug = false
         internal val map1 = mutableMapOf<KClass<*>, Coll<*, *>>()
+        fun collectionName(klass: KClass<out BaseDoc<*>>): String =
+            if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
+            else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
     }
 
-    val collectionName =
-        if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
-        else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
+    val collectionName = collectionName(klass)
 
     /**
      * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function
