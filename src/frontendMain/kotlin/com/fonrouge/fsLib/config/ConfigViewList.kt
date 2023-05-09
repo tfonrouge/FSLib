@@ -1,9 +1,9 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.model.IDataList
-import com.fonrouge.fsLib.model.state.ListState
-import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass

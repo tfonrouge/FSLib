@@ -9,6 +9,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
+import com.fonrouge.fsLib.serializers.StringId
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
@@ -301,7 +302,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
             filter.forEach { remoteFilter ->
                 val kfield = kProperty1s.firstOrNull { it.name == remoteFilter.field }
                 val value: BsonValue? = when (kfield?.returnType?.classifier) {
-                    Array<String>::class, String::class, null -> {
+                    Array<String>::class, String::class, StringId::class, null -> {
                         when (remoteFilter.type) {
                             "like" -> BsonDocument(
                                 "\$regex",

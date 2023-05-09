@@ -1,10 +1,10 @@
 package com.fonrouge.fsLib.services
 
-import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.base.AppRole
 import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.base.PermissionType
 import com.fonrouge.fsLib.model.base.SysUserRole
+import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.mongoDb.AppRoleDb
 import com.fonrouge.fsLib.mongoDb.SysUserRoleDb
 import io.ktor.server.application.*

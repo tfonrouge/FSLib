@@ -1,9 +1,9 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.model.IDataList
-import com.fonrouge.fsLib.model.state.ListState
-import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.ListState
 import io.kvision.core.Container
 import io.kvision.remote.*
 import io.kvision.tabulator.TableType
