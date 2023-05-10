@@ -23,7 +23,7 @@ repositories {
 val kvisionVersion: String by System.getProperties()
 val serializationVersion: String by project
 val exposedVersion: String by project
-val ktorVersion: String by project
+val ktor_version: String by project
 val kmongoVersion: String by project
 val kotlinxDatetimeVersion: String by project
 val commonsCodecVersion: String by project
@@ -73,17 +73,23 @@ kotlin {
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
                 api("commons-codec:commons-codec:$commonsCodecVersion")
-                api("io.ktor:ktor-server-auth:$ktorVersion")
-                api("io.ktor:ktor-server-call-logging:$ktorVersion")
-                api("io.ktor:ktor-server-compression:$ktorVersion")
-                api("io.ktor:ktor-server-core:$ktorVersion")
-                api("io.ktor:ktor-server-default-headers:$ktorVersion")
-                api("io.ktor:ktor-server-netty:$ktorVersion")
-                api("io.ktor:ktor-network-tls-certificates:$ktorVersion")
-                api("io.ktor:ktor-server-auto-head-response:$ktorVersion")
-                api("io.ktor:ktor-server-http-redirect:$ktorVersion")
-                api("io.ktor:ktor-server-partial-content:$ktorVersion")
-                api("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+                api("io.ktor:ktor-client-core:${ktor_version}")
+                api("io.ktor:ktor-client-cio:${ktor_version}")
+                api("io.ktor:ktor-client-auth:${ktor_version}")
+                api("io.ktor:ktor-client-content-negotiation:${ktor_version}")
+                api("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+                api("io.ktor:ktor-client-serialization:${ktor_version}")
+                api("io.ktor:ktor-server-auth:$ktor_version")
+                api("io.ktor:ktor-server-call-logging:$ktor_version")
+                api("io.ktor:ktor-server-compression:$ktor_version")
+                api("io.ktor:ktor-server-core:$ktor_version")
+                api("io.ktor:ktor-server-default-headers:$ktor_version")
+                api("io.ktor:ktor-server-netty:$ktor_version")
+                api("io.ktor:ktor-network-tls-certificates:$ktor_version")
+                api("io.ktor:ktor-server-auto-head-response:$ktor_version")
+                api("io.ktor:ktor-server-http-redirect:$ktor_version")
+                api("io.ktor:ktor-server-partial-content:$ktor_version")
+                api("io.ktor:ktor-server-content-negotiation:$ktor_version")
                 api("org.litote.kmongo:kmongo-coroutine-serialization:$kmongoVersion")
                 api("org.litote.kmongo:kmongo-id-serialization:$kmongoVersion")
                 api("org.jetbrains.exposed:exposed-core:$exposedVersion")
