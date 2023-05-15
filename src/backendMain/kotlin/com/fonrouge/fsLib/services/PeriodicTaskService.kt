@@ -45,8 +45,7 @@ fun Application.startPeriodicTask(
                 emit(Unit)
                 delay(1000)
             }
-        }
-            .map { OffsetDateTime.now() }
+        }.map { OffsetDateTime.now() }
             .distinctUntilChanged { old: OffsetDateTime, new: OffsetDateTime ->
                 when (timeUnit) {
                     TimeUnit.Second -> old.second == new.second

@@ -11,6 +11,7 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.serializers.StringId
 import com.mongodb.client.model.UpdateOptions
+import com.mongodb.client.model.WriteModel
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
@@ -145,6 +146,16 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     ): MutableList<Bson> {
         pipeline.addAll(buildLookupList(lookupWrappers))
         return pipeline
+    }
+
+    /**
+     * helper function to write a bulk write list and clean the list after that
+     */
+    suspend fun bulkWrite(writeModels: MutableList<WriteModel<T>>) {
+        if (writeModels.size > 0) {
+            coroutineColl.bulkWrite(writeModels)
+            writeModels.clear()
+        }
     }
 
     private fun checkDontPersist(item: T) {

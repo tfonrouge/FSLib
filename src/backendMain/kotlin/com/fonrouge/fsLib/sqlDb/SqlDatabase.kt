@@ -7,6 +7,7 @@ import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.KV_DEFAULT_DATETIME_FORMAT
 import com.fonrouge.fsLib.serializers.StringId
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
+import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import org.intellij.lang.annotations.Language
@@ -15,7 +16,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.IColumnType
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.statements.StatementType
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
 import java.time.LocalDateTime
@@ -30,30 +31,34 @@ import kotlin.reflect.full.memberProperties
 
 @OptIn(ExperimentalSerializationApi::class)
 @Suppress("unused")
-abstract class SqlDbSettings(
-    val sqlDb: Database
+abstract class SqlDatabase(
+    val database: Database
 ) {
 
     class DecodeMap(
         val fields: Array<KCallable<*>>,
         val stringIntMap: MutableMap<String, Int>,
-
-        ) {
+    ) {
         val oneToOneFields: Array<KCallable<*>> =
             fields.mapNotNull {
                 if (it.hasAnnotation<SqlOneToOne>()) it else null
             }.toTypedArray()
+        val compoundFields: Array<KCallable<*>> =
+            fields.mapNotNull {
+                if (it.findAnnotation<SqlField>()?.compound == true) it else null
+            }.toTypedArray()
+
     }
 
     private val mutableMap = mutableMapOf<KClass<*>, DecodeMap>()
 
-    inline fun <reified T : Any> findItem(
+    suspend inline fun <reified T : Any> findItem(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
     ): T? {
         var result: T? = null
-        transaction(db = sqlDb) {
+        newSuspendedTransaction(db = database) {
             try {
                 exec(sql, args, explicitStatementType) { resultSet ->
                     if (resultSet.next()) {
@@ -77,20 +82,18 @@ abstract class SqlDbSettings(
         return result
     }
 
-    inline fun <reified T> findList(
+    suspend inline fun <reified T> forEachResult(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
-        noinline decodeBlock: ((ResultSet) -> T)? = null
-    ): List<T> {
-        val result = mutableListOf<T>()
-        transaction(db = sqlDb) {
+        /* TODO: how to make this block suspended */ crossinline doBlock: (T) -> Unit,
+    ) {
+        newSuspendedTransaction(context = Dispatchers.IO, db = database) {
             try {
                 exec(sql, args, explicitStatementType) { resultSet ->
                     while (resultSet.next()) {
                         try {
-                            val t = decodeBlock?.let { it(resultSet) } ?: sqlEntityTo(resultSet)
-                            result.add(t)
+                            doBlock(sqlEntityTo<T>(resultSet))
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
@@ -101,6 +104,20 @@ abstract class SqlDbSettings(
                 e.printStackTrace()
             }
         }
+    }
+
+    suspend inline fun <reified T> findList(
+        @Language("SQL") sql: String,
+        args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
+        explicitStatementType: StatementType? = null,
+    ): List<T> {
+        val result = mutableListOf<T>()
+        forEachResult(
+            sql = sql,
+            doBlock = { t: T -> result.add(t) },
+            args = args,
+            explicitStatementType = explicitStatementType,
+        )
         return result
     }
 
@@ -112,8 +129,9 @@ abstract class SqlDbSettings(
             val sqlName = metaData.getColumnName(i).uppercase()
             if (!decodeMap.stringIntMap.containsKey(sqlName)) {
                 val index = decodeMap.fields.indexOfFirst { field ->
-                    val name = field.findAnnotation<SqlField>()?.name ?: field.name
-                    name.equals(other = sqlName, ignoreCase = true)
+                    val sqlField = field.findAnnotation<SqlField>()
+                    val name = sqlField?.name ?: field.name
+                    name.equals(other = sqlName, ignoreCase = true) && (sqlField?.ignore?.not() ?: true)
                 }
                 if (index >= 0) {
                     decodeMap.stringIntMap[sqlName] = index
@@ -182,7 +200,7 @@ abstract class SqlDbSettings(
 
     fun buildJsonFromResultSet(klass: KClass<*>, resultSet: ResultSet): JsonObject {
         val metaData = resultSet.metaData
-        val decodeMap = getDecodeMap(klass, metaData)
+        val decodeMap: DecodeMap = getDecodeMap(klass, metaData)
         var addedBaseDocPrimaryKeyField = false
         return buildJsonObject {
             for (index in 1..metaData.columnCount) {
@@ -206,8 +224,16 @@ abstract class SqlDbSettings(
                     }
                 }
             }
+            decodeMap.compoundFields.forEach { field ->
+                (field.returnType.classifier as? KClass<*>)?.let {
+                    put(field.name, buildJsonFromResultSet(it, resultSet))
+                }
+            }
             if (klass.isSubclassOf(BaseDoc::class) && !addedBaseDocPrimaryKeyField) {
-                (klass.memberProperties.find { it.name == BaseDoc<*>::_id.name }?.returnType?.classifier as? KClass<*>)?.let {
+                val kProperty1 = klass.memberProperties.find {
+                    it.name == BaseDoc<*>::_id.name && (it.findAnnotation<SqlField>()?.ignore?.not() ?: true)
+                }
+                (kProperty1?.returnType?.classifier as? KClass<*>)?.let {
                     if (!it.isSubclassOf(Comparable::class)) {
                         put(BaseDoc<*>::_id.name, buildJsonFromResultSet(it, resultSet))
                     }
@@ -221,7 +247,7 @@ abstract class SqlDbSettings(
         return Json.decodeFromJsonElement(jsonObject)
     }
 
-    fun <T> transaction(trans: Transaction.() -> T): T {
-        return transaction(db = sqlDb, trans)
+    suspend fun <T> transaction(trans: Transaction.() -> T): T {
+        return newSuspendedTransaction(db = database, statement = trans)
     }
 }

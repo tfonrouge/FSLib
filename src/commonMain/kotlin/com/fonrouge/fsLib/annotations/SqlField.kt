@@ -5,7 +5,9 @@ package com.fonrouge.fsLib.annotations
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.RUNTIME)
 public annotation class SqlField(
-    val name: String,
+    val name: String = "",
+    val ignore: Boolean = false,
+    val compound: Boolean = false,
     val length: Int = 255,
     val nullable: Boolean = true,
 )
