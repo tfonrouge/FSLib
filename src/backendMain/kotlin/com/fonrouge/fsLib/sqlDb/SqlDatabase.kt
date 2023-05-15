@@ -36,18 +36,27 @@ abstract class SqlDatabase(
 ) {
 
     class DecodeMap(
-        val fields: Array<KCallable<*>>,
+        val fields: List<KCallable<*>>,
         val stringIntMap: MutableMap<String, Int>,
     ) {
-        val oneToOneFields: Array<KCallable<*>> =
-            fields.mapNotNull {
-                if (it.hasAnnotation<SqlOneToOne>()) it else null
-            }.toTypedArray()
-        val compoundFields: Array<KCallable<*>> =
-            fields.mapNotNull {
-                if (it.findAnnotation<SqlField>()?.compound == true) it else null
-            }.toTypedArray()
+        var oneToOneFields: List<KCallable<*>> = emptyList()
 
+        var compoundFields: List<KCallable<*>> = emptyList()
+
+        var renamedFields: List<String> = emptyList()
+
+        fun setFieldListAttributes() {
+            oneToOneFields = fields.mapNotNull {
+                if (it.hasAnnotation<SqlOneToOne>()) it else null
+            }
+            compoundFields = fields.mapNotNull {
+                if (it.findAnnotation<SqlField>()?.compound == true) it else null
+            }
+            renamedFields = fields.mapNotNull {
+                val sqlField = it.findAnnotation<SqlField>()
+                if (sqlField?.name?.isNotEmpty() == true) sqlField.name.uppercase() else null
+            }
+        }
     }
 
     private val mutableMap = mutableMapOf<KClass<*>, DecodeMap>()
@@ -122,16 +131,19 @@ abstract class SqlDatabase(
     }
 
     private fun getDecodeMap(klass: KClass<*>, metaData: ResultSetMetaData): DecodeMap {
-        val decodeMap = mutableMap[klass] ?: DecodeMap(klass.memberProperties.toTypedArray(), mutableMapOf()).also {
+        val decodeMap = mutableMap[klass] ?: DecodeMap(klass.memberProperties.toList(), mutableMapOf()).also {
             mutableMap[klass] = it
+            it.setFieldListAttributes()
         }
         for (i in 1..metaData.columnCount) {
             val sqlName = metaData.getColumnName(i).uppercase()
             if (!decodeMap.stringIntMap.containsKey(sqlName)) {
                 val index = decodeMap.fields.indexOfFirst { field ->
                     val sqlField = field.findAnnotation<SqlField>()
-                    val name = sqlField?.name ?: field.name
-                    name.equals(other = sqlName, ignoreCase = true) && (sqlField?.ignore?.not() ?: true)
+                    val name = if (sqlField == null || sqlField.name.isEmpty()) field.name else sqlField.name
+                    name.equals(other = sqlName, ignoreCase = true)
+                            && (sqlField?.ignore?.not() ?: true)
+                            && (field.name.uppercase() !in decodeMap.renamedFields)
                 }
                 if (index >= 0) {
                     decodeMap.stringIntMap[sqlName] = index
