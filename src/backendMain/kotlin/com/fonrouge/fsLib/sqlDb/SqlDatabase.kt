@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.sqlDb
 
 import com.fonrouge.fsLib.annotations.SqlField
+import com.fonrouge.fsLib.annotations.SqlIgnoreField
 import com.fonrouge.fsLib.annotations.SqlOneToOne
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.serializers.IntId
@@ -139,11 +140,15 @@ abstract class SqlDatabase(
             val sqlName = metaData.getColumnName(i).uppercase()
             if (!decodeMap.stringIntMap.containsKey(sqlName)) {
                 val index = decodeMap.fields.indexOfFirst { field ->
-                    val sqlField = field.findAnnotation<SqlField>()
-                    val name = if (sqlField == null || sqlField.name.isEmpty()) field.name else sqlField.name
-                    name.equals(other = sqlName, ignoreCase = true)
-                            && (sqlField?.ignore?.not() ?: true)
-                            && (field.name.uppercase() !in decodeMap.renamedFields)
+                    val renamedTo = field.findAnnotation<SqlField>()?.name?.ifEmpty { null }
+                    val sqlIgnoreField = field.hasAnnotation<SqlIgnoreField>()
+                    !sqlIgnoreField && ((renamedTo?.equals(
+                        sqlName,
+                        true
+                    ) == true) || (field.name.uppercase() !in decodeMap.renamedFields && field.name.equals(
+                        sqlName,
+                        true
+                    )))
                 }
                 if (index >= 0) {
                     decodeMap.stringIntMap[sqlName] = index
@@ -243,7 +248,7 @@ abstract class SqlDatabase(
             }
             if (klass.isSubclassOf(BaseDoc::class) && !addedBaseDocPrimaryKeyField) {
                 val kProperty1 = klass.memberProperties.find {
-                    it.name == BaseDoc<*>::_id.name && (it.findAnnotation<SqlField>()?.ignore?.not() ?: true)
+                    it.name == BaseDoc<*>::_id.name && (it.hasAnnotation<SqlIgnoreField>().not())
                 }
                 (kProperty1?.returnType?.classifier as? KClass<*>)?.let {
                     if (!it.isSubclassOf(Comparable::class)) {
