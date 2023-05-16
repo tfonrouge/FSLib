@@ -11,6 +11,9 @@ import io.kvision.remote.CallAgent
 import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.KVServiceManager
+import io.kvision.toast.Toast
+import io.kvision.toast.ToastOptions
+import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -109,6 +112,19 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
         )
         callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+            if (r.error != null) {
+                console.error("Server error:", r.error)
+                Toast.danger(
+                    message = "Server error ${r.error}",
+                    options = ToastOptions(
+                        position = ToastPosition.BOTTOMRIGHT,
+                        escapeHtml = true,
+                        duration = 10000,
+                        stopOnFocus = true,
+                        newWindow = true
+                    )
+                )
+            }
             try {
                 val itemResponse: ItemState<T> =
                     Json.decodeFromDynamic(ItemState.serializer(itemKClass.serializer()), result)
