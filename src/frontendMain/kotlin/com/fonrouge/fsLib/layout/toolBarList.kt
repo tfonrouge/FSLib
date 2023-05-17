@@ -63,8 +63,12 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                     }
                 }
+                navLink(label = "|")
             }
-            navLink(label = "", icon = "fas fa-ellipsis-v")
+            navLink(if (minToolbarSize) "" else "Filter", icon = "fas fa-filter").onClick {
+                viewList.onClickFilter()
+            }
+            navLink(label = "|")
             navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
                 AppScope.launch {
                     viewList.dataUpdate()

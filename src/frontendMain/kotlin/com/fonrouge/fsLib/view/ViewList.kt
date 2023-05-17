@@ -13,6 +13,7 @@ import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
+import io.kvision.offcanvas.Offcanvas
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
 import kotlinx.browser.window
@@ -187,6 +188,12 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
         return null
     }
 
+    private var offCanvasFilter: Offcanvas? = null
+
+    open fun Container.offCanvasFilterView(): Offcanvas? = null
+
+    open fun onClickFilter() = offCanvasFilter?.show()
+
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
             if (menuOpenedState != true) {
@@ -200,6 +207,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
         if (!noPageBanner) {
             pageBanner()
         }
+        offCanvasFilter = offCanvasFilterView()
         pageListBody()
     }
 
