@@ -15,7 +15,7 @@ abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U>, E : IDataLi
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     val serviceManager: KVServiceManager<E>,
-    val function: suspend E.(ApiList?) -> ListState<T>,
+    val function: suspend E.(ApiList) -> ListState<T>,
 ) : ConfigViewContainer<T, V, U>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,

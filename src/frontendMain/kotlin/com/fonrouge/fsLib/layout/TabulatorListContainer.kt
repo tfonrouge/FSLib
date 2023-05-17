@@ -25,7 +25,7 @@ import kotlin.reflect.KClass
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
     serviceManager: KVServiceMgr<E>,
-    function: suspend E.(ApiList?) -> ListState<T>,
+    function: suspend E.(ApiList) -> ListState<T>,
     private val apiListBlock: (() -> ApiList),
     private val apiListUpdate: (ApiList.() -> Unit)? = null,
     var onResult: ((dynamic) -> Unit)? = null,
@@ -181,7 +181,7 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
 
 inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(ApiList?) -> ListState<T>,
+    noinline function: suspend E.(ApiList) -> ListState<T>,
     noinline apiListBlock: (() -> ApiList),
     noinline apiListUpdate: (ApiList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
