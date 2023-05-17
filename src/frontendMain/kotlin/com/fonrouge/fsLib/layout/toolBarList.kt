@@ -65,8 +65,15 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                 }
                 navLink(label = "|")
             }
-            navLink(if (minToolbarSize) "" else "Filter", icon = "fas fa-filter").onClick {
-                viewList.onClickFilter()
+            navLink(
+                label = if (minToolbarSize) "" else "Filter",
+                icon = "fas fa-filter"
+            ) {
+                onClick {
+                    it.preventDefault()
+                    viewList.onClickFilter()
+                }
+                enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
             }
             navLink(label = "|")
             navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
