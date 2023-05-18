@@ -126,6 +126,9 @@ abstract class View(
         }
     }
 
+    /**
+     * Makes a refresh on the banner legend with content of [bannerLegend] function
+     */
     fun updateBannerLegend() = viewLegendObservable.value++
 
     fun updateMainBannerLink(text: String, url: String) {
