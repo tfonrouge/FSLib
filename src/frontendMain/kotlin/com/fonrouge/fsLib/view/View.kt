@@ -75,7 +75,7 @@ abstract class View(
                 className = "navbar-brand",
                 icon = iconCrud(urlParams?.crudTask)
             )
-            viewLegend = div {
+            viewLegend = div(rich = true, className = "viewLegend") {
 
             }
             nav(rightAlign = true) {
