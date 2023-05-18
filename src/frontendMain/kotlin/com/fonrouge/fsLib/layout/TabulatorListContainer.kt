@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import io.kvision.core.Container
@@ -23,11 +24,12 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
+class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
     serviceManager: KVServiceMgr<E>,
-    function: suspend E.(ApiList) -> ListState<T>,
+    function: suspend E.(ApiList, F?) -> ListState<T>,
     private val apiListBlock: (() -> ApiList),
     private val apiListUpdate: (ApiList.() -> Unit)? = null,
+    private val apiFilterSerialize: () -> String?,
     var onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
@@ -95,20 +97,21 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
         filters: List<RemoteFilter>?,
         sorters: List<RemoteSorter>?,
     ): Promise<dynamic> {
-        val contextDataUrl = apiListBlock.invoke().apply {
+        val apiList = apiListBlock.invoke().apply {
             tabPage = page
             tabSize = size
             tabFilter = filters
             tabSorter = sorters
             checksum = this@TabulatorListContainer.checksum
         }
-        apiListUpdate?.invoke(contextDataUrl)
+        apiListUpdate?.invoke(apiList)
         val data =
             Serialization.plain.encodeToString(
                 JsonRpcRequest(
                     0, url,
                     listOf(
-                        contextDataUrl.let { Json.encodeToString(it) }
+                        apiList.let { Json.encodeToString(it) },
+                        apiFilterSerialize(),
                     )
                 )
             )
@@ -179,11 +182,12 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any>(
     }
 }
 
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(ApiList) -> ListState<T>,
+    noinline function: suspend E.(ApiList, F?) -> ListState<T>,
     noinline apiListBlock: (() -> ApiList),
     noinline apiListUpdate: (ApiList.() -> Unit)? = null,
+    noinline apiFilterSerialize: () -> String?,
     noinline onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
@@ -191,14 +195,15 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.tabulatorL
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
     noinline requestFilter: (suspend RequestInit.() -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
-): TabulatorListContainer<T, E, U> {
+    noinline init: (TabulatorListContainer<T, E, U, F>.() -> Unit)? = null
+): TabulatorListContainer<T, E, U, F> {
     val tabulatorListContainer =
         TabulatorListContainer(
             serviceManager = serviceManager,
             function = function,
             apiListBlock = apiListBlock,
             apiListUpdate = apiListUpdate,
+            apiFilterSerialize = apiFilterSerialize,
             onResult = onResult,
             options = options,
             types = types,

@@ -11,6 +11,7 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataList
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
 import io.kvision.offcanvas.Offcanvas
@@ -19,12 +20,13 @@ import io.kvision.toast.Toast
 import kotlinx.browser.window
 
 @Suppress("unused")
-abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
-    override val configView: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
+abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
+    override val configView: ConfigViewList<T, out ViewList<T, E, U, F>, E, U, F>,
     configViewItem: ConfigViewItem<T, *, *, U>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
+    var apiFilter: F? = null,
 ) : ViewDataContainer<List<T>>(
     configView = configView,
     editable = editable,
@@ -67,7 +69,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any>(
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
 
-    var tabulator: TabulatorListContainer<T, E, U>? = null
+    var tabulator: TabulatorListContainer<T, E, U, F>? = null
     var selectedIdList: List<Any?>? = null
 
     /**

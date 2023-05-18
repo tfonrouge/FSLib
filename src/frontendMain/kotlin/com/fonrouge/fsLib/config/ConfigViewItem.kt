@@ -140,3 +140,26 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
         configViewItemMap[baseUrl] = this
     }
 }
+
+@Suppress("unused")
+fun <T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem, U : Any> configViewItem(
+    itemKClass: KClass<T>,
+    idKClass: KClass<U>? = null,
+    label: String,
+    viewFunc: KClass<out V>,
+    baseUrl: String = viewFunc.simpleName!!,
+    serviceManager: KVServiceManager<E>,
+    function: suspend E.(U?, ApiItem<T>) -> ItemState<T>,
+    stateFunction: (() -> String)? = null,
+    labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" }
+): ConfigViewItem<T, V, E, U> = object : ConfigViewItem<T, V, E, U>(
+    itemKClass = itemKClass,
+    idKClass = idKClass,
+    label = label,
+    viewFunc = viewFunc,
+    baseUrl = baseUrl,
+    serviceManager = serviceManager,
+    function = function,
+    stateFunction = stateFunction,
+    labelIdFunc = labelIdFunc,
+) {}

@@ -27,3 +27,16 @@ abstract class ConfigView<V : View>(
         }
     }
 }
+
+@Suppress("unused")
+fun <V : View> configView(
+    name: String,
+    label: String,
+    viewFunc: KClass<out V>,
+    baseUrl: String = viewFunc.simpleName!!
+): ConfigView<V> = object : ConfigView<V>(
+    name = name,
+    label = label,
+    viewFunc = viewFunc,
+    baseUrl = baseUrl,
+) {}

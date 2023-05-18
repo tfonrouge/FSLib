@@ -3,8 +3,6 @@ package com.fonrouge.fsLib.model.apiData
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 
 /**
  * Data structure passed to backend which contains parameters from tabulator (frontEnd)
@@ -27,9 +25,3 @@ data class ApiList(
     override var contextClass: String? = null,
     override var state: String? = null,
 ) : ContexApi()
-
-@Suppress("unused")
-val String?.apiList: ApiList?
-    get() {
-        return this?.let { Json.decodeFromString<ApiList>(it) }
-    }

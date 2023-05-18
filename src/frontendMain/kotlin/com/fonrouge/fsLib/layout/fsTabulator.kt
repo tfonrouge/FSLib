@@ -5,6 +5,7 @@ package com.fonrouge.fsLib.layout
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
@@ -18,6 +19,8 @@ import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.utils.createInstance
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 import kotlin.js.json
@@ -37,8 +40,8 @@ data class FSTabOptions(
     val paginationCounterElement: dynamic = null,
 )
 
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulator(
-    configViewList: ConfigViewList<T, out ViewList<T, E, U>, E, U>,
+inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : IApiFilter> Container.fsTabulator(
+    configViewList: ConfigViewList<T, out ViewList<T, E, U, F>, E, U, F>,
     masterViewItem: ViewItem<*, *>? = null,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),
@@ -46,9 +49,9 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
-): ViewList<T, E, U> {
-    val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, U>>(null)
+    noinline init: (TabulatorListContainer<T, E, U, F>.() -> Unit)? = null
+): ViewList<T, E, U, F> {
+    val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, U, F>>(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
@@ -63,16 +66,16 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulator(
-    viewList: ViewList<T, E, U>,
+inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : IApiFilter> Container.fsTabulator(
+    viewList: ViewList<T, E, U, F>,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, U>.() -> Unit)? = null
-): ViewList<T, E, U> {
+    noinline init: (TabulatorListContainer<T, E, U, F>.() -> Unit)? = null
+): ViewList<T, E, U, F> {
     val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
         columns = viewList.columnDefinitionList,
 //        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else "calc(100vh - 50vh)",
@@ -115,6 +118,10 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
         result
     }
 
+    val apiFilterSerialize: () -> String? = {
+        viewList.apiFilter?.let { Json.encodeToString(it) }
+    }
+
     vPanel {
         viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
         viewList.tabulator = tabulatorListContainer(
@@ -122,6 +129,7 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any> Container.fsTabulato
             function = viewList.configView.function,
             apiListBlock = apiListBlock,
             apiListUpdate = apiListUpdate,
+            apiFilterSerialize = apiFilterSerialize,
             onResult = onResult,
             serializer = T::class.serializer(),
             options = tabOpt,
