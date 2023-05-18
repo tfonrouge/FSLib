@@ -190,7 +190,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
         return null
     }
 
-    private var offCanvasFilter: Offcanvas? = null
+    var offCanvasFilter: Offcanvas? = null
 
     open fun Container.offCanvasFilterView(): Offcanvas? = null
 
