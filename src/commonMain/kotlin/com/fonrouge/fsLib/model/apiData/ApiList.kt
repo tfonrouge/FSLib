@@ -17,7 +17,6 @@ data class ApiList(
     var tabSize: Int? = null,
     var tabFilter: List<RemoteFilter>? = null,
     var tabSorter: List<RemoteSorter>? = null,
-    var filter: String? = null,
     var sorter: String? = null,
     var params: String? = null,
     var checksum: String? = null,
