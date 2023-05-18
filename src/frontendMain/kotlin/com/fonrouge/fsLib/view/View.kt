@@ -9,6 +9,8 @@ import io.kvision.html.*
 import io.kvision.navbar.Navbar
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
+import io.kvision.state.ObservableValue
+import io.kvision.state.bind
 import io.kvision.utils.em
 import io.kvision.utils.px
 
@@ -28,7 +30,7 @@ abstract class View(
             }
         }
     var linkBanner: Link? = null
-    var viewLegend: Div? = null
+    var divBannerLegend: Div? = null
     var navbar: Navbar? = null
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
@@ -50,6 +52,7 @@ abstract class View(
     open val periodicUpdateDataView: Boolean? = null
     var periodicUpdateViewInterval = 5
     abstract var urlParams: UrlParams?
+    private val viewLegendObservable = ObservableValue(0)
 
     /**
      * Allows to insert the whole view to the current DSL container
@@ -61,11 +64,20 @@ abstract class View(
         return this
     }
 
+    /**
+     * Allows to describe a display that will be showed next to the view link banner
+     * it can be triggered with [updateBannerLegend] function
+     */
+    open fun Container.bannerLegend() {
+
+    }
+
     abstract fun Container.displayPage()
 
     open fun onBeforeDisplayPage(container: Container) {}
 
     open fun onBeforeDispose() {}
+
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
         navbar = navbar(bgColor = BsBgColor.LIGHT) {
@@ -75,8 +87,10 @@ abstract class View(
                 className = "navbar-brand",
                 icon = iconCrud(urlParams?.crudTask)
             )
-            viewLegend = div(rich = true, className = "viewLegend") {
-
+            divBannerLegend = div(rich = true, className = "bannerLegend").bind(
+                viewLegendObservable
+            ) {
+                bannerLegend()
             }
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *>) {
@@ -111,6 +125,8 @@ abstract class View(
             marginBottom = 1.em
         }
     }
+
+    fun updateBannerLegend() = viewLegendObservable.value++
 
     fun updateMainBannerLink(text: String, url: String) {
         pageBannerLink?.label = "${configView.label}: $text"
