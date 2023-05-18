@@ -27,7 +27,8 @@ abstract class View(
                 linkBanner?.label = value
             }
         }
-    private var linkBanner: Link? = null
+    var linkBanner: Link? = null
+    var viewLegend: Div? = null
     var navbar: Navbar? = null
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
@@ -74,6 +75,9 @@ abstract class View(
                 className = "navbar-brand",
                 icon = iconCrud(urlParams?.crudTask)
             )
+            viewLegend = div {
+
+            }
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *>) {
                     if (urlParams?.actionUpsert == true) {
