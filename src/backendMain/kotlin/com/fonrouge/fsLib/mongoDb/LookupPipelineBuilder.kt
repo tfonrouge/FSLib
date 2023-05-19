@@ -26,7 +26,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupField(
         resultProperty = resultField,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
         limit = 1,
-        resultUnit = ResultUnit.One
+        resultUnit = ResultUnit.One /* TODO: Make this impose a {$limit: 1} on returned data */
     ) {}
 }
 
