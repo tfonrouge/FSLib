@@ -223,12 +223,17 @@ abstract class SqlDatabase(
             for (index in 1..metaData.columnCount) {
                 decodeMap.stringIntMap[metaData.getColumnName(index).uppercase()]?.let { indexMap ->
                     val field = decodeMap.fields[indexMap]
-                    getElementFromClasifier(
-                        field = field,
-                        resultSet = resultSet,
-                        index = index,
-                        jsonObjectBuilder = this@buildJsonObject
-                    )
+                    try {
+                        getElementFromClasifier(
+                            field = field,
+                            resultSet = resultSet,
+                            index = index,
+                            jsonObjectBuilder = this@buildJsonObject
+                        )
+                    } catch (e: Exception) {
+                        System.err.println("Error on fieldName '${field.name}': ${e.message}")
+                        e.printStackTrace()
+                    }
                     if (field.name == BaseDoc<*>::_id.name) {
                         addedBaseDocPrimaryKeyField = true
                     }
