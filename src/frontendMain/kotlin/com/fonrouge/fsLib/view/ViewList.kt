@@ -18,6 +18,8 @@ import io.kvision.offcanvas.Offcanvas
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
 import kotlinx.browser.window
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.serializer
 
 @Suppress("unused")
 abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
@@ -26,6 +28,10 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
+    /**
+     * If apiFilter kclass is not defined in [configView] this value needs to be initialized
+     * on view construct in order to automatically get [apiFilter] parameter from url params
+     */
     var apiFilter: F? = null,
 ) : ViewDataContainer<List<T>>(
     configView = configView,
@@ -201,6 +207,20 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
             if (menuOpenedState != true) {
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
                 tabulator?.apiCall()
+            }
+        }
+    }
+
+    /**
+     * Gets an [F] object for the [apiFilter] property from url parameters
+     * Note: this needs that [apiFilter] be not null in order to get serializer
+     */
+    @OptIn(InternalSerializationApi::class)
+    fun getApiFilterFromUrlParams() {
+        val serializer = apiFilter?.let { it::class.serializer() } ?: configView.apiFilterKClass?.serializer()
+        serializer?.let {
+            urlParams?.pullUrlParam(serializer, "apiFilter")?.let {
+                apiFilter = it
             }
         }
     }

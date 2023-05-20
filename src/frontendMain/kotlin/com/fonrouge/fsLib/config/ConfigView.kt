@@ -1,6 +1,10 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.view.View
+import js.uri.encodeURIComponent
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import web.buffer.btoa
 import kotlin.reflect.KClass
 
 private const val navigoPrefix = "#/"
@@ -20,6 +24,28 @@ abstract class ConfigView<V : View>(
 
     val url: String = navigoPrefix + this.baseUrl
     val labelUrl: Pair<String, String> = label to url
+
+    /**
+     * builds a single pair of key=value url parameter
+     */
+    inline fun <reified T> pairParam(key: String, obj: T): Pair<String, String> =
+        key to encodeURIComponent(btoa(Json.encodeToString(obj)))
+
+    /**
+     * builds a url with a list of pair values of key=value url parameters
+     */
+    fun pushUrlParam(vararg pairParams: Pair<String, String>): String {
+        return if (pairParams.isNotEmpty()) {
+            val result = StringBuilder(url)
+            pairParams.forEachIndexed { i, s ->
+                result.append(if (i == 0) "?" else "&")
+                result.append("${s.first}=${s.second}")
+            }
+            result.toString()
+        } else {
+            url
+        }
+    }
 
     init {
         if (this !is ConfigViewContainer<*, *, *>) {

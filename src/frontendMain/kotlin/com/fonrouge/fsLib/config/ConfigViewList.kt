@@ -7,8 +7,6 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
 abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDataList, U : Any, F : IApiFilter>(
@@ -19,6 +17,7 @@ abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDat
     baseUrl: String = viewFunc.simpleName!!,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList, F?) -> ListState<T>,
+    val apiFilterKClass: KClass<F>? = null,
 ) : ConfigViewContainer<T, V, U>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,
@@ -30,9 +29,11 @@ abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDat
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *>>()
     }
 
-    inline fun <reified G : F> serializeFilter(apiFilter: G): String {
-        return Json.encodeToString(apiFilter)
-    }
+    /**
+     * helper to build an api filter parameter in the url string
+     */
+    inline fun <reified T : IApiFilter> urlApiFilter(obj: T): String =
+        pushUrlParam(pairParam("apiFilter", obj))
 
     init {
         configViewListMap[baseUrl] = this

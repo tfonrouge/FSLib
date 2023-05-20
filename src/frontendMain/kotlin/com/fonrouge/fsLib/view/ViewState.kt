@@ -14,6 +14,9 @@ class ViewState(
 @Suppress("unused")
 fun Container.showView(viewState: ViewState) {
     viewState.configView.viewFunc.js.createInstance<View>(viewState.urlParams).apply {
+        if (this is ViewList<*, *, *, *>) {
+            getApiFilterFromUrlParams()
+        }
         div {
             addBeforeDisposeHook {
                 onBeforeDispose()

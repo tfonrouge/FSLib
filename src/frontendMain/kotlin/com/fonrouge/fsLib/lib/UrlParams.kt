@@ -4,6 +4,11 @@ import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.navigo.Match
+import js.uri.decodeURIComponent
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.serializer
+import web.buffer.atob
 import kotlin.js.Json
 import kotlin.js.json
 
@@ -62,6 +67,21 @@ data class UrlParams(
         return this
     }
 
+    /**
+     * Gets an object [T] from the url parameters with the [key] value
+     */
+    @OptIn(InternalSerializationApi::class)
+    @Suppress("unused")
+    inline fun <reified T : Any> pullUrlParam(key: String): T? = pullUrlParam(T::class.serializer(), key)
+
+    /**
+     * Gets an object [T] from the url parameters with the [key] value
+     */
+    fun <T : Any> pullUrlParam(serializer: DeserializationStrategy<T>, key: String): T? =
+        (match?.params[key] as? String)?.let {
+            kotlinx.serialization.json.Json.decodeFromString(serializer, atob(decodeURIComponent(it)))
+        }
+
     override fun toString(): String {
         var result = ""
         var size = 0
@@ -74,3 +94,4 @@ data class UrlParams(
         return if (size > 0) "?$result" else ""
     }
 }
+
