@@ -204,12 +204,12 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun deleteOneById(_id: U?): ItemState<T> {
-        if (_id != null) {
+    suspend fun deleteOneById(id: U?): ItemState<T> {
+        if (id != null) {
             return try {
                 ItemState(
                     isOk = mongoColl
-                        .deleteOne(BaseDoc<*>::_id eq _id)
+                        .deleteOne(BaseDoc<*>::_id eq id)
                         .awaitFirstOrNull()?.deletedCount == 1L
                 )
             } catch (e: Exception) {
@@ -249,21 +249,21 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     suspend fun findOneById(
-        _id: U?,
+        id: U?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): T? {
-        return findOne(BaseDoc<*>::_id eq _id, lookupWrappers)
+        return findOne(BaseDoc<*>::_id eq id, lookupWrappers)
     }
 
     @Suppress("unused")
     suspend fun findOneByIdResponse(
-        _id: U?,
+        id: U?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): ItemState<T> {
         return try {
             ItemState(
-                item = findOneById(_id = _id, lookupWrappers = lookupWrappers),
-                msgError = "_id '$_id' (${klass.simpleName}) not found..."
+                item = findOneById(id = id, lookupWrappers = lookupWrappers),
+                msgError = "_id '$id' (${klass.simpleName}) not found..."
             )
         } catch (e: Exception) {
             ItemState(isOk = false, msgError = e.message)
@@ -472,12 +472,12 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
 
     @Suppress("unused")
     suspend fun updateOneById(
-        _id: U?,
+        id: U?,
         apiItem: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
         return updateOne(
-            filter = BaseDoc<U>::_id eq _id,
+            filter = BaseDoc<U>::_id eq id,
             apiItem = apiItem,
             updateOptions = updateOptions
         )
