@@ -151,6 +151,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     /**
      * helper function to write a bulk write list and clean the list after that
      */
+    @Suppress("unused")
     suspend fun bulkWrite(writeModels: MutableList<WriteModel<T>>) {
         if (writeModels.size > 0) {
             coroutineColl.bulkWrite(writeModels)
@@ -269,10 +270,9 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         }
     }
 
-    // TODO: Implement collect data from [state.json]
     @Suppress("unused")
-    suspend fun insertOne(state: ApiItem<T>): ItemState<T> {
-        state.item?.let {
+    suspend fun insertOne(apiItem: ApiItem<T>): ItemState<T> {
+        apiItem.item?.let {
             checkDontPersist(it)
             try {
                 val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
@@ -281,14 +281,14 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
                     item = it,
                     isOk = result,
                     itemAlreadyOn = result &&
-                            state.callType == ApiItem.CallType.Query &&
-                            state.crudTask == CrudTask.Create
+                            apiItem.callType == ApiItem.CallType.Query &&
+                            apiItem.crudTask == CrudTask.Create
                 )
             } catch (e: Exception) {
                 return ItemState(isOk = false, msgError = e.message)
             }
         }
-        return ItemState(isOk = false, msgError = "insertOne(): state.item contains null value...")
+        return ItemState(isOk = false, msgError = "insertOne(): apiItem.item contains null value...")
     }
 
     private suspend fun listFirstStage(
@@ -449,14 +449,14 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
 
     suspend fun updateOne(
         filter: Bson,
-        state: ApiItem<T>,
+        apiItem: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemState<T> = state.item?.let {
-        checkDontPersist(state.item)
+    ): ItemState<T> = apiItem.item?.let {
+        checkDontPersist(apiItem.item)
         val result = try {
             mongoColl.coroutine.updateOne(
                 filter = filter,
-                target = state.item,
+                target = apiItem.item,
                 options = updateOptions
             )
         } catch (e: java.lang.Exception) {
@@ -473,12 +473,12 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     @Suppress("unused")
     suspend fun updateOneById(
         _id: U?,
-        state: ApiItem<T>,
+        apiItem: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
         return updateOne(
             filter = BaseDoc<U>::_id eq _id,
-            state = state,
+            apiItem = apiItem,
             updateOptions = updateOptions
         )
     }
