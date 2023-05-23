@@ -15,6 +15,7 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
 import io.kvision.offcanvas.Offcanvas
+import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
 import kotlinx.browser.window
@@ -196,11 +197,11 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
         return null
     }
 
-    var offCanvasFilter: Offcanvas? = null
+    var offCanvasFilterObservable = ObservableValue<Offcanvas?>(null)
 
     open fun Container.offCanvasFilterView(): Offcanvas? = null
 
-    open fun onClickFilter() = offCanvasFilter?.show()
+    open fun onClickFilter() = offCanvasFilterObservable.value?.show()
 
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
@@ -229,7 +230,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
         if (!noPageBanner) {
             pageBanner()
         }
-        offCanvasFilter = offCanvasFilterView()
+        offCanvasFilterObservable.value = offCanvasFilterView()
         pageListBody()
     }
 

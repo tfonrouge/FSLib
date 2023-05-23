@@ -8,9 +8,11 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.enableTooltip
+import io.kvision.html.div
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
+import io.kvision.state.bind
 import io.kvision.tabulator.RowRangeLookup
 import kotlinx.coroutines.launch
 
@@ -65,17 +67,21 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                 }
                 navLink(label = "|")
             }
-            navLink(
-                label = if (minToolbarSize) "" else "Filter",
-                icon = "fas fa-filter"
-            ) {
-                onClick {
-                    it.preventDefault()
-                    viewList.onClickFilter()
+            div().bind(viewList.offCanvasFilterObservable) {
+                viewList.offCanvasFilterObservable.value?.let {
+                    navLink(
+                        label = if (minToolbarSize) "" else "Filter",
+                        icon = "fas fa-filter"
+                    ) {
+                        onClick {
+                            it.preventDefault()
+                            viewList.onClickFilter()
+                        }
+                        enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
+                    }
+                    navLink(label = "|")
                 }
-                enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
             }
-            navLink(label = "|")
             navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
                 AppScope.launch {
                     viewList.dataUpdate()
