@@ -67,8 +67,8 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                 }
                 navLink(label = "|")
             }
-            div().bind(viewList.offCanvasFilterObservable) {
-                viewList.offCanvasFilterObservable.value?.let {
+            div().bind(viewList.hasViewFilter) {
+                if (viewList.hasViewFilter.value) {
                     navLink(
                         label = if (minToolbarSize) "" else "Filter",
                         icon = "fas fa-filter"

@@ -197,11 +197,12 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
         return null
     }
 
-    var offCanvasFilterObservable = ObservableValue<Offcanvas?>(null)
+    var offCanvasFilter: Offcanvas? = null
+    val hasViewFilter = ObservableValue(false)
 
     open fun Container.offCanvasFilterView(): Offcanvas? = null
 
-    open fun onClickFilter() = offCanvasFilterObservable.value?.show()
+    open fun onClickFilter() = offCanvasFilter?.show()
 
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
@@ -230,7 +231,10 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
         if (!noPageBanner) {
             pageBanner()
         }
-        offCanvasFilterObservable.value = offCanvasFilterView()
+        hasViewFilter.value = offCanvasFilterView()?.let {
+            offCanvasFilter = it
+            true
+        } ?: false
         pageListBody()
     }
 
