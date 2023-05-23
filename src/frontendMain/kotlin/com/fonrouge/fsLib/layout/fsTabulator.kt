@@ -118,7 +118,7 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : Any> Con
     }
 
     val apiFilterSerialize: () -> String? = {
-        viewList.apiFilter?.let { Json.encodeToString(it) }
+        viewList.apiFilter.value?.let { Json.encodeToString(it) }
     }
 
     vPanel {

@@ -32,12 +32,18 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
      * If apiFilter kclass is not defined in [configView] this value needs to be initialized
      * on view construct in order to automatically get [apiFilter] parameter from url params
      */
-    var apiFilter: F? = null,
+    apiFilter: F? = null,
 ) : ViewDataContainer<List<T>>(
     configView = configView,
     editable = editable,
     icon = icon,
 ) {
+    val apiFilter: ObservableValue<F?> = ObservableValue(apiFilter).also {
+        it.subscribe {
+            updateBannerLegend()
+        }
+    }
+
     /* dynamic content only used to get _id */
     var overItem: Any? = null
     var menuOpenedState: Boolean? = null
@@ -218,10 +224,10 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
      */
     @OptIn(InternalSerializationApi::class)
     fun getApiFilterFromUrlParams() {
-        val serializer = apiFilter?.let { it::class.serializer() } ?: configView.apiFilterKClass?.serializer()
+        val serializer = apiFilter.value?.let { it::class.serializer() } ?: configView.apiFilterKClass?.serializer()
         serializer?.let {
             urlParams?.pullUrlParam(serializer, "apiFilter")?.let {
-                apiFilter = it
+                apiFilter.value = it
             }
         }
     }
