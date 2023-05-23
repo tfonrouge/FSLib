@@ -8,7 +8,6 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.enableTooltip
-import io.kvision.html.div
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
@@ -67,7 +66,7 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                 }
                 navLink(label = "|")
             }
-            div().bind(viewList.hasViewFilter) {
+            bind(viewList.hasViewFilter) {
                 if (viewList.hasViewFilter.value) {
                     navLink(
                         label = if (minToolbarSize) "" else "Filter",
