@@ -55,6 +55,9 @@ abstract class ConfigView<V : View>(
 }
 
 @Suppress("unused")
+fun String.rh() = this.removePrefix("#/")
+
+@Suppress("unused")
 fun <V : View> configView(
     name: String,
     label: String,
