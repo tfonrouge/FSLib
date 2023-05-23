@@ -11,7 +11,6 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataList
-import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
 import io.kvision.offcanvas.Offcanvas
@@ -23,7 +22,7 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 
 @Suppress("unused")
-abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
+abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     override val configView: ConfigViewList<T, out ViewList<T, E, U, F>, E, U, F>,
     configViewItem: ConfigViewItem<T, *, *, U>? = null,
     periodicUpdateDataView: Boolean? = null,

@@ -5,7 +5,6 @@ package com.fonrouge.fsLib.layout
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiList
-import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
@@ -40,7 +39,7 @@ data class FSTabOptions(
     val paginationCounterElement: dynamic = null,
 )
 
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : IApiFilter> Container.fsTabulator(
+inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : Any> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, U, F>, E, U, F>,
     masterViewItem: ViewItem<*, *>? = null,
     options: TabulatorOptions<T>? = null,
@@ -66,7 +65,7 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : IApiFilt
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : IApiFilter> Container.fsTabulator(
+inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : Any> Container.fsTabulator(
     viewList: ViewList<T, E, U, F>,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),

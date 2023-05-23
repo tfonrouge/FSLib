@@ -2,14 +2,13 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiList
-import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDataList, U : Any, F : IApiFilter>(
+abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDataList, U : Any, F : Any>(
     val itemKClass: KClass<T>,
     idKClass: KClass<U>? = null,
     label: String,
@@ -32,7 +31,7 @@ abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDat
     /**
      * helper to build an api filter parameter in the url string
      */
-    inline fun <reified T : IApiFilter> urlApiFilter(obj: T): String =
+    inline fun <reified T : Any> urlApiFilter(obj: T): String =
         pushUrlParam(pairParam("apiFilter", obj))
 
     init {
@@ -41,7 +40,7 @@ abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDat
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDataList, U : Any, F : IApiFilter> configViewList(
+fun <T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDataList, U : Any, F : Any> configViewList(
     itemKClass: KClass<T>,
     idKClass: KClass<U>? = null,
     label: String,

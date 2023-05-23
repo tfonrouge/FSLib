@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiList
-import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import io.kvision.core.Container
@@ -24,7 +23,7 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter>(
+class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(ApiList, F?) -> ListState<T>,
     private val apiListBlock: (() -> ApiList),
@@ -182,7 +181,7 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFil
     }
 }
 
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, F : IApiFilter> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, F : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
     noinline function: suspend E.(ApiList, F?) -> ListState<T>,
     noinline apiListBlock: (() -> ApiList),
