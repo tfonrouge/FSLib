@@ -8,7 +8,6 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.enableTooltip
-import io.kvision.html.div
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
@@ -24,7 +23,10 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
     val delay = 300
 
     return navbarTabulator(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
-        nav {
+        nav().bind(
+            observableState = viewList.toolBarListUpdateObservable,
+            removeChildren = true
+        ) {
             viewList.configViewItem?.let { configViewItem ->
                 linkRead = navLink(
                     label = if (minToolbarSize) "" else "Detail",
@@ -67,20 +69,18 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                 }
                 navLink(label = "|")
             }
-            div().bind(observableState = viewList.hasViewFilter, removeChildren = true) {
-                if (viewList.hasViewFilter.value) {
-                    navLink(
-                        label = if (minToolbarSize) "" else "Filter",
-                        icon = "fas fa-filter"
-                    ) {
-                        onClick {
-                            it.preventDefault()
-                            viewList.onClickFilter()
-                        }
-                        enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
+            if (viewList.toolBarListUpdateObservable.value) {
+                navLink(
+                    label = if (minToolbarSize) "" else "Filter",
+                    icon = "fas fa-filter"
+                ) {
+                    onClick {
+                        it.preventDefault()
+                        viewList.onClickFilter()
                     }
-                    navLink(label = "|")
+                    enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
                 }
+                navLink(label = "|")
             }
             navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
                 AppScope.launch {

@@ -30,7 +30,6 @@ abstract class View(
             }
         }
     var linkBanner: Link? = null
-    var divBannerLegend: Div? = null
     var navbar: Navbar? = null
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
@@ -52,7 +51,7 @@ abstract class View(
     open val periodicUpdateDataView: Boolean? = null
     var periodicUpdateViewInterval = 5
     abstract var urlParams: UrlParams?
-    private val viewLegendObservable = ObservableValue(0)
+    private val pageBannerUpdateObservable = ObservableValue(0)
 
     /**
      * Allows to insert the whole view to the current DSL container
@@ -66,7 +65,7 @@ abstract class View(
 
     /**
      * Allows to describe a display that will be showed next to the view link banner
-     * it can be triggered with [updateBannerLegend] function
+     * it can be triggered with [updateBanner] function
      */
     open fun Container.bannerLegend() {
 
@@ -80,18 +79,17 @@ abstract class View(
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
-        navbar = navbar(bgColor = BsBgColor.LIGHT) {
+        navbar(bgColor = BsBgColor.LIGHT).bind(
+            observableState = pageBannerUpdateObservable,
+            removeChildren = true
+        ) {
             linkBanner = link(
                 label = this@View.label,
                 url = navigoUrlWithParams,
                 className = "navbar-brand",
                 icon = iconCrud(urlParams?.crudTask)
             )
-            divBannerLegend = div(rich = true, className = "bannerLegend").bind(
-                viewLegendObservable
-            ) {
-                bannerLegend()
-            }
+            bannerLegend()
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *>) {
                     if (urlParams?.actionUpsert == true) {
@@ -129,8 +127,8 @@ abstract class View(
     /**
      * Makes a refresh on the banner legend with content of [bannerLegend] function
      */
-    fun updateBannerLegend() {
-        viewLegendObservable.value++
+    fun updateBanner() {
+        pageBannerUpdateObservable.value++
     }
 
     fun updateMainBannerLink(text: String, url: String) {

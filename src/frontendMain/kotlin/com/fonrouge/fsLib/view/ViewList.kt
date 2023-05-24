@@ -55,7 +55,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
         }
-    val hasViewFilter = ObservableValue(false)
+    val toolBarListUpdateObservable = ObservableValue(false)
     var jsTabulatorBuilt: Boolean = false
 
     /* dynamic content only used to get _id */
@@ -114,7 +114,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     }
 
     open fun onApiFilterUpdate() {
-        updateBannerLegend()
+        updateBanner()
         AppScope.launch { dataUpdate() }
     }
 
@@ -214,7 +214,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
         if (!noPageBanner) {
             pageBanner()
         }
-        hasViewFilter.value = offCanvasFilterView()?.let {
+        toolBarListUpdateObservable.value = offCanvasFilterView()?.let {
             offCanvasFilter = it
             true
         } ?: false
