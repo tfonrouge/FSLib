@@ -18,6 +18,7 @@ import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
 import kotlinx.browser.window
+import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 
@@ -40,16 +41,9 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
 ) {
     val apiFilter: ObservableValue<F?> = ObservableValue(apiFilter).also {
         it.subscribe {
-            updateBannerLegend()
+            onApiFilterUpdate()
         }
     }
-
-    /* dynamic content only used to get _id */
-    var overItem: Any? = null
-    var menuOpenedState: Boolean? = null
-    var navbarTabulator: NavbarTabulator<U>? = null
-    var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
-    open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     var configViewItem: ConfigViewItem<T, *, *, U>? = configViewItem
         get() {
             if (field != null) return field
@@ -61,13 +55,21 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
         }
-
+    val hasViewFilter = ObservableValue(false)
     var jsTabulatorBuilt: Boolean = false
+
+    /* dynamic content only used to get _id */
+    var overItem: Any? = null
+    var menuOpenedState: Boolean? = null
+    var navbarTabulator: NavbarTabulator<U>? = null
+    var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
+    open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     var masterViewItem: ViewItem<*, *>? = null
         set(value) {
             editable = value?.urlParams?.actionUpsert == true
             field = value
         }
+    var offCanvasFilter: Offcanvas? = null
     val parentContextUrlParams: String
         get() {
             return masterViewItem?.data?.value?.let {
@@ -80,9 +82,9 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
+    var selectedIdList: List<Any?>? = null
 
     var tabulator: TabulatorListContainer<T, E, U, F>? = null
-    var selectedIdList: List<Any?>? = null
 
     /**
      * Builds a string URL for the CRUD action and item provided
@@ -111,6 +113,11 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
         }
     }
 
+    open fun onApiFilterUpdate() {
+        updateBannerLegend()
+        AppScope.launch { dataUpdate() }
+    }
+
     /**
      * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem
      * which is currently on Update action, if so, then performs an update call to back end before
@@ -128,14 +135,6 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
         } else {
             url?.let { window.open(url = url, target = "_blank") }
         }
-    }
-
-    /**
-     * Creates an [UrlParams] with the 'contextClass' and 'contextId' values from
-     * the [item] parameter provided.
-     */
-    fun urlContext(item: T?): UrlParams {
-        return UrlParams().addContext(item = item, encodedId(item))
     }
 
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
@@ -202,13 +201,6 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
         return null
     }
 
-    var offCanvasFilter: Offcanvas? = null
-    val hasViewFilter = ObservableValue(false)
-
-    open fun Container.offCanvasFilterView(): Offcanvas? = null
-
-    open fun onClickFilter() = offCanvasFilter?.show()
-
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
             if (menuOpenedState != true) {
@@ -216,6 +208,17 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
                 tabulator?.apiCall()
             }
         }
+    }
+
+    override fun Container.displayPage() {
+        if (!noPageBanner) {
+            pageBanner()
+        }
+        hasViewFilter.value = offCanvasFilterView()?.let {
+            offCanvasFilter = it
+            true
+        } ?: false
+        pageListBody()
     }
 
     /**
@@ -232,20 +235,13 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
         }
     }
 
-    override fun Container.displayPage() {
-        if (!noPageBanner) {
-            pageBanner()
-        }
-        hasViewFilter.value = offCanvasFilterView()?.let {
-            offCanvasFilter = it
-            true
-        } ?: false
-        pageListBody()
-    }
-
     private fun encodedId(item: T?): String? {
         return item?.let { configView.encodedId(it._id) }
     }
+
+    open fun Container.offCanvasFilterView(): Offcanvas? = null
+
+    open fun onClickFilter() = offCanvasFilter?.show()
 
     open fun onRowSelected(item: T?) {}
 
@@ -268,5 +264,13 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
             navbarTabulator?.linkUpdate?.hide()
             navbarTabulator?.linkDelete?.hide()
         }
+    }
+
+    /**
+     * Creates an [UrlParams] with the 'contextClass' and 'contextId' values from
+     * the [item] parameter provided.
+     */
+    fun urlContext(item: T?): UrlParams {
+        return UrlParams().addContext(item = item, encodedId(item))
     }
 }
