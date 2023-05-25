@@ -55,7 +55,6 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
         }
-    val toolBarListUpdateObservable = ObservableValue(false)
     var jsTabulatorBuilt: Boolean = false
 
     /* dynamic content only used to get _id */
@@ -83,8 +82,9 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
     var selectedIdList: List<Any?>? = null
-
     var tabulator: TabulatorListContainer<T, E, U, F>? = null
+    var toolBarFilter: Boolean = false
+    val toolBarListUpdateObservable = ObservableValue(0)
 
     /**
      * Builds a string URL for the CRUD action and item provided
@@ -214,7 +214,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
         if (!noPageBanner) {
             pageBanner()
         }
-        toolBarListUpdateObservable.value = offCanvasFilterView()?.let {
+        toolBarFilter = offCanvasFilterView()?.let {
             offCanvasFilter = it
             true
         } ?: false

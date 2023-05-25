@@ -69,7 +69,7 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                 }
                 navLink(label = "|")
             }
-            if (viewList.toolBarListUpdateObservable.value) {
+            if (viewList.toolBarFilter) {
                 navLink(
                     label = if (minToolbarSize) "" else "Filter",
                     icon = "fas fa-filter"
