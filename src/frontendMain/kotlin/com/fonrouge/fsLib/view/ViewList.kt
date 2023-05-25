@@ -44,6 +44,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
             onApiFilterUpdate()
         }
     }
+    var apiStateToViewItem: Any? = "null"
     var configViewItem: ConfigViewItem<T, *, *, U>? = configViewItem
         get() {
             if (field != null) return field
@@ -93,18 +94,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
      * @param item the item list selected
      */
     fun actionUrl(crudTask: CrudTask, item: T?): String? {
-        val urlParams = if (crudTask == CrudTask.Create) {
-            UrlParams(
-                "action" to CrudTask.Create.name
-            )
-        } else {
-            encodedId(item)?.let { id ->
-                UrlParams(
-                    "action" to crudTask.name,
-                    "id" to id
-                )
-            }
-        }
+        val urlParams = onUrlParams(crudTask, item, emptyList())?.let { UrlParams(*it.toTypedArray()) }
         masterViewItem?.let { viewItem ->
             urlParams?.addContext(viewItem.item, viewItem.encodedId())
         } ?: urlParams?.addContext(this@ViewList.urlParams?.apiList)
@@ -238,6 +228,27 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     private fun encodedId(item: T?): String? {
         return item?.let { configView.encodedId(it._id) }
     }
+
+    /**
+     * Builds the url for the viewItem call.
+     * Can be overridden in order to add custom params to url
+     */
+    open fun onUrlParams(
+        crudTask: CrudTask,
+        item: T?,
+        params: List<Pair<String, String>>
+    ): List<Pair<String, String>>? {
+        return when (crudTask) {
+            CrudTask.Create -> listOf("action" to CrudTask.Create.name) + params
+            else -> {
+                encodedId(item)?.let { id ->
+                    listOf("action" to crudTask.name, "id" to id) + params
+                }
+            }
+        }
+    }
+
+//    fun onUrlParams(crudTask: CrudTask, item: T?) : Array
 
     open fun Container.offCanvasFilterView(): Offcanvas? = null
 

@@ -30,6 +30,7 @@ import web.prompts.confirm
 @Suppress("unused")
 abstract class ViewItem<T : BaseDoc<U>, U : Any>(
     override val configView: ConfigViewItem<T, out ViewItem<T, U>, *, U>,
+    var apiState: Any? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -408,6 +409,20 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
 
     fun encodedId(_id: U? = item?._id): String {
         return configView.encodedId(_id = _id)
+    }
+
+    /**
+     * Gets an [F] object for the [apiFilter] property from url parameters
+     * Note: this needs that [apiFilter] be not null in order to get serializer
+     */
+    @OptIn(InternalSerializationApi::class)
+    fun getApiStateFromUrlParams() {
+        val serializer = apiState?.let { it::class.serializer() }
+        serializer?.let {
+            urlParams?.pullUrlParam(serializer, "apiState")?.let {
+                apiState = it
+            }
+        }
     }
 
     override val label: String

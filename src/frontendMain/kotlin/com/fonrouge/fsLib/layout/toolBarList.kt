@@ -8,6 +8,7 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.enableTooltip
+import io.kvision.core.onEvent
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
@@ -42,11 +43,15 @@ fun <T : BaseDoc<U>, U : Any> Container.toolBarList(
                     navLink(
                         label = if (minToolbarSize) "" else "Create",
                         icon = iconCrud(CrudTask.Create),
-                        url = viewList.actionUrl(CrudTask.Create, null)
                     ) {
+                        onEvent {
+                            mouseover = {
+                                url = viewList.actionUrl(CrudTask.Create, null)
+                            }
+                        }
                         onClick {
                             it.preventDefault()
-                            viewList.checkIfmasterViewItemUpdate(url)
+                            viewList.checkIfmasterViewItemUpdate(viewList.actionUrl(CrudTask.Create, null))
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                     }
