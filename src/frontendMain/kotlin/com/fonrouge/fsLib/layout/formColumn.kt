@@ -14,11 +14,13 @@ fun Container.formColumn(
     containerWidth: String = pageContainerWidth,
     init: (Div.() -> Unit)? = null,
 ): Div {
-    val div = Div(content,
-        rich,
-        align,
+    val div = Div(
+        content = content,
+        rich = rich,
+        align = align,
         className = columnWidth.let { "col-$containerWidth-$it " } + "form-group",
-        init)
+        init = init
+    )
     this.add(div)
     return div
 }
