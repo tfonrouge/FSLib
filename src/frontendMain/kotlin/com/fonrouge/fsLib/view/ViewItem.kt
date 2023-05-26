@@ -28,9 +28,9 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseDoc<U>, U : Any>(
-    override val configView: ConfigViewItem<T, out ViewItem<T, U>, *, U>,
-    var apiState: Any? = null,
+abstract class ViewItem<T : BaseDoc<U>, U : Any, S : Any>(
+    override val configView: ConfigViewItem<T, out ViewItem<T, U, S>, *, U, S>,
+    var apiState: S? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -417,7 +417,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any>(
      */
     @OptIn(InternalSerializationApi::class)
     fun getApiStateFromUrlParams() {
-        val serializer = apiState?.let { it::class.serializer() }
+        val serializer = apiState?.let { it::class.serializer() } ?: configView.apiStateKClass?.serializer()
         serializer?.let {
             urlParams?.pullUrlParam(serializer, "apiState")?.let {
                 apiState = it

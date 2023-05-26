@@ -41,7 +41,7 @@ data class FSTabOptions(
 
 inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : Any> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, U, F>, E, U, F>,
-    masterViewItem: ViewItem<*, *>? = null,
+    masterViewItem: ViewItem<*, *, *>? = null,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),

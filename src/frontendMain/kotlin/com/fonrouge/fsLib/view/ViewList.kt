@@ -25,7 +25,7 @@ import kotlinx.serialization.serializer
 @Suppress("unused")
 abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     override val configView: ConfigViewList<T, out ViewList<T, E, U, F>, E, U, F>,
-    configViewItem: ConfigViewItem<T, *, *, U>? = null,
+    configViewItem: ConfigViewItem<T, *, *, U, *>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -45,7 +45,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
         }
     }
     var apiStateToViewItem: Any? = "null"
-    var configViewItem: ConfigViewItem<T, *, *, U>? = configViewItem
+    var configViewItem: ConfigViewItem<T, *, *, U, *>? = configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewFunc.simpleName!!
@@ -54,7 +54,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
             } else {
                 "ViewItem${configView.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U, *>>()
         }
     var jsTabulatorBuilt: Boolean = false
 
@@ -64,7 +64,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     var navbarTabulator: NavbarTabulator<U>? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-    var masterViewItem: ViewItem<*, *>? = null
+    var masterViewItem: ViewItem<*, *, *>? = null
         set(value) {
             editable = value?.urlParams?.actionUpsert == true
             field = value

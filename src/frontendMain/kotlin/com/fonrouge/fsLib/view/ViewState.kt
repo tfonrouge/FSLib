@@ -16,7 +16,7 @@ fun Container.showView(viewState: ViewState) {
     viewState.configView.viewFunc.js.createInstance<View>(viewState.urlParams).apply {
         if (this is ViewList<*, *, *, *>) {
             getApiFilterFromUrlParams()
-        } else if (this is ViewItem<*, *>) {
+        } else if (this is ViewItem<*, *, *>) {
             getApiStateFromUrlParams()
         }
         div {

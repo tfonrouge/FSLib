@@ -23,7 +23,7 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem, U : Any>(
+abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataItem, U : Any, S : Any>(
     val itemKClass: KClass<T>,
     idKClass: KClass<U>? = null,
     label: String,
@@ -32,7 +32,8 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
     private val serviceManager: KVServiceManager<E>,
     private val function: suspend E.(U?, ApiItem<T>) -> ItemState<T>,
     private val stateFunction: (() -> String)? = null,
-    val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" }
+    val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
+    val apiStateKClass: KClass<S>? = null,
 ) : ConfigViewContainer<T, V, U>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,
@@ -41,7 +42,7 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
     baseUrl = baseUrl
 ) {
     companion object {
-        val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *>>()
+        val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *>>()
     }
 
     val labelDelete = "Delete $label"
@@ -142,7 +143,7 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem,
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem, U : Any> configViewItem(
+fun <T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataItem, U : Any, S : Any> configViewItem(
     itemKClass: KClass<T>,
     idKClass: KClass<U>? = null,
     label: String,
@@ -151,8 +152,9 @@ fun <T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem, U : Any> configViewItem(
     serviceManager: KVServiceManager<E>,
     function: suspend E.(U?, ApiItem<T>) -> ItemState<T>,
     stateFunction: (() -> String)? = null,
-    labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" }
-): ConfigViewItem<T, V, E, U> = object : ConfigViewItem<T, V, E, U>(
+    labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
+    apiStateKClass: KClass<S>? = null,
+): ConfigViewItem<T, V, E, U, S> = object : ConfigViewItem<T, V, E, U, S>(
     itemKClass = itemKClass,
     idKClass = idKClass,
     label = label,
@@ -162,4 +164,5 @@ fun <T : BaseDoc<U>, V : ViewItem<T, U>, E : IDataItem, U : Any> configViewItem(
     function = function,
     stateFunction = stateFunction,
     labelIdFunc = labelIdFunc,
+    apiStateKClass = apiStateKClass,
 ) {}
