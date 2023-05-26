@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 data class ItemState<T>(
     val item: T? = null,
     val itemAlreadyOn: Boolean = false,
-    override val isOk: Boolean = item != null,
     val noDataModified: Boolean? = null,
+    override val isOk: Boolean = item != null,
     override val msgOk: String? = "Operation successful ...",
     override val msgError: String? = "Operation Failed ...",
     override val state: String? = null,
