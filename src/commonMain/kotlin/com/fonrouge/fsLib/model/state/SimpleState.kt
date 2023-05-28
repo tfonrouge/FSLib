@@ -7,4 +7,5 @@ data class SimpleState(
     override var isOk: Boolean,
     override var msgOk: String? = null,
     override var msgError: String? = null,
+    override val state: String? = null,
 ) : ISimpleState

@@ -11,11 +11,13 @@ data class ItemState<T, STATE>(
     override val isOk: Boolean = item != null,
     override val msgOk: String? = "Operation successful ...",
     override val msgError: String? = "Operation Failed ...",
+    override val state: String? = null,
 ) : ISimpleState {
     @Suppress("unused")
     constructor(simpleResponse: SimpleState) : this(
         isOk = simpleResponse.isOk,
         msgOk = simpleResponse.msgOk,
         msgError = simpleResponse.msgError,
+        state = simpleResponse.state,
     )
 }
