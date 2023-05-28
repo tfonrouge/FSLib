@@ -8,15 +8,15 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, F, STATE>, E : IDataList, ID : Any, F : Any, STATE : Any>(
+abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STATE>, E : IDataList, ID : Any, FILT : Any, STATE : Any>(
     val itemKClass: KClass<T>,
     idKClass: KClass<ID>? = null,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     val serviceManager: KVServiceManager<E>,
-    val function: suspend E.(ApiList, F?) -> ListState<T>,
-    val apiFilterKClass: KClass<F>? = null,
+    val function: suspend E.(ApiList, FILT?) -> ListState<T>,
+    val apiFilterKClass: KClass<FILT>? = null,
 ) : ConfigViewContainer<T, V, ID>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,
@@ -40,15 +40,15 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, F, STATE>,
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<ID>, V : ViewList<T, E, ID, F, STATE>, E : IDataList, ID : Any, F : Any, STATE : Any> configViewList(
+fun <T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STATE>, E : IDataList, ID : Any, FILT : Any, STATE : Any> configViewList(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>? = null,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     serviceManager: KVServiceManager<E>,
-    function: suspend E.(ApiList, F?) -> ListState<T>,
-): ConfigViewList<T, V, E, ID, F, STATE> = object : ConfigViewList<T, V, E, ID, F, STATE>(
+    function: suspend E.(ApiList, FILT?) -> ListState<T>,
+): ConfigViewList<T, V, E, ID, FILT, STATE> = object : ConfigViewList<T, V, E, ID, FILT, STATE>(
     itemKClass = itemKClass,
     idKClass = idKClass,
     label = label,

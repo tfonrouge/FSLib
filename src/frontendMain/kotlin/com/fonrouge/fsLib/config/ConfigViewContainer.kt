@@ -10,8 +10,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewContainer<T : BaseDoc<U>, V : ViewDataContainer<*>, U : Any>(
-    val idKClass: KClass<U>? = null,
+abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<*>, ID : Any>(
+    val idKClass: KClass<ID>? = null,
     name: String,
     label: String,
     viewFunc: KClass<out V>,
@@ -23,7 +23,7 @@ abstract class ConfigViewContainer<T : BaseDoc<U>, V : ViewDataContainer<*>, U :
     baseUrl = baseUrl,
 ) {
     @OptIn(InternalSerializationApi::class)
-    fun encodedId(_id: U?): String {
+    fun encodedId(_id: ID?): String {
         return when {
             _id != null && idKClass != null -> Json.encodeToString(idKClass.serializer(), _id)
             _id != null && _id is OId<*> -> JSON.stringify(_id.id)
