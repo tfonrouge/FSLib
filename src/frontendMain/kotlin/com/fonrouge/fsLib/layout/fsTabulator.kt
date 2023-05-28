@@ -39,8 +39,8 @@ data class FSTabOptions(
     val paginationCounterElement: dynamic = null,
 )
 
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : Any> Container.fsTabulator(
-    configViewList: ConfigViewList<T, out ViewList<T, E, U, F>, E, U, F>,
+inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any, STATE : Any> Container.fsTabulator(
+    configViewList: ConfigViewList<T, out ViewList<T, E, ID, FILT, STATE>, E, ID, FILT, STATE>,
     masterViewItem: ViewItem<*, *, *>? = null,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),
@@ -48,9 +48,9 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : Any> Con
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, U, F>.() -> Unit)? = null
-): ViewList<T, E, U, F> {
-    val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, U, F>>(null)
+    noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
+): ViewList<T, E, ID, FILT, STATE> {
+    val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, ID, FILT, STATE>>(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
@@ -65,16 +65,16 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : Any> Con
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, reified F : Any> Container.fsTabulator(
-    viewList: ViewList<T, E, U, F>,
+inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any, STATE : Any> Container.fsTabulator(
+    viewList: ViewList<T, E, ID, FILT, STATE>,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, U, F>.() -> Unit)? = null
-): ViewList<T, E, U, F> {
+    noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
+): ViewList<T, E, ID, FILT, STATE> {
     val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
         columns = viewList.columnDefinitionList,
 //        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else "calc(100vh - 50vh)",

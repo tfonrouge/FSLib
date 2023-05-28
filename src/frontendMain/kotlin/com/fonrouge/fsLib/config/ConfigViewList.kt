@@ -8,16 +8,16 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDataList, U : Any, F : Any>(
+abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, F, STATE>, E : IDataList, ID : Any, F : Any, STATE : Any>(
     val itemKClass: KClass<T>,
-    idKClass: KClass<U>? = null,
+    idKClass: KClass<ID>? = null,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList, F?) -> ListState<T>,
     val apiFilterKClass: KClass<F>? = null,
-) : ConfigViewContainer<T, V, U>(
+) : ConfigViewContainer<T, V, ID>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,
     label = label,
@@ -25,7 +25,7 @@ abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDat
     baseUrl = baseUrl
 ) {
     companion object {
-        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *>>()
+        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *>>()
     }
 
     /**
@@ -40,15 +40,15 @@ abstract class ConfigViewList<T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDat
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<U>, V : ViewList<T, E, U, F>, E : IDataList, U : Any, F : Any> configViewList(
+fun <T : BaseDoc<ID>, V : ViewList<T, E, ID, F, STATE>, E : IDataList, ID : Any, F : Any, STATE : Any> configViewList(
     itemKClass: KClass<T>,
-    idKClass: KClass<U>? = null,
+    idKClass: KClass<ID>? = null,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     serviceManager: KVServiceManager<E>,
     function: suspend E.(ApiList, F?) -> ListState<T>,
-): ConfigViewList<T, V, E, U, F> = object : ConfigViewList<T, V, E, U, F>(
+): ConfigViewList<T, V, E, ID, F, STATE> = object : ConfigViewList<T, V, E, ID, F, STATE>(
     itemKClass = itemKClass,
     idKClass = idKClass,
     label = label,

@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.view.View
 import js.uri.encodeURIComponent
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import web.buffer.btoa
@@ -30,6 +31,9 @@ abstract class ConfigView<V : View>(
      */
     inline fun <reified T> pairParam(key: String, obj: T): Pair<String, String> =
         key to encodeURIComponent(btoa(Json.encodeToString(obj)))
+
+    fun <T> pairParam(key: String, serializer: KSerializer<T>, obj: T): Pair<String, String> =
+        key to encodeURIComponent(btoa(Json.encodeToString(serializer, obj)))
 
     /**
      * builds a url with a list of pair values of key=value url parameters

@@ -10,15 +10,15 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
 @Suppress("unused")
-fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupField(
-    collKClass: KClass<out Coll<U, W>>,
+fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
+    collKClass: KClass<out Coll<U, ID, *>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
     resultField: KProperty1<T, U?>,
     preserveNullAndEmptyArrays: Boolean = true,
-): LookupPipelineBuilder<T, U, W> {
-    return object : LookupPipelineBuilder<T, U, W>(
+): LookupPipelineBuilder<T, U, ID> {
+    return object : LookupPipelineBuilder<T, U, ID>(
         collKClass = collKClass,
         localField = localField,
         foreignField = foreignField,
@@ -31,16 +31,16 @@ fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupField(
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupFieldArray(
-    collKClass: KClass<out Coll<U, W>>,
+fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
+    collKClass: KClass<out Coll<U, ID, *>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
     resultFieldArray: KProperty1<T, Array<U>?>,
     preserveNullAndEmptyArrays: Boolean = true,
     limit: Int? = null,
-): LookupPipelineBuilder<T, U, W> {
-    return object : LookupPipelineBuilder<T, U, W>(
+): LookupPipelineBuilder<T, U, ID> {
+    return object : LookupPipelineBuilder<T, U, ID>(
         collKClass = collKClass,
         localField = localField,
         foreignField = foreignField,
@@ -52,8 +52,8 @@ fun <T : BaseDoc<*>, U : BaseDoc<W>, W : Any> lookupFieldArray(
     ) {}
 }
 
-abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<W>, W : Any>(
-    private val collKClass: KClass<out Coll<U, W>>,
+abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
+    private val collKClass: KClass<out Coll<U, ID, *>>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,
     private val pipeline: List<Bson>? = null,

@@ -23,9 +23,9 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 
 @Suppress("unused")
-abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
-    override val configView: ConfigViewList<T, out ViewList<T, E, U, F>, E, U, F>,
-    configViewItem: ConfigViewItem<T, *, *, U, *>? = null,
+abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, STATE : Any>(
+    override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT, STATE>, E, ID, FILT, STATE>,
+    configViewItem: ConfigViewItem<T, *, *, ID, STATE>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -33,19 +33,18 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
      * If apiFilter kclass is not defined in [configView] this value needs to be initialized
      * on view construct in order to automatically get [apiFilter] parameter from url params
      */
-    apiFilter: F? = null,
+    apiFilter: FILT? = null,
 ) : ViewDataContainer<List<T>>(
     configView = configView,
     editable = editable,
     icon = icon,
 ) {
-    val apiFilter: ObservableValue<F?> = ObservableValue(apiFilter).also {
+    val apiFilter: ObservableValue<FILT?> = ObservableValue(apiFilter).also {
         it.subscribe {
             onApiFilterUpdate()
         }
     }
-    var apiStateToViewItem: Any? = "null"
-    var configViewItem: ConfigViewItem<T, *, *, U, *>? = configViewItem
+    var configViewItem: ConfigViewItem<T, *, *, ID, STATE>? = configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewFunc.simpleName!!
@@ -54,14 +53,14 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
             } else {
                 "ViewItem${configView.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, U, *>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, STATE>>()
         }
     var jsTabulatorBuilt: Boolean = false
 
     /* dynamic content only used to get _id */
     var overItem: Any? = null
     var menuOpenedState: Boolean? = null
-    var navbarTabulator: NavbarTabulator<U>? = null
+    var navbarTabulator: NavbarTabulator<ID>? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
     var masterViewItem: ViewItem<*, *, *>? = null
@@ -83,7 +82,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
     var selectedIdList: List<Any?>? = null
-    var tabulator: TabulatorListContainer<T, E, U, F>? = null
+    var tabulator: TabulatorListContainer<T, E, ID, FILT>? = null
     var toolBarFilter: Boolean = false
     val toolBarListUpdateObservable = ObservableValue(0)
 
@@ -93,13 +92,32 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
      * @param crudTask [CrudTask] element
      * @param item the item list selected
      */
+    @OptIn(InternalSerializationApi::class)
     fun actionUrl(crudTask: CrudTask, item: T?): String? {
-        val urlParams = onUrlParams(crudTask, item, emptyList())?.let { UrlParams(*it.toTypedArray()) }
-        masterViewItem?.let { viewItem ->
-            urlParams?.addContext(viewItem.item, viewItem.encodedId())
-        } ?: urlParams?.addContext(this@ViewList.urlParams?.apiList)
-        return urlParams?.let {
-            configViewItem?.let { it.url + urlParams.toString() }
+        return when (crudTask) {
+            CrudTask.Create -> listOf("action" to CrudTask.Create.name)
+            else -> {
+                encodedId(item)?.let { id ->
+                    listOf("action" to crudTask.name, "id" to id)
+                }
+            }
+        }?.let {
+            val urlParams = UrlParams(*it.toTypedArray())
+            configViewItem?.let { configViewItem1 ->
+                setApiState(crudTask, item)?.let { s ->
+                    urlParams.pushParam(
+                        configViewItem1.pairParam(
+                            "apiState",
+                            configViewItem1.apiStateKClass.serializer(),
+                            s
+                        )
+                    )
+                }
+                masterViewItem?.let { viewItem ->
+                    urlParams.addContext(viewItem.item, viewItem.encodedId())
+                } ?: urlParams.addContext(this@ViewList.urlParams?.apiList)
+                configViewItem1.url + urlParams.toString()
+            }
         }
     }
 
@@ -212,7 +230,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     }
 
     /**
-     * Gets an [F] object for the [apiFilter] property from url parameters
+     * Gets an [FILT] object for the [apiFilter] property from url parameters
      * Note: this needs that [apiFilter] be not null in order to get serializer
      */
     @OptIn(InternalSerializationApi::class)
@@ -233,22 +251,7 @@ abstract class ViewList<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
      * Builds the url for the viewItem call.
      * Can be overridden in order to add custom params to url
      */
-    open fun onUrlParams(
-        crudTask: CrudTask,
-        item: T?,
-        params: List<Pair<String, String>>
-    ): List<Pair<String, String>>? {
-        return when (crudTask) {
-            CrudTask.Create -> listOf("action" to CrudTask.Create.name) + params
-            else -> {
-                encodedId(item)?.let { id ->
-                    listOf("action" to crudTask.name, "id" to id) + params
-                }
-            }
-        }
-    }
-
-//    fun onUrlParams(crudTask: CrudTask, item: T?) : Array
+    open fun setApiState(crudTask: CrudTask, item: T?): STATE? = null
 
     open fun Container.offCanvasFilterView(): Offcanvas? = null
 

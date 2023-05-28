@@ -28,9 +28,8 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseDoc<U>, U : Any, S : Any>(
-    override val configView: ConfigViewItem<T, out ViewItem<T, U, S>, *, U, S>,
-    var apiState: S? = null,
+abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
+    override val configView: ConfigViewItem<T, out ViewItem<T, ID, STATE>, *, ID, STATE>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -39,15 +38,16 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any, S : Any>(
     editable = editable,
     icon = icon,
 ) {
+    var apiState: STATE? = null
+
     /**
      * Observable that holds data for the [ViewItem]
      */
-    var data: ObservableValue<ItemState<T>> = ObservableValue(ItemState())
+    var data: ObservableValue<ItemState<T, STATE>> = ObservableValue(ItemState())
     val item: T? get() = data.value.item
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
-    var state: String? = null
 
     init {
         data.subscribe {
@@ -82,7 +82,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any, S : Any>(
      * @param block optional, executes with the API result [ItemState] as parameter
      */
     fun acceptUpsertAction(
-        block: ((ItemState<T>) -> Unit)? = {
+        block: ((ItemState<T, STATE>) -> Unit)? = {
             navButtonCancel?.hide()
             navButtonAccept?.hide()
             navButtonBack?.show()
@@ -254,7 +254,9 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any, S : Any>(
                         itemId = urlParams?.id,
                         urlParams = urlParams,
                     ) { itemResponse ->
-                        this@ViewItem.state = itemResponse.state
+                        itemResponse.apiState?.let {
+                            this@ViewItem.apiState = it
+                        }
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams?.params?.set("action", CrudTask.Update.name)
                             @Suppress("UNUSED_VARIABLE")
@@ -407,21 +409,18 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any, S : Any>(
         }
     }
 
-    fun encodedId(_id: U? = item?._id): String {
+    fun encodedId(_id: ID? = item?._id): String {
         return configView.encodedId(_id = _id)
     }
 
     /**
-     * Gets an [F] object for the [apiFilter] property from url parameters
-     * Note: this needs that [apiFilter] be not null in order to get serializer
+     * Gets an [STATE] object for the [apiState] property from url parameters
+     * Note: this needs that [apiState] be not null in order to get serializer
      */
     @OptIn(InternalSerializationApi::class)
     fun getApiStateFromUrlParams() {
-        val serializer = apiState?.let { it::class.serializer() } ?: configView.apiStateKClass?.serializer()
-        serializer?.let {
-            urlParams?.pullUrlParam(serializer, "apiState")?.let {
-                apiState = it
-            }
+        urlParams?.pullUrlParam(configView.apiStateKClass.serializer(), "apiState")?.let {
+            apiState = it
         }
     }
 
@@ -430,7 +429,7 @@ abstract class ViewItem<T : BaseDoc<U>, U : Any, S : Any>(
             return "${configView.label}: ${configView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
 
-    open fun onChangeDataContainer(itemResponse: ItemState<T>?) {
+    open fun onChangeDataContainer(itemResponse: ItemState<T, STATE>?) {
 
     }
 

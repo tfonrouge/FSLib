@@ -23,18 +23,18 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataItem, U : Any, S : Any>(
+abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : IDataItem, ID : Any, STATE : Any>(
     val itemKClass: KClass<T>,
-    idKClass: KClass<U>? = null,
+    idKClass: KClass<ID>? = null,
+    val apiStateKClass: KClass<STATE>,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     private val serviceManager: KVServiceManager<E>,
-    private val function: suspend E.(U?, ApiItem<T>) -> ItemState<T>,
+    private val function: suspend E.(ID?, ApiItem<T>) -> ItemState<T, STATE>,
     private val stateFunction: (() -> String)? = null,
     val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
-    val apiStateKClass: KClass<S>? = null,
-) : ConfigViewContainer<T, V, U>(
+) : ConfigViewContainer<T, V, ID>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,
     label = label,
@@ -43,6 +43,7 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataIt
 ) {
     companion object {
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *>>()
+        val a: KClass<Unit> = Unit::class
     }
 
     val labelDelete = "Delete $label"
@@ -51,10 +52,10 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataIt
     val labelUpdate = "Update $label"
 
     @Suppress("unused")
-    fun labelUrlRead(id: U) = label to urlRead(id)
+    fun labelUrlRead(id: ID) = label to urlRead(id)
 
     @Suppress("unused")
-    fun labelUrlUpdate(id: U) = label to urlUpdate(id)
+    fun labelUrlUpdate(id: ID) = label to urlUpdate(id)
 
     @Suppress("unused")
     val urlCreate: String
@@ -63,18 +64,18 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataIt
             return url + urlParams.toString()
         }
 
-    fun urlRead(id: U): String {
+    fun urlRead(id: ID): String {
         val urlParams = UrlParams("id" to encodedId(id), "action" to CrudTask.Read.name)
         return url + urlParams.toString()
     }
 
     @Suppress("unused")
-    fun urlDelete(id: U): String {
+    fun urlDelete(id: ID): String {
         val urlParams = UrlParams("id" to encodedId(id), "action" to CrudTask.Delete.name)
         return url + urlParams.toString()
     }
 
-    fun urlUpdate(id: U): String {
+    fun urlUpdate(id: ID): String {
         val urlParams = UrlParams("id" to encodedId(id), "action" to CrudTask.Update.name)
         return url + urlParams.toString()
     }
@@ -86,7 +87,7 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataIt
         itemId: String? = JSON.stringify(null),
         item: T? = null,
         urlParams: UrlParams? = null,
-        block: (ItemState<T>) -> ItemState<T>,
+        block: (ItemState<T, STATE>) -> ItemState<T, STATE>,
     ) {
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
@@ -127,8 +128,11 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataIt
                 )
             }
             try {
-                val itemResponse: ItemState<T> =
-                    Json.decodeFromDynamic(ItemState.serializer(itemKClass.serializer()), result)
+                val itemResponse: ItemState<T, STATE> =
+                    Json.decodeFromDynamic(
+                        ItemState.serializer(itemKClass.serializer(), apiStateKClass.serializer()),
+                        result
+                    )
                 block(itemResponse)
             } catch (e: Exception) {
                 console.error("Error decoding KClass", itemKClass, "with serialized value", result, "exception:", e)
@@ -143,20 +147,21 @@ abstract class ConfigViewItem<T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataIt
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataItem, U : Any, S : Any> configViewItem(
+fun <T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : IDataItem, ID : Any, STATE : Any> configViewItem(
     itemKClass: KClass<T>,
-    idKClass: KClass<U>? = null,
+    idKClass: KClass<ID>? = null,
+    apiStateKClass: KClass<STATE>,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     serviceManager: KVServiceManager<E>,
-    function: suspend E.(U?, ApiItem<T>) -> ItemState<T>,
+    function: suspend E.(ID?, ApiItem<T>) -> ItemState<T, STATE>,
     stateFunction: (() -> String)? = null,
     labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
-    apiStateKClass: KClass<S>? = null,
-): ConfigViewItem<T, V, E, U, S> = object : ConfigViewItem<T, V, E, U, S>(
+): ConfigViewItem<T, V, E, ID, STATE> = object : ConfigViewItem<T, V, E, ID, STATE>(
     itemKClass = itemKClass,
     idKClass = idKClass,
+    apiStateKClass = apiStateKClass,
     label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
@@ -164,5 +169,4 @@ fun <T : BaseDoc<U>, V : ViewItem<T, U, S>, E : IDataItem, U : Any, S : Any> con
     function = function,
     stateFunction = stateFunction,
     labelIdFunc = labelIdFunc,
-    apiStateKClass = apiStateKClass,
 ) {}

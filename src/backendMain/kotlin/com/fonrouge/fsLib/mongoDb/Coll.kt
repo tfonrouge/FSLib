@@ -41,13 +41,13 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
-abstract class Coll<T : BaseDoc<U>, U : Any>(
+abstract class Coll<T : BaseDoc<ID>, ID : Any, STATE : Any>(
     private val klass: KClass<T>,
     var debug: Boolean? = null
 ) {
     companion object {
         var globalDebug = false
-        internal val map1 = mutableMapOf<KClass<*>, Coll<*, *>>()
+        internal val map1 = mutableMapOf<KClass<*>, Coll<*, *, *>>()
         fun collectionName(klass: KClass<out BaseDoc<*>>): String =
             if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
             else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
@@ -193,7 +193,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         return bson
     }
 
-    suspend fun deleteOne(filter: Bson): ItemState<T> {
+    suspend fun deleteOne(filter: Bson): ItemState<T, STATE> {
         return try {
             ItemState(
                 isOk = coroutineColl.deleteOne(filter = filter).deletedCount == 1L
@@ -204,7 +204,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun deleteOneById(id: U?): ItemState<T> {
+    suspend fun deleteOneById(id: ID?): ItemState<T, STATE> {
         if (id != null) {
             return try {
                 ItemState(
@@ -249,7 +249,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     suspend fun findOneById(
-        id: U?,
+        id: ID?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): T? {
         return findOne(BaseDoc<*>::_id eq id, lookupWrappers)
@@ -257,9 +257,9 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
 
     @Suppress("unused")
     suspend fun findOneByIdResponse(
-        id: U?,
+        id: ID?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
-    ): ItemState<T> {
+    ): ItemState<T, STATE> {
         return try {
             ItemState(
                 item = findOneById(id = id, lookupWrappers = lookupWrappers),
@@ -271,7 +271,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
     }
 
     @Suppress("unused")
-    suspend fun insertOne(apiItem: ApiItem<T>): ItemState<T> {
+    suspend fun insertOne(apiItem: ApiItem<T>): ItemState<T, STATE> {
         apiItem.item?.let {
             checkDontPersist(it)
             try {
@@ -451,7 +451,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
         filter: Bson,
         apiItem: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemState<T> = apiItem.item?.let {
+    ): ItemState<T, STATE> = apiItem.item?.let {
         checkDontPersist(apiItem.item)
         val result = try {
             mongoColl.coroutine.updateOne(
@@ -463,7 +463,7 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
             e.printStackTrace()
             null
         }
-        ItemState<T>(
+        ItemState(
             isOk = result?.matchedCount == 1L,
             noDataModified = result?.modifiedCount == 0L,
             msgError = "No data was modified ..."
@@ -472,12 +472,12 @@ abstract class Coll<T : BaseDoc<U>, U : Any>(
 
     @Suppress("unused")
     suspend fun updateOneById(
-        id: U?,
+        id: ID?,
         apiItem: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemState<T> {
+    ): ItemState<T, STATE> {
         return updateOne(
-            filter = BaseDoc<U>::_id eq id,
+            filter = BaseDoc<ID>::_id eq id,
             apiItem = apiItem,
             updateOptions = updateOptions
         )
