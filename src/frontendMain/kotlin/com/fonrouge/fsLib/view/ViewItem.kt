@@ -33,7 +33,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-) : ViewDataContainer<T>(
+) : ViewDataContainer(
     configView = configView,
     editable = editable,
     icon = icon,

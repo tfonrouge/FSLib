@@ -5,7 +5,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlin.js.Date
 
-abstract class ViewDataContainer<U : Any>(
+abstract class ViewDataContainer(
     configView: ConfigViewContainer<*, *, *>,
     editable: Boolean = true,
     icon: String? = null,

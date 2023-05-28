@@ -34,7 +34,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
      * on view construct in order to automatically get [apiFilter] parameter from url params
      */
     apiFilter: FILT? = null,
-) : ViewDataContainer<List<T>>(
+) : ViewDataContainer(
     configView = configView,
     editable = editable,
     icon = icon,
