@@ -28,7 +28,6 @@ class NavbarTabulator<U>(
     collapseOnClick = collapseOnClick,
     className = className
 ) {
-    var itemId: U? = null
     var linkRead: Link? = null
     var linkUpdate: Link? = null
     var linkDelete: Link? = null

@@ -142,11 +142,11 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any
             onEvent {
                 rowSelectionChangedTabulator = {
                     val tList = self.getSelectedData()
-                    val item = tList.let {
+                    viewList.selectedItem = tList.let {
                         if (it.isEmpty()) null else it[0]
                     }
-                    viewList.updateLinks(item, tList.size)
-                    viewList.onRowSelected(item)
+                    viewList.updateLinks(viewList.selectedItem, tList.size)
+                    viewList.onRowSelected(viewList.selectedItem)
                 }
                 viewList.onDataLoadedTabulator?.let { func ->
                     dataLoadedTabulator = { func(it.detail.unsafeCast<List<T>>()) }

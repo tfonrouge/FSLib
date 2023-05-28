@@ -8,7 +8,6 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.enableTooltip
-import io.kvision.core.onEvent
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
@@ -20,9 +19,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
     viewList: ViewList<T, *, ID, *, *>,
     minToolbarSize: Boolean = true,
 ): NavbarTabulator<ID> {
-
     val delay = 300
-
     return navbarTabulator(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
         nav().bind(
             observableState = viewList.toolBarListUpdateObservable,
@@ -35,7 +32,9 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                 ) {
                     onClick {
                         it.preventDefault()
-                        viewList.checkIfmasterViewItemUpdate(url)
+                        AppScope.launch {
+                            viewList.goActionUrl(CrudTask.Read)
+                        }
                     }
                     enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                 }
@@ -44,14 +43,11 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         label = if (minToolbarSize) "" else "Create",
                         icon = iconCrud(CrudTask.Create),
                     ) {
-                        onEvent {
-                            mouseover = {
-                                url = viewList.actionUrl(CrudTask.Create, null)
-                            }
-                        }
                         onClick {
                             it.preventDefault()
-                            viewList.checkIfmasterViewItemUpdate(viewList.actionUrl(CrudTask.Create, null))
+                            AppScope.launch {
+                                viewList.goActionUrl(CrudTask.Create)
+                            }
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                     }
@@ -61,7 +57,9 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     ) {
                         onClick {
                             it.preventDefault()
-                            viewList.checkIfmasterViewItemUpdate(url)
+                            AppScope.launch {
+                                viewList.goActionUrl(CrudTask.Update)
+                            }
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                     }
@@ -69,6 +67,12 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         label = if (minToolbarSize) "" else "Delete",
                         icon = iconCrud(CrudTask.Delete)
                     ) {
+                        onClick {
+                            it.preventDefault()
+                            AppScope.launch {
+                                viewList.goActionUrl(CrudTask.Delete)
+                            }
+                        }
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                     }
                 }

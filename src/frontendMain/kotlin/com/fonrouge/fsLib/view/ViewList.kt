@@ -55,6 +55,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, STATE>>()
         }
+    var selectedItem: T? = null
     var jsTabulatorBuilt: Boolean = false
 
     /* dynamic content only used to get _id */
@@ -85,16 +86,22 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     var tabulator: TabulatorListContainer<T, E, ID, FILT>? = null
     var toolBarFilter: Boolean = false
     val toolBarListUpdateObservable = ObservableValue(0)
+    open fun onApiFilterUpdate() {
+        updateBanner()
+        AppScope.launch { dataUpdate() }
+    }
 
     /**
-     * Builds a string URL for the CRUD action and item provided
-     *
-     * @param crudTask [CrudTask] element
-     * @param item the item list selected
+     * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem
+     * which is currently on Update action, if so, then performs an update call to back end before
+     * calling the list crud action required
      */
     @OptIn(InternalSerializationApi::class)
-    fun actionUrl(crudTask: CrudTask, item: T?): String? {
-        return when (crudTask) {
+    open suspend fun goActionUrl(
+        crudTask: CrudTask,
+        item: T? = selectedItem
+    ) {
+        val url: String? = when (crudTask) {
             CrudTask.Create -> listOf("action" to CrudTask.Create.name)
             else -> {
                 encodedId(item)?.let { id ->
@@ -119,19 +126,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
                 configViewItem1.url + urlParams.toString()
             }
         }
-    }
-
-    open fun onApiFilterUpdate() {
-        updateBanner()
-        AppScope.launch { dataUpdate() }
-    }
-
-    /**
-     * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem
-     * which is currently on Update action, if so, then performs an update call to back end before
-     * calling the list crud action required
-     */
-    open fun checkIfmasterViewItemUpdate(url: String?) {
         if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
             masterViewItem?.acceptUpsertAction { itemResponse ->
                 if (itemResponse.isOk) {
@@ -167,39 +161,43 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
                     header = true
                 )
                 menuItem(separator = true)
-                val urlRead = actionUrl(CrudTask.Read, item)
                 menuItem(
                     label = "Detail of",
                     icon = iconCrud(CrudTask.Read),
-                    url = urlRead,
                     action = { _, _ ->
-                        checkIfmasterViewItemUpdate(urlRead)
+                        AppScope.launch {
+                            goActionUrl(CrudTask.Read, item)
+                        }
                     }
                 )
                 if (editable) {
-                    val urlCreate = actionUrl(CrudTask.Create, item)
-                    val urlUpdate = actionUrl(CrudTask.Update, item)
                     menuItem(separator = true)
                     menuItem(
                         label = "Create",
                         icon = iconCrud(CrudTask.Create),
-                        url = urlCreate,
                         action = { _, _ ->
-                            checkIfmasterViewItemUpdate(urlCreate)
+                            AppScope.launch {
+                                goActionUrl(CrudTask.Create, item)
+                            }
                         }
                     )
                     menuItem(
                         label = "Update",
                         icon = iconCrud(CrudTask.Update),
-                        url = urlUpdate,
                         action = { _, _ ->
-                            checkIfmasterViewItemUpdate(urlUpdate)
+                            AppScope.launch {
+                                goActionUrl(CrudTask.Update, item)
+                            }
                         }
                     )
                     menuItem(
                         label = "Delete",
                         icon = iconCrud(CrudTask.Delete),
-                        url = actionUrl(CrudTask.Delete, item)
+                        action = { _, _ ->
+                            AppScope.launch {
+                                goActionUrl(CrudTask.Delete, item)
+                            }
+                        }
                     )
                 }
                 contextRowMenu(item)
@@ -251,7 +249,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
      * Builds the url for the viewItem call.
      * Can be overridden in order to add custom params to url
      */
-    open fun setApiState(crudTask: CrudTask, item: T?): STATE? = null
+    open suspend fun setApiState(crudTask: CrudTask, item: T?): STATE? = null
 
     open fun Container.offCanvasFilterView(): Offcanvas? = null
 
@@ -263,12 +261,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
 
     fun updateLinks(item: T?, size: Int) {
         val id = item?._id
-        navbarTabulator?.itemId = id
-//        navbarTabulator?.linkCreate?.url = actionUrl(CrudAction.Create, id)
-        navbarTabulator?.linkRead?.url = actionUrl(CrudTask.Read, item)
-        navbarTabulator?.linkUpdate?.url = actionUrl(CrudTask.Update, item)
-        navbarTabulator?.linkUpdate?.target = "_blank"
-        navbarTabulator?.linkDelete?.url = actionUrl(CrudTask.Delete, item)
         if (id != null && size == 1) {
             navbarTabulator?.linkRead?.show()
             navbarTabulator?.linkUpdate?.show()
