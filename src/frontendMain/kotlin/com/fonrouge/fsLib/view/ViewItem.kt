@@ -421,7 +421,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
 
     /**
      * Gets an [STATE] object for the [apiState] property from url parameters, otherwise get the apiState from the
-     * [apiStateKClass]
+     * [ConfigViewItem.apiStateKClass] class
      */
     @OptIn(InternalSerializationApi::class)
     fun getApiStateFromUrlParams() {

@@ -88,6 +88,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     /**
      * assignable var that contains a defined [Offcanvas] filter area, if any
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     var offCanvasFilter: Offcanvas? = null
     val parentContextUrlParams: String
         get() {
@@ -271,7 +272,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
 
     /**
      * Gets an [FILT] object for the [apiFilter] property from url parameters, otherwise get the apiFilter from the
-     * [apiFilterKClass]
+     * [ConfigViewList.apiFilterKClass] class
      */
     @OptIn(InternalSerializationApi::class)
     fun getApiFilterFromUrlParams() {
@@ -280,9 +281,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
             key = "apiFilter"
         )?.let {
             apiFilter.value = it
-        }
-        if (apiFilter.value == null) {
-            apiFilter.value = configView.apiFilterKClass.js.createInstance<FILT>()
         }
     }
 
