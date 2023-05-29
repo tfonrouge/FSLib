@@ -39,6 +39,10 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     editable = editable,
     icon = icon,
 ) {
+    /**
+     * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
+     * or programmatically, and it's delivered to the backend
+     */
     val apiFilter: ObservableValue<FILT?> = ObservableValue(apiFilter).also {
         it.subscribe {
             onApiFilterUpdate()
@@ -55,6 +59,10 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, STATE>>()
         }
+
+    /**
+     * contains an object of [T] type for the selected row in the [tabulator]
+     */
     var selectedItem: T? = null
     var jsTabulatorBuilt: Boolean = false
 
@@ -69,6 +77,10 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
             editable = value?.urlParams?.actionUpsert == true
             field = value
         }
+
+    /**
+     * assignable var that contains a defined [Offcanvas] filter area, if any
+     */
     var offCanvasFilter: Offcanvas? = null
     val parentContextUrlParams: String
         get() {
@@ -83,9 +95,26 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
     var selectedIdList: List<Any?>? = null
+
+    /**
+     * the tabulator list
+     */
     var tabulator: TabulatorListContainer<T, E, ID, FILT>? = null
+
+    /**
+     * assignable var that indicates if the filter button in the tabulator's toolbar will be displayed
+     */
     var toolBarFilter: Boolean = false
+
+    /**
+     * observable that triggers an update on the list's toolbar
+     */
     val toolBarListUpdateObservable = ObservableValue(0)
+
+    /**
+     * open function that allows to override the default action when the [apiFilter] observable changes.
+     * The default action will do an [updateBanner] and then an [dataUpdate]
+     */
     open fun onApiFilterUpdate() {
         updateBanner()
         AppScope.launch { dataUpdate() }
@@ -207,6 +236,9 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
         return null
     }
 
+    /**
+     * forces an update for the tabulator data
+     */
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
             if (menuOpenedState != true) {
@@ -216,6 +248,9 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
         }
     }
 
+    /**
+     * the main display for the viewList, displays the [pageBanner] and the [offCanvasFilterView] if any defined
+     */
     override fun Container.displayPage() {
         if (!noPageBanner) {
             pageBanner()
@@ -251,12 +286,24 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
      */
     open suspend fun setApiState(crudTask: CrudTask, item: T?): STATE? = null
 
+    /**
+     * open function that builds a filter form
+     */
     open fun Container.offCanvasFilterView(): Offcanvas? = null
 
+    /**
+     * open function that fires when filter button on toolbar is clicked
+     */
     open fun onClickFilter() = offCanvasFilter?.show()
 
+    /**
+     * open function that fires when a row is selected in the tabulator
+     */
     open fun onRowSelected(item: T?) {}
 
+    /**
+     * the main display for the viewList tabulator area
+     */
     abstract fun Container.pageListBody()
 
     fun updateLinks(item: T?, size: Int) {

@@ -38,6 +38,11 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
     editable = editable,
     icon = icon,
 ) {
+    /**
+     * assignable var that contains an [STATE] object that can be used to parametrize the viewItem form, it can be
+     * obtained from an apiState= url parameter, programmatically from the calling viewList on the [ViewList.setApiState]
+     * open function or from the backend
+     */
     var apiState: STATE? = null
 
     /**
