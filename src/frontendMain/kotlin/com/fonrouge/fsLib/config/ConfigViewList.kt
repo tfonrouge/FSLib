@@ -11,12 +11,12 @@ import kotlin.reflect.KClass
 abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STATE>, E : IDataList, ID : Any, FILT : Any, STATE : Any>(
     val itemKClass: KClass<T>,
     idKClass: KClass<ID>? = null,
+    val apiFilterKClass: KClass<FILT>,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList, FILT?) -> ListState<T>,
-    val apiFilterKClass: KClass<FILT>? = null,
 ) : ConfigViewContainer<T, V, ID>(
     idKClass = idKClass,
     name = itemKClass.simpleName!!,
@@ -43,6 +43,7 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STAT
 fun <T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STATE>, E : IDataList, ID : Any, FILT : Any, STATE : Any> configViewList(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>? = null,
+    apiFilterKClass: KClass<FILT>,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
@@ -51,6 +52,7 @@ fun <T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STATE>, E : IDataList, ID : A
 ): ConfigViewList<T, V, E, ID, FILT, STATE> = object : ConfigViewList<T, V, E, ID, FILT, STATE>(
     itemKClass = itemKClass,
     idKClass = idKClass,
+    apiFilterKClass = apiFilterKClass,
     label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl,

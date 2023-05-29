@@ -19,6 +19,7 @@ import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
+import io.kvision.utils.createInstance
 import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
@@ -419,13 +420,16 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
     }
 
     /**
-     * Gets an [STATE] object for the [apiState] property from url parameters
-     * Note: this needs that [apiState] be not null in order to get serializer
+     * Gets an [STATE] object for the [apiState] property from url parameters, otherwise get the apiState from the
+     * [apiStateKClass]
      */
     @OptIn(InternalSerializationApi::class)
     fun getApiStateFromUrlParams() {
         urlParams?.pullUrlParam(configView.apiStateKClass.serializer(), "apiState")?.let {
             apiState = it
+        }
+        if (apiState == null) {
+            apiState = configView.apiStateKClass.js.createInstance()
         }
     }
 

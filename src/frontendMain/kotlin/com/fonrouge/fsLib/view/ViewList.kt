@@ -17,6 +17,7 @@ import io.kvision.offcanvas.Offcanvas
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
+import io.kvision.utils.createInstance
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
@@ -263,16 +264,19 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     }
 
     /**
-     * Gets an [FILT] object for the [apiFilter] property from url parameters
-     * Note: this needs that [apiFilter] be not null in order to get serializer
+     * Gets an [FILT] object for the [apiFilter] property from url parameters, otherwise get the apiFilter from the
+     * [apiFilterKClass]
      */
     @OptIn(InternalSerializationApi::class)
     fun getApiFilterFromUrlParams() {
-        val serializer = apiFilter.value?.let { it::class.serializer() } ?: configView.apiFilterKClass?.serializer()
-        serializer?.let {
-            urlParams?.pullUrlParam(serializer, "apiFilter")?.let {
-                apiFilter.value = it
-            }
+        urlParams?.pullUrlParam(
+            serializer = configView.apiFilterKClass.serializer(),
+            key = "apiFilter"
+        )?.let {
+            apiFilter.value = it
+        }
+        if (apiFilter.value == null) {
+            apiFilter.value = configView.apiFilterKClass.js.createInstance<FILT>()
         }
     }
 
@@ -292,9 +296,12 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     open fun Container.offCanvasFilterView(): Offcanvas? = null
 
     /**
-     * open function that fires when filter button on toolbar is clicked
+     * open function that fires when toolbar's filter button is clicked. If [apiFilter] contains a null value then
+     * a new [FILT] object is created (with no constructor parameters) and assign it to the apiFilter value.
      */
-    open fun onClickFilter() = offCanvasFilter?.show()
+    open fun onClickFilter() {
+        offCanvasFilter?.show()
+    }
 
     /**
      * open function that fires when a row is selected in the tabulator
