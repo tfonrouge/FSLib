@@ -150,7 +150,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
         }?.let {
             val urlParams = UrlParams(*it.toTypedArray())
             configViewItem?.let { configViewItem1 ->
-                setApiState(crudTask, item)?.let { s ->
+                setApiStateToUrlCall(crudTask, item)?.let { s ->
                     urlParams.pushParam(
                         configViewItem1.pairParam(
                             "apiState",
@@ -292,9 +292,9 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
 
     /**
      * Builds the url for the viewItem call.
-     * Can be overridden in order to add custom params to url
+     * Can be overridden in order to add a [ViewItem.apiState] param to url
      */
-    open suspend fun setApiState(crudTask: CrudTask, item: T?): STATE? = null
+    open suspend fun setApiStateToUrlCall(crudTask: CrudTask, item: T?): STATE? = null
 
     /**
      * open function that builds a filter form
