@@ -12,12 +12,12 @@ class ViewState(
 )
 
 @Suppress("unused")
-fun Container.showView(viewState: ViewState) {
+suspend fun Container.showView(viewState: ViewState) {
     viewState.configView.viewFunc.js.createInstance<View>(viewState.urlParams).apply {
         if (this is ViewList<*, *, *, *, *>) {
-            getApiFilterFromUrlParams()
+            setApiFilter()
         } else if (this is ViewItem<*, *, *>) {
-            getApiStateFromUrlParams()
+            setApiState()
         }
         div {
             addBeforeDisposeHook {

@@ -30,10 +30,11 @@ import web.prompts.confirm
 
 @Suppress("unused")
 abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
-    override val configView: ConfigViewItem<T, out ViewItem<T, ID, STATE>, *, ID, STATE>,
+    final override val configView: ConfigViewItem<T, out ViewItem<T, ID, STATE>, *, ID, STATE>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
+    apiState: STATE? = null,
 ) : ViewDataContainer(
     configView = configView,
     editable = editable,
@@ -42,9 +43,11 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
     /**
      * assignable var that contains an [STATE] object that can be used to parametrize the viewItem form, it can be
      * obtained from an apiState= url parameter, programmatically from the calling viewList on the [ViewList.setApiState]
-     * open function or from the backend
+     * open function or from the backend.
+     *
+     * Note: [ConfigViewItem.apiStateKClass] class must haven't constructor parameters
      */
-    var apiState: STATE? = null
+    var apiState: STATE = apiState ?: configView.apiStateKClass.js.createInstance()
 
     /**
      * Observable that holds data for the [ViewItem]
@@ -424,12 +427,9 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
      * [ConfigViewItem.apiStateKClass] class
      */
     @OptIn(InternalSerializationApi::class)
-    fun getApiStateFromUrlParams() {
+    fun setApiState() {
         urlParams?.pullUrlParam(configView.apiStateKClass.serializer(), "apiState")?.let {
             apiState = it
-        }
-        if (apiState == null) {
-            apiState = configView.apiStateKClass.js.createInstance()
         }
     }
 

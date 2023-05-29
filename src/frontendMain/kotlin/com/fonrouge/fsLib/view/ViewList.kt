@@ -33,6 +33,8 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     /**
      * If apiFilter kclass is not defined in [configView] this value needs to be initialized
      * on view construct in order to automatically get [apiFilter] parameter from url params
+     *
+     * Note: [ConfigViewList.apiFilterKClass] class must haven't constructor parameters
      */
     apiFilter: FILT? = null,
 ) : ViewDataContainer(
@@ -270,22 +272,22 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
         pageListBody()
     }
 
+    private fun encodedId(item: T?): String? {
+        return item?.let { configView.encodedId(it._id) }
+    }
+
     /**
-     * Gets an [FILT] object for the [apiFilter] property from url parameters, otherwise get the apiFilter from the
-     * [ConfigViewList.apiFilterKClass] class
+     * Sets the [apiFilter] value before display the view, By default tries to get the apiFilter value from the [urlParams]
+     * 'apiFilter' param
      */
     @OptIn(InternalSerializationApi::class)
-    fun getApiFilterFromUrlParams() {
+    open suspend fun setApiFilter() {
         urlParams?.pullUrlParam(
             serializer = configView.apiFilterKClass.serializer(),
             key = "apiFilter"
         )?.let {
             apiFilter.value = it
         }
-    }
-
-    private fun encodedId(item: T?): String? {
-        return item?.let { configView.encodedId(it._id) }
     }
 
     /**
