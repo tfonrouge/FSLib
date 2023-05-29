@@ -6,6 +6,8 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STATE>, E : IDataList, ID : Any, FILT : Any, STATE : Any>(
@@ -31,8 +33,10 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STAT
     /**
      * helper to build an api filter parameter in the url string
      */
-    inline fun <reified T : Any> urlApiFilter(obj: T): String =
-        pushUrlParam(pairParam("apiFilter", obj))
+    @Suppress("unused")
+    @OptIn(InternalSerializationApi::class)
+    fun urlApiFilter(obj: FILT): String =
+        pushUrlParam(pairParam(serializer = apiFilterKClass.serializer(), key = "apiFilter", obj = obj))
 
     init {
         configViewListMap[baseUrl] = this
