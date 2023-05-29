@@ -25,7 +25,7 @@ import kotlinx.serialization.serializer
 
 @Suppress("unused")
 abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, STATE : Any>(
-    override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT, STATE>, E, ID, FILT, STATE>,
+    final override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT, STATE>, E, ID, FILT, STATE>,
     configViewItem: ConfigViewItem<T, *, *, ID, STATE>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
@@ -44,11 +44,17 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
      * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
      * or programmatically, and it's delivered to the backend
      */
-    val apiFilter: ObservableValue<FILT?> = ObservableValue(apiFilter).also {
-        it.subscribe {
-            onApiFilterUpdate()
+    val apiFilter: ObservableValue<FILT> =
+        ObservableValue(apiFilter ?: configView.apiFilterKClass.js.createInstance()).also {
+            it.subscribe {
+                onApiFilterUpdate()
+            }
         }
-    }
+
+    /**
+     * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
+     * matching by name
+     */
     var configViewItem: ConfigViewItem<T, *, *, ID, STATE>? = configViewItem
         get() {
             if (field != null) return field

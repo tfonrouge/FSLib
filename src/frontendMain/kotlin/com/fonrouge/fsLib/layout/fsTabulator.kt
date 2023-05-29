@@ -117,9 +117,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any
         result
     }
 
-    val apiFilterSerialize: () -> String? = {
-        viewList.apiFilter.value?.let { Json.encodeToString(it) }
-    }
+    val apiFilterSerialize: () -> String? = { Json.encodeToString(viewList.apiFilter.value) }
 
     vPanel {
         viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)

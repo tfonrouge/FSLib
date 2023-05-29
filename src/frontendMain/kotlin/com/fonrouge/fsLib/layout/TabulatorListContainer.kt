@@ -23,9 +23,9 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
+class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILTER : Any>(
     serviceManager: KVServiceMgr<E>,
-    function: suspend E.(ApiList, F?) -> ListState<T>,
+    function: suspend E.(ApiList, FILTER) -> ListState<T>,
     private val apiListBlock: (() -> ApiList),
     private val apiListUpdate: (ApiList.() -> Unit)? = null,
     private val apiFilterSerialize: () -> String?,
@@ -181,9 +181,9 @@ class TabulatorListContainer<T : BaseDoc<U>, E : IDataList, U : Any, F : Any>(
     }
 }
 
-inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, F : Any> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, FILTER : Any> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(ApiList, F?) -> ListState<T>,
+    noinline function: suspend E.(ApiList, FILTER) -> ListState<T>,
     noinline apiListBlock: (() -> ApiList),
     noinline apiListUpdate: (ApiList.() -> Unit)? = null,
     noinline apiFilterSerialize: () -> String?,
@@ -194,8 +194,8 @@ inline fun <reified T : BaseDoc<U>, E : IDataList, U : Any, F : Any> Container.t
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
     noinline requestFilter: (suspend RequestInit.() -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, U, F>.() -> Unit)? = null
-): TabulatorListContainer<T, E, U, F> {
+    noinline init: (TabulatorListContainer<T, E, ID, FILTER>.() -> Unit)? = null
+): TabulatorListContainer<T, E, ID, FILTER> {
     val tabulatorListContainer =
         TabulatorListContainer(
             serviceManager = serviceManager,
