@@ -9,6 +9,8 @@ import io.kvision.remote.*
 import io.kvision.tabulator.TableType
 import io.kvision.tabulator.Tabulator
 import io.kvision.tabulator.TabulatorOptions
+import io.kvision.toast.Toast
+import io.kvision.toast.ToastOptions
 import io.kvision.utils.Serialization
 import kotlinx.browser.window
 import kotlinx.serialization.*
@@ -121,22 +123,33 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILTER : 
             requestFilter = requestFilter
         ).then { r: dynamic ->
 //            console.warn("r ->", r, "<-")
-            val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-//            console.warn("result ->", result, "<-")
-            onResult?.let { it(result) }
-            if (result.checksum != undefined) {
-                diffChecksums = (result.checksum as? String) != checksum
-                checksum = result.checksum as? String
-            }
-            if (page != null) {
-                if (result.data == undefined) {
-                    result.data = js("[]")
+            if (r.result != undefined) {
+                val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+//                console.warn("result ->", result, "<-")
+                onResult?.let { it(result) }
+                if (result.checksum != undefined) {
+                    diffChecksums = (result.checksum as? String) != checksum
+                    checksum = result.checksum as? String
                 }
-                result
-            } else if (result.data == undefined) {
-                js("[]")
+                if (page != null) {
+                    if (result.data == undefined) {
+                        result.data = js("[]")
+                    }
+                    result
+                } else if (result.data == undefined) {
+                    js("[]")
+                } else {
+                    result.data
+                }
             } else {
-                result.data
+                console.error("Server response error:", r)
+                if (r.error != undefined && r.exceptionType != undefined) {
+                    Toast.danger(
+                        message = "Server response error -> ${r.error}, exceptionType -> ${r.exceptionType}",
+                        options = ToastOptions(avatar = "")
+                    )
+                }
+                null
             }
         }
     }
