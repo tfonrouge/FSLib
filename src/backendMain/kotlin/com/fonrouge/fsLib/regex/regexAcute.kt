@@ -1,7 +1,11 @@
 package com.fonrouge.fsLib.regex
 
+import org.bson.conversions.Bson
+import org.litote.kmongo.regex
+import kotlin.reflect.KProperty
+
 @Suppress("unused")
-fun String.regexAcute(): String {
+fun String.regexAcute(spaceAsStar: Boolean = true): String {
     var result = ""
     forEach {
         result += when (it) {
@@ -20,5 +24,12 @@ fun String.regexAcute(): String {
             else -> it
         }
     }
-    return result
+    return if (spaceAsStar) result.replace(" ", " .*") else result
 }
+
+@Suppress("unused")
+fun KProperty<String?>.regexAcute(search: String, spaceAsStar: Boolean = true, ignoreCase: Boolean = true): Bson =
+    if (ignoreCase)
+        regex(Regex(search.regexAcute(spaceAsStar = spaceAsStar), option = RegexOption.IGNORE_CASE))
+    else
+        regex(search.regexAcute(spaceAsStar = spaceAsStar))
