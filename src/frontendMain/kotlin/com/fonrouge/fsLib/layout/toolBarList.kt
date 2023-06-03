@@ -25,7 +25,20 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             observableState = viewList.toolBarListUpdateObservable,
             removeChildren = true
         ) {
-            viewList.configViewItem?.let { configViewItem ->
+            if (viewList.toolBarFilter) {
+                navLink(
+                    label = if (minToolbarSize) "" else "Filter",
+                    icon = "fas fa-filter"
+                ) {
+                    onClick {
+                        it.preventDefault()
+                        viewList.onClickFilter()
+                    }
+                    enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
+                }
+                navLink(label = "|")
+            }
+             viewList.configViewItem?.let { configViewItem ->
                 linkRead = navLink(
                     label = if (minToolbarSize) "" else "Detail",
                     icon = iconCrud(CrudTask.Read),
@@ -75,19 +88,6 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                     }
-                }
-                navLink(label = "|")
-            }
-            if (viewList.toolBarFilter) {
-                navLink(
-                    label = if (minToolbarSize) "" else "Filter",
-                    icon = "fas fa-filter"
-                ) {
-                    onClick {
-                        it.preventDefault()
-                        viewList.onClickFilter()
-                    }
-                    enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
                 }
                 navLink(label = "|")
             }
