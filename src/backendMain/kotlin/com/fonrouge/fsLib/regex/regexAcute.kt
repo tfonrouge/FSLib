@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.regex
 import org.litote.kmongo.regex
 import kotlin.reflect.KProperty
 
-@Suppress("unused")
 fun String.regexAcute(
     spaceAsStar: Boolean = true
 ): String {
