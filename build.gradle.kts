@@ -42,11 +42,7 @@ kotlin {
         }
     }
     js("frontend") {
-        browser {
-            commonWebpackConfig {
-                outputFileName = "main.bundle.js"
-            }
-        }
+        browser()
         binaries.library()
     }
     android {
@@ -55,24 +51,15 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-//                api("ch.qos.logback:logback-classic:$logbackVersion")
-//                api("io.kvision:kvision-server-ktor:$kvisionVersion")
                 api("io.kvision:kvision-server-ktor-koin:$kvisionVersion")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
-            }
-            kotlin.srcDir("build/generated-src/common")
-        }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
             }
         }
         val backendMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
-                api("commons-codec:commons-codec:$commonsCodecVersion")
                 api("io.ktor:ktor-client-core:${ktor_version}")
                 api("io.ktor:ktor-client-cio:${ktor_version}")
                 api("io.ktor:ktor-client-auth:${ktor_version}")
@@ -100,7 +87,6 @@ kotlin {
                 api("com.microsoft.sqlserver:mssql-jdbc:8.2.1.jre8")
             }
         }
-        val backendTest by getting
         val frontendMain by getting {
             dependencies {
                 api("org.litote.kmongo:kmongo-id:$kmongoVersion")
@@ -128,7 +114,6 @@ kotlin {
             }
             kotlin.srcDir("build/generated-src/frontend")
         }
-        val frontendTest by getting
         val androidMain by getting
     }
 }
@@ -136,7 +121,6 @@ kotlin {
 android {
     namespace = "com.fonrouge.fsLib"
     compileSdk = 33
-//    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 27
         targetSdk = 33
