@@ -49,6 +49,7 @@ kotlin {
         publishLibraryVariants("release", "debug")
     }
     sourceSets {
+        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 api("io.kvision:kvision-server-ktor-koin:$kvisionVersion")
@@ -56,6 +57,7 @@ kotlin {
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val backendMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
@@ -84,9 +86,10 @@ kotlin {
                 api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
                 api("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$kotlinxDatetimeVersion")
                 api("net.sourceforge.jtds:jtds:1.3.1")
-                api("com.microsoft.sqlserver:mssql-jdbc:8.2.1.jre8")
+                api("com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre8")
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val frontendMain by getting {
             dependencies {
                 api("org.litote.kmongo:kmongo-id:$kmongoVersion")
@@ -114,6 +117,7 @@ kotlin {
             }
             kotlin.srcDir("build/generated-src/frontend")
         }
+        @Suppress("UNUSED_VARIABLE")
         val androidMain by getting
     }
 }
