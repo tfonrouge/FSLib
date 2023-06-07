@@ -6,9 +6,11 @@ import io.kvision.form.FormInput
 import io.kvision.form.GenericFormComponent
 import io.kvision.form.InputSize
 import io.kvision.form.ValidationStatus
-import io.kvision.form.number.numericInput
 import io.kvision.form.number.spinnerInput
-import io.kvision.html.*
+import io.kvision.html.ButtonStyle
+import io.kvision.html.button
+import io.kvision.html.div
+import io.kvision.html.span
 import io.kvision.panel.FlexPanel
 import io.kvision.panel.SimplePanel
 import io.kvision.panel.flexPanel
@@ -34,9 +36,7 @@ open class WeekInput(
     private var weekPickerWidget2: FlexPanel
     protected val observers = mutableListOf<(Date?) -> Unit>()
     val localDateObservable: ObservableValue<LocalDate?> = ObservableValue(value?.let { firstDayOfDateWeek(it) })
-
     val disabledObservable = ObservableValue(false)
-
     override var value: Date?
         get() = localDateObservable.value?.let {
             Date(
@@ -62,7 +62,6 @@ open class WeekInput(
         set(value) {
             disabledObservable.value = value
         }
-
     override var name: String? by refreshOnUpdate()
     override var size: InputSize? by refreshOnUpdate()
     override var validationStatus: ValidationStatus?
@@ -111,19 +110,14 @@ open class WeekInput(
                 justify = JustifyContent.FLEXSTART,
                 useWrappers = true
             ) {
-                button(text = "", icon = "fas fa-chevron-left", style = ButtonStyle.OUTLINEDARK) {
-                    fontSize = 0.75.rem
-                    onClick {
-                        localDateObservable.value = localDateObservable.value?.minusWeeks(1)
-                    }
-                }
-                numericInput(
+                spinnerInput(
                     value = localDateObservable.value?.isoWeekOfWeekyear(),
-                    decimals = 0,
                     min = 1,
                     max = 53,
                 ) {
-                    width = 3.rem
+                    border = Border()
+                    placeholder = "W#"
+                    width = 4.rem
                     localDateObservable.subscribe {
                         value = it?.isoWeekOfWeekyear()
                     }
@@ -137,22 +131,13 @@ open class WeekInput(
                         } ?: run { localDateObservable.value = null }
                     }
                 }
-                button(text = "", icon = "fas fa-chevron-right", style = ButtonStyle.OUTLINEDARK) {
-                    fontSize = 0.75.rem
-                    onClick {
-                        localDateObservable.value = localDateObservable.value?.plusDays(7)
-                    }
-                }
-                label(content = " Año:") {
-                    marginLeft = 1.rem
-                    marginRight = 0.5.rem
-                }
                 spinnerInput(
                     value = localDateObservable.value?.year(),
                     min = localDateObservable.value?.year()?.toInt()?.minus(20),
                     max = localDateObservable.value?.year()?.toInt()?.plus(20),
                 ) {
-                    width = 6.rem
+                    placeholder = "Year"
+                    width = 5.rem
                     onChange {
                         value?.let {
                             val d = localDateObservable.value?.withYear(it)
