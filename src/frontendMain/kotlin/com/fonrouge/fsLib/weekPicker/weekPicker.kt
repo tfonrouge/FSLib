@@ -12,6 +12,7 @@ import io.kvision.html.*
 import io.kvision.panel.FlexPanel
 import io.kvision.panel.SimplePanel
 import io.kvision.panel.flexPanel
+import io.kvision.panel.hPanel
 import io.kvision.state.MutableState
 import io.kvision.state.ObservableValue
 import io.kvision.state.bind
@@ -25,14 +26,15 @@ import kotlinx.datetime.internal.JSJoda.LocalDate
 import kotlinx.datetime.internal.JSJoda.ZoneId
 import kotlin.js.Date
 
-open class WeekpickerInput(
+open class WeekInput(
     value: Date? = null,
     val monthColors: List<String> = listOf("violet", "LightBlue", "brown"),
-    init: (WeekpickerInput.() -> Unit)? = null,
+    init: (WeekInput.() -> Unit)? = null,
 ) : SimplePanel(), GenericFormComponent<Date?>, FormInput, MutableState<Date?> {
     private var weekPickerWidget2: FlexPanel
     protected val observers = mutableListOf<(Date?) -> Unit>()
-    val localDateObservable: ObservableValue<LocalDate?> = ObservableValue(value?.let { firstDayOfWeek(it) })
+    val localDateObservable: ObservableValue<LocalDate?> = ObservableValue(value?.let { firstDayOfDateWeek(it) })
+
     val disabledObservable = ObservableValue(false)
 
     override var value: Date?
@@ -44,7 +46,7 @@ open class WeekpickerInput(
             )
         }
         set(value) {
-            localDateObservable.value = value?.let { firstDayOfWeek(it) }
+            localDateObservable.value = value?.let { firstDayOfDateWeek(it) }
         }
 
     override fun subscribe(observer: (Date?) -> Unit): () -> Unit {
@@ -75,14 +77,28 @@ open class WeekpickerInput(
         TODO("Not yet implemented")
     }
 
-    private fun firstDayOfWeek(date: Date): LocalDate =
-        LocalDate.of(
-            year = date.getFullYear(),
-            month = date.getMonth() - 1,
-            dayOfMonth = date.getDate()
-        ).let { it.minusDays(it.dayOfWeek().ordinal()) }
+    fun onChange(block: (Date?) -> Unit) {
+        localDateObservable.subscribe { localDate ->
+            block(localDate?.let { firstDayOfLocalDateWeek(it) })
+        }
+    }
 
-    @Suppress("unused")
+    private fun firstDayOfDateWeek(date: Date) = LocalDate.of(
+        year = date.getFullYear(),
+        month = date.getMonth() + 1,
+        dayOfMonth = date.getDate()
+    ).let { it.minusDays(it.dayOfWeek().ordinal()) }
+
+    private fun firstDayOfLocalDateWeek(localDate: LocalDate) =
+        localDate.minusDays(localDate.dayOfWeek().ordinal()).let {
+            Date(
+                year = it.year().toInt(),
+                month = it.month().ordinal().toInt(),
+                day = it.dayOfMonth().toInt()
+            )
+        }
+
+    @Suppress("unused", "MemberVisibilityCanBePrivate")
     fun Container.weekPickerWidget() =
         flexPanel(
             direction = FlexDirection.COLUMN,
@@ -101,10 +117,24 @@ open class WeekpickerInput(
                         localDateObservable.value = localDateObservable.value?.minusWeeks(1)
                     }
                 }
-                numericInput(value = localDateObservable.value?.isoWeekOfWeekyear(), decimals = 0) {
+                numericInput(
+                    value = localDateObservable.value?.isoWeekOfWeekyear(),
+                    decimals = 0,
+                    min = 1,
+                    max = 53,
+                ) {
                     width = 3.rem
                     localDateObservable.subscribe {
                         value = it?.isoWeekOfWeekyear()
+                    }
+                    onChange {
+                        value?.let { weekNum ->
+                            val d = localDateObservable.value?.let {
+                                it.minusWeeks(it.isoWeekOfWeekyear().toInt().minus(1))
+                                    .plusWeeks(weekNum.toInt().minus(1))
+                            }
+                            localDateObservable.value = d?.minusDays(d.dayOfWeek().ordinal().toInt())
+                        } ?: run { localDateObservable.value = null }
                     }
                 }
                 button(text = "", icon = "fas fa-chevron-right", style = ButtonStyle.OUTLINEDARK) {
@@ -127,7 +157,7 @@ open class WeekpickerInput(
                         value?.let {
                             val d = localDateObservable.value?.withYear(it)
                             localDateObservable.value = d?.minusDays(d.dayOfWeek().ordinal().toInt())
-                        }
+                        } ?: run { localDateObservable.value = null }
                     }
                     localDateObservable.subscribe {
                         value = it?.year()
@@ -172,13 +202,13 @@ open class WeekpickerInput(
                                     localDateObservable.value = d
                                     btnObs.value = false
                                 }
+                                if (weekNumber == localDateObservable.value?.isoWeekOfWeekyear()) {
+                                    border = Border(10.px, BorderStyle.INSET, Color("purple"))
+                                }
                                 cell(content = "$weekNumber") {
                                     setStyle("background-color", "gray")
                                     setStyle("color", "white")
                                     setStyle("text-align", "center")
-                                    if (weekNumber == localDateObservable.value?.isoWeekOfWeekyear()) {
-                                        border = Border(10.px, BorderStyle.INSET, Color("purple"))
-                                    }
                                 }
                                 for (n in 0..6) {
                                     if (rDate1.month() != month) {
@@ -207,17 +237,18 @@ open class WeekpickerInput(
                         if (it) showAnim() else hideAnim()
                 }
                 div().bind(obsMonths) {
-                    it.forEachIndexed { i, s ->
-                        span("$s:") {
-                            marginLeft = 1.rem
-                        }
-                        span(
-                            rich = true,
-                            content = """
-                        <span style="color:${monthColors[i]}">&#9632;</span>
-                    """.trimIndent()
-                        ) {
-                            fontSize = 1.5.rem
+                    hPanel(alignItems = AlignItems.CENTER) {
+                        it.forEachIndexed { i, s ->
+                            span("$s:") {
+                                marginLeft = 1.rem
+                            }
+                            span(
+                                rich = true,
+                                content = "&#9632;",
+                            ) {
+                                setStyle("color", monthColors[i])
+                                fontSize = 2.rem
+                            }
                         }
                     }
                 }
@@ -233,12 +264,12 @@ open class WeekpickerInput(
 @Suppress("unused")
 fun Container.weekPickerInput(
     value: Date? = null,
-    init: (WeekpickerInput.() -> Unit)? = null,
-): WeekpickerInput {
-    val weekpickerInput = WeekpickerInput(
+    init: (WeekInput.() -> Unit)? = null,
+): WeekInput {
+    val weekInput = WeekInput(
         value = value,
         init = init,
     )
-    add(weekpickerInput)
-    return weekpickerInput
+    add(weekInput)
+    return weekInput
 }
