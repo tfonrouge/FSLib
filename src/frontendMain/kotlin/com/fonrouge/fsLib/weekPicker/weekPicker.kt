@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.weekPicker
 
 import com.fonrouge.fsLib.enums.Meses
+import com.fonrouge.fsLib.lib.firstDayOfDateWeek
 import io.kvision.core.*
 import io.kvision.form.FormInput
 import io.kvision.form.GenericFormComponent
@@ -81,12 +82,6 @@ open class WeekInput(
             block(localDate?.let { firstDayOfLocalDateWeek(it) })
         }
     }
-
-    private fun firstDayOfDateWeek(date: Date) = LocalDate.of(
-        year = date.getFullYear(),
-        month = date.getMonth() + 1,
-        dayOfMonth = date.getDate()
-    ).let { it.minusDays(it.dayOfWeek().ordinal()) }
 
     private fun firstDayOfLocalDateWeek(localDate: LocalDate) =
         localDate.minusDays(localDate.dayOfWeek().ordinal()).let {
