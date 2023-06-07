@@ -37,7 +37,7 @@ val Date.toISOWeek: String
     }
 
 @Suppress("unused")
-/* TODO: use a more precise/std method */
+        /* TODO: use a more precise/std method */
 fun isoWeekToDate(isoWeek: String): Date {
     val year = isoWeek.substring(0..3).toInt()
     val localDateJsJ = LocalDate.of(
@@ -46,5 +46,7 @@ fun isoWeekToDate(isoWeek: String): Date {
         dayOfMonth = 4
     )
     val week = isoWeek.substring(6..7).toInt() - 1
-    return convert(localDateJsJ.plusWeeks(week)).toDate()
+    return convert(
+        localDateJsJ.plusWeeks(week).let { it.minusDays(it.dayOfWeek().ordinal()) }
+    ).toDate()
 }
