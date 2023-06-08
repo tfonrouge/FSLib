@@ -11,7 +11,7 @@ fun firstDayOfDateWeek(date: Date) = LocalDate.of(
 ).let { it.minusDays(it.dayOfWeek().ordinal()) }
 
 @Suppress("unused")
-val Date.toWeek: String
+val Date.toWeekRange: String
     get() {
         val localDateJsJ: LocalDate = firstDayOfDateWeek(this)
         val opt = dateLocaleOptions {
@@ -38,15 +38,33 @@ val Date.toISOWeek: String
 
 @Suppress("unused")
         /* TODO: use a more precise/std method */
-fun isoWeekToDate(isoWeek: String): Date {
-    val year = isoWeek.substring(0..3).toInt()
-    val localDateJsJ = LocalDate.of(
-        year = year,
-        month = 1,
-        dayOfMonth = 4
-    )
-    val week = isoWeek.substring(6..7).toInt() - 1
-    return convert(
-        localDateJsJ.plusWeeks(week).let { it.minusDays(it.dayOfWeek().ordinal()) }
-    ).toDate()
-}
+val String.isoWeekToDate: Date?
+    get() = try {
+        val year = substring(0..3).toInt()
+        val localDateJsJ = LocalDate.of(
+            year = year,
+            month = 1,
+            dayOfMonth = 4
+        )
+        val week = substring(6..7).toInt() - 1
+        convert(
+            localDateJsJ.plusWeeks(week).let { it.minusDays(it.dayOfWeek().ordinal()) }
+        ).toDate()
+    } catch (e: Exception) {
+        null
+    }
+
+/**
+ * builds a [Date] object from a string with format YYYY-MM[-DD], day part is optional
+ */
+@Suppress("unused")
+val String.yearMonthToDate: Date?
+    get() = try {
+        val parts = split("-")
+        val year = parts[0].toInt()
+        val month = parts[1].toInt() - 1
+        val day = parts.getOrNull(2)?.toInt() ?: 1
+        Date(year, month, day)
+    } catch (e: Exception) {
+        null
+    }
