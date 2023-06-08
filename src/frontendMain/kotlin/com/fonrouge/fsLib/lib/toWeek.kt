@@ -36,6 +36,9 @@ val Date.toISOWeek: String
         return "${localDateJsJ.year()}-W${localDateJsJ.isoWeekOfWeekyear()}"
     }
 
+/**
+ * builds an [Date] object from ISO8601 week pattern YYYY-Www, resulting date will be start on monday
+ */
 @Suppress("unused")
         /* TODO: use a more precise/std method */
 val String.isoWeekToDate: Date?
@@ -55,7 +58,7 @@ val String.isoWeekToDate: Date?
     }
 
 /**
- * builds a [Date] object from a string with format YYYY-MM[-DD], day part is optional
+ * builds an [Date] object from a string with format YYYY-MM[-DD], day part is optional
  */
 @Suppress("unused")
 val String.yearMonthToDate: Date?
