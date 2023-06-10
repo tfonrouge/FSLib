@@ -165,16 +165,19 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
                         )
                     )
                 }
-                urlParams.pushParam(
-                    "apiFilter" to encodeURIComponent(
-                        btoa(
-                            Json.encodeToString(
-                                configView.apiFilterKClass.serializer(),
-                                apiFilter.value
+                console.warn("ApiFilter KClass", configView.apiFilterKClass)
+                if (configView.apiFilterKClass != Unit::class) {
+                    urlParams.pushParam(
+                        "apiFilter" to encodeURIComponent(
+                            btoa(
+                                Json.encodeToString(
+                                    configView.apiFilterKClass.serializer(),
+                                    apiFilter.value
+                                )
                             )
                         )
                     )
-                )
+                }
                 apiFilter.value
                 masterViewItem?.let { viewItem ->
                     urlParams.addContext(viewItem.item, viewItem.encodedId())
