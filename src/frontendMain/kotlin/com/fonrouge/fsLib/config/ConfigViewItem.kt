@@ -15,15 +15,17 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
+import js.uri.decodeURIComponent
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
+import web.buffer.atob
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : IDataItem, ID : Any, STATE : Any>(
+abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT, STATE>, E : IDataItem, ID : Any, FILT : Any, STATE : Any>(
     val itemKClass: KClass<T>,
     idKClass: KClass<ID>? = null,
     val apiStateKClass: KClass<STATE>,
@@ -31,7 +33,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : I
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     private val serviceManager: KVServiceManager<E>,
-    private val function: suspend E.(ID?, ApiItem<T>) -> ItemState<T, STATE>,
+    private val function: suspend E.(ID?, ApiItem<T>, FILT) -> ItemState<T, STATE>,
     private val stateFunction: (() -> String)? = null,
     val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
 ) : ConfigViewContainer<T, V, ID>(
@@ -42,7 +44,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : I
     baseUrl = baseUrl
 ) {
     companion object {
-        val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *>>()
+        val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
         val a: KClass<Unit> = Unit::class
     }
 
@@ -87,6 +89,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : I
         itemId: String? = JSON.stringify(null),
         item: T? = null,
         urlParams: UrlParams? = null,
+        apiFilterSerialized: String?,
         block: (ItemState<T, STATE>) -> ItemState<T, STATE>,
     ) {
         val (url, method) = serviceManager.requireCall(function)
@@ -103,7 +106,8 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : I
                     contextId = urlParams?.contextId,
                     state = stateFunction?.invoke(),
                 )
-            )
+            ),
+            apiFilterSerialized?.let { atob(decodeURIComponent(it)) }
         )
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
@@ -147,7 +151,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : I
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : IDataItem, ID : Any, STATE : Any> configViewItem(
+fun <T : BaseDoc<ID>, V : ViewItem<T, ID, FILT, STATE>, E : IDataItem, ID : Any, FILT : Any, STATE : Any> configViewItem(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>? = null,
     apiStateKClass: KClass<STATE>,
@@ -155,10 +159,10 @@ fun <T : BaseDoc<ID>, V : ViewItem<T, ID, STATE>, E : IDataItem, ID : Any, STATE
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     serviceManager: KVServiceManager<E>,
-    function: suspend E.(ID?, ApiItem<T>) -> ItemState<T, STATE>,
+    function: suspend E.(ID?, ApiItem<T>, FILT) -> ItemState<T, STATE>,
     stateFunction: (() -> String)? = null,
     labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
-): ConfigViewItem<T, V, E, ID, STATE> = object : ConfigViewItem<T, V, E, ID, STATE>(
+): ConfigViewItem<T, V, E, ID, FILT, STATE> = object : ConfigViewItem<T, V, E, ID, FILT, STATE>(
     itemKClass = itemKClass,
     idKClass = idKClass,
     apiStateKClass = apiStateKClass,

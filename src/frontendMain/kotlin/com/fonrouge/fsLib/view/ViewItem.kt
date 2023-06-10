@@ -29,8 +29,8 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
-    final override val configView: ConfigViewItem<T, out ViewItem<T, ID, STATE>, *, ID, STATE>,
+abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any, STATE : Any>(
+    final override val configView: ConfigViewItem<T, out ViewItem<T, ID, FILT, STATE>, *, ID, FILT, STATE>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -126,6 +126,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
                         itemId = encodedId(),
                         item = dataFormBeforeApiCall(formPanel.getData()),
                         urlParams = urlParams,
+                        apiFilterSerialized = urlParams?.params?.get("apiFilter")?.unsafeCast<String?>()
                     ) { itemResponse ->
                         block?.let { it(itemResponse) }
                         itemResponse
@@ -262,6 +263,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
                         callType = ApiItem.CallType.Query,
                         itemId = urlParams?.id,
                         urlParams = urlParams,
+                        apiFilterSerialized = urlParams?.params?.get("apiFilter")?.unsafeCast<String?>()
                     ) { itemResponse ->
                         itemResponse.apiState?.let {
                             this@ViewItem.apiState = it
@@ -340,6 +342,8 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
                                                             callType = ApiItem.CallType.Action,
                                                             itemId = urlParams?.id,
                                                             urlParams = urlParams,
+                                                            apiFilterSerialized = urlParams?.params?.get("apiFilter")
+                                                                ?.unsafeCast<String?>()
                                                         ) { itemResponse1 ->
                                                             buttonCancel?.hide()
                                                             buttonAccept?.hide()
@@ -451,6 +455,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
                 callType = ApiItem.CallType.Query,
                 itemId = encodedId(),
                 urlParams = urlParams,
+                apiFilterSerialized = urlParams?.params?.get("apiFilter")?.unsafeCast<String?>()
             ) { itemResponse ->
                 data.value = itemResponse
                 itemResponse

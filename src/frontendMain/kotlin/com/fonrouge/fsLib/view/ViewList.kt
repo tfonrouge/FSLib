@@ -18,15 +18,18 @@ import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
 import io.kvision.utils.createInstance
+import js.uri.encodeURIComponent
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import web.buffer.btoa
 
 @Suppress("unused")
 abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, STATE : Any>(
     final override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT, STATE>, E, ID, FILT, STATE>,
-    configViewItem: ConfigViewItem<T, *, *, ID, STATE>? = null,
+    configViewItem: ConfigViewItem<T, *, *, ID, FILT, STATE>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -57,7 +60,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
      * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
      * matching by name
      */
-    var configViewItem: ConfigViewItem<T, *, *, ID, STATE>? = configViewItem
+    var configViewItem: ConfigViewItem<T, *, *, ID, FILT, STATE>? = configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewFunc.simpleName!!
@@ -66,7 +69,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
             } else {
                 "ViewItem${configView.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, STATE>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, FILT, STATE>>()
         }
 
     /**
@@ -81,7 +84,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     var navbarTabulator: NavbarTabulator<ID>? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-    var masterViewItem: ViewItem<*, *, *>? = null
+    var masterViewItem: ViewItem<*, *, *, *>? = null
         set(value) {
             editable = value?.urlParams?.actionUpsert == true
             field = value
@@ -147,8 +150,8 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
                     listOf("action" to crudTask.name, "id" to id)
                 }
             }
-        }?.let {
-            val urlParams = UrlParams(*it.toTypedArray())
+        }?.let { params ->
+            val urlParams = UrlParams(*params.toTypedArray())
             onSetContext()?.let {
                 urlParams.addContext(it)
             }
@@ -162,6 +165,17 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
                         )
                     )
                 }
+                urlParams.pushParam(
+                    "apiFilter" to encodeURIComponent(
+                        btoa(
+                            Json.encodeToString(
+                                configView.apiFilterKClass.serializer(),
+                                apiFilter.value
+                            )
+                        )
+                    )
+                )
+                apiFilter.value
                 masterViewItem?.let { viewItem ->
                     urlParams.addContext(viewItem.item, viewItem.encodedId())
                 } ?: urlParams.addContext(this@ViewList.urlParams?.apiList)
@@ -318,7 +332,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     open fun onRowSelected(item: T?) {}
 
     /**
-     * allows to set an custom context to be included in url params
+     * allows to set a custom context to be included in url params
      */
     open fun onSetContext(): Pair<String?, String>? = null
 
