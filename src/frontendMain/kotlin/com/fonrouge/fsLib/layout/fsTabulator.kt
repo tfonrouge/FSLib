@@ -79,7 +79,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any
         columns = viewList.columnDefinitionList,
 //        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else "calc(100vh - 50vh)",
         height = fsTabOptions?.height,
-        layout = Layout.FITDATASTRETCH,
+        layout = Layout.FITDATAFILL,
         layoutColumnsOnNewData = true,
         pagination = fsTabOptions?.pagination,
         paginationMode = PaginationMode.REMOTE,

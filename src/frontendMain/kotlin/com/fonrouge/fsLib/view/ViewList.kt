@@ -337,6 +337,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     /**
      * allows to set a custom context to be included in url params
      */
+    @Deprecated(message = "contextClass/contextId url params", replaceWith = ReplaceWith("ApiFilter [FILT]"))
     open fun onSetContext(): Pair<String?, String>? = null
 
     /**
