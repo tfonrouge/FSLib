@@ -149,8 +149,11 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
             }
         }?.let {
             val urlParams = UrlParams(*it.toTypedArray())
+            onSetContext()?.let {
+                urlParams.addContext(it)
+            }
             configViewItem?.let { configViewItem1 ->
-                setApiStateToUrlCall(crudTask, item)?.let { s ->
+                pushApiStateToViewItemUrl(crudTask, item)?.let { s ->
                     urlParams.pushParam(
                         configViewItem1.pairParam(
                             "apiState",
@@ -291,10 +294,10 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     }
 
     /**
-     * Builds the url for the viewItem call.
+     * push an [ViewItem.apiState] the url for the viewItem call.
      * Can be overridden in order to add a [ViewItem.apiState] param to url
      */
-    open suspend fun setApiStateToUrlCall(crudTask: CrudTask, item: T?): STATE? = null
+    open suspend fun pushApiStateToViewItemUrl(crudTask: CrudTask, item: T?): STATE? = null
 
     /**
      * open function that builds a filter form
@@ -315,6 +318,11 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     open fun onRowSelected(item: T?) {}
 
     /**
+     * allows to set an custom context to be included in url params
+     */
+    open fun onSetContext(): Pair<String?, String>? = null
+
+    /**
      * the main display for the viewList tabulator area
      */
     abstract fun Container.pageListBody()
@@ -330,6 +338,17 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
             navbarTabulator?.linkUpdate?.hide()
             navbarTabulator?.linkDelete?.hide()
         }
+    }
+
+    fun <F : Any> urlApiFilter(
+        configViewList: ConfigViewList<*, *, *, *, F, *>,
+        apiFilter: F,
+    ): String {
+        val params = mutableListOf<Pair<String, String>>()
+        urlParams?.contextClass?.let { params.add("contextClass" to it) }
+        urlParams?.contextId?.let { params.add("contextId" to it) }
+        params.add(configViewList.apiFilterParam(apiFilter))
+        return configViewList.urlWithParams(*params.toTypedArray())
     }
 
     /**

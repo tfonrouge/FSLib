@@ -35,8 +35,8 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STAT
      */
     @Suppress("unused")
     @OptIn(InternalSerializationApi::class)
-    fun urlApiFilter(obj: FILT): String =
-        pushUrlParam(pairParam(serializer = apiFilterKClass.serializer(), key = "apiFilter", obj = obj))
+    fun apiFilterParam(obj: FILT): Pair<String, String> =
+        pairParam(serializer = apiFilterKClass.serializer(), key = "apiFilter", obj = obj)
 
     init {
         configViewListMap[baseUrl] = this

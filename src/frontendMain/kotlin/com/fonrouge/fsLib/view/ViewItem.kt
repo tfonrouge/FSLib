@@ -42,7 +42,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, STATE : Any>(
 ) {
     /**
      * assignable var that contains an [STATE] object that can be used to parametrize the viewItem form, it can be
-     * obtained from an apiState= url parameter, programmatically from the calling viewList on the [ViewList.setApiStateToUrlCall]
+     * obtained from an apiState= url parameter, programmatically from the calling viewList on the [ViewList.pushApiStateToViewItemUrl]
      * open function or from the backend.
      *
      * Note: [ConfigViewItem.apiStateKClass] class must haven't constructor parameters

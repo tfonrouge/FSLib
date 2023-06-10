@@ -67,6 +67,11 @@ data class UrlParams(
         return this
     }
 
+    fun addContext(param: Pair<String?, String>) {
+        param.first?.let { params.set("contextClass", it) }
+        param.second.let { params.set("contextId", it) }
+    }
+
     /**
      * Gets an object [T] from the url parameters with the [key] value
      */

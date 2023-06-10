@@ -8,3 +8,4 @@
 .idea/jarRepositories.xml
 .DS_Store
 /local.properties
+/kotlin-js-store/yarn.lock

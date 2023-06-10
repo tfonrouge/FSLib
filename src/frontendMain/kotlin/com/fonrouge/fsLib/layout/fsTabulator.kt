@@ -107,11 +107,17 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any
     val apiListBlock: () -> ApiList = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val result: ApiList = urlParams?.apiList ?: ApiList()
-        viewList.masterViewItem?.let { viewItem ->
-            viewItem.item?.let {
-                result.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
-                result.contextId = viewItem.encodedId()
+        val context = viewList.onSetContext()
+        if (context == null) {
+            viewList.masterViewItem?.let { viewItem ->
+                viewItem.item?.let {
+                    result.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
+                    result.contextId = viewItem.encodedId()
+                }
             }
+        } else {
+            result.contextClass = context.first
+            result.contextId = context.second
         }
         result.params = JSON.stringify(urlParams?.params)
         result

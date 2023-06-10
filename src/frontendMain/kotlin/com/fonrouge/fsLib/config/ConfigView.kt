@@ -38,7 +38,7 @@ abstract class ConfigView<V : View>(
     /**
      * builds a url with a list of pair values of key=value url parameters
      */
-    fun pushUrlParam(vararg pairParams: Pair<String, String>): String {
+    fun urlWithParams(vararg pairParams: Pair<String, String>): String {
         return if (pairParams.isNotEmpty()) {
             val result = StringBuilder(url)
             pairParams.forEachIndexed { i, s ->

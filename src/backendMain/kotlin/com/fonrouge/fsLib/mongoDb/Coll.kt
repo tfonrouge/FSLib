@@ -69,6 +69,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, STATE : Any>(
             return field
         }
     open val lookupFun: (() -> List<LookupPipelineBuilder<T, *, *>>)? = null
+    open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
 
     val coroutineColl = mongoColl.coroutine
