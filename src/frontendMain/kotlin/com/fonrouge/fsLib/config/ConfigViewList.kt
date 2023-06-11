@@ -52,7 +52,7 @@ fun <T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT, STATE>, E : IDataList, ID : A
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     serviceManager: KVServiceManager<E>,
-    function: suspend E.(ApiList, FILT?) -> ListState<T>,
+    function: suspend E.(ApiList, FILT) -> ListState<T>,
 ): ConfigViewList<T, V, E, ID, FILT, STATE> = object : ConfigViewList<T, V, E, ID, FILT, STATE>(
     itemKClass = itemKClass,
     idKClass = idKClass,

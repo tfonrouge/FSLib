@@ -165,7 +165,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
                         )
                     )
                 }
-                console.warn("ApiFilter KClass", configView.apiFilterKClass)
                 if (configView.apiFilterKClass != Unit::class) {
                     urlParams.pushParam(
                         "apiFilter" to encodeURIComponent(

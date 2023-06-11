@@ -4,16 +4,17 @@ import kotlinx.datetime.internal.JSJoda.LocalDate
 import kotlinx.datetime.internal.JSJoda.convert
 import kotlin.js.Date
 
-fun firstDayOfDateWeek(date: Date) = LocalDate.of(
-    year = date.getFullYear(),
-    month = date.getMonth() + 1,
-    dayOfMonth = date.getDate()
-).let { it.minusDays(it.dayOfWeek().ordinal()) }
+val Date.firstDayOfDateWeek
+    get() = LocalDate.of(
+        year = getFullYear(),
+        month = getMonth() + 1,
+        dayOfMonth = getDate()
+    ).let { it.minusDays(it.dayOfWeek().ordinal()) }
 
 @Suppress("unused")
 val Date.toWeekRange: String
     get() {
-        val localDateJsJ: LocalDate = firstDayOfDateWeek(this)
+        val localDateJsJ: LocalDate = firstDayOfDateWeek
         val opt = dateLocaleOptions {
             weekday = "short"
             day = "numeric"

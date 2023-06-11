@@ -38,7 +38,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                 }
                 navLink(label = "|")
             }
-             viewList.configViewItem?.let { configViewItem ->
+            viewList.configViewItem?.let { configViewItem ->
                 linkRead = navLink(
                     label = if (minToolbarSize) "" else "Detail",
                     icon = iconCrud(CrudTask.Read),

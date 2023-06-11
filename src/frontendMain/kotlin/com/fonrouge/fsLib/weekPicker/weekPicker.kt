@@ -36,7 +36,7 @@ open class WeekInput(
 ) : SimplePanel(), GenericFormComponent<Date?>, FormInput, MutableState<Date?> {
     private var weekPickerWidget2: FlexPanel
     protected val observers = mutableListOf<(Date?) -> Unit>()
-    val localDateObservable: ObservableValue<LocalDate?> = ObservableValue(value?.let { firstDayOfDateWeek(it) })
+    val localDateObservable: ObservableValue<LocalDate?> = ObservableValue(value?.firstDayOfDateWeek)
     val disabledObservable = ObservableValue(false)
     override var value: Date?
         get() = localDateObservable.value?.let {
@@ -47,7 +47,7 @@ open class WeekInput(
             )
         }
         set(value) {
-            localDateObservable.value = value?.let { firstDayOfDateWeek(it) }
+            localDateObservable.value = value?.firstDayOfDateWeek
         }
 
     override fun subscribe(observer: (Date?) -> Unit): () -> Unit {
