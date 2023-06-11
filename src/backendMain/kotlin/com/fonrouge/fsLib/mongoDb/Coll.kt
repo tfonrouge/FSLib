@@ -194,7 +194,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, STATE : Any>(
         return bson
     }
 
-    suspend fun deleteOne(filter: Bson): ItemState<T, STATE> {
+    suspend fun deleteOne(filter: Bson): ItemState<T> {
         return try {
             ItemState(
                 isOk = coroutineColl.deleteOne(filter = filter).deletedCount == 1L
@@ -205,7 +205,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, STATE : Any>(
     }
 
     @Suppress("unused")
-    suspend fun deleteOneById(id: ID?): ItemState<T, STATE> {
+    suspend fun deleteOneById(id: ID?): ItemState<T> {
         if (id != null) {
             return try {
                 ItemState(
@@ -260,7 +260,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, STATE : Any>(
     suspend fun findOneByIdResponse(
         id: ID?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
-    ): ItemState<T, STATE> {
+    ): ItemState<T> {
         return try {
             ItemState(
                 item = findOneById(id = id, lookupWrappers = lookupWrappers),
@@ -272,7 +272,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, STATE : Any>(
     }
 
     @Suppress("unused")
-    suspend fun insertOne(apiItem: ApiItem<T>): ItemState<T, STATE> {
+    suspend fun insertOne(apiItem: ApiItem<T>): ItemState<T> {
         apiItem.item?.let {
             checkDontPersist(it)
             try {
@@ -452,7 +452,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, STATE : Any>(
         filter: Bson,
         apiItem: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemState<T, STATE> = apiItem.item?.let {
+    ): ItemState<T> = apiItem.item?.let {
         checkDontPersist(apiItem.item)
         val result = try {
             mongoColl.coroutine.updateOne(
@@ -476,7 +476,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, STATE : Any>(
         id: ID?,
         apiItem: ApiItem<T>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemState<T, STATE> {
+    ): ItemState<T> {
         return updateOne(
             filter = BaseDoc<ID>::_id eq id,
             apiItem = apiItem,

@@ -16,7 +16,7 @@ import io.kvision.tabulator.RowRangeLookup
 import kotlinx.coroutines.launch
 
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
-    viewList: ViewList<T, *, ID, *, *>,
+    viewList: ViewList<T, *, ID, *>,
     minToolbarSize: Boolean = true,
 ): NavbarTabulator<ID> {
     val delay = 300

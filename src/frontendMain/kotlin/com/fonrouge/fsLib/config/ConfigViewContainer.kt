@@ -10,8 +10,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer, ID : Any>(
+abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<FILT>, ID : Any, FILT: Any>(
     val idKClass: KClass<ID>? = null,
+    val apiFilterKClass: KClass<FILT>,
     name: String,
     label: String,
     viewFunc: KClass<out V>,

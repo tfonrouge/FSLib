@@ -91,7 +91,7 @@ abstract class View(
             )
             bannerLegend()
             nav(rightAlign = true) {
-                if (this@View is ViewItem<*, *, *, *>) {
+                if (this@View is ViewItem<*, *, *>) {
                     if (urlParams?.actionUpsert == true) {
                         navButtonBack = button(text = " ", icon = "fas fa-reply", style = ButtonStyle.OUTLINEPRIMARY) {
                             hide()

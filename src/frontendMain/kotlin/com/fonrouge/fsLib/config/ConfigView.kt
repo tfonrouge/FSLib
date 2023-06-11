@@ -52,7 +52,7 @@ abstract class ConfigView<V : View>(
     }
 
     init {
-        if (this !is ConfigViewContainer<*, *, *>) {
+        if (this !is ConfigViewContainer<*, *, *, *>) {
             configViewMap[baseUrl] = this
         }
     }

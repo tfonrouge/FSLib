@@ -17,7 +17,6 @@ import io.kvision.offcanvas.Offcanvas
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
-import io.kvision.utils.createInstance
 import js.uri.encodeURIComponent
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -27,9 +26,9 @@ import kotlinx.serialization.serializer
 import web.buffer.btoa
 
 @Suppress("unused")
-abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, STATE : Any>(
-    final override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT, STATE>, E, ID, FILT, STATE>,
-    configViewItem: ConfigViewItem<T, *, *, ID, FILT, STATE>? = null,
+abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
+    final override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT>, E, ID, FILT>,
+    configViewItem: ConfigViewItem<T, *, *, ID, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -40,27 +39,17 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
      * Note: [ConfigViewList.apiFilterKClass] class must haven't constructor parameters
      */
     apiFilter: FILT? = null,
-) : ViewDataContainer(
-    configView = configView,
+) : ViewDataContainer<FILT>(
+    configViewContainer = configView,
+    apiFilter = apiFilter,
     editable = editable,
     icon = icon,
 ) {
     /**
-     * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
-     * or programmatically, and it's delivered to the backend
-     */
-    val apiFilter: ObservableValue<FILT> =
-        ObservableValue(apiFilter ?: configView.apiFilterKClass.js.createInstance()).also {
-            it.subscribe {
-                onApiFilterUpdate()
-            }
-        }
-
-    /**
      * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
      * matching by name
      */
-    var configViewItem: ConfigViewItem<T, *, *, ID, FILT, STATE>? = configViewItem
+    var configViewItem: ConfigViewItem<T, *, *, ID, FILT>? = configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewFunc.simpleName!!
@@ -69,7 +58,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
             } else {
                 "ViewItem${configView.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, FILT, STATE>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, FILT>>()
         }
 
     /**
@@ -84,7 +73,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     var navbarTabulator: NavbarTabulator<ID>? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
     open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
-    var masterViewItem: ViewItem<*, *, *, *>? = null
+    var masterViewItem: ViewItem<*, *, *>? = null
         set(value) {
             editable = value?.urlParams?.actionUpsert == true
             field = value
@@ -125,15 +114,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     val toolBarListUpdateObservable = ObservableValue(0)
 
     /**
-     * open function that allows to override the default action when the [apiFilter] observable changes.
-     * The default action will do an [updateBanner] and then an [dataUpdate]
-     */
-    open fun onApiFilterUpdate() {
-        updateBanner()
-        AppScope.launch { dataUpdate() }
-    }
-
-    /**
      * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem
      * which is currently on Update action, if so, then performs an update call to back end before
      * calling the list crud action required
@@ -156,15 +136,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
                 urlParams.addContext(it)
             }
             configViewItem?.let { configViewItem1 ->
-                pushApiStateToViewItemUrl(crudTask, item)?.let { s ->
-                    urlParams.pushParam(
-                        configViewItem1.pairParam(
-                            "apiState",
-                            configViewItem1.apiStateKClass.serializer(),
-                            s
-                        )
-                    )
-                }
                 if (configView.apiFilterKClass != Unit::class) {
                     urlParams.pushParam(
                         "apiFilter" to encodeURIComponent(
@@ -296,26 +267,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     }
 
     /**
-     * Sets the [apiFilter] value before display the view, By default tries to get the apiFilter value from the [urlParams]
-     * 'apiFilter' param
-     */
-    @OptIn(InternalSerializationApi::class)
-    open suspend fun setApiFilter() {
-        urlParams?.pullUrlParam(
-            serializer = configView.apiFilterKClass.serializer(),
-            key = "apiFilter"
-        )?.let {
-            apiFilter.value = it
-        }
-    }
-
-    /**
-     * push an [ViewItem.apiState] the url for the viewItem call.
-     * Can be overridden in order to add a [ViewItem.apiState] param to url
-     */
-    open suspend fun pushApiStateToViewItemUrl(crudTask: CrudTask, item: T?): STATE? = null
-
-    /**
      * open function that builds a filter form
      */
     open fun Container.offCanvasFilterView(): Offcanvas? = null
@@ -358,7 +309,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any, ST
     }
 
     fun <F : Any> urlApiFilter(
-        configViewList: ConfigViewList<*, *, *, *, F, *>,
+        configViewList: ConfigViewList<*, *, *, *, F>,
         apiFilter: F,
     ): String {
         val params = mutableListOf<Pair<String, String>>()

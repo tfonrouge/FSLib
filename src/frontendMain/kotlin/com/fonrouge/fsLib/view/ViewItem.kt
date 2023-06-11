@@ -19,7 +19,6 @@ import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
-import io.kvision.utils.createInstance
 import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
@@ -29,30 +28,22 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any, STATE : Any>(
-    final override val configView: ConfigViewItem<T, out ViewItem<T, ID, FILT, STATE>, *, ID, FILT, STATE>,
+abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any>(
+    final override val configView: ConfigViewItem<T, out ViewItem<T, ID, FILT>, *, ID, FILT>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-    apiState: STATE? = null,
-) : ViewDataContainer(
-    configView = configView,
+    apiFilter: FILT? = null,
+) : ViewDataContainer<FILT>(
+    configViewContainer = configView,
+    apiFilter = apiFilter,
     editable = editable,
     icon = icon,
 ) {
     /**
-     * assignable var that contains an [STATE] object that can be used to parametrize the viewItem form, it can be
-     * obtained from an apiState= url parameter, programmatically from the calling viewList on the [ViewList.pushApiStateToViewItemUrl]
-     * open function or from the backend.
-     *
-     * Note: [ConfigViewItem.apiStateKClass] class must haven't constructor parameters
-     */
-    var apiState: STATE = apiState ?: configView.apiStateKClass.js.createInstance()
-
-    /**
      * Observable that holds data for the [ViewItem]
      */
-    var data: ObservableValue<ItemState<T, STATE>> = ObservableValue(ItemState())
+    var data: ObservableValue<ItemState<T>> = ObservableValue(ItemState())
     val item: T? get() = data.value.item
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
@@ -91,7 +82,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any, STATE : Any>(
      * @param block optional, executes with the API result [ItemState] as parameter
      */
     fun acceptUpsertAction(
-        block: ((ItemState<T, STATE>) -> Unit)? = {
+        block: ((ItemState<T>) -> Unit)? = {
             navButtonCancel?.hide()
             navButtonAccept?.hide()
             navButtonBack?.show()
@@ -265,9 +256,6 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any, STATE : Any>(
                         urlParams = urlParams,
                         apiFilterSerialized = urlParams?.params?.get("apiFilter")?.unsafeCast<String?>()
                     ) { itemResponse ->
-                        itemResponse.apiState?.let {
-                            this@ViewItem.apiState = it
-                        }
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams?.params?.set("action", CrudTask.Update.name)
                             @Suppress("UNUSED_VARIABLE")
@@ -426,23 +414,12 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any, STATE : Any>(
         return configView.encodedId(_id = _id)
     }
 
-    /**
-     * Gets an [STATE] object for the [apiState] property from url parameters, otherwise get the apiState from the
-     * [ConfigViewItem.apiStateKClass] class
-     */
-    @OptIn(InternalSerializationApi::class)
-    fun setApiState() {
-        urlParams?.pullUrlParam(configView.apiStateKClass.serializer(), "apiState")?.let {
-            apiState = it
-        }
-    }
-
     override val label: String
         get() {
             return "${configView.label}: ${configView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
 
-    open fun onChangeDataContainer(itemResponse: ItemState<T, STATE>?) {
+    open fun onChangeDataContainer(itemResponse: ItemState<T>?) {
 
     }
 
