@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.bson.conversions.Bson
 import org.litote.kmongo.unwind
 
-var SysUserRoleDb: Coll<SysUserRole, OId<SysUserRole>, Unit> = object : Coll<SysUserRole, OId<SysUserRole>, Unit>(
+var SysUserRoleDb: Coll<SysUserRole, OId<SysUserRole>> = object : Coll<SysUserRole, OId<SysUserRole>>(
     klass = SysUserRole::class,
     debug = true
 ) {
