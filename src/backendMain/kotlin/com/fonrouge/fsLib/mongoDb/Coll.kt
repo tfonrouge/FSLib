@@ -53,8 +53,6 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
             else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
     }
 
-    var apiFilter: FILT? = null
-
     val collectionName = collectionName(klass)
 
     /**
@@ -63,14 +61,17 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
      */
     @Suppress("MemberVisibilityCanBePrivate")
     var constLookupList: List<KProperty1<T, *>>? = null
-    var lookupPipelineBuilderList: List<LookupPipelineBuilder<T, *, *>>? = null
-        get() {
-            if (field == null) {
-                field = lookupFun?.invoke() ?: listOf()
+
+    /*
+        var lookupPipelineBuilderList: List<LookupPipelineBuilder<T, *, *>>? = null
+            get() {
+                if (field == null) {
+                    field = lookupFun?.invoke() ?: listOf()
+                }
+                return field
             }
-            return field
-        }
-    open val lookupFun: (() -> List<LookupPipelineBuilder<T, *, *>>)? = null
+    */
+    open val lookupFun: ((FILT?) -> List<LookupPipelineBuilder<T, *, *>>)? = null
     open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
 
@@ -92,26 +93,16 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
     fun aggregateLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>> = emptyArray(),
+        apiFilter: FILT? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        val pip1 = buildPipeline(pipeline, lookups)
+        val pip1 = buildPipeline(pipeline, lookups, apiFilter)
         postProcessPipeline?.let { it(pip1) }
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate:")
             println(pip1.json)
         }
         return mongoColl.aggregate(pip1, klass.java)
-    }
-
-    /**
-     * Allows to inject a [FILT] object that can be used in building pipeline queries
-     * @param apiFilter a [FILT] type object
-     * @return this
-     */
-    @Suppress("unused")
-    fun apiFilter(apiFilter: FILT?): Coll<T, ID, FILT> {
-        this.apiFilter = apiFilter
-        return this
     }
 
     /**
@@ -122,9 +113,12 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
      * @param lookupWrappers array of [LookupWrapper] items to extract lookup info
      * @return List<Bson>
      */
-    fun buildLookupList(lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()): List<Bson> {
+    fun buildLookupList(
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        apiFilter: FILT? = null,
+    ): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        val lookupPipelineBuilders = lookupPipelineBuilderList?.toMutableList()
+        val lookupPipelineBuilders = lookupFun?.invoke(apiFilter) // lookupPipelineBuilderList?.toMutableList()
             ?.plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null })
         lookupPipelineBuilders?.forEach { lookupPipelineBuilder ->
             val lookupWrapper = lookupWrappers.find {
@@ -156,7 +150,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
      */
     open fun buildPipeline(
         pipeline: MutableList<Bson>,
-        lookupWrappers: Array<out LookupWrapper<*, *>>
+        lookupWrappers: Array<out LookupWrapper<*, *>>,
+        apiFilter: FILT? = null,
     ): MutableList<Bson> {
         pipeline.addAll(buildLookupList(lookupWrappers))
         return pipeline
@@ -246,20 +241,30 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
      * @param lookupWrappers array of [LookupWrapper]
      * @return list of T items
      */
+    @Suppress("unused")
     suspend fun find(
         filter: Bson? = null,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        apiFilter: FILT? = null,
     ): List<T> {
-        return aggregateLookup(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(), lookupWrappers).toList()
+        return aggregateLookup(
+            pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
+            lookups = lookupWrappers,
+            apiFilter = apiFilter,
+        ).toList()
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOne(
         filter: Bson? = null,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        apiFilter: FILT? = null,
     ): T? {
-        return aggregateLookup(filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
-            lookupWrappers).awaitFirstOrNull()
+        return aggregateLookup(
+            pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
+            lookups = lookupWrappers,
+            apiFilter = apiFilter,
+        ).awaitFirstOrNull()
     }
 
     suspend fun findOneById(
@@ -410,10 +415,12 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         preprocessList: ((List<T>) -> Unit)? = null,
+        apiFilter: FILT? = null,
     ): ListState<T> {
         val list = aggregateLookup(
             pipeline = firstStage.pipeline,
             lookups = lookupWrappers,
+            apiFilter = apiFilter,
             postProcessPipeline = postProcessPipeline,
         ).toList()
         preprocessList?.let { it(list) }
@@ -439,6 +446,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         sort: Bson? = null,
         strictCounter: Boolean = true,
         apiList: ApiList?,
+        apiFilter: FILT? = null,
         other: List<Bson>? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -457,7 +465,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
             ),
             lookupWrappers = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
-            preprocessList = preprocessList
+            preprocessList = preprocessList,
+            apiFilter = apiFilter,
         )
     }
 

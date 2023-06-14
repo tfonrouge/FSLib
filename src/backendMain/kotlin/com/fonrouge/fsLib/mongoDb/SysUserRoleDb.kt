@@ -16,7 +16,8 @@ var SysUserRoleDb: Coll<SysUserRole, OId<SysUserRole>, Unit> = object : Coll<Sys
 ) {
     override fun buildPipeline(
         pipeline: MutableList<Bson>,
-        lookupWrappers: Array<out LookupWrapper<*, *>>
+        lookupWrappers: Array<out LookupWrapper<*, *>>,
+        apiFilter: Unit?,
     ): MutableList<Bson> {
         pipeline.addAll(
             listOf(
