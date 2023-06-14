@@ -41,17 +41,19 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
-abstract class Coll<T : BaseDoc<ID>, ID : Any>(
+abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
     private val klass: KClass<T>,
     var debug: Boolean? = null
 ) {
     companion object {
         var globalDebug = false
-        internal val map1 = mutableMapOf<KClass<*>, Coll<*, *>>()
+        internal val map1 = mutableMapOf<KClass<*>, Coll<*, *, *>>()
         fun collectionName(klass: KClass<out BaseDoc<*>>): String =
             if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
             else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
     }
+
+    var apiFilter: FILT? = null
 
     val collectionName = collectionName(klass)
 
@@ -69,7 +71,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any>(
             return field
         }
     open val lookupFun: (() -> List<LookupPipelineBuilder<T, *, *>>)? = null
-    open fun childCollections(): List<KClass<out Coll<*, *>>> = listOf()
+    open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
 
     val coroutineColl = mongoColl.coroutine
@@ -99,6 +101,17 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any>(
             println(pip1.json)
         }
         return mongoColl.aggregate(pip1, klass.java)
+    }
+
+    /**
+     * Allows to inject a [FILT] object that can be used in building pipeline queries
+     * @param apiFilter a [FILT] type object
+     * @return this
+     */
+    @Suppress("unused")
+    fun apiFilter(apiFilter: FILT?): Coll<T, ID, FILT> {
+        this.apiFilter = apiFilter
+        return this
     }
 
     /**

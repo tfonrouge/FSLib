@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty1
 
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
-    collKClass: KClass<out Coll<U, ID>>,
+    collKClass: KClass<out Coll<U, ID, *>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
@@ -32,7 +32,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
 
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
-    collKClass: KClass<out Coll<U, ID>>,
+    collKClass: KClass<out Coll<U, ID, *>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
@@ -53,7 +53,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
 }
 
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
-    private val collKClass: KClass<out Coll<U, ID>>,
+    private val collKClass: KClass<out Coll<U, ID, *>>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,
     private val pipeline: List<Bson>? = null,
