@@ -143,7 +143,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         lookupWrappers: Array<out LookupWrapper<*, *>>,
         apiFilter: FILT? = null,
     ): MutableList<Bson> {
-        pipeline.addAll(buildLookupList(lookupWrappers))
+        pipeline.addAll(buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter))
         return pipeline
     }
 
