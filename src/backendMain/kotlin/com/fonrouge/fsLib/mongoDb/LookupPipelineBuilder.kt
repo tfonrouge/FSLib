@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.mongoDb.Coll.Companion.map1
+import com.fonrouge.fsLib.mongoDb.Coll.Companion.collMap
 import com.mongodb.client.model.UnwindOptions
 import org.bson.conversions.Bson
 import org.litote.kmongo.unwind
@@ -15,7 +15,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
-    resultField: KProperty1<T, U?>,
+    resultField: KProperty1<in T, U?>,
     preserveNullAndEmptyArrays: Boolean = true,
 ): LookupPipelineBuilder<T, U, ID> {
     return object : LookupPipelineBuilder<T, U, ID>(
@@ -36,7 +36,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
-    resultFieldArray: KProperty1<T, Array<U>?>,
+    resultFieldArray: KProperty1<in T, Array<U>?>,
     preserveNullAndEmptyArrays: Boolean = true,
     limit: Int? = null,
 ): LookupPipelineBuilder<T, U, ID> {
@@ -57,7 +57,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,
     private val pipeline: List<Bson>? = null,
-    internal val resultProperty: KProperty1<T, *>,
+    internal val resultProperty: KProperty1<in T, *>,
     internal val preserveNullAndEmptyArrays: Boolean = true,
     internal val limit: Int? = null,
     val resultUnit: ResultUnit,
@@ -65,9 +65,17 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     internal fun pipelineList(lookup: LookupWrapper<*, *>? = null): List<Bson> {
         val pip2 = mutableListOf<Bson>()
         this.pipeline?.let { bsonList -> pip2 += bsonList }
-        map1[collKClass]?.buildLookupList((lookup?.lookupWrappers ?: emptyArray()))?.let { bsonList ->
-            pip2 += bsonList
+        collMap[collKClass]?.buildPipeline(
+            pipeline = mutableListOf(),
+            lookupWrappers = lookup?.lookupWrappers ?: emptyArray()
+        )?.let {
+            pip2 += it
         }
+        /*
+                collMap[collKClass]?.buildLookupList((lookup?.lookupWrappers ?: emptyArray()))?.let { bsonList ->
+                    pip2 += bsonList
+                }
+        */
         val pipeline = mutableListOf<Bson>()
         pipeline += lookup(pip2)
         if (resultUnit == ResultUnit.One) {
@@ -83,7 +91,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     }
 
     fun lookup(pipeline: List<Bson>? = null): Bson {
-        val collectionName = map1[collKClass]?.mongoColl?.namespace?.collectionName
+        val collectionName = collMap[collKClass]?.mongoColl?.namespace?.collectionName
         return lookup5(
             from = collectionName ?: "?",
             localField = localField.name,

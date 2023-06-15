@@ -47,7 +47,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
 ) {
     companion object {
         var globalDebug = false
-        internal val map1 = mutableMapOf<KClass<*>, Coll<*, *, *>>()
+        internal val collMap = mutableMapOf<KClass<*>, Coll<*, *, *>>()
         fun collectionName(klass: KClass<out BaseDoc<*>>): String =
             if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
             else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
@@ -60,17 +60,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
      * for the aggregation operation
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    var constLookupList: List<KProperty1<T, *>>? = null
-
-    /*
-        var lookupPipelineBuilderList: List<LookupPipelineBuilder<T, *, *>>? = null
-            get() {
-                if (field == null) {
-                    field = lookupFun?.invoke() ?: listOf()
-                }
-                return field
-            }
-    */
+    var constLookupList: List<KProperty1<in T, *>>? = null
     open val lookupFun: ((FILT?) -> List<LookupPipelineBuilder<T, *, *>>)? = null
     open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
@@ -508,7 +498,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
 
     init {
         @Suppress("LeakingThis")
-        map1[this::class] = this
+        collMap[this::class] = this
         CoroutineScope(Dispatchers.IO).launch {
             with(coroutineColl) {
                 ensureIndexes()
