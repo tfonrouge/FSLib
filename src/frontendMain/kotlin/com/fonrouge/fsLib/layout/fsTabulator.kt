@@ -76,7 +76,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any
     noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
 ): ViewList<T, E, ID, FILT> {
     val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
-        columns = viewList.columnDefinitionList,
+        columns = viewList.columnDefinitionList(),
 //        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else "calc(100vh - 50vh)",
         height = fsTabOptions?.height,
         layout = Layout.FITDATAFILL,

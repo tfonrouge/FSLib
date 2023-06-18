@@ -16,6 +16,7 @@ import io.kvision.core.Container
 import io.kvision.offcanvas.Offcanvas
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
+import io.kvision.tabulator.toJs
 import io.kvision.toast.Toast
 import js.uri.encodeURIComponent
 import kotlinx.browser.window
@@ -72,7 +73,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
     var menuOpenedState: Boolean? = null
     var navbarTabulator: NavbarTabulator<ID>? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
-    open val columnDefinitionList: List<ColumnDefinition<T>> = listOf()
+    open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
     var masterViewItem: ViewItem<*, *, *>? = null
         set(value) {
             editable = value?.urlParams?.actionUpsert == true
@@ -96,6 +97,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
+    var reloadColumnDefinitions: Boolean = false
     var selectedIdList: List<Any?>? = null
 
     /**
@@ -241,6 +243,17 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
      */
     override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
+            if (reloadColumnDefinitions) {
+                reloadColumnDefinitions = false
+                tabulator?.let { tabulator ->
+                    tabulator.jsTabulator?.setColumns(
+                        columnDefinitionList().map {
+                            it.toJs(tabulator, tabulator::translate, configView.itemKClass)
+                        }.toTypedArray()
+                    )
+                    columnDefinitionList()
+                }
+            }
             if (menuOpenedState != true) {
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
                 tabulator?.apiCall()
