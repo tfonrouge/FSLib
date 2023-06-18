@@ -110,5 +110,4 @@ abstract class ViewDataContainer<FILT : Any>(
             apiFilter.value = it
         }
     }
-
 }

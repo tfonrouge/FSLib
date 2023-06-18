@@ -97,7 +97,11 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
-    var reloadColumnDefinitions: Boolean = false
+    private var reloadColumnDefinitions = false
+    fun reloadColumnDefinitions() {
+        reloadColumnDefinitions = true
+    }
+
     var selectedIdList: List<Any?>? = null
 
     /**
