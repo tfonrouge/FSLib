@@ -120,7 +120,11 @@ abstract class SqlDatabase(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
+        debug: Boolean = false,
     ): List<T> {
+        if (debug) {
+            println("SQL CMD ${T::class.simpleName}\n$sql")
+        }
         val result = mutableListOf<T>()
         forEachResult(
             sql = sql,

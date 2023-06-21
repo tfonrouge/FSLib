@@ -1,25 +1,28 @@
 package com.fonrouge.fsLib.serializers
 
-import io.kvision.types.LocalDate
-import kotlinx.datetime.internal.JSJoda.convert
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import java.time.LocalDate
 
 @Suppress("unused")
-actual object FSLocalDate : KSerializer<LocalDate> {
+@OptIn(ExperimentalSerializationApi::class)
+@Serializer(forClass = LocalDate::class)
+actual object FSLocalDateSerializer : KSerializer<LocalDate> {
     override fun deserialize(decoder: Decoder): LocalDate {
-        return convert(kotlinx.datetime.internal.JSJoda.LocalDate.parse(decoder.decodeString())).toDate()
+        val decoded = decoder.decodeString()
+        return LocalDate.parse(decoded.substring(0..9))
     }
 
     override val descriptor: SerialDescriptor
-        get() = PrimitiveSerialDescriptor("LocalDate Js Serializer", PrimitiveKind.STRING)
+        get() = PrimitiveSerialDescriptor("LocalDate backEnd Serializer", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: LocalDate) {
-        /* YYYY-MM-DD */
-        encoder.encodeString(value.toISOString().substring(0, 10))
+        encoder.encodeString(value.toString())
     }
 }

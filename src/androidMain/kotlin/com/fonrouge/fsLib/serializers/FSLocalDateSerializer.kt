@@ -9,7 +9,7 @@ import kotlinx.serialization.encoding.Encoder
 import java.time.LocalDate
 
 @Suppress("unused")
-actual object FSLocalDate : KSerializer<LocalDate> {
+actual object FSLocalDateSerializer : KSerializer<LocalDate> {
     override fun deserialize(decoder: Decoder): LocalDate {
         val decoded = decoder.decodeString()
         return LocalDate.parse(decoded)

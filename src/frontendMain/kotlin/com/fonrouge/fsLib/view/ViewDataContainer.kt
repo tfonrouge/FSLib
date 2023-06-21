@@ -39,12 +39,15 @@ abstract class ViewDataContainer<FILT : Any>(
      * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
      * or programmatically, and it's delivered to the backend
      */
-    val apiFilter: ObservableValue<FILT> =
-        ObservableValue(apiFilter ?: configViewContainer.apiFilterKClass.js.createInstance()).also {
-            it.subscribe {
-                onApiFilterUpdate()
-            }
+    val apiFilter: ObservableValue<FILT> by lazy {
+        ObservableValue(apiFilter ?: configViewContainer.apiFilterKClass.js.createInstance())
+    }
+
+    init {
+        this.apiFilter.subscribe {
+            onApiFilterUpdate()
         }
+    }
 
     var displayBlock: (() -> Unit)? = null
     var suspendPeriodicUpdate = false
