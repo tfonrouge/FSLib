@@ -96,22 +96,32 @@ abstract class SqlDatabase(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
-        /* TODO: how to make this block suspended */ crossinline doBlock: (T) -> Unit,
-    ) {
-        newSuspendedTransaction(context = Dispatchers.IO, db = database) {
+        debug: Boolean = false,
+        /* TODO: how to make this block suspended */
+        crossinline doBlock: (ResultSet) -> T? = {
+            sqlEntityTo<T>(it)
+        },
+    ): List<T> {
+        if (debug) {
+            println("SQL CMD ${T::class.simpleName}\n$sql")
+        }
+        val result = mutableListOf<T>()
+        return newSuspendedTransaction(context = Dispatchers.IO, db = database) {
             try {
                 exec(sql, args, explicitStatementType) { resultSet ->
                     while (resultSet.next()) {
                         try {
-                            doBlock(sqlEntityTo<T>(resultSet))
+                            doBlock(resultSet)?.let { result.add(it) }
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
                 }
+                result
             } catch (e: ExposedSQLException) {
                 System.err.println("SQL findList() error: ${e.message} on SQL string: $sql")
                 e.printStackTrace()
+                result
             }
         }
     }
@@ -121,18 +131,18 @@ abstract class SqlDatabase(
         args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
         debug: Boolean = false,
-    ): List<T> {
-        if (debug) {
-            println("SQL CMD ${T::class.simpleName}\n$sql")
+        crossinline doBlock: (ResultSet) -> T? = {
+            sqlEntityTo<T>(it)
         }
-        val result = mutableListOf<T>()
-        forEachResult(
+    ): List<T> {
+        return forEachResult<T>(
             sql = sql,
-            doBlock = { t: T -> result.add(t) },
+//            doBlock = { t: T -> result.add(t) },
+            doBlock = doBlock,
             args = args,
             explicitStatementType = explicitStatementType,
+            debug = debug,
         )
-        return result
     }
 
     private fun getDecodeMap(klass: KClass<*>, metaData: ResultSetMetaData): DecodeMap {
