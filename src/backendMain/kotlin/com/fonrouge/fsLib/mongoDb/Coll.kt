@@ -398,14 +398,15 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
     /**
      * Builds a [ListState] back to frontend
      *
-     * @param preprocessList Allows to pre-process the List<[T]> before send it to the frontend
+     * @param postProcessList Allows to post-process the List<[T]> before send it to the frontend
      */
     suspend fun listContainer(
         firstStage: FirstStage,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        preprocessList: ((List<T>) -> Unit)? = null,
+        postProcessList: ((List<T>) -> Unit)? = null,
         apiFilter: FILT? = null,
+        noChecksum: Boolean = false,
     ): ListState<T> {
         val list = aggregateLookup(
             pipeline = firstStage.pipeline,
@@ -413,16 +414,24 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
             apiFilter = apiFilter,
             postProcessPipeline = postProcessPipeline,
         ).toList()
-        preprocessList?.let { it(list) }
-        val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
-        val crC32 = CRC32()
-        crC32.update(encoded.toByteArray())
+        postProcessList?.let { it(list) }
+        val checksum = if (!noChecksum) {
+            calcChecksum(list)
+        } else null
         return ListState(
             data = list,
             last_page = firstStage.last_page,
             last_row = firstStage.last_row,
-            checksum = crC32.value.toString(),
+            checksum = checksum,
         )
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    fun calcChecksum(list: List<T>): String {
+        val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
+        val crC32 = CRC32()
+        crC32.update(encoded.toByteArray())
+        return crC32.value.toString()
     }
 
     /**
@@ -441,6 +450,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         preprocessList: ((List<T>) -> Unit)? = null,
+        noChecksum: Boolean = false
     ): ListState<T> {
         return listContainer(
             firstStage = listFirstStage(
@@ -455,8 +465,9 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
             ),
             lookupWrappers = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
-            preprocessList = preprocessList,
+            postProcessList = preprocessList,
             apiFilter = apiFilter,
+            noChecksum = noChecksum
         )
     }
 
