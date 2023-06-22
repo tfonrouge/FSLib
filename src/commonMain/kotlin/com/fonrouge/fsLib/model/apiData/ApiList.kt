@@ -19,7 +19,7 @@ data class ApiList(
     var tabSorter: List<RemoteSorter>? = null,
     var sorter: String? = null,
     var params: String? = null,
-    var checksum: String? = null,
+    var contentHashCode: Int? = null,
     override var contextId: String? = null,
     override var contextClass: String? = null,
     override var state: String? = null,

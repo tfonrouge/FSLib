@@ -49,8 +49,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : An
     serializer = serializer,
     module = module
 ) {
-    private var checksum: String? = null
-    private var diffChecksums: Boolean = false
+    private var contentHashCode: Int? = null
+    private var diffContentHashCode: Boolean = false
     private var url: String
     private var method: HttpMethod
     private val callAgent: CallAgent
@@ -85,8 +85,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : An
             filters = filters,
             sorters = sorters,
         ).then { result: dynamic ->
-//            console.warn("RESULT ->", result, "CHECKSUM ->", checksum, "diffChecksums", diffChecksums)
-            if (diffChecksums) {
+//            console.warn("RESULT ->", result, "CONTENT_HASHCODE ->", contentHashCode, "diffContentHashCode", diffContentHashCode)
+            if (diffContentHashCode) {
                 jsTabulator?.replaceData(result.data, null, null)
             }
         }
@@ -103,7 +103,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : An
             tabSize = size
             tabFilter = filters
             tabSorter = sorters
-            checksum = this@TabulatorListContainer.checksum
+            contentHashCode = this@TabulatorListContainer.contentHashCode
         }
         apiListUpdate?.invoke(apiList)
         val data =
@@ -127,9 +127,9 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : An
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
 //                console.warn("result ->", result, "<-")
                 onResult?.let { it(result) }
-                if (result.checksum != undefined) {
-                    diffChecksums = (result.checksum as? String) != checksum
-                    checksum = result.checksum as? String
+                if (result.contentHashCode != undefined) {
+                    diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
+                    contentHashCode = result.contentHashCode as? Int
                 }
                 if (page != null) {
                     if (result.data == undefined) {

@@ -21,10 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -32,7 +28,6 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import java.util.*
-import java.util.zip.CRC32
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
@@ -257,6 +252,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         ).awaitFirstOrNull()
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOneById(
         id: ID?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
@@ -394,19 +390,19 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         }
     }
 
-    @OptIn(InternalSerializationApi::class)
     /**
      * Builds a [ListState] back to frontend
      *
      * @param postProcessList Allows to post-process the List<[T]> before send it to the frontend
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun listContainer(
         firstStage: FirstStage,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         postProcessList: ((List<T>) -> Unit)? = null,
         apiFilter: FILT? = null,
-        noChecksum: Boolean = false,
+        noContentHashCode: Boolean = false,
     ): ListState<T> {
         val list = aggregateLookup(
             pipeline = firstStage.pipeline,
@@ -415,24 +411,26 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
             postProcessPipeline = postProcessPipeline,
         ).toList()
         postProcessList?.let { it(list) }
-        val checksum = if (!noChecksum) {
-            calcChecksum(list)
+        val contentHashCode = if (!noContentHashCode) {
+            (list as List<Any>).toTypedArray().contentDeepHashCode()
         } else null
         return ListState(
             data = list,
             last_page = firstStage.last_page,
             last_row = firstStage.last_row,
-            checksum = checksum,
+            contentHashCode = contentHashCode,
         )
     }
 
-    @OptIn(InternalSerializationApi::class)
-    fun calcChecksum(list: List<T>): String {
-        val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
-        val crC32 = CRC32()
-        crC32.update(encoded.toByteArray())
-        return crC32.value.toString()
-    }
+    /*
+        @OptIn(InternalSerializationApi::class)
+        fun calcChecksum(list: List<T>): String {
+            val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
+            val crC32 = CRC32()
+            crC32.update(encoded.toByteArray())
+            return crC32.value.toString()
+        }
+    */
 
     /**
      * Returns a [ListState] builded with the parameters provided
@@ -450,7 +448,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         preprocessList: ((List<T>) -> Unit)? = null,
-        noChecksum: Boolean = false
+        noContentHashCode: Boolean = false
     ): ListState<T> {
         return listContainer(
             firstStage = listFirstStage(
@@ -467,10 +465,11 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
             postProcessPipeline = postProcessPipeline,
             postProcessList = preprocessList,
             apiFilter = apiFilter,
-            noChecksum = noChecksum
+            noContentHashCode = noContentHashCode
         )
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun updateOne(
         filter: Bson,
         apiItem: ApiItem<T>,
