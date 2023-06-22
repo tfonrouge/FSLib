@@ -400,9 +400,9 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         firstStage: FirstStage,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        postProcessList: ((List<T>) -> Unit)? = null,
         apiFilter: FILT? = null,
         noContentHashCode: Boolean = false,
+        postProcessList: ((List<T>) -> Unit)? = null,
     ): ListState<T> {
         val list = aggregateLookup(
             pipeline = firstStage.pipeline,
@@ -447,8 +447,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         other: List<Bson>? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        preprocessList: ((List<T>) -> Unit)? = null,
-        noContentHashCode: Boolean = false
+        noContentHashCode: Boolean = false,
+        postProcessList: ((List<T>) -> Unit)? = null
     ): ListState<T> {
         return listContainer(
             firstStage = listFirstStage(
@@ -463,9 +463,9 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
             ),
             lookupWrappers = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
-            postProcessList = preprocessList,
             apiFilter = apiFilter,
-            noContentHashCode = noContentHashCode
+            noContentHashCode = noContentHashCode,
+            postProcessList = postProcessList
         )
     }
 
