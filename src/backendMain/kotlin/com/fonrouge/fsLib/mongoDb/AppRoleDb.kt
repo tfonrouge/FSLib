@@ -1,8 +1,9 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.base.AppRole
 import com.fonrouge.fsLib.serializers.OId
 
-val AppRoleDb: Coll<AppRole, OId<AppRole>, Unit> = object : Coll<AppRole, OId<AppRole>, Unit>(
+val AppRoleDb: Coll<AppRole, OId<AppRole>, ApiFilter> = object : Coll<AppRole, OId<AppRole>, ApiFilter>(
     klass = AppRole::class
 ) {}

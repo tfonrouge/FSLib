@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import io.kvision.core.Container
 import io.kvision.html.div
-import io.kvision.utils.createInstance
 
 class ViewState(
     val configView: ConfigView<*>,
@@ -12,11 +11,9 @@ class ViewState(
 )
 
 @Suppress("unused")
-suspend fun Container.showView(viewState: ViewState) {
-    viewState.configView.viewFunc.js.createInstance<View>(viewState.urlParams).apply {
-        if (this is ViewDataContainer<*>) {
-            setApiFilter()
-        }
+fun Container.showView(viewState: ViewState) {
+    val view = viewState.configView.newViewInstance(viewState.urlParams)
+    view.apply {
         div {
             addBeforeDisposeHook {
                 onBeforeDispose()

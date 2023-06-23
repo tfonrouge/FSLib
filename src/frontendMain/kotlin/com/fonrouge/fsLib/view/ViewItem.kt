@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
@@ -28,15 +29,13 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any>(
+abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     final override val configView: ConfigViewItem<T, out ViewItem<T, ID, FILT>, *, ID, FILT>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-    apiFilter: FILT? = null,
 ) : ViewDataContainer<FILT>(
     configViewContainer = configView,
-    apiFilter = apiFilter,
     editable = editable,
     icon = icon,
 ) {
@@ -116,8 +115,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any>(
                         callType = ApiItem.CallType.Action,
                         itemId = encodedId(),
                         item = dataFormBeforeApiCall(formPanel.getData()),
-                        urlParams = urlParams,
-                        apiFilterSerialized = urlParams?.params?.get("apiFilter")?.unsafeCast<String?>()
+                        apiFilter = apiFilter.value,
                     ) { itemResponse ->
                         block?.let { it(itemResponse) }
                         itemResponse
@@ -253,8 +251,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any>(
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Query,
                         itemId = urlParams?.id,
-                        urlParams = urlParams,
-                        apiFilterSerialized = urlParams?.params?.get("apiFilter")?.unsafeCast<String?>()
+                        apiFilter = apiFilter.value
                     ) { itemResponse ->
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams?.params?.set("action", CrudTask.Update.name)
@@ -329,9 +326,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any>(
                                                             crudTask = CrudTask.Delete,
                                                             callType = ApiItem.CallType.Action,
                                                             itemId = urlParams?.id,
-                                                            urlParams = urlParams,
-                                                            apiFilterSerialized = urlParams?.params?.get("apiFilter")
-                                                                ?.unsafeCast<String?>()
+                                                            apiFilter = apiFilter.value
                                                         ) { itemResponse1 ->
                                                             buttonCancel?.hide()
                                                             buttonAccept?.hide()
@@ -411,7 +406,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any>(
     }
 
     fun encodedId(_id: ID? = item?._id): String {
-        return configView.encodedId(_id = _id)
+        return configView.encodedId(id = _id)
     }
 
     override val label: String
@@ -431,8 +426,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : Any>(
                 crudTask = crudAction,
                 callType = ApiItem.CallType.Query,
                 itemId = encodedId(),
-                urlParams = urlParams,
-                apiFilterSerialized = urlParams?.params?.get("apiFilter")?.unsafeCast<String?>()
+                apiFilter = apiFilter.value
             ) { itemResponse ->
                 data.value = itemResponse
                 itemResponse

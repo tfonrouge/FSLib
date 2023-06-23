@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataItem
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
@@ -15,28 +16,26 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
-import js.uri.decodeURIComponent
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
-import web.buffer.atob
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : IDataItem, ID : Any, FILT : Any>(
-    val itemKClass: KClass<T>,
+abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : IDataItem, ID : Any, FILT : ApiFilter>(
+    itemKClass: KClass<T>,
     idKClass: KClass<ID>? = null,
     apiFilterKClass: KClass<FILT>,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     private val serviceManager: KVServiceManager<E>,
-    private val function: suspend E.(ID?, ApiItem<T>, FILT) -> ItemState<T>,
-    private val stateFunction: (() -> String)? = null,
+    private val function: suspend E.(ID?, ApiItem<T, FILT>) -> ItemState<T>,
     val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
 ) : ConfigViewContainer<T, V, ID, FILT>(
+    itemKClass = itemKClass,
     idKClass = idKClass,
     apiFilterKClass = apiFilterKClass,
     name = itemKClass.simpleName!!,
@@ -83,14 +82,14 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : ID
         return url + urlParams.toString()
     }
 
+    @Suppress("unused")
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     fun callItemService(
         crudTask: CrudTask,
         callType: ApiItem.CallType,
         itemId: String? = JSON.stringify(null),
         item: T? = null,
-        urlParams: UrlParams? = null,
-        apiFilterSerialized: String?,
+        apiFilter: FILT,
         block: (ItemState<T>) -> ItemState<T>,
     ) {
         val (url, method) = serviceManager.requireCall(function)
@@ -98,17 +97,14 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : ID
         val paramList = listOf(
             itemId,
             Json.encodeToString(
-                serializer = ApiItem.serializer(itemKClass.serializer()),
+                serializer = ApiItem.serializer(itemKClass.serializer(), apiFilterKClass.serializer()),
                 value = ApiItem(
                     item = item,
                     callType = callType,
                     crudTask = crudTask,
-                    contextClass = urlParams?.contextClass,
-                    contextId = urlParams?.contextId,
-                    state = stateFunction?.invoke(),
+                    apiFilter = apiFilter,
                 )
             ),
-            apiFilterSerialized?.let { atob(decodeURIComponent(it)) }
         )
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
@@ -152,7 +148,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : ID
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : IDataItem, ID : Any, FILT : Any> configViewItem(
+fun <T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : IDataItem, ID : Any, FILT : ApiFilter> configViewItem(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>? = null,
     apiFilterKClass: KClass<FILT>,
@@ -160,8 +156,7 @@ fun <T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : IDataItem, ID : Any, FILT :
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     serviceManager: KVServiceManager<E>,
-    function: suspend E.(ID?, ApiItem<T>, FILT) -> ItemState<T>,
-    stateFunction: (() -> String)? = null,
+    function: suspend E.(ID?, ApiItem<T, FILT>) -> ItemState<T>,
     labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
 ): ConfigViewItem<T, V, E, ID, FILT> = object : ConfigViewItem<T, V, E, ID, FILT>(
     itemKClass = itemKClass,
@@ -172,6 +167,5 @@ fun <T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : IDataItem, ID : Any, FILT :
     baseUrl = baseUrl,
     serviceManager = serviceManager,
     function = function,
-    stateFunction = stateFunction,
     labelIdFunc = labelIdFunc,
 ) {}

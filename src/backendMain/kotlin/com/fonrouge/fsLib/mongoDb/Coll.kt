@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.model.*
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -36,7 +37,7 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
-abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
+abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     private val klass: KClass<T>,
     var debug: Boolean? = null
 ) {
@@ -276,7 +277,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
     }
 
     @Suppress("unused")
-    suspend fun insertOne(apiItem: ApiItem<T>): ItemState<T> {
+    suspend fun insertOne(apiItem: ApiItem<T, FILT>): ItemState<T> {
         apiItem.item?.let {
             checkDontPersist(it)
             try {
@@ -442,7 +443,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
         match: Bson? = null,
         sort: Bson? = null,
         strictCounter: Boolean = true,
-        apiList: ApiList?,
+        apiList: ApiList<FILT>?,
         apiFilter: FILT? = null,
         other: List<Bson>? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
@@ -472,7 +473,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun updateOne(
         filter: Bson,
-        apiItem: ApiItem<T>,
+        apiItem: ApiItem<T, FILT>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> = apiItem.item?.let {
         checkDontPersist(apiItem.item)
@@ -496,7 +497,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : Any>(
     @Suppress("unused")
     suspend fun updateOneById(
         id: ID?,
-        apiItem: ApiItem<T>,
+        apiItem: ApiItem<T, FILT>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
         return updateOne(

@@ -1,8 +1,6 @@
 package com.fonrouge.fsLib.lib
 
 import com.fonrouge.fsLib.model.CrudTask
-import com.fonrouge.fsLib.model.apiData.ApiList
-import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.navigo.Match
 import js.uri.decodeURIComponent
 import kotlinx.serialization.DeserializationStrategy
@@ -36,41 +34,10 @@ data class UrlParams(
         get() {
             return params.get("action") in listOf(CrudTask.Create.name, CrudTask.Update.name)
         }
-
-    val contextClass: String? get() = params.get("contextClass") as? String
-    val contextId: String? get() = params.get("contextId") as? String
-    val apiList: ApiList?
-        get() {
-            val contextClass = params.get("contextClass") as? String
-            val contextId = params.get("contextId") as? String
-            return if (contextClass != null && contextId != null) {
-                return ApiList(contextClass = contextClass, contextId = contextId)
-            } else null
-        }
-
     val id: String?
         get() {
             return params.get("id") as? String
         }
-
-    fun addContext(item: BaseDoc<*>?, encodedId: String?): UrlParams {
-        params.set("contextClass", item?.let { item::class.simpleName })
-        params.set("contextId", encodedId)
-        return this
-    }
-
-    fun addContext(apiList: ApiList?): UrlParams {
-        apiList?.let {
-            params.set("contextClass", it.contextClass)
-            params.set("contextId", it.contextId)
-        }
-        return this
-    }
-
-    fun addContext(param: Pair<String?, String>) {
-        param.first?.let { params.set("contextClass", it) }
-        param.second.let { params.set("contextId", it) }
-    }
 
     /**
      * Gets an object [T] from the url parameters with the [key] value

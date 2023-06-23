@@ -1,6 +1,9 @@
 package com.fonrouge.fsLib.config
 
+import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.View
+import com.fonrouge.fsLib.view.ViewDataContainer
+import io.kvision.utils.createInstance
 import js.uri.encodeURIComponent
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
@@ -25,6 +28,17 @@ abstract class ConfigView<V : View>(
 
     val url: String = navigoPrefix + this.baseUrl
     val labelUrl: Pair<String, String> = label to url
+
+    /**
+     * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilter] from the [UrlParams]
+     */
+    fun newViewInstance(urlParams: UrlParams?): V {
+        val view = viewFunc.js.createInstance<V>(urlParams)
+        if (view is ViewDataContainer<*>) {
+            view.apiFilterFromUrlParams()
+        }
+        return view
+    }
 
     /**
      * builds a single pair of key=value url parameter

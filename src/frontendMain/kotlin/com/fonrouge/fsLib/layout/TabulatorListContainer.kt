@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.model.IDataList
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
@@ -25,12 +26,12 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
+class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter>(
     serviceManager: KVServiceMgr<E>,
-    function: suspend E.(ApiList, FILT) -> ListState<T>,
-    private val apiListBlock: (() -> ApiList),
-    private val apiListUpdate: (ApiList.() -> Unit)? = null,
-    private val apiFilterSerialize: () -> String?,
+    function: suspend E.(ApiList<FILT>) -> ListState<T>,
+    private val apiListBlock: (() -> ApiList<FILT>),
+    private val apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
+    private val apiListSerialize: (ApiList<FILT>) -> String,
     var onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
@@ -109,10 +110,10 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : An
         val data =
             Serialization.plain.encodeToString(
                 JsonRpcRequest(
-                    0, url,
-                    listOf(
-                        apiList.let { Json.encodeToString(it) },
-                        apiFilterSerialize(),
+                    id = 0,
+                    method = url,
+                    params = listOf(
+                        apiListSerialize.invoke(apiList)
                     )
                 )
             )
@@ -194,12 +195,12 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : An
     }
 }
 
-inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(ApiList, FILT) -> ListState<T>,
-    noinline apiListBlock: (() -> ApiList),
-    noinline apiListUpdate: (ApiList.() -> Unit)? = null,
-    noinline apiFilterSerialize: () -> String?,
+    noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
+    noinline apiListBlock: (() -> ApiList<FILT>),
+    noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
+    noinline apiListSerialize: (ApiList<FILT>) -> String,
     noinline onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
@@ -215,7 +216,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any> Contai
             function = function,
             apiListBlock = apiListBlock,
             apiListUpdate = apiListUpdate,
-            apiFilterSerialize = apiFilterSerialize,
+            apiListSerialize = apiListSerialize,
             onResult = onResult,
             options = options,
             types = types,

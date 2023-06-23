@@ -6,7 +6,7 @@ import com.fonrouge.fsLib.model.base.PermissionType
 import com.fonrouge.fsLib.model.base.SysUserRole
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.mongoDb.AppRoleDb
-import com.fonrouge.fsLib.mongoDb.SysUserRoleDb
+import com.fonrouge.fsLib.mongoDb.SysUserRoleColl
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
 import io.kvision.remote.ServiceException
@@ -44,7 +44,7 @@ suspend inline fun <reified U : ISysUser> ApplicationCall?.getUserPermission(kCa
         AppRole::classOwner eq classOwner,
         AppRole::funcName eq funcName
     ) ?: return SimpleState(isOk = false, msgError = "App role doesn't exist '$classOwner::$funcName' ... ")
-    SysUserRoleDb.coroutineColl.find(
+    SysUserRoleColl.coroutineColl.find(
         filter = SysUserRole::sysUser_id eq user._id
     ).toList().forEach { userRole ->
         if (userRole.appRole_id == appRole._id)

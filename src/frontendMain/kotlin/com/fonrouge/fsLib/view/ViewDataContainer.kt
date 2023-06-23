@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewContainer
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import io.kvision.state.ObservableValue
 import io.kvision.utils.createInstance
 import kotlinx.browser.window
@@ -9,9 +10,8 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import kotlin.js.Date
 
-abstract class ViewDataContainer<FILT : Any>(
+abstract class ViewDataContainer<FILT : ApiFilter>(
     val configViewContainer: ConfigViewContainer<*, *, *, FILT>,
-    apiFilter: FILT?,
     editable: Boolean = true,
     icon: String? = null,
 ) : View(
@@ -19,7 +19,6 @@ abstract class ViewDataContainer<FILT : Any>(
     editable = editable,
     icon = icon,
 ) {
-
     companion object {
         var startTime = 0L
         internal var handleInterval: Int? = null
@@ -39,8 +38,41 @@ abstract class ViewDataContainer<FILT : Any>(
      * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
      * or programmatically, and it's delivered to the backend
      */
+    @OptIn(InternalSerializationApi::class)
     val apiFilter: ObservableValue<FILT> by lazy {
-        ObservableValue(apiFilter ?: configViewContainer.apiFilterKClass.js.createInstance())
+        ObservableValue(
+            urlParams?.pullUrlParam(
+                serializer = configViewContainer.apiFilterKClass.serializer(),
+                key = "apiFilter"
+            ) ?: newApiFilterInstance()
+        )
+    }
+
+    /**
+     * Gets an [apiFilter] object from the [urlParams]]
+     */
+    @OptIn(InternalSerializationApi::class)
+    fun apiFilterFromUrlParams() {
+        urlParams?.pullUrlParam(configViewContainer.apiFilterKClass.serializer(), "apiFilter")?.let { it: FILT ->
+            apiFilter.value = it
+        }
+    }
+
+    /**
+     * Sets the current browser url with an [apiFilter] url parameter
+     */
+    @OptIn(InternalSerializationApi::class)
+    fun apiFilterToUrl() {
+        val pair = configView.pairParam("apiFilter", configViewContainer.apiFilterKClass.serializer(), apiFilter.value)
+        urlParams?.params?.set(pair.first, pair.second)
+        @Suppress("UNUSED_VARIABLE")
+        val url = (configView.url + urlParams.toString()).asDynamic()
+
+        @Suppress("UNUSED_VARIABLE")
+        val stateObj =
+            "{apiFilter: toUrl}".asDynamic()
+        js("""history.replaceState(stateObj,"createToUpdate",url)""")
+
     }
 
     init {
@@ -87,6 +119,11 @@ abstract class ViewDataContainer<FILT : Any>(
     }
 
     /**
+     * Builds a new instance of [apiFilter]
+     */
+    open fun newApiFilterInstance(): FILT = configViewContainer.apiFilterKClass.js.createInstance()
+
+    /**
      * open function that allows to override the default action when the [apiFilter] observable changes.
      * The default action will do an [updateBanner] and then an [dataUpdate]
      */
@@ -98,19 +135,5 @@ abstract class ViewDataContainer<FILT : Any>(
     override fun onBeforeDispose() {
         super.onBeforeDispose()
         handleInterval = null
-    }
-
-    /**
-     * Sets the [apiFilter] value before display the view, By default tries to get the apiFilter value from the [urlParams]
-     * 'apiFilter' param
-     */
-    @OptIn(InternalSerializationApi::class)
-    open suspend fun setApiFilter() {
-        urlParams?.pullUrlParam(
-            serializer = configViewContainer.apiFilterKClass.serializer(),
-            key = "apiFilter"
-        )?.let {
-            apiFilter.value = it
-        }
     }
 }

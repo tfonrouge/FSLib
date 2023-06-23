@@ -11,6 +11,7 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataList
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
 import io.kvision.offcanvas.Offcanvas
@@ -27,22 +28,14 @@ import kotlinx.serialization.serializer
 import web.buffer.btoa
 
 @Suppress("unused")
-abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
+abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter>(
     final override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT>, E, ID, FILT>,
     configViewItem: ConfigViewItem<T, *, *, ID, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-    /**
-     * If apiFilter kclass is not defined in [configView] this value needs to be initialized
-     * on view construct in order to automatically get [apiFilter] parameter from url params
-     *
-     * Note: [ConfigViewList.apiFilterKClass] class must haven't constructor parameters
-     */
-    apiFilter: FILT? = null,
 ) : ViewDataContainer<FILT>(
     configViewContainer = configView,
-    apiFilter = apiFilter,
     editable = editable,
     icon = icon,
 ) {
@@ -76,6 +69,9 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
     var masterViewItem: ViewItem<*, *, *>? = null
         set(value) {
+            value?.item?._id.let {
+                apiFilter.value.masterItemIdSerialized = value?.encodedId()
+            }
             editable = value?.urlParams?.actionUpsert == true
             field = value
         }
@@ -138,27 +134,22 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
             }
         }?.let { params ->
             val urlParams = UrlParams(*params.toTypedArray())
-            onSetContext()?.let {
-                urlParams.addContext(it)
-            }
-            configViewItem?.let { configViewItem1 ->
+            configViewItem?.let { configViewItem ->
+                val apiFilter = newApiFilterInstance()
+                apiFilter.masterItemIdSerialized = configView.encodedId(item)
                 if (configView.apiFilterKClass != Unit::class) {
                     urlParams.pushParam(
                         "apiFilter" to encodeURIComponent(
                             btoa(
                                 Json.encodeToString(
                                     configView.apiFilterKClass.serializer(),
-                                    apiFilter.value
+                                    apiFilter
                                 )
                             )
                         )
                     )
                 }
-                apiFilter.value
-                masterViewItem?.let { viewItem ->
-                    urlParams.addContext(viewItem.item, viewItem.encodedId())
-                } ?: urlParams.addContext(this@ViewList.urlParams?.apiList)
-                configViewItem1.url + urlParams.toString()
+                configViewItem.url + urlParams.toString()
             }
         }
         if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
@@ -325,22 +316,17 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Any>(
         }
     }
 
-    fun <F : Any> urlApiFilter(
+    /**
+     * Builds an url with an [apiFilter] parameter value
+     *
+     * @param configViewList - The [ConfigViewList] of the [ViewList] to go
+     */
+    fun <F : ApiFilter> urlApiFilter(
         configViewList: ConfigViewList<*, *, *, *, F>,
         apiFilter: F,
     ): String {
         val params = mutableListOf<Pair<String, String>>()
-        urlParams?.contextClass?.let { params.add("contextClass" to it) }
-        urlParams?.contextId?.let { params.add("contextId" to it) }
         params.add(configViewList.apiFilterParam(apiFilter))
         return configViewList.urlWithParams(*params.toTypedArray())
-    }
-
-    /**
-     * Creates an [UrlParams] with the 'contextClass' and 'contextId' values from
-     * the [item] parameter provided.
-     */
-    fun urlContext(item: T?): UrlParams {
-        return UrlParams().addContext(item = item, encodedId(item))
     }
 }

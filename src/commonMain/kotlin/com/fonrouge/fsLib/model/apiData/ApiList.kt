@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
  * @param state can contain an arbitrary data which can be instantiated with [stateValue]
  */
 @Serializable
-data class ApiList(
+data class ApiList<FILT : ApiFilter>(
     var tabPage: Int? = null,
     var tabSize: Int? = null,
     var tabFilter: List<RemoteFilter>? = null,
@@ -20,7 +20,5 @@ data class ApiList(
     var sorter: String? = null,
     var params: String? = null,
     var contentHashCode: Int? = null,
-    override var contextId: String? = null,
-    override var contextClass: String? = null,
-    override var state: String? = null,
-) : ContexApi()
+    var apiFilter: FILT,
+)

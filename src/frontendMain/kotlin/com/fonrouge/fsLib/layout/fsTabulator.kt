@@ -4,6 +4,7 @@ package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.IDataList
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewDataContainer
@@ -15,10 +16,8 @@ import io.kvision.core.onEvent
 import io.kvision.panel.vPanel
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
-import io.kvision.utils.createInstance
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
@@ -39,18 +38,18 @@ data class FSTabOptions(
     val paginationCounterElement: dynamic = null,
 )
 
-inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any> Container.fsTabulator(
+inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : ApiFilter> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, ID, FILT>, E, ID, FILT>,
     masterViewItem: ViewItem<*, *, *>? = null,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
-    noinline apiListUpdate: (ApiList.() -> Unit)? = null,
+    noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
 ): ViewList<T, E, ID, FILT> {
-    val viewList = configViewList.viewFunc.js.createInstance<ViewList<T, E, ID, FILT>>(null)
+    val viewList: ViewList<T, E, ID, FILT> = configViewList.newViewInstance(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
@@ -65,13 +64,13 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any> Container.fsTabulator(
+inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : ApiFilter> Container.fsTabulator(
     viewList: ViewList<T, E, ID, FILT>,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
-    noinline apiListUpdate: (ApiList.() -> Unit)? = null,
+    noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
 ): ViewList<T, E, ID, FILT> {
@@ -104,26 +103,19 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any
         autoResize = true,
     )
 
-    val apiListBlock: () -> ApiList = {
+    val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
-        val result: ApiList = urlParams?.apiList ?: ApiList()
-        val context = viewList.onSetContext()
-        if (context == null) {
-            viewList.masterViewItem?.let { viewItem ->
-                viewItem.item?.let {
-                    result.contextClass = viewList.masterViewItem?.configView?.itemKClass?.simpleName
-                    result.contextId = viewItem.encodedId()
-                }
-            }
-        } else {
-            result.contextClass = context.first
-            result.contextId = context.second
-        }
-        result.params = JSON.stringify(urlParams?.params)
-        result
+        val apiList: ApiList<FILT> = ApiList(apiFilter = viewList.apiFilter.value)
+        apiList.params = JSON.stringify(urlParams?.params)
+        apiList
     }
 
-    val apiFilterSerialize: () -> String? = { Json.encodeToString(viewList.apiFilter.value) }
+    val apiListSerialize: (ApiList<FILT>) -> String = { apiList: ApiList<FILT> ->
+        Json.encodeToString(
+            serializer = ApiList.serializer(viewList.configView.apiFilterKClass.serializer()),
+            value = apiList
+        )
+    }
 
     vPanel {
         viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
@@ -132,7 +124,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Any
             function = viewList.configView.function,
             apiListBlock = apiListBlock,
             apiListUpdate = apiListUpdate,
-            apiFilterSerialize = apiFilterSerialize,
+            apiListSerialize = apiListSerialize,
             onResult = onResult,
             serializer = T::class.serializer(),
             options = tabOpt,
