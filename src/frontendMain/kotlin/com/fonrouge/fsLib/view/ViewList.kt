@@ -135,8 +135,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
         }?.let { params ->
             val urlParams = UrlParams(*params.toTypedArray())
             configViewItem?.let { configViewItem ->
-//                val apiFilter = newApiFilterInstance()
-//                apiFilter.masterItemIdSerialized = this.apiFilter.value.masterItemIdSerialized
                 urlParams.pushParam(
                     "apiFilter" to encodeURIComponent(
                         btoa(
