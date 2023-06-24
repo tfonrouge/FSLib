@@ -36,16 +36,18 @@ abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<FILT>,
         }
     }
 
-    @OptIn(InternalSerializationApi::class)
-    fun encodedId(item: T?): String {
-        val id = item?._id
-        return when {
-            id != null && idKClass != null -> encodedId(id)
-            else -> {
-                item?.let { Json.encodeToString(itemKClass.serializer(), it) }?.let { it ->
-                    js("""JSON.parse(it)["_id"]""").unsafeCast<String>()
-                } ?: JSON.stringify(null)
+    /*
+        @OptIn(InternalSerializationApi::class)
+        fun encodedId(item: T?): String {
+            val id = item?._id
+            return when {
+                id != null && idKClass != null -> encodedId(id)
+                else -> {
+                    item?.let { Json.encodeToString(itemKClass.serializer(), it) }?.let { it ->
+                        js("""JSON.parse(it)["_id"]""").unsafeCast<String>()
+                    } ?: JSON.stringify(null)
+                }
             }
         }
-    }
+    */
 }
