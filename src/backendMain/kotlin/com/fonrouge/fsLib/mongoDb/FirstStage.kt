@@ -8,4 +8,5 @@ class FirstStage(
     val count: Long,
     val last_page: Int,
     val last_row: Int?,
+    val limit: Int?,
 )

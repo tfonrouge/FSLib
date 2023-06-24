@@ -80,15 +80,26 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>> = emptyArray(),
         apiFilter: FILT? = null,
+        limit: Int? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
         val pip1 = buildPipeline(pipeline, lookups, apiFilter)
+        limit?.let {
+            pip1.add(
+                limit(it)
+            )
+        }
         postProcessPipeline?.let { it(pip1) }
+        val curTime = Date().time
         if (debug ?: globalDebug) {
-            println("Class: ${klass.simpleName}, Aggregate:")
+            println("Class: ${klass.simpleName}, Aggregate pipeline:")
             println(pip1.json)
         }
-        return mongoColl.aggregate(pip1, klass.java)
+        return mongoColl.aggregate(pip1, klass.java).also {
+            if (debug ?: globalDebug) {
+                println("Class: ${klass.simpleName}, Aggregate time: ${Date().time - curTime}ms")
+            }
+        }
     }
 
     /**
@@ -369,6 +380,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                 count = count,
                 last_page = -1,
                 last_row = null,
+                limit = null,
             )
         } else {
             require(size == null || size > 0)
@@ -380,13 +392,14 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             filterDocument?.let { pipeline.add(match(filterDocument)) }
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
             kotlin.math.max(nSkip, 0).let { if (it > 0) pipeline.add(skip(it)) }
-            pipeline.add(limit(nSize))
+//            pipeline.add(limit(nSize))
             other?.let { pipeline.addAll(it) }
             return FirstStage(
                 pipeline = pipeline,
                 count = count,
                 last_page = maxPage,
                 last_row = null,
+                limit = nSize,
             )
         }
     }
@@ -409,7 +422,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             pipeline = firstStage.pipeline,
             lookups = lookupWrappers,
             apiFilter = apiFilter,
-            postProcessPipeline = postProcessPipeline,
+            limit = firstStage.limit,
+            postProcessPipeline = postProcessPipeline
         ).toList()
         postProcessList?.let { it(list) }
         val contentHashCode = if (!noContentHashCode) {
