@@ -7,9 +7,7 @@ import kotlinx.serialization.Serializable
 /**
  * Data structure passed to backend which contains parameters from tabulator (frontEnd)
  *
- * @param contextClass the class name for the master item (if any) of the data list
- * @param contextId the id for the item in the master item (if any)
- * @param state can contain an arbitrary data which can be instantiated with [stateValue]
+ * @param FILT [ApiFilter] type param
  */
 @Serializable
 data class ApiList<FILT : ApiFilter>(
