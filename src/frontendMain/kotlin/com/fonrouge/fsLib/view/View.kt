@@ -15,6 +15,7 @@ import io.kvision.utils.em
 import io.kvision.utils.px
 
 abstract class View(
+    var urlParams: UrlParams? = null,
     open val configView: ConfigView<*>,
     var editable: Boolean = true,
     val icon: String? = null,
@@ -50,7 +51,6 @@ abstract class View(
      */
     open val periodicUpdateDataView: Boolean? = null
     var periodicUpdateViewInterval = 5
-    abstract var urlParams: UrlParams?
     private val pageBannerUpdateObservable = ObservableValue(0)
 
     /**
@@ -72,11 +72,9 @@ abstract class View(
     }
 
     abstract fun Container.displayPage()
-
     open fun onBeforeDisplayPage(container: Container) {}
-
+    open fun onAfterDisplayPage() {}
     open fun onBeforeDispose() {}
-
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
         navbar(bgColor = BsBgColor.LIGHT).bind(

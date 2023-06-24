@@ -25,16 +25,17 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import web.buffer.btoa
 
 @Suppress("unused")
 abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter>(
+    urlParams: UrlParams? = null,
     final override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT>, E, ID, FILT>,
     configViewItem: ConfigViewItem<T, *, *, ID, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
 ) : ViewDataContainer<FILT>(
+    urlParams = urlParams,
     configViewContainer = configView,
     editable = editable,
     icon = icon,
@@ -137,11 +138,9 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
             configViewItem?.let { configViewItem ->
                 urlParams.pushParam(
                     "apiFilter" to encodeURIComponent(
-                        btoa(
-                            Json.encodeToString(
-                                configView.apiFilterKClass.serializer(),
-                                apiFilter.value
-                            )
+                        Json.encodeToString(
+                            configView.apiFilterKClass.serializer(),
+                            apiFilter.value
                         )
                     )
                 )

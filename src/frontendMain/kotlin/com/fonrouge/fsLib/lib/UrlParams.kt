@@ -51,7 +51,7 @@ data class UrlParams(
      */
     fun <T : Any> pullUrlParam(serializer: DeserializationStrategy<T>, key: String): T? =
         params[key]?.unsafeCast<String?>()?.let {
-            kotlinx.serialization.json.Json.decodeFromString(serializer, atob(decodeURIComponent(it)))
+            kotlinx.serialization.json.Json.decodeFromString(serializer, decodeURIComponent(it))
         }
 
     /**

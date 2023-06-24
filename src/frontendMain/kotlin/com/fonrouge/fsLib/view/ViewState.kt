@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import io.kvision.core.Container
 import io.kvision.html.div
+import io.kvision.state.bind
 
 class ViewState(
     val configView: ConfigView<*>,
@@ -20,6 +21,13 @@ fun Container.showView(viewState: ViewState) {
             }
             onBeforeDisplayPage(this@showView)
             this@showView.displayPage()
+            if (view is ViewDataContainer<*>) {
+                bind(view.apiFilter) {
+                    view.onApiFilterUpdate()
+                    view.apiFilterToUrl()
+                }
+            }
+            onAfterDisplayPage()
         }
     }
 }

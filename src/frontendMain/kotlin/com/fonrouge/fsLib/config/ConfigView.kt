@@ -34,9 +34,7 @@ abstract class ConfigView<V : View>(
      */
     fun newViewInstance(urlParams: UrlParams?): V {
         val view = viewFunc.js.createInstance<V>(urlParams)
-        if (view is ViewDataContainer<*>) {
-            view.apiFilterFromUrlParams()
-        }
+        view.urlParams = urlParams
         return view
     }
 
@@ -44,10 +42,10 @@ abstract class ConfigView<V : View>(
      * builds a single pair of key=value url parameter
      */
     inline fun <reified T> pairParam(key: String, obj: T): Pair<String, String> =
-        key to encodeURIComponent(btoa(Json.encodeToString(obj)))
+        key to encodeURIComponent(Json.encodeToString(obj))
 
     fun <T> pairParam(key: String, serializer: KSerializer<T>, obj: T): Pair<String, String> =
-        key to encodeURIComponent(btoa(Json.encodeToString(serializer, obj)))
+        key to encodeURIComponent(Json.encodeToString(serializer, obj))
 
     /**
      * builds a url with a list of pair values of key=value url parameters

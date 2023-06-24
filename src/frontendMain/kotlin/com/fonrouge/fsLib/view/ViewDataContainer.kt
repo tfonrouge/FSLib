@@ -1,7 +1,9 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewContainer
+import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.apiData.ApiFilter
+import io.kvision.core.Container
 import io.kvision.state.ObservableValue
 import io.kvision.utils.createInstance
 import kotlinx.browser.window
@@ -11,10 +13,12 @@ import kotlinx.serialization.serializer
 import kotlin.js.Date
 
 abstract class ViewDataContainer<FILT : ApiFilter>(
+    urlParams: UrlParams?,
     val configViewContainer: ConfigViewContainer<*, *, *, FILT>,
     editable: Boolean = true,
     icon: String? = null,
 ) : View(
+    urlParams = urlParams,
     configView = configViewContainer,
     editable = editable,
     icon = icon,
@@ -38,24 +42,32 @@ abstract class ViewDataContainer<FILT : ApiFilter>(
      * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
      * or programmatically, and it's delivered to the backend
      */
-    @OptIn(InternalSerializationApi::class)
     val apiFilter: ObservableValue<FILT> by lazy {
-        ObservableValue(
-            urlParams?.pullUrlParam(
-                serializer = configViewContainer.apiFilterKClass.serializer(),
-                key = "apiFilter"
-            ) ?: newApiFilterInstance()
-        )
+        ObservableValue(newApiFilterInstance())
     }
+    private var isApiFilterFromUrl: Boolean? = null
 
-    /**
-     * Gets an [apiFilter] object from the [urlParams]]
-     */
     @OptIn(InternalSerializationApi::class)
-    fun apiFilterFromUrlParams() {
-        urlParams?.pullUrlParam(configViewContainer.apiFilterKClass.serializer(), "apiFilter")?.let { it: FILT ->
+    override fun onBeforeDisplayPage(container: Container) {
+        super.onBeforeDisplayPage(container)
+        val apiFilterFromUrlParams = urlParams?.pullUrlParam(
+            serializer = configViewContainer.apiFilterKClass.serializer(),
+            key = "apiFilter"
+        )
+        isApiFilterFromUrl = apiFilterFromUrlParams != null
+        apiFilterFromUrlParams?.let {
             apiFilter.value = it
         }
+    }
+
+    override fun onAfterDisplayPage() {
+        super.onAfterDisplayPage()
+        if (isApiFilterFromUrl != true)
+            AppScope.launch {
+                initialApiFilter()?.let {
+                    apiFilter.value = it
+                }
+            }
     }
 
     /**
@@ -72,19 +84,16 @@ abstract class ViewDataContainer<FILT : ApiFilter>(
         val stateObj =
             "{apiFilter: toUrl}".asDynamic()
         js("""history.replaceState(stateObj,"createToUpdate",url)""")
-
-    }
-
-    init {
-        this.apiFilter.subscribe {
-            onApiFilterUpdate()
-        }
     }
 
     var displayBlock: (() -> Unit)? = null
     var suspendPeriodicUpdate = false
-
     abstract suspend fun dataUpdate()
+
+    /**
+     * Allows to set an initial [apiFilter] value if it can't be obtained from [urlParams]
+     */
+    open suspend fun initialApiFilter(): FILT? = null
 
     fun installUpdate(first: Boolean) {
         val callBlock = {
