@@ -71,11 +71,6 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
         )?.let {
             pip2 += it
         }
-        /*
-                collMap[collKClass]?.buildLookupList((lookup?.lookupWrappers ?: emptyArray()))?.let { bsonList ->
-                    pip2 += bsonList
-                }
-        */
         val pipeline = mutableListOf<Bson>()
         pipeline += lookup(pip2)
         if (resultUnit == ResultUnit.One) {
