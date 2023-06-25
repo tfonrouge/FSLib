@@ -80,16 +80,18 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>> = emptyArray(),
         apiFilter: FILT? = null,
+        skip: Int = 0,
         limit: Int? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
         val pip1 = buildPipeline(pipeline, lookups, apiFilter)
+        postProcessPipeline?.let { it(pip1) }
+        kotlin.math.max(skip, 0).let { if (it > 0) pip1.add(skip(it)) }
         limit?.let {
             pip1.add(
                 limit(it)
             )
         }
-        postProcessPipeline?.let { it(pip1) }
         val curTime = Date().time
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate pipeline:")
@@ -391,7 +393,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             match?.let { pipeline.add(match(match)) }
             filterDocument?.let { pipeline.add(match(filterDocument)) }
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
-            kotlin.math.max(nSkip, 0).let { if (it > 0) pipeline.add(skip(it)) }
+//            kotlin.math.max(nSkip, 0).let { if (it > 0) pipeline.add(skip(it)) }
 //            pipeline.add(limit(nSize))
             other?.let { pipeline.addAll(it) }
             return FirstStage(
@@ -399,6 +401,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                 count = count,
                 last_page = maxPage,
                 last_row = null,
+                skip = nSkip,
                 limit = nSize,
             )
         }
@@ -422,6 +425,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             pipeline = firstStage.pipeline,
             lookups = lookupWrappers,
             apiFilter = apiFilter,
+            skip = firstStage.skip,
             limit = firstStage.limit,
             postProcessPipeline = postProcessPipeline
         ).toList()
