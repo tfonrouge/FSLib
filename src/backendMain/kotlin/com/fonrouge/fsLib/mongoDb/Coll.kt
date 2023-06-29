@@ -57,7 +57,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      */
     @Suppress("MemberVisibilityCanBePrivate")
     var constLookupList: List<KProperty1<in T, *>>? = null
-    open val lookupFun: ((FILT?) -> List<LookupPipelineBuilder<T, *, *>>)? = null
+    open val lookupFun: ((FILT?) -> List<LookupPipelineBuilder<T, *, *>>) = { listOf() }
     open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
 
@@ -117,7 +117,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         apiFilter: FILT? = null,
     ): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        val lookupPipelineBuilders = lookupFun?.invoke(apiFilter) // lookupPipelineBuilderList?.toMutableList()
+        val lookupPipelineBuilders = lookupFun.invoke(apiFilter) // lookupPipelineBuilderList?.toMutableList()
             ?.plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null })
         lookupPipelineBuilders?.forEach { lookupPipelineBuilder ->
             val lookupWrapper = lookupWrappers.find {
