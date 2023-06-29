@@ -140,7 +140,7 @@ abstract class ViewDataContainer<FILT : ApiFilter>(
         } catch (e: Exception) {
             val errMsg = """
                 Error creating instance of apiFilter,
-                hint: [${configViewContainer.apiFilterKClass.simpleName}] must *not* have constructor parameters,
+                hint: [${configViewContainer.apiFilterKClass.simpleName}]::class must *not* have constructor parameters,
                 or need to override the newApiFilterInstance() function
                 """.trimIndent()
             e.message
