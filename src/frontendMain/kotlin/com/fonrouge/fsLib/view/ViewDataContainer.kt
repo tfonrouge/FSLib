@@ -5,10 +5,13 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.apiData.ApiFilter
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
-import io.kvision.utils.createInstance
+import io.kvision.toast.Toast
+import io.kvision.toast.ToastOptions
+import io.kvision.toast.ToastPosition
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.js.Date
 
@@ -130,7 +133,31 @@ abstract class ViewDataContainer<FILT : ApiFilter>(
     /**
      * Builds a new instance of [apiFilter]
      */
-    open fun newApiFilterInstance(): FILT = configViewContainer.apiFilterKClass.js.createInstance()
+    @OptIn(InternalSerializationApi::class)
+    open fun newApiFilterInstance(): FILT {
+        return try {
+            Json.decodeFromString(configViewContainer.apiFilterKClass.serializer(), """{}""")
+        } catch (e: Exception) {
+            val errMsg = """
+                Error creating instance of apiFilter,
+                hint: [${configViewContainer.apiFilterKClass.simpleName}] must *not* have constructor parameters,
+                or need to override the newApiFilterInstance() function
+                """.trimIndent()
+            e.message
+            console.error(errMsg)
+            Toast.danger(
+                message = errMsg,
+                options = ToastOptions(
+                    position = ToastPosition.BOTTOMRIGHT,
+                    escapeHtml = true,
+                    duration = 10000,
+                    stopOnFocus = true,
+                    newWindow = true
+                )
+            )
+            throw e
+        }
+    }
 
     /**
      * open function that allows to override the default action when the [apiFilter] observable changes.
