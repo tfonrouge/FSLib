@@ -46,26 +46,21 @@ abstract class ViewDataContainer<FILT : ApiFilter>(
      * or programmatically, and it's delivered to the backend
      */
     val apiFilter: ObservableValue<FILT> by lazy {
-        ObservableValue(newApiFilterInstance())
+        ObservableValue(apiFilterFromUrl ?: newApiFilterInstance())
     }
-    private var isApiFilterFromUrl: Boolean? = null
+    private var apiFilterFromUrl: FILT? = null
 
     @OptIn(InternalSerializationApi::class)
-    override fun onBeforeDisplayPage(container: Container) {
-        super.onBeforeDisplayPage(container)
-        val apiFilterFromUrlParams = urlParams?.pullUrlParam(
+    fun setApiFilterFromUrl() {
+        apiFilterFromUrl = urlParams?.pullUrlParam(
             serializer = configViewContainer.apiFilterKClass.serializer(),
             key = "apiFilter"
         )
-        isApiFilterFromUrl = apiFilterFromUrlParams != null
-        apiFilterFromUrlParams?.let {
-            apiFilter.value = it
-        }
     }
 
     override fun onAfterDisplayPage() {
         super.onAfterDisplayPage()
-        if (isApiFilterFromUrl != true)
+        if (apiFilterFromUrl == null)
             AppScope.launch {
                 initialApiFilter()?.let {
                     apiFilter.value = it

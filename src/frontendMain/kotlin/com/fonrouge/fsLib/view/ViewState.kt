@@ -14,17 +14,19 @@ class ViewState(
 @Suppress("unused")
 fun Container.showView(viewState: ViewState) {
     val view = viewState.configView.newViewInstance(viewState.urlParams)
+    val viewDataContainer = view as? ViewDataContainer<*>
     view.apply {
         div {
             addBeforeDisposeHook {
                 onBeforeDispose()
             }
+            viewDataContainer?.setApiFilterFromUrl()
             onBeforeDisplayPage(this@showView)
             this@showView.displayPage()
-            if (view is ViewDataContainer<*>) {
-                bind(view.apiFilter) {
-                    view.onApiFilterUpdate()
-                    view.apiFilterToUrl()
+            viewDataContainer?.let {
+                bind(viewDataContainer.apiFilter) {
+                    viewDataContainer.onApiFilterUpdate()
+                    viewDataContainer.apiFilterToUrl()
                 }
             }
             onAfterDisplayPage()
