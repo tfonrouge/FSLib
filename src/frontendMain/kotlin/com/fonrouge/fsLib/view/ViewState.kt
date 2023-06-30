@@ -20,7 +20,6 @@ fun Container.showView(viewState: ViewState) {
             addBeforeDisposeHook {
                 onBeforeDispose()
             }
-            viewDataContainer?.setApiFilterFromUrl()
             onBeforeDisplayPage(this@showView)
             this@showView.displayPage()
             viewDataContainer?.let {

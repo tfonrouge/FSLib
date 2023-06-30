@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.apiData.ApiFilter
-import io.kvision.core.Container
 import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
@@ -48,15 +47,13 @@ abstract class ViewDataContainer<FILT : ApiFilter>(
     val apiFilter: ObservableValue<FILT> by lazy {
         ObservableValue(apiFilterFromUrl ?: newApiFilterInstance())
     }
-    private var apiFilterFromUrl: FILT? = null
 
     @OptIn(InternalSerializationApi::class)
-    fun setApiFilterFromUrl() {
-        apiFilterFromUrl = urlParams?.pullUrlParam(
+    private val apiFilterFromUrl: FILT?
+        get() = urlParams?.pullUrlParam(
             serializer = configViewContainer.apiFilterKClass.serializer(),
             key = "apiFilter"
         )
-    }
 
     override fun onAfterDisplayPage() {
         super.onAfterDisplayPage()
@@ -85,6 +82,8 @@ abstract class ViewDataContainer<FILT : ApiFilter>(
     }
 
     var displayBlock: (() -> Unit)? = null
+
+    @Suppress("MemberVisibilityCanBePrivate")
     var suspendPeriodicUpdate = false
     abstract suspend fun dataUpdate()
 
