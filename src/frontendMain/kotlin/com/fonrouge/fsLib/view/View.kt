@@ -87,6 +87,22 @@ abstract class View<FILT : ApiFilter>(
     }
 
     /**
+     * Sets the current browser url with an [apiFilter] url parameter
+     */
+    @OptIn(InternalSerializationApi::class)
+    fun apiFilterToUrl() {
+        val pair = configView.pairParam("apiFilter", configView.apiFilterKClass.serializer(), apiFilter.value)
+        urlParams?.params?.set(pair.first, pair.second)
+        @Suppress("UNUSED_VARIABLE")
+        val url = (configView.url + urlParams.toString()).asDynamic()
+
+        @Suppress("UNUSED_VARIABLE")
+        val stateObj =
+            "{apiFilter: toUrl}".asDynamic()
+        js("""history.replaceState(stateObj,"createToUpdate",url)""")
+    }
+
+    /**
      * Allows to describe a display that will be showed next to the view link banner
      * it can be triggered with [updateBanner] function
      */
@@ -95,7 +111,41 @@ abstract class View<FILT : ApiFilter>(
     }
 
     abstract fun Container.displayPage()
-    open fun onBeforeDisplayPage(container: Container) {}
+
+    /**
+     * Allows to set an initial [apiFilter] value if it can't be obtained from [urlParams]
+     */
+    open suspend fun initialApiFilter(): FILT? = null
+
+    /**
+     * Builds a new instance of [apiFilter]
+     */
+    @OptIn(InternalSerializationApi::class)
+    open fun newApiFilterInstance(): FILT {
+        return try {
+            Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
+        } catch (e: Exception) {
+            val errMsg = """
+                Error creating instance of apiFilter,
+                hint: [${configView.apiFilterKClass.simpleName}]::class must *not* have constructor parameters,
+                or need to override the newApiFilterInstance() function
+                """.trimIndent()
+            e.message
+            console.error(errMsg)
+            Toast.danger(
+                message = errMsg,
+                options = ToastOptions(
+                    position = ToastPosition.BOTTOMRIGHT,
+                    escapeHtml = true,
+                    duration = 10000,
+                    stopOnFocus = true,
+                    newWindow = true
+                )
+            )
+            throw e
+        }
+    }
+
     open fun onAfterDisplayPage() {
         if (apiFilterFromUrl == null)
             AppScope.launch {
@@ -105,15 +155,14 @@ abstract class View<FILT : ApiFilter>(
             }
     }
 
-    /**
-     * Allows to set an initial [apiFilter] value if it can't be obtained from [urlParams]
-     */
-    open suspend fun initialApiFilter(): FILT? = null
     open fun onApiFilterUpdate() {
         updateBanner()
     }
 
+    open fun onBeforeDisplayPage(container: Container) {}
+
     open fun onBeforeDispose() {}
+
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
         navbar(bgColor = BsBgColor.LIGHT).bind(
@@ -174,47 +223,16 @@ abstract class View<FILT : ApiFilter>(
     }
 
     /**
-     * Builds a new instance of [apiFilter]
+     * Builds an url with an [apiFilter] parameter value
+     *
+     * @param configView - The [ConfigViewList] of the [ViewList] to go
      */
-    @OptIn(InternalSerializationApi::class)
-    open fun newApiFilterInstance(): FILT {
-        return try {
-            Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
-        } catch (e: Exception) {
-            val errMsg = """
-                Error creating instance of apiFilter,
-                hint: [${configView.apiFilterKClass.simpleName}]::class must *not* have constructor parameters,
-                or need to override the newApiFilterInstance() function
-                """.trimIndent()
-            e.message
-            console.error(errMsg)
-            Toast.danger(
-                message = errMsg,
-                options = ToastOptions(
-                    position = ToastPosition.BOTTOMRIGHT,
-                    escapeHtml = true,
-                    duration = 10000,
-                    stopOnFocus = true,
-                    newWindow = true
-                )
-            )
-            throw e
-        }
-    }
-
-    /**
-     * Sets the current browser url with an [apiFilter] url parameter
-     */
-    @OptIn(InternalSerializationApi::class)
-    fun apiFilterToUrl() {
-        val pair = configView.pairParam("apiFilter", configView.apiFilterKClass.serializer(), apiFilter.value)
-        urlParams?.params?.set(pair.first, pair.second)
-        @Suppress("UNUSED_VARIABLE")
-        val url = (configView.url + urlParams.toString()).asDynamic()
-
-        @Suppress("UNUSED_VARIABLE")
-        val stateObj =
-            "{apiFilter: toUrl}".asDynamic()
-        js("""history.replaceState(stateObj,"createToUpdate",url)""")
+    fun <F : ApiFilter> urlApiFilter(
+        configView: ConfigView<*, F>,
+        apiFilter: F,
+    ): String {
+        val params = mutableListOf<Pair<String, String>>()
+        params.add(configView.apiFilterParam(apiFilter))
+        return configView.urlWithParams(*params.toTypedArray())
     }
 }

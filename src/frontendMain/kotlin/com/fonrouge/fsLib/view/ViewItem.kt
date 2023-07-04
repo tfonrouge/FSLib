@@ -407,8 +407,8 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         }
     }
 
-    fun encodedId(_id: ID? = item?._id): String {
-        return configView.encodedId(id = _id)
+    fun encodedId(id: ID? = item?._id): String {
+        return configView.encodedId(id = id)
     }
 
     override val label: String

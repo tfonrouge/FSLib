@@ -33,14 +33,6 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT>, E :
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *>>()
     }
 
-    /**
-     * helper to build an api filter parameter in the url string
-     */
-    @Suppress("unused")
-    @OptIn(InternalSerializationApi::class)
-    fun apiFilterParam(obj: FILT): Pair<String, String> =
-        pairParam(key = "apiFilter", serializer = apiFilterKClass.serializer(), obj = obj)
-
     init {
         configViewListMap[baseUrl] = this
     }

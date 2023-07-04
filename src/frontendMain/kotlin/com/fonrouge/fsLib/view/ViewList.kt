@@ -124,7 +124,8 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     @OptIn(InternalSerializationApi::class)
     open suspend fun goActionUrl(
         crudTask: CrudTask,
-        item: T? = selectedItem
+        item: T? = selectedItem,
+        configViewItem: ConfigViewItem<*, *, *, ID, *>? = this.configViewItem,
     ) {
         val url: String? = when (crudTask) {
             CrudTask.Create -> listOf("action" to CrudTask.Create.name)
@@ -309,19 +310,5 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
             navbarTabulator?.linkUpdate?.hide()
             navbarTabulator?.linkDelete?.hide()
         }
-    }
-
-    /**
-     * Builds an url with an [apiFilter] parameter value
-     *
-     * @param configViewList - The [ConfigViewList] of the [ViewList] to go
-     */
-    fun <F : ApiFilter> urlApiFilter(
-        configViewList: ConfigViewList<*, *, *, *, F>,
-        apiFilter: F,
-    ): String {
-        val params = mutableListOf<Pair<String, String>>()
-        params.add(configViewList.apiFilterParam(apiFilter))
-        return configViewList.urlWithParams(*params.toTypedArray())
     }
 }

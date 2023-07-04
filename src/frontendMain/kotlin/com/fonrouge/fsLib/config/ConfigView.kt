@@ -6,9 +6,11 @@ import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewDataContainer
 import io.kvision.utils.createInstance
 import js.uri.encodeURIComponent
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 private const val navigoPrefix = "#/"
@@ -63,6 +65,14 @@ abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
             url
         }
     }
+
+    /**
+     * helper to build an api filter parameter in the url string
+     */
+    @Suppress("unused")
+    @OptIn(InternalSerializationApi::class)
+    fun apiFilterParam(obj: FILT): Pair<String, String> =
+        pairParam(key = "apiFilter", serializer = apiFilterKClass.serializer(), obj = obj)
 
     init {
         if (this !is ConfigViewContainer<*, *, *, *>) {
