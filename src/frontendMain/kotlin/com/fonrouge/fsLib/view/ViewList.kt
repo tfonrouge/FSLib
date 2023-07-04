@@ -68,7 +68,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     var navbarTabulator: NavbarTabulator<ID>? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
-    var masterViewItem: ViewItem<*, *, *>? = null
+    var masterViewItem: ViewItem<*, *, FILT>? = null
         set(value) {
             value?.item?._id.let {
                 apiFilter.value.masterItemIdSerialized = value?.encodedId()

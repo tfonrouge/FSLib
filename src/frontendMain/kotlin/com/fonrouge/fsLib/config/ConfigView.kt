@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewDataContainer
 import io.kvision.utils.createInstance
@@ -8,7 +9,6 @@ import js.uri.encodeURIComponent
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import web.buffer.btoa
 import kotlin.reflect.KClass
 
 private const val navigoPrefix = "#/"
@@ -16,14 +16,15 @@ private const val navigoPrefix = "#/"
 /*
     TODO: encode/decode baseUrl to be url compliant
  */
-abstract class ConfigView<V : View>(
+abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
     val name: String,
     val label: String,
     val viewFunc: KClass<out V>,
+    val apiFilterKClass: KClass<FILT>,
     val baseUrl: String = viewFunc.simpleName!!
 ) {
     companion object {
-        val configViewMap = mutableMapOf<String, ConfigView<*>>()
+        val configViewMap = mutableMapOf<String, ConfigView<*, *>>()
     }
 
     val url: String = navigoPrefix + this.baseUrl
@@ -74,14 +75,16 @@ abstract class ConfigView<V : View>(
 fun String.rh() = this.removePrefix("#/")
 
 @Suppress("unused")
-fun <V : View> configView(
+fun <V : View<FILT>, FILT : ApiFilter> configView(
     name: String,
     label: String,
     viewFunc: KClass<out V>,
+    apiFilterKClass: KClass<FILT>,
     baseUrl: String = viewFunc.simpleName!!
-): ConfigView<V> = object : ConfigView<V>(
+): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
     name = name,
     label = label,
     viewFunc = viewFunc,
+    apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
 ) {}

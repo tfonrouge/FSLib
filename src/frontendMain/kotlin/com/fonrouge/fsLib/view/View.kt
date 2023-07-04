@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
+import com.fonrouge.fsLib.model.apiData.ApiFilter
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
 import io.kvision.html.*
@@ -11,12 +12,19 @@ import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.state.ObservableValue
 import io.kvision.state.bind
+import io.kvision.toast.Toast
+import io.kvision.toast.ToastOptions
+import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
 import io.kvision.utils.px
+import kotlinx.coroutines.launch
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
-abstract class View(
+abstract class View<FILT : ApiFilter>(
     var urlParams: UrlParams? = null,
-    open val configView: ConfigView<*>,
+    open val configView: ConfigView<*, FILT>,
     var editable: Boolean = true,
     val icon: String? = null,
     open val label: String = configView.label
@@ -54,9 +62,24 @@ abstract class View(
     private val pageBannerUpdateObservable = ObservableValue(0)
 
     /**
+     * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
+     * or programmatically, and it's delivered to the backend
+     */
+    val apiFilter: ObservableValue<FILT> by lazy {
+        ObservableValue(apiFilterFromUrl ?: newApiFilterInstance())
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    protected val apiFilterFromUrl: FILT?
+        get() = urlParams?.pullUrlParam(
+            serializer = configView.apiFilterKClass.serializer(),
+            key = "apiFilter"
+        )
+
+    /**
      * Allows to insert the whole view to the current DSL container
      */
-    fun Container.add(view: View): Container {
+    fun Container.add(view: View<*>): Container {
         view.apply {
             displayPage()
         }
@@ -73,7 +96,23 @@ abstract class View(
 
     abstract fun Container.displayPage()
     open fun onBeforeDisplayPage(container: Container) {}
-    open fun onAfterDisplayPage() {}
+    open fun onAfterDisplayPage() {
+        if (apiFilterFromUrl == null)
+            AppScope.launch {
+                initialApiFilter()?.let {
+                    apiFilter.value = it
+                }
+            }
+    }
+
+    /**
+     * Allows to set an initial [apiFilter] value if it can't be obtained from [urlParams]
+     */
+    open suspend fun initialApiFilter(): FILT? = null
+    open fun onApiFilterUpdate() {
+        updateBanner()
+    }
+
     open fun onBeforeDispose() {}
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
@@ -132,5 +171,50 @@ abstract class View(
     fun updateMainBannerLink(text: String, url: String) {
         pageBannerLink?.label = "${configView.label}: $text"
         pageBannerLink?.url = "${configView.url}/$url"
+    }
+
+    /**
+     * Builds a new instance of [apiFilter]
+     */
+    @OptIn(InternalSerializationApi::class)
+    open fun newApiFilterInstance(): FILT {
+        return try {
+            Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
+        } catch (e: Exception) {
+            val errMsg = """
+                Error creating instance of apiFilter,
+                hint: [${configView.apiFilterKClass.simpleName}]::class must *not* have constructor parameters,
+                or need to override the newApiFilterInstance() function
+                """.trimIndent()
+            e.message
+            console.error(errMsg)
+            Toast.danger(
+                message = errMsg,
+                options = ToastOptions(
+                    position = ToastPosition.BOTTOMRIGHT,
+                    escapeHtml = true,
+                    duration = 10000,
+                    stopOnFocus = true,
+                    newWindow = true
+                )
+            )
+            throw e
+        }
+    }
+
+    /**
+     * Sets the current browser url with an [apiFilter] url parameter
+     */
+    @OptIn(InternalSerializationApi::class)
+    fun apiFilterToUrl() {
+        val pair = configView.pairParam("apiFilter", configView.apiFilterKClass.serializer(), apiFilter.value)
+        urlParams?.params?.set(pair.first, pair.second)
+        @Suppress("UNUSED_VARIABLE")
+        val url = (configView.url + urlParams.toString()).asDynamic()
+
+        @Suppress("UNUSED_VARIABLE")
+        val stateObj =
+            "{apiFilter: toUrl}".asDynamic()
+        js("""history.replaceState(stateObj,"createToUpdate",url)""")
     }
 }

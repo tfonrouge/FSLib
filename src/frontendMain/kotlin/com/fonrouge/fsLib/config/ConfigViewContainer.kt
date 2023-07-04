@@ -14,15 +14,16 @@ import kotlin.reflect.KClass
 abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<FILT>, ID : Any, FILT : ApiFilter>(
     val itemKClass: KClass<T>,
     val idKClass: KClass<ID>? = null,
-    val apiFilterKClass: KClass<FILT>,
+    apiFilterKClass: KClass<FILT>,
     name: String,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String,
-) : ConfigView<V>(
+) : ConfigView<V, FILT>(
     name = name,
     label = label,
     viewFunc = viewFunc,
+    apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
 ) {
     @OptIn(InternalSerializationApi::class)
@@ -35,19 +36,4 @@ abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<FILT>,
             else -> JSON.stringify(id)
         }
     }
-
-    /*
-        @OptIn(InternalSerializationApi::class)
-        fun encodedId(item: T?): String {
-            val id = item?._id
-            return when {
-                id != null && idKClass != null -> encodedId(id)
-                else -> {
-                    item?.let { Json.encodeToString(itemKClass.serializer(), it) }?.let { it ->
-                        js("""JSON.parse(it)["_id"]""").unsafeCast<String>()
-                    } ?: JSON.stringify(null)
-                }
-            }
-        }
-    */
 }

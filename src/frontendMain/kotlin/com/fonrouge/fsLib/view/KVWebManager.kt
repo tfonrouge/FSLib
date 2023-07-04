@@ -23,7 +23,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var motto = "<motto>"
     var pageContainerWidth = "md"
 
-    var configViewHome: ConfigViewHome<*>? = null
+    var configViewHome: ConfigViewHome<*, *>? = null
 
     /**
      * Global variable to allow periodic update on [ViewItem]

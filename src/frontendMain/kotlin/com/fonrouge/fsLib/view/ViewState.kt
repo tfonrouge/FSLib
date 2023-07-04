@@ -7,7 +7,7 @@ import io.kvision.html.div
 import io.kvision.state.bind
 
 class ViewState(
-    val configView: ConfigView<*>,
+    val configView: ConfigView<*, *>,
     val urlParams: UrlParams?
 )
 

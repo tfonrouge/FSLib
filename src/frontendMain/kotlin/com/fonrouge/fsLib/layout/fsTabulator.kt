@@ -40,7 +40,7 @@ data class FSTabOptions(
 
 inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : ApiFilter> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, ID, FILT>, E, ID, FILT>,
-    masterViewItem: ViewItem<*, *, *>? = null,
+    masterViewItem: ViewItem<*, *, FILT>? = null,
     options: TabulatorOptions<T>? = null,
     types: Set<TableType> = setOf(),
     fsTabOptions: FSTabOptions? = FSTabOptions(),
@@ -105,7 +105,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
 
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
-        val apiList: ApiList<FILT> = ApiList(apiFilter = viewList.apiFilter.value)
+        val apiList: ApiList<FILT> = ApiList<FILT>(apiFilter = viewList.apiFilter.value)
         apiList.params = JSON.stringify(urlParams?.params)
         apiList
     }
