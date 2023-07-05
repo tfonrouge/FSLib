@@ -14,7 +14,6 @@ import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
-import io.kvision.offcanvas.Offcanvas
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.toJs
@@ -79,11 +78,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
             field = value
         }
 
-    /**
-     * assignable var that contains a defined [Offcanvas] filter area, if any
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    var offCanvasFilter: Offcanvas? = null
     val parentContextUrlParams: String
         get() {
             return masterViewItem?.data?.value?.let {
@@ -107,11 +101,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
      * the tabulator list
      */
     var tabulator: TabulatorListContainer<T, E, ID, FILT>? = null
-
-    /**
-     * assignable var that indicates if the filter button in the tabulator's toolbar will be displayed
-     */
-    var toolBarFilter: Boolean = false
 
     /**
      * observable that triggers an update on the list's toolbar
@@ -255,34 +244,17 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     }
 
     /**
-     * the main display for the viewList, displays the [pageBanner] and the [offCanvasFilterView] if any defined
+     * the main display for the viewList, displays the [pageBanner] and the [buildOffCanvasFilterView] if any defined
      */
     override fun Container.displayPage() {
         if (!noPageBanner) {
             pageBanner()
         }
-        toolBarFilter = offCanvasFilterView()?.let {
-            offCanvasFilter = it
-            true
-        } ?: false
         pageListBody()
     }
 
     private fun encodedId(item: T?): String? {
         return item?.let { configView.encodedId(it._id) }
-    }
-
-    /**
-     * open function that builds a filter form
-     */
-    open fun Container.offCanvasFilterView(): Offcanvas? = null
-
-    /**
-     * open function that fires when toolbar's filter button is clicked. If [apiFilter] contains a null value then
-     * a new [FILT] object is created (with no constructor parameters) and assign it to the apiFilter value.
-     */
-    open fun onClickFilter() {
-        offCanvasFilter?.show()
     }
 
     /**

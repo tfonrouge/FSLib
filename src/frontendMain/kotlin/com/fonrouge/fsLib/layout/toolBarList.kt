@@ -25,7 +25,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             observableState = viewList.toolBarListUpdateObservable,
             removeChildren = true
         ) {
-            if (viewList.toolBarFilter) {
+            if (viewList.hasOffCanvasFilterView) {
                 navLink(
                     label = if (minToolbarSize) "" else "Filter",
                     icon = "fas fa-filter"
