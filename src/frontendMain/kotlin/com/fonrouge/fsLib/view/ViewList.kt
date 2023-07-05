@@ -56,17 +56,19 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, FILT>>()
         }
 
+    open val columnDefaults: ColumnDefinition<T>? = null
+
     /**
      * contains an object of [T] type for the selected row in the [tabulator]
      */
     var selectedItem: T? = null
     var jsTabulatorBuilt: Boolean = false
-
-    /* dynamic content only used to get _id */
-    var overItem: Any? = null
     var menuOpenedState: Boolean? = null
     var navbarTabulator: NavbarTabulator<ID>? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
+
+    /* dynamic content only used to get _id */
+    var overItem: Any? = null
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
     var masterViewItem: ViewItem<*, *, out FILT>? = null
         set(value) {
