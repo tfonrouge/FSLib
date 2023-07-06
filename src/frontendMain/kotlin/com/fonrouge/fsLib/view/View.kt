@@ -155,12 +155,11 @@ abstract class View<FILT : ApiFilter>(
     }
 
     open fun onAfterDisplayPage() {
-        if (apiFilterFromUrl == null)
-            AppScope.launch {
-                initialApiFilter()?.let {
-                    apiFilter.value = it
-                }
+        AppScope.launch {
+            initialApiFilter()?.let {
+                apiFilter.value = it
             }
+        }
     }
 
     open fun onApiFilterUpdate() {
@@ -237,7 +236,7 @@ abstract class View<FILT : ApiFilter>(
     /**
      * Builds an url with an [apiFilter] parameter value
      *
-     * @param configView - The [ConfigViewList] of the [ViewList] to go
+     * @param configView - The [ConfigView] of the [View] to go
      */
     fun <F : ApiFilter> urlApiFilter(
         configView: ConfigView<*, F>,
