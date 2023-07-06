@@ -65,7 +65,7 @@ abstract class View<FILT : ApiFilter>(
      * or programmatically, and it's delivered to the backend
      */
     val apiFilter: ObservableValue<FILT> by lazy {
-        ObservableValue(apiFilterFromUrl ?: newApiFilterInstance())
+        ObservableValue(apiFilterFromUrl ?: onNewApiFilterInstance())
     }
 
     @OptIn(InternalSerializationApi::class)
@@ -123,7 +123,7 @@ abstract class View<FILT : ApiFilter>(
      * Builds a new instance of [apiFilter]
      */
     @OptIn(InternalSerializationApi::class)
-    open fun newApiFilterInstance(): FILT {
+    open fun onNewApiFilterInstance(): FILT {
         return try {
             Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
         } catch (e: Exception) {
