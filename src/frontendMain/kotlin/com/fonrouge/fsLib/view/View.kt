@@ -17,7 +17,6 @@ import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
 import io.kvision.utils.px
-import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -121,11 +120,6 @@ abstract class View<FILT : ApiFilter>(
     abstract fun Container.displayPage()
 
     /**
-     * Allows to set an initial [apiFilter] value if it can't be obtained from [urlParams]
-     */
-    open suspend fun initialApiFilter(): FILT? = null
-
-    /**
      * Builds a new instance of [apiFilter]
      */
     @OptIn(InternalSerializationApi::class)
@@ -154,14 +148,7 @@ abstract class View<FILT : ApiFilter>(
         }
     }
 
-    open fun onAfterDisplayPage() {
-        AppScope.launch {
-            initialApiFilter()?.let {
-                apiFilter.value = it
-            }
-        }
-    }
-
+    open fun onAfterDisplayPage() {}
     open fun onApiFilterUpdate() {
         updateBanner()
     }
