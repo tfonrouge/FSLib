@@ -116,7 +116,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Action,
                         itemId = encodedId(),
-                        item = dataFormBeforeApiCall(formPanel.getData()),
+                        item = onDataFormBeforeApiCall(formPanel.getData()),
                         apiFilter = apiFilter.value,
                     ) { itemResponse ->
                         block?.let { it(itemResponse) }
@@ -141,7 +141,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         if (confirmCancel && formPanel != null) {
             try {
                 val s1 = formPanel?.getData()?.let {
-                    Json.encodeToString(configView.itemKClass.serializer(), dataFormBeforeApiCall(it))
+                    Json.encodeToString(configView.itemKClass.serializer(), onDataFormBeforeApiCall(it))
                 }
                 val s2 = item?.let { Json.encodeToString(configView.itemKClass.serializer(), it) }
                 if (s1 != s2) {
@@ -164,7 +164,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * Override this function if you want to process the [formPanel] data content just *before*
      * to send it to the backend
      */
-    open fun dataFormBeforeApiCall(item: T): T {
+    open fun onDataFormBeforeApiCall(item: T): T {
         return item
     }
 
