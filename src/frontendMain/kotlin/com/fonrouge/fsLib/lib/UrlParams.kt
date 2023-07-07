@@ -6,7 +6,6 @@ import js.uri.decodeURIComponent
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
-import web.buffer.atob
 import kotlin.js.Json
 import kotlin.js.json
 

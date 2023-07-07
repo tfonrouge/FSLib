@@ -118,8 +118,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     ): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         val lookupPipelineBuilders = lookupFun.invoke(apiFilter) // lookupPipelineBuilderList?.toMutableList()
-            ?.plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null })
-        lookupPipelineBuilders?.forEach { lookupPipelineBuilder ->
+            .plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null })
+        lookupPipelineBuilders.forEach { lookupPipelineBuilder ->
             val lookupWrapper = lookupWrappers.find {
                 lookupPipelineBuilder.resultProperty == when (it) {
                     is LookupByProperty -> it.resultProperty
