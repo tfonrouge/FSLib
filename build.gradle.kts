@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.7.0"
+version = "1.7.1"
 
 repositories {
     google()
@@ -57,6 +57,7 @@ kotlin {
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
             }
         }
+
         @Suppress("UNUSED_VARIABLE")
         val backendMain by getting {
             dependencies {
@@ -89,6 +90,7 @@ kotlin {
                 api("com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre8")
             }
         }
+
         @Suppress("UNUSED_VARIABLE")
         val frontendMain by getting {
             dependencies {
@@ -117,6 +119,7 @@ kotlin {
             }
             kotlin.srcDir("build/generated-src/frontend")
         }
+
         @Suppress("UNUSED_VARIABLE")
         val androidMain by getting
     }
