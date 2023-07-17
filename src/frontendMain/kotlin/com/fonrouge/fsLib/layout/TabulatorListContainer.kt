@@ -202,7 +202,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter> 
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline apiListSerialize: (ApiList<FILT>) -> String,
     noinline onResult: ((dynamic) -> Unit)? = null,
-    options: TabulatorOptions<T> = TabulatorOptions(),
+    options: TabulatorOptions<T>,
     types: Set<TableType> = setOf(),
     className: String? = null,
     serializer: KSerializer<T>? = null,

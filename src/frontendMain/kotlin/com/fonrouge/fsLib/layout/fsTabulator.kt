@@ -11,7 +11,6 @@ import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
-import io.kvision.core.CssSize
 import io.kvision.core.onEvent
 import io.kvision.panel.vPanel
 import io.kvision.tabulator.*
@@ -23,27 +22,57 @@ import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 import kotlin.js.json
 
-data class FSTabOptions(
-    val height: String? = "calc(100vh - 35vh)",
-    val fontSize: CssSize? = null,
-    val pagination: Boolean = true,
-    val paginationMode: PaginationMode = PaginationMode.REMOTE,
-    val paginationSize: Int = 10,
-    val paginationSizeSelector: dynamic = arrayOf(10, 20, 50, 100),
-    val paginationElement: dynamic = null,
-    val paginationAddRow: AddRowMode? = null,
-    val paginationButtonCount: Int? = null,
-    val paginationInitialPage: Int? = null,
-    val paginationCounter: dynamic = "rows",
-    val paginationCounterElement: dynamic = null,
-)
+fun <T : BaseDoc<*>> defaultTabulatorOptions(
+    tabulatorOptions: TabulatorOptions<T>,
+    viewList: ViewList<T, *, *, *>
+): TabulatorOptions<T> {
+    val autoResize = tabulatorOptions.autoResize ?: true
+    val columns = tabulatorOptions.columns ?: viewList.columnDefinitionList()
+    val columnDefaults = tabulatorOptions.columnDefaults ?: viewList.columnDefaults
+    val dataLoader = tabulatorOptions.dataLoader ?: false
+    val filterMode = tabulatorOptions.filterMode ?: FilterMode.REMOTE
+    val height = tabulatorOptions.height ?: "calc(100vh - 35vh)"
+    val layout = tabulatorOptions.layout ?: Layout.FITDATAFILL
+    val layoutColumnsOnNewData = tabulatorOptions.layoutColumnsOnNewData ?: true
+    val pagination = tabulatorOptions.pagination ?: true
+    val paginationCounter = tabulatorOptions.paginationCounter ?: "rows"
+    val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
+    val paginationSize = tabulatorOptions.paginationSize ?: 10
+    val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100)
+    val persistence = tabulatorOptions.persistence ?: json(
+        "page" to json("page" to true),
+    )
+    val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.itemKClass.simpleName
+    val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
+    val selectable = tabulatorOptions.selectable ?: 1
+    val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
+    return tabulatorOptions.copy(
+        autoResize = autoResize,
+        columns = columns,
+        columnDefaults = columnDefaults,
+        dataLoader = dataLoader,
+        filterMode = filterMode,
+        height = height,
+        layout = layout,
+        layoutColumnsOnNewData = layoutColumnsOnNewData,
+        pagination = pagination,
+        paginationCounter = paginationCounter,
+        paginationMode = paginationMode,
+        paginationSize = paginationSize,
+        paginationSizeSelector = paginationSizeSelector,
+        persistence = persistence,
+        persistenceID = persistenceID,
+        rowContextMenu = rowContextMenu,
+        selectable = selectable,
+        sortMode = sortMode,
+    )
+}
 
 inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : ApiFilter> Container.fsTabulator(
     configViewList: ConfigViewList<T, out ViewList<T, E, ID, FILT>, E, ID, FILT>,
     masterViewItem: ViewItem<*, *, out FILT>? = null,
-    options: TabulatorOptions<T>? = null,
+    options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
-    fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
@@ -55,7 +84,6 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
         viewList = viewList,
         options = options,
         types = types,
-        fsTabOptions = fsTabOptions,
         minToolbarSize = minToolbarSize,
         apiListUpdate = apiListUpdate,
         onResult = onResult,
@@ -66,44 +94,14 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : ApiFilter> Container.fsTabulator(
     viewList: ViewList<T, E, ID, FILT>,
-    options: TabulatorOptions<T>? = null,
+    options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
-    fsTabOptions: FSTabOptions? = FSTabOptions(),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
 ): ViewList<T, E, ID, FILT> {
-    val tabOpt: TabulatorOptions<T> = options ?: TabulatorOptions(
-        columnDefaults = viewList.columnDefaults,
-        columns = viewList.columnDefinitionList(),
-//        height = if (viewList.masterViewItem == null) "calc(100vh - 30vh)" else "calc(100vh - 50vh)",
-        height = fsTabOptions?.height,
-        layout = Layout.FITDATAFILL,
-        layoutColumnsOnNewData = true,
-        pagination = fsTabOptions?.pagination,
-        paginationMode = PaginationMode.REMOTE,
-        paginationSize = fsTabOptions?.paginationSize,
-        paginationSizeSelector = fsTabOptions?.paginationSizeSelector,
-        paginationElement = fsTabOptions?.paginationElement,
-        paginationAddRow = fsTabOptions?.paginationAddRow,
-        paginationButtonCount = fsTabOptions?.paginationButtonCount,
-        paginationInitialPage = fsTabOptions?.paginationInitialPage,
-        paginationCounter = fsTabOptions?.paginationCounter,
-        paginationCounterElement = fsTabOptions?.paginationCounterElement,
-        selectable = 1,
-        persistenceID = viewList.configView.itemKClass.simpleName,
-        persistence = json(
-            "page" to json("page" to true),
-        ),
-        filterMode = FilterMode.REMOTE,
-        sortMode = SortMode.REMOTE,
-        rowContextMenu = { viewList.contextRowMenuGenerator() },
-        dataLoader = false,
-//                dataLoaderLoading = "Loading.........",
-        autoResize = true,
-    )
-
+    val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val apiList: ApiList<FILT> = ApiList<FILT>(apiFilter = viewList.apiFilter.value)
@@ -128,14 +126,11 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
             apiListSerialize = apiListSerialize,
             onResult = onResult,
             serializer = T::class.serializer(),
-            options = tabOpt,
+            options = tabulatorOptions,
             types = types,
         ) {
             init?.invoke(this)
             id = viewList.urlParams?.toString()
-            fsTabOptions?.fontSize?.let {
-                fontSize = it
-            }
             onEvent {
                 rowSelectionChangedTabulator = {
                     val tList = self.getSelectedData()
