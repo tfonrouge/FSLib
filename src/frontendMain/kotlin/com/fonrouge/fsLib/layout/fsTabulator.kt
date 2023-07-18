@@ -20,7 +20,6 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
-import kotlin.js.json
 
 fun <T : BaseDoc<*>> defaultTabulatorOptions(
     tabulatorOptions: TabulatorOptions<T>,
@@ -39,9 +38,11 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
     val paginationSize = tabulatorOptions.paginationSize ?: 10
     val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100)
-    val persistence = tabulatorOptions.persistence ?: json(
-        "page" to json("page" to true),
-    )
+    /*
+        val persistence = tabulatorOptions.persistence ?: json(
+            "page" to json("page" to true),
+        )
+    */
     val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.itemKClass.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
     val selectable = tabulatorOptions.selectable ?: 1
@@ -60,7 +61,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
         paginationMode = paginationMode,
         paginationSize = paginationSize,
         paginationSizeSelector = paginationSizeSelector,
-        persistence = persistence,
+//        persistence = persistence,
         persistenceID = persistenceID,
         rowContextMenu = rowContextMenu,
         selectable = selectable,
