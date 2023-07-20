@@ -1,5 +1,5 @@
 package com.fonrouge.fsLib
 
 actual fun objectIdHexString(): String {
-    return ""
+    return "0".repeat(24)
 }
