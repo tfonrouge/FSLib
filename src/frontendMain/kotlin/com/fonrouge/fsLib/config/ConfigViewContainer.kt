@@ -26,6 +26,18 @@ abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<FILT>,
     apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
 ) {
+    @Suppress("unused")
+    @OptIn(InternalSerializationApi::class)
+    fun idString(id: ID?): String {
+        return when {
+            id != null && idKClass != null -> Json.encodeToString(idKClass.serializer(), id)
+            id != null && id is OId<*> -> id.id
+            id != null && id is StringId<*> -> id.id
+            id != null && id is IntId<*> -> id.id.toString()
+            else -> id.toString()
+        }
+    }
+
     @OptIn(InternalSerializationApi::class)
     fun encodedId(id: ID?): String {
         return when {
