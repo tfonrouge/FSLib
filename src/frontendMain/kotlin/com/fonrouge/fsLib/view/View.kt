@@ -18,6 +18,7 @@ import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
 import io.kvision.utils.px
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
@@ -126,11 +127,29 @@ abstract class View<FILT : ApiFilter>(
     open fun onNewApiFilterInstance(): FILT {
         return try {
             Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
+        } catch (e: SerializationException) {
+            val errMsg = """
+                Error creating instance of apiFilter: ${e.message},
+                hint: Set @Serializable annotation to [${configView.apiFilterKClass.simpleName}]::class,
+                """.trimIndent()
+            e.message
+            console.error(errMsg)
+            Toast.danger(
+                message = errMsg,
+                options = ToastOptions(
+                    position = ToastPosition.BOTTOMRIGHT,
+                    escapeHtml = true,
+                    duration = 10000,
+                    stopOnFocus = true,
+                    newWindow = true
+                )
+            )
+            throw e
         } catch (e: Exception) {
             val errMsg = """
                 Error creating instance of apiFilter,
                 hint: [${configView.apiFilterKClass.simpleName}]::class must *not* have required constructor parameters,
-                or need to override the newApiFilterInstance() function
+                or need to override the onNewApiFilterInstance() function
                 """.trimIndent()
             e.message
             console.error(errMsg)
