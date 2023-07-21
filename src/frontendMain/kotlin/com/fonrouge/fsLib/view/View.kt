@@ -117,7 +117,7 @@ abstract class View<FILT : ApiFilter>(
     /**
      * Allows to describe a display that will be showed next to the view link banner
      * it can be triggered with [updateBanner] function.
-     * Note: don't try to update [apiFilter] inside this, or you'll get a recursive loop
+     * Note: don't try to update [apiFilter] inside this, or you'll get a recursive infinite loop
      */
     open fun Container.bannerLegend() {}
     abstract fun Container.displayPage()
