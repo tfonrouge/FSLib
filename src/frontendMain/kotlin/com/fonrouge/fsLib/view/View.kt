@@ -10,6 +10,7 @@ import io.kvision.navbar.Navbar
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.offcanvas.Offcanvas
+import io.kvision.panel.hPanel
 import io.kvision.state.ObservableValue
 import io.kvision.state.bind
 import io.kvision.toast.Toast
@@ -176,19 +177,26 @@ abstract class View<FILT : ApiFilter>(
 
     open fun onBeforeDispose() {}
 
+    /**
+     * Contains the [linkBanner] where is the main label and the banner legend zone [bannerLegend]
+     */
+    open fun Container.bannerPanel(): Container = hPanel(alignItems = AlignItems.CENTER)
+
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
         navbar(bgColor = BsBgColor.LIGHT).bind(
             observableState = pageBannerUpdateObservable,
             removeChildren = true
         ) {
-            linkBanner = link(
-                label = this@View.label,
-                url = navigoUrlWithParams,
-                className = "navbar-brand",
-                icon = iconCrud(urlParams?.crudTask)
-            )
-            bannerLegend()
+            bannerPanel().apply {
+                linkBanner = link(
+                    label = this@View.label,
+                    url = navigoUrlWithParams,
+                    className = "navbar-brand",
+                    icon = iconCrud(urlParams?.crudTask)
+                )
+                bannerLegend()
+            }
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *, *>) {
                     if (urlParams?.actionUpsert == true) {
