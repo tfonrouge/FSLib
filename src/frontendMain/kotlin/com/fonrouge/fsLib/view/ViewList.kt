@@ -260,10 +260,10 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     }
 
     /**
-     * Gets an [T] object from a [Tabulator.CellComponent]
+     * Gets an [T] item from a [Tabulator.CellComponent]
      *
      * @param cell
-     * @return object of [T]
+     * @return [T] item
      */
     fun getItem(cell: Tabulator.CellComponent): T? {
         return tabulator?.toKotlinObj(cell.getData())
