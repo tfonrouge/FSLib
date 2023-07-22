@@ -99,7 +99,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                 viewList.outPrint()
             }
             navLink(label = if (minToolbarSize) "" else "Export", icon = "fas fa-file-export").onClick {
-                viewList.outCSV()
+                viewList.outToFile()
             }
         }
     }

@@ -270,9 +270,9 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     }
 
     /**
-     * export CSV to download
+     * export to file download
      */
-    open fun outCSV() {
+    open fun outToFile() {
         tabulator?.downloadCSV(
             fileName = "${label}.csv",
             dataSet = RowRangeLookup.ALL,
