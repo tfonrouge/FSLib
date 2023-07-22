@@ -12,7 +12,6 @@ import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
 import io.kvision.state.bind
-import io.kvision.tabulator.RowRangeLookup
 import kotlinx.coroutines.launch
 
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
@@ -97,14 +96,10 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                 }
             }
             navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print").onClick {
-                viewList.tabulator?.print(rowRangeLookup = RowRangeLookup.ALL, isStyled = true)
+                viewList.outPrint()
             }
             navLink(label = if (minToolbarSize) "" else "Export", icon = "fas fa-file-export").onClick {
-                viewList.tabulator?.downloadCSV(
-                    fileName = "${viewList.label}.csv",
-                    dataSet = RowRangeLookup.ALL,
-                    includeBOM = true
-                )
+                viewList.outCSV()
             }
         }
     }

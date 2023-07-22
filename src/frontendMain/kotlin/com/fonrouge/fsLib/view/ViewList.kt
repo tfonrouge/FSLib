@@ -16,6 +16,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
+import io.kvision.tabulator.RowRangeLookup
 import io.kvision.tabulator.toJs
 import io.kvision.toast.Toast
 import js.uri.encodeURIComponent
@@ -255,6 +256,24 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
 
     private fun encodedId(item: T?): String? {
         return item?.let { configView.encodedId(it._id) }
+    }
+
+    /**
+     * export CSV to download
+     */
+    open fun outCSV() {
+        tabulator?.downloadCSV(
+            fileName = "${label}.csv",
+            dataSet = RowRangeLookup.ALL,
+            includeBOM = true
+        )
+    }
+
+    /**
+     * print viewList
+     */
+    open fun outPrint() {
+        tabulator?.print(rowRangeLookup = RowRangeLookup.ALL, isStyled = true)
     }
 
     /**
