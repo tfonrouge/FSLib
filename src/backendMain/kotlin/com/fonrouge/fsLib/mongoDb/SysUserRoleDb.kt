@@ -39,7 +39,7 @@ var SysUserRoleColl: Coll<SysUserRole, OId<SysUserRole>, ApiFilter> =
                     SysUserRole::appRole.unwind(unwindOptions = UnwindOptions().preserveNullAndEmptyArrays(true)),
                 )
             )
-            pipeline.addAll(buildLookupList(lookupWrappers))
+            pipeline.addAll(buildLookupList(lookupWrappers, apiFilter))
             return pipeline
         }
 

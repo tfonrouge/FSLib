@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.7.2"
+version = "1.7.3"
 
 repositories {
     google()
@@ -49,7 +49,6 @@ kotlin {
         publishLibraryVariants("release", "debug")
     }
     sourceSets {
-        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 api("io.kvision:kvision-server-ktor-koin:$kvisionVersion")
@@ -58,7 +57,6 @@ kotlin {
             }
         }
 
-        @Suppress("UNUSED_VARIABLE")
         val backendMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
@@ -91,7 +89,6 @@ kotlin {
             }
         }
 
-        @Suppress("UNUSED_VARIABLE")
         val frontendMain by getting {
             dependencies {
                 api("org.litote.kmongo:kmongo-id:$kmongoVersion")
@@ -120,7 +117,6 @@ kotlin {
             kotlin.srcDir("build/generated-src/frontend")
         }
 
-        @Suppress("UNUSED_VARIABLE")
         val androidMain by getting
     }
 }
@@ -142,7 +138,7 @@ android {
 Required to avoid error on dependency not declared on gradle v8.0.2
 TODO: find out how to solve
  */
-tasks.withType<KspTaskMetadata>() {
+tasks.withType<KspTaskMetadata> {
     dependsOn(tasks.getByPath(":compileReleaseKotlinAndroid"))
     dependsOn(tasks.getByPath(":compileDebugKotlinAndroid"))
     dependsOn(tasks.getByPath(":androidReleaseSourcesJar"))

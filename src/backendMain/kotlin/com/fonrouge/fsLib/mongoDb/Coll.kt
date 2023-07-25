@@ -56,7 +56,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * for the aggregation operation
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    var constLookupList: List<KProperty1<in T, *>>? = null
+    open fun fixedLookupList(apiFilter: FILT?): List<KProperty1<in T, *>>? = null
     open val lookupFun: ((FILT?) -> List<LookupPipelineBuilder<T, *, *>>) = { listOf() }
     open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
@@ -107,7 +107,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     /**
      * Builds a list of bson (pipeline) to be used in the *lookup* stage of the aggregate operation.
      *
-     * Always appends the content result properties from the [constLookupList]
+     * Always appends the content result properties from the [fixedLookupList]
      *
      * @param lookupWrappers array of [LookupWrapper] items to extract lookup info
      * @return List<Bson>
@@ -130,9 +130,10 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             if (lookupWrapper != null) {
                 pipeline += lookupPipelineBuilder.pipelineList(lookupWrapper)
             } else {
-                constLookupList?.find { kProperty1 -> kProperty1 == lookupPipelineBuilder.resultProperty }?.let {
-                    pipeline += lookupPipelineBuilder.pipelineList()
-                }
+                fixedLookupList(apiFilter)?.find { kProperty1 -> kProperty1 == lookupPipelineBuilder.resultProperty }
+                    ?.let {
+                        pipeline += lookupPipelineBuilder.pipelineList()
+                    }
             }
         }
         return pipeline
@@ -417,7 +418,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         firstStage: FirstStage,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        apiFilter: FILT? = null,
+        apiFilter: FILT,
         noContentHashCode: Boolean = false,
         postProcessList: ((List<T>) -> Unit)? = null,
     ): ListState<T> {
@@ -461,8 +462,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         match: Bson? = null,
         sort: Bson? = null,
         strictCounter: Boolean = true,
-        apiList: ApiList<FILT>?,
-        apiFilter: FILT? = null,
+        apiList: ApiList<FILT>,
         other: List<Bson>? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -473,16 +473,16 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             firstStage = listFirstStage(
                 match = match,
                 sort = sort,
-                page = apiList?.tabPage,
-                size = apiList?.tabSize,
+                page = apiList.tabPage,
+                size = apiList.tabSize,
                 strictCounter = strictCounter,
-                filter = apiList?.tabFilter,
-                sorter = apiList?.tabSorter,
+                filter = apiList.tabFilter,
+                sorter = apiList.tabSorter,
                 other = other,
             ),
             lookupWrappers = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
-            apiFilter = apiFilter,
+            apiFilter = apiList.apiFilter,
             noContentHashCode = noContentHashCode,
             postProcessList = postProcessList
         )
