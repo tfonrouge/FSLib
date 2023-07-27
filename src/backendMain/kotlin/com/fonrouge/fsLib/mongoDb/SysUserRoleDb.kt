@@ -16,7 +16,7 @@ var SysUserRoleColl: Coll<SysUserRole, OId<SysUserRole>, ApiFilter> =
         klass = SysUserRole::class,
         debug = true
     ) {
-        override fun buildPipeline(
+        override fun customPipelineItems(
             pipeline: MutableList<Bson>,
             apiFilter: ApiFilter?,
         ): MutableList<Bson> {

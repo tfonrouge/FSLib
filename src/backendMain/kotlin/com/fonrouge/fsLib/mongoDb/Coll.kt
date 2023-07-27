@@ -78,20 +78,18 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregateLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: Array<out LookupWrapper<*, *>> = emptyArray(),
+        lookups: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
+        postLookupMatch: Bson? = null,
         skip: Int = 0,
         limit: Int? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        buildFinalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
+        finalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
         postProcessPipeline?.let { it(pipeline) }
+        postLookupMatch?.let { pipeline.add(match(it)) }
         kotlin.math.max(skip, 0).let { if (it > 0) pipeline.add(skip(it)) }
-        limit?.let {
-            pipeline.add(
-                limit(it)
-            )
-        }
+        limit?.let { pipeline.add(limit(it)) }
         val curTime = Date().time
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate pipeline:")
@@ -105,23 +103,6 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     /**
-     * Builds the final pipeline to be used in the db engine
-     */
-    internal fun buildFinalPipeline(
-        pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: Array<out LookupWrapper<*, *>> = emptyArray(),
-        apiFilter: FILT? = null,
-    ): MutableList<Bson> {
-        pipeline.addAll(
-            buildPipeline(
-                pipeline = buildLookupList(lookupWrappers = lookups, apiFilter = apiFilter),
-                apiFilter = apiFilter
-            )
-        )
-        return pipeline
-    }
-
-    /**
      * Builds a list of bson (pipeline) to be used in the *lookup* stage of the aggregate operation.
      *
      * Always appends the content result properties from the [fixedLookupList]
@@ -130,14 +111,16 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * @return List<Bson>
      */
     private fun buildLookupList(
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
     ): MutableList<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        val lookupPipelineBuilders = lookupFun.invoke(apiFilter) // lookupPipelineBuilderList?.toMutableList()
-            .plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null })
+        val lookupPipelineBuilders =
+            lookupFun(apiFilter).plus(lookupWrappers?.mapNotNull {
+                if (it is LookupByPipeline<*, *, *>) it.pipeline else null
+            } ?: emptyList())
         lookupPipelineBuilders.forEach { lookupPipelineBuilder ->
-            val lookupWrapper = lookupWrappers.find {
+            val lookupWrapper = lookupWrappers?.find {
                 lookupPipelineBuilder.resultProperty == when (it) {
                     is LookupByProperty -> it.resultProperty
                     is LookupByPipeline<*, *, *> -> it.pipeline.resultProperty
@@ -155,14 +138,6 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         }
         return pipeline
     }
-
-    /**
-     * Allows to build a custom pipeline to be used in the db engine call
-     */
-    open fun buildPipeline(
-        pipeline: MutableList<Bson> = mutableListOf(),
-        apiFilter: FILT? = null
-    ): MutableList<Bson> = pipeline
 
     /**
      * helper function to write a bulk write list and clean the list after that
@@ -209,6 +184,14 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         return bson
     }
 
+    /**
+     * Allows to build a custom pipeline to be added to the [finalPipeline] in the db engine call
+     */
+    open fun customPipelineItems(
+        pipeline: MutableList<Bson> = mutableListOf(),
+        apiFilter: FILT? = null
+    ): MutableList<Bson> = pipeline
+
     suspend fun deleteOne(filter: Bson): ItemState<T> {
         return try {
             ItemState(
@@ -242,6 +225,23 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     /**
+     * Builds the final pipeline to be used in the db engine including defined lookups in [lookupFun]
+     */
+    fun finalPipeline(
+        pipeline: MutableList<Bson> = mutableListOf(),
+        lookups: Array<out LookupWrapper<*, *>>? = null,
+        apiFilter: FILT? = null,
+    ): MutableList<Bson> {
+        pipeline.addAll(
+            customPipelineItems(
+                pipeline = buildLookupList(lookupWrappers = lookups, apiFilter = apiFilter),
+                apiFilter = apiFilter
+            )
+        )
+        return pipeline
+    }
+
+    /**
      * Find [filter] expression in collection and returns a list of [T] items
      *
      * @param filter bson expression
@@ -251,7 +251,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     @Suppress("unused")
     suspend fun find(
         filter: Bson? = null,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
     ): List<T> {
         return aggregateLookup(
@@ -334,7 +334,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             if (it.contains("\$match")) throw Exception("Don't use match() function ...")
         }
 //        val matchDocument = match?.toBsonDocument()?.get("\$match")?.asDocument() ?: match?.toBsonDocument()
-        val filterDocument = if (!filter.isNullOrEmpty()) {
+        val postLookupMatch = if (!filter.isNullOrEmpty()) {
             val bdoc = BsonDocument()
             val kProperty1s = klass.memberProperties
             filter.forEach { remoteFilter ->
@@ -376,13 +376,13 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             }
         }
         val count = if (strictCounter) {
-            mongoColl.countDocuments(and(match, filterDocument)).awaitFirstOrNull() ?: 0L
+            mongoColl.countDocuments(and(match, postLookupMatch)).awaitFirstOrNull() ?: 0L
         } else {
             mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
         }
         if (page == null) {
             match?.let { pipeline.add(match(match)) }
-            filterDocument?.let { pipeline.add(match(filterDocument)) }
+//            postLookupMatch?.let { pipeline.add(match(postLookupMatch)) }
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
             other?.let { pipeline.addAll(it) }
             return FirstStage(
@@ -390,6 +390,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                 count = count,
                 last_page = -1,
                 last_row = null,
+                postLookupMatch = postLookupMatch,
                 limit = null,
             )
         } else {
@@ -399,7 +400,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             val nPage = kotlin.math.min(maxPage, page)
             val nSkip = nSize * (nPage - 1)
             match?.let { pipeline.add(match(match)) }
-            filterDocument?.let { pipeline.add(match(filterDocument)) }
+//            postLookupMatch?.let { pipeline.add(match(postLookupMatch)) }
             sortDocument?.let { pipeline.add(sort(sortDocument)) }
 //            kotlin.math.max(nSkip, 0).let { if (it > 0) pipeline.add(skip(it)) }
 //            pipeline.add(limit(nSize))
@@ -409,6 +410,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                 count = count,
                 last_page = maxPage,
                 last_row = null,
+                postLookupMatch = postLookupMatch,
                 skip = nSkip,
                 limit = nSize,
             )
@@ -433,6 +435,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             pipeline = firstStage.pipeline,
             lookups = lookupWrappers,
             apiFilter = apiFilter,
+            postLookupMatch = firstStage.postLookupMatch,
             skip = firstStage.skip,
             limit = firstStage.limit,
             postProcessPipeline = postProcessPipeline
