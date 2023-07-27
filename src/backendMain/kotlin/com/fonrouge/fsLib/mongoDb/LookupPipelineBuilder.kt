@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.mongoDb.Coll.Companion.collMap
 import com.mongodb.client.model.UnwindOptions
 import org.bson.conversions.Bson
+import org.litote.kmongo.limit
 import org.litote.kmongo.unwind
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -72,16 +73,9 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 apiFilter = null
             ).let {
                 pip2 += it
+                if (resultUnit == ResultUnit.One) pip2 += limit(1)
             }
         }
-        /*
-                collMap[collKClass]?.buildPipeline(
-                    pipeline = mutableListOf(),
-                    lookupWrappers = lookup?.lookupWrappers ?: emptyArray()
-                )?.let {
-                    pip2 += it
-                }
-        */
         val pipeline = mutableListOf<Bson>()
         pipeline += lookup(pip2)
         if (resultUnit == ResultUnit.One) {
