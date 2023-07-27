@@ -18,28 +18,26 @@ var SysUserRoleColl: Coll<SysUserRole, OId<SysUserRole>, ApiFilter> =
     ) {
         override fun buildPipeline(
             pipeline: MutableList<Bson>,
-            lookupWrappers: Array<out LookupWrapper<*, *>>,
             apiFilter: ApiFilter?,
         ): MutableList<Bson> {
             pipeline.addAll(
                 listOf(
-                    lookup5(
+                    lookup(
                         from = SysUser.sysUsersCollectionName,
-                        localField = SysUserRole::sysUser_id.name,
-                        foreignField = ISysUser::_id.name,
-                        newAs = SysUserRole::sysUser.name
+                        localField = SysUserRole::sysUser_id,
+                        foreignField = ISysUser::_id,
+                        resultProperty = SysUserRole::sysUser
                     ),
                     SysUserRole::sysUser.unwind(unwindOptions = UnwindOptions().preserveNullAndEmptyArrays(true)),
-                    lookup5(
+                    lookup(
                         from = AppRoleDb.collectionName,
-                        localField = SysUserRole::appRole_id.name,
-                        foreignField = AppRole::_id.name,
-                        newAs = SysUserRole::appRole.name
+                        localField = SysUserRole::appRole_id,
+                        foreignField = AppRole::_id,
+                        resultProperty = SysUserRole::appRole
                     ),
                     SysUserRole::appRole.unwind(unwindOptions = UnwindOptions().preserveNullAndEmptyArrays(true)),
                 )
             )
-            pipeline.addAll(buildLookupList(lookupWrappers, apiFilter))
             return pipeline
         }
 

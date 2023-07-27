@@ -84,24 +84,41 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         limit: Int? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        val pip1 = buildPipeline(pipeline, lookups, apiFilter)
-        postProcessPipeline?.let { it(pip1) }
-        kotlin.math.max(skip, 0).let { if (it > 0) pip1.add(skip(it)) }
+        buildFinalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
+        postProcessPipeline?.let { it(pipeline) }
+        kotlin.math.max(skip, 0).let { if (it > 0) pipeline.add(skip(it)) }
         limit?.let {
-            pip1.add(
+            pipeline.add(
                 limit(it)
             )
         }
         val curTime = Date().time
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate pipeline:")
-            println(pip1.json)
+            println(pipeline.json)
         }
-        return mongoColl.aggregate(pip1, klass.java).also {
+        return mongoColl.aggregate(pipeline, klass.java).also {
             if (debug ?: globalDebug) {
                 println("Class: ${klass.simpleName}, Aggregate time: ${Date().time - curTime}ms")
             }
         }
+    }
+
+    /**
+     * Builds the final pipeline to be used in the db engine
+     */
+    internal fun buildFinalPipeline(
+        pipeline: MutableList<Bson> = mutableListOf(),
+        lookups: Array<out LookupWrapper<*, *>> = emptyArray(),
+        apiFilter: FILT? = null,
+    ): MutableList<Bson> {
+        pipeline.addAll(
+            buildPipeline(
+                pipeline = buildLookupList(lookupWrappers = lookups, apiFilter = apiFilter),
+                apiFilter = apiFilter
+            )
+        )
+        return pipeline
     }
 
     /**
@@ -112,10 +129,10 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * @param lookupWrappers array of [LookupWrapper] items to extract lookup info
      * @return List<Bson>
      */
-    fun buildLookupList(
+    private fun buildLookupList(
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         apiFilter: FILT? = null,
-    ): List<Bson> {
+    ): MutableList<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         val lookupPipelineBuilders = lookupFun.invoke(apiFilter) // lookupPipelineBuilderList?.toMutableList()
             .plus(lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null })
@@ -140,22 +157,12 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     /**
-     * Builds the aggregation pipeline, including lookups defined with [LookupWrapper] lists
-     *
-     * The resulting pipeline (a [Bson] list) is build in the form:
-     * [pipeline] + [lookupWrappers] (parsed from [buildLookupList] function)
-     *
-     * @param pipeline the pipeline passed to the aggregation function
-     * @param lookupWrappers array of [LookupWrapper] that will be added to the final pipeline
+     * Allows to build a custom pipeline to be used in the db engine call
      */
     open fun buildPipeline(
-        pipeline: MutableList<Bson>,
-        lookupWrappers: Array<out LookupWrapper<*, *>>,
-        apiFilter: FILT? = null,
-    ): MutableList<Bson> {
-        pipeline.addAll(buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter))
-        return pipeline
-    }
+        pipeline: MutableList<Bson> = mutableListOf(),
+        apiFilter: FILT? = null
+    ): MutableList<Bson> = pipeline
 
     /**
      * helper function to write a bulk write list and clean the list after that

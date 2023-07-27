@@ -5,7 +5,8 @@ import org.litote.kmongo.from
 
 @Suppress("unused")
 enum class MongoAggOperator {
-    substrBytes
+    substrBytes,
+    replaceWith,
     ;
 
     override fun toString(): String {

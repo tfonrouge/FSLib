@@ -1,26 +1,54 @@
 package com.fonrouge.fsLib.mongoDb
 
-import org.bson.BsonDocument
-import org.bson.Document
+import com.mongodb.client.model.Aggregates
+import com.mongodb.client.model.Variable
 import org.bson.conversions.Bson
+import org.litote.kmongo.*
+import kotlin.reflect.KProperty
 
-fun lookup5(
+fun lookup(
     from: String,
-    localField: String,
-    foreignField: String,
-    let: Document? = null,
-    pipeline: List<Bson>? = null,
-    newAs: String,
-): Bson {
-    val document = Document()
-        .append("from", from)
-        .append("localField", localField)
-        .append("foreignField", foreignField)
-    let?.let { document.append("let", it) }
-    pipeline?.let {
-        if (pipeline.isNotEmpty()) document.append("pipeline", pipeline)
-    }
-    document.append("as", newAs).toBsonDocument()
-    return BsonDocument("\$lookup", document.toBsonDocument())
-}
+    localField: KProperty<Any?>,
+    foreignField: KProperty<Any?>,
+    let: List<Variable<out Any>>? = null,
+    resultProperty: KProperty<Any?>,
+    vararg pipeline: Bson
+): Bson = lookup(
+    from = from,
+    localField = localField,
+    foreignField = foreignField,
+    let = let,
+    resultProperty = resultProperty.path(),
+    pipeline = pipeline
+)
 
+fun lookup(
+    from: String,
+    localField: KProperty<Any?>,
+    foreignField: KProperty<Any?>,
+    let: List<Variable<out Any>>? = null,
+    resultProperty: String,
+    vararg pipeline: Bson
+): Bson {
+    val validVarName =
+        (if (localField.name[0] == '_') localField.name.substring(1) else localField.name).replace('.', '_')
+    val let1: List<Variable<out Any>> = listOf(localField.variableDefinition(validVarName)) + (let ?: emptyList())
+    val pipeline1 = mutableListOf(
+        match(
+            expr(
+                MongoOperator.eq from listOf(
+                    foreignField,
+                    "\$\$$validVarName"
+                )
+            )
+        )
+    )
+    pipeline1.addAll(pipeline)
+    @Suppress("UNCHECKED_CAST")
+    return Aggregates.lookup(
+        from,
+        let1 as? List<Variable<Any>>,
+        pipeline1,
+        resultProperty
+    )
+}

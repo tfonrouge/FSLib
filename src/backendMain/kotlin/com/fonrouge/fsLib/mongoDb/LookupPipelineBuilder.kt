@@ -67,9 +67,9 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
         val pip2 = mutableListOf<Bson>()
         this.pipeline?.let { bsonList -> pip2 += bsonList }
         collMap[collKClass]?.let { coll ->
-            coll.buildPipeline(
+            coll.buildFinalPipeline(
                 pipeline = mutableListOf(),
-                lookupWrappers = lookup?.lookupWrappers ?: emptyArray(),
+                lookups = lookup?.lookupWrappers ?: emptyArray(),
                 apiFilter = null
             ).let {
                 pip2 += it
@@ -77,7 +77,13 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
             }
         }
         val pipeline = mutableListOf<Bson>()
-        pipeline += lookup(pip2)
+        pipeline += lookup(
+            from = collMap[collKClass]?.mongoColl?.namespace?.collectionName ?: throw Exception(),
+            localField = localField,
+            foreignField = foreignField,
+            resultProperty = resultProperty,
+            pipeline = pip2.toTypedArray()
+        )
         if (resultUnit == ResultUnit.One) {
             resultProperty.let {
                 pipeline += resultProperty.unwind(
@@ -90,16 +96,18 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
         return pipeline
     }
 
-    fun lookup(pipeline: List<Bson>? = null): Bson {
-        val collectionName = collMap[collKClass]?.mongoColl?.namespace?.collectionName
-        return lookup5(
-            from = collectionName ?: "?",
-            localField = localField.name,
-            foreignField = foreignField.name,
-            pipeline = pipeline ?: this.pipeline,
-            newAs = resultProperty.name,
-        )
-    }
+    /*
+        fun lookup(pipeline: List<Bson>? = null): Bson {
+            val collectionName = collMap[collKClass]?.mongoColl?.namespace?.collectionName
+            return lookup(
+                from = collectionName ?: "?",
+                localField = localField,
+                foreignField = foreignField,
+                pipeline = pipeline ?: this.pipeline,
+                resultProperty = resultProperty.name,
+            )
+        }
+    */
 
     enum class ResultUnit {
         One,
