@@ -26,14 +26,14 @@ var SysUserRoleColl: Coll<SysUserRole, OId<SysUserRole>, ApiFilter> =
                         from = SysUser.sysUsersCollectionName,
                         localField = SysUserRole::sysUser_id,
                         foreignField = ISysUser::_id,
-                        resultProperty = SysUserRole::sysUser
+                        resultField = SysUserRole::sysUser
                     ),
                     SysUserRole::sysUser.unwind(unwindOptions = UnwindOptions().preserveNullAndEmptyArrays(true)),
                     lookup(
                         from = AppRoleDb.collectionName,
                         localField = SysUserRole::appRole_id,
                         foreignField = AppRole::_id,
-                        resultProperty = SysUserRole::appRole
+                        resultField = SysUserRole::appRole
                     ),
                     SysUserRole::appRole.unwind(unwindOptions = UnwindOptions().preserveNullAndEmptyArrays(true)),
                 )

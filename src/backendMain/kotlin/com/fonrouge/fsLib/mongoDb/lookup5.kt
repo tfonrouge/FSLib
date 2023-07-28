@@ -6,32 +6,49 @@ import org.bson.conversions.Bson
 import org.litote.kmongo.*
 import kotlin.reflect.KProperty
 
+/**
+ * Correlated Subqueries with Concise Syntax (MongoDB 5.0)
+ *
+ * @param `as` is a [KProperty] reference field
+ */
 fun lookup(
     from: String,
     localField: KProperty<Any?>,
     foreignField: KProperty<Any?>,
     let: List<Variable<out Any>>? = null,
-    resultProperty: KProperty<Any?>,
-    vararg pipeline: Bson
+    resultField: KProperty<Any?>,
+    pipeline: List<Bson>
 ): Bson = lookup(
     from = from,
     localField = localField,
     foreignField = foreignField,
     let = let,
-    resultProperty = resultProperty.path(),
+    resultField = resultField.path(),
     pipeline = pipeline
 )
 
+/**
+ * Correlated Subqueries with Concise Syntax (MongoDB 5.0)
+ *
+ * @param `as` is a [String] field name
+ */
 fun lookup(
     from: String,
     localField: KProperty<Any?>,
     foreignField: KProperty<Any?>,
     let: List<Variable<out Any>>? = null,
-    resultProperty: String,
-    vararg pipeline: Bson
+    resultField: String,
+    pipeline: List<Bson>
 ): Bson {
     val validVarName =
-        (if (localField.name[0] == '_') localField.name.substring(1) else localField.name).replace('.', '_')
+        (if (localField.name[0] == '_') localField.name.substring(1) else localField.name)
+            .replace('.', '_')
+            .let {
+                if (it[0].isUpperCase())
+                    it[0].lowercase() + it.substring(1)
+                else
+                    it
+            }
     val let1: List<Variable<out Any>> = listOf(localField.variableDefinition(validVarName)) + (let ?: emptyList())
     val pipeline1 = mutableListOf(
         match(
@@ -49,6 +66,18 @@ fun lookup(
         from,
         let1 as? List<Variable<Any>>,
         pipeline1,
-        resultProperty
+        resultField
     )
 }
+
+fun lookup(
+    from: String,
+    localField: KProperty<Any?>,
+    foreignField: KProperty<Any?>,
+    resultField: KProperty<Any?>,
+): Bson = lookup(
+    from = from,
+    localField = localField.path(),
+    foreignField = foreignField.path(),
+    newAs = resultField.path()
+)

@@ -77,13 +77,22 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
             }
         }
         val pipeline = mutableListOf<Bson>()
-        pipeline += lookup(
-            from = collMap[collKClass]?.mongoColl?.namespace?.collectionName ?: throw Exception(),
-            localField = localField,
-            foreignField = foreignField,
-            resultProperty = resultProperty,
-            pipeline = pip2.toTypedArray()
-        )
+        if (pip2.isEmpty()) {
+            pipeline += lookup(
+                from = collMap[collKClass]?.mongoColl?.namespace?.collectionName ?: throw Exception(),
+                localField = localField,
+                foreignField = foreignField,
+                resultField = resultProperty,
+            )
+        } else {
+            pipeline += lookup(
+                from = collMap[collKClass]?.mongoColl?.namespace?.collectionName ?: throw Exception(),
+                localField = localField,
+                foreignField = foreignField,
+                resultField = resultProperty,
+                pipeline = pip2
+            )
+        }
         if (resultUnit == ResultUnit.One) {
             resultProperty.let {
                 pipeline += resultProperty.unwind(
@@ -95,19 +104,6 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
         }
         return pipeline
     }
-
-    /*
-        fun lookup(pipeline: List<Bson>? = null): Bson {
-            val collectionName = collMap[collKClass]?.mongoColl?.namespace?.collectionName
-            return lookup(
-                from = collectionName ?: "?",
-                localField = localField,
-                foreignField = foreignField,
-                pipeline = pipeline ?: this.pipeline,
-                resultProperty = resultProperty.name,
-            )
-        }
-    */
 
     enum class ResultUnit {
         One,

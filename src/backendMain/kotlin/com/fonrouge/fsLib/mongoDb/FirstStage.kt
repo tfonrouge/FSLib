@@ -9,6 +9,7 @@ class FirstStage(
     val last_page: Int,
     val last_row: Int?,
     val postLookupMatch: Bson? = null,
+    val sort: Bson? = null,
     val skip: Int = 0,
     val limit: Int?,
 )

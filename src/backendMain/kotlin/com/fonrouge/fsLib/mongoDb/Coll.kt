@@ -81,6 +81,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         lookups: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
         postLookupMatch: Bson? = null,
+        sort: Bson? = null,
         skip: Int = 0,
         limit: Int? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -88,6 +89,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         finalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
         postProcessPipeline?.let { it(pipeline) }
         postLookupMatch?.let { pipeline.add(match(it)) }
+        sort?.let { pipeline.add(sort(it)) }
         kotlin.math.max(skip, 0).let { if (it > 0) pipeline.add(skip(it)) }
         limit?.let { pipeline.add(limit(it)) }
         val curTime = Date().time
@@ -319,23 +321,20 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     private suspend fun listFirstStage(
-        match: Bson? = null,
+        preLookupMatch: Bson? = null,
+        postLookupMatch: Bson? = null,
         sort: Bson? = null,
         page: Int? = null,
         size: Int? = null,
         strictCounter: Boolean = true,
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
-        other: List<Bson>? = null,
     ): FirstStage {
         val pipeline = mutableListOf<Bson>()
-        match?.toString()?.let {
-            // TODO: add OffsetDateTime codec to avoid error using it on match()
-            if (it.contains("\$match")) throw Exception("Don't use match() function ...")
-        }
-//        val matchDocument = match?.toBsonDocument()?.get("\$match")?.asDocument() ?: match?.toBsonDocument()
-        val postLookupMatch = if (!filter.isNullOrEmpty()) {
-            val bdoc = BsonDocument()
+        val postLookupMatchList: MutableList<Bson> = mutableListOf()
+        postLookupMatch?.let { postLookupMatchList.add(it) }
+        filter?.let {
+            val result = mutableListOf<Bson>()
             val kProperty1s = klass.memberProperties
             filter.forEach { remoteFilter ->
                 val kfield = kProperty1s.firstOrNull { it.name == remoteFilter.field }
@@ -356,10 +355,12 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                     Double::class -> remoteFilter.value?.toDoubleOrNull()?.let { BsonDouble(it) }
                     else -> null
                 }
-                value?.let { bdoc.append(remoteFilter.field, value) }
+                value?.let {
+                    result.add(BsonDocument(remoteFilter.field, value))
+                }
             }
-            bdoc
-        } else null
+            postLookupMatchList.add(and(result))
+        }
         var sortDocument: BsonDocument? = null
         if (sort != null) {
             sortDocument = sort.toBsonDocument()?.get("\$sort")?.asDocument() ?: sort.toBsonDocument()
@@ -376,21 +377,22 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             }
         }
         val count = if (strictCounter) {
-            mongoColl.countDocuments(and(match, postLookupMatch)).awaitFirstOrNull() ?: 0L
+            val list = mutableListOf<Bson>()
+            preLookupMatch?.let { list.add(it) }
+            postLookupMatchList.let { list.addAll(it) }
+            mongoColl.countDocuments(and(list)).awaitFirstOrNull() ?: 0L
         } else {
             mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
         }
         if (page == null) {
-            match?.let { pipeline.add(match(match)) }
-//            postLookupMatch?.let { pipeline.add(match(postLookupMatch)) }
-            sortDocument?.let { pipeline.add(sort(sortDocument)) }
-            other?.let { pipeline.addAll(it) }
+            preLookupMatch?.let { pipeline.add(match(preLookupMatch)) }
             return FirstStage(
                 pipeline = pipeline,
                 count = count,
                 last_page = -1,
                 last_row = null,
-                postLookupMatch = postLookupMatch,
+                postLookupMatch = and(postLookupMatchList),
+                sort = sortDocument,
                 limit = null,
             )
         } else {
@@ -399,18 +401,14 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             val maxPage = ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt()
             val nPage = kotlin.math.min(maxPage, page)
             val nSkip = nSize * (nPage - 1)
-            match?.let { pipeline.add(match(match)) }
-//            postLookupMatch?.let { pipeline.add(match(postLookupMatch)) }
-            sortDocument?.let { pipeline.add(sort(sortDocument)) }
-//            kotlin.math.max(nSkip, 0).let { if (it > 0) pipeline.add(skip(it)) }
-//            pipeline.add(limit(nSize))
-            other?.let { pipeline.addAll(it) }
+            preLookupMatch?.let { pipeline.add(match(preLookupMatch)) }
             return FirstStage(
                 pipeline = pipeline,
                 count = count,
                 last_page = maxPage,
                 last_row = null,
-                postLookupMatch = postLookupMatch,
+                postLookupMatch = and(postLookupMatchList),
+                sort = sortDocument,
                 skip = nSkip,
                 limit = nSize,
             )
@@ -436,6 +434,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             lookups = lookupWrappers,
             apiFilter = apiFilter,
             postLookupMatch = firstStage.postLookupMatch,
+            sort = firstStage.sort,
             skip = firstStage.skip,
             limit = firstStage.limit,
             postProcessPipeline = postProcessPipeline
@@ -464,16 +463,14 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
 
     /**
      * Returns a [ListState] builded with the parameters provided
-     *
-     * @param other is an optional Bson list to be added at *end* of builded pipeline
-     */
+     **/
     @Suppress("unused")
     suspend fun listContainer(
-        match: Bson? = null,
+        preLookupMatch: Bson? = null,
+        postLookupMatch: Bson? = null,
         sort: Bson? = null,
         strictCounter: Boolean = true,
         apiList: ApiList<FILT>,
-        other: List<Bson>? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         noContentHashCode: Boolean = false,
@@ -481,14 +478,14 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     ): ListState<T> {
         return listContainer(
             firstStage = listFirstStage(
-                match = match,
+                preLookupMatch = preLookupMatch,
+                postLookupMatch = postLookupMatch,
                 sort = sort,
                 page = apiList.tabPage,
                 size = apiList.tabSize,
                 strictCounter = strictCounter,
                 filter = apiList.tabFilter,
                 sorter = apiList.tabSorter,
-                other = other,
             ),
             lookupWrappers = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
