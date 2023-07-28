@@ -85,7 +85,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 resultField = resultProperty,
             )
         } else {
-            pipeline += lookup(
+            pipeline += lookup5(
                 from = collMap[collKClass]?.mongoColl?.namespace?.collectionName ?: throw Exception(),
                 localField = localField,
                 foreignField = foreignField,

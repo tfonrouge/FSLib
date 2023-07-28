@@ -11,14 +11,14 @@ import kotlin.reflect.KProperty
  *
  * @param `as` is a [KProperty] reference field
  */
-fun lookup(
+fun lookup5(
     from: String,
     localField: KProperty<Any?>,
     foreignField: KProperty<Any?>,
     let: List<Variable<out Any>>? = null,
     resultField: KProperty<Any?>,
     pipeline: List<Bson>
-): Bson = lookup(
+): Bson = lookup5(
     from = from,
     localField = localField,
     foreignField = foreignField,
@@ -32,7 +32,7 @@ fun lookup(
  *
  * @param `as` is a [String] field name
  */
-fun lookup(
+fun lookup5(
     from: String,
     localField: KProperty<Any?>,
     foreignField: KProperty<Any?>,
