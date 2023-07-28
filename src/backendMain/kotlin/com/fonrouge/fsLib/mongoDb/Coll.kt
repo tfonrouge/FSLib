@@ -86,10 +86,10 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         limit: Int? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
+        sort?.let { pipeline.add(sort(it)) }
         finalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
         postProcessPipeline?.let { it(pipeline) }
-        postLookupMatch?.let { pipeline.add(match(it)) }
-        sort?.let { pipeline.add(sort(it)) }
+        postLookupMatch?.let { if (it.toBsonDocument().size > 0) pipeline.add(match(it)) }
         kotlin.math.max(skip, 0).let { if (it > 0) pipeline.add(skip(it)) }
         limit?.let { pipeline.add(limit(it)) }
         val curTime = Date().time
@@ -378,14 +378,14 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         }
         val count = if (strictCounter) {
             val list = mutableListOf<Bson>()
-            preLookupMatch?.let { list.add(it) }
+            preLookupMatch?.let { if (it.toBsonDocument().size > 0) list.add(it) }
 //            postLookupMatchList.let { list.addAll(it) }
             mongoColl.countDocuments(and(list)).awaitFirstOrNull() ?: 0L
         } else {
             mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
         }
         if (page == null) {
-            preLookupMatch?.let { pipeline.add(match(preLookupMatch)) }
+            preLookupMatch?.let { if (it.toBsonDocument().size > 0) pipeline.add(match(preLookupMatch)) }
             return FirstStage(
                 pipeline = pipeline,
                 count = count,
@@ -401,7 +401,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             val maxPage = ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt()
             val nPage = kotlin.math.min(maxPage, page)
             val nSkip = nSize * (nPage - 1)
-            preLookupMatch?.let { pipeline.add(match(preLookupMatch)) }
+            preLookupMatch?.let { if (it.toBsonDocument().size > 0) pipeline.add(match(preLookupMatch)) }
             return FirstStage(
                 pipeline = pipeline,
                 count = count,
