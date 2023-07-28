@@ -359,11 +359,11 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                     result.add(BsonDocument(remoteFilter.field, value))
                 }
             }
-            postLookupMatchList.add(and(result))
+            if (result.size > 0) postLookupMatchList.add(and(result))
         }
-        var sortDocument: BsonDocument? = null
+        var sortDocument: Bson? = null
         if (sort != null) {
-            sortDocument = sort.toBsonDocument()?.get("\$sort")?.asDocument() ?: sort.toBsonDocument()
+            sortDocument = sort
         } else if (!sorter.isNullOrEmpty()) {
             sortDocument = BsonDocument()
             sorter.forEach { remoteSorter ->
@@ -379,7 +379,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         val count = if (strictCounter) {
             val list = mutableListOf<Bson>()
             preLookupMatch?.let { list.add(it) }
-            postLookupMatchList.let { list.addAll(it) }
+//            postLookupMatchList.let { list.addAll(it) }
             mongoColl.countDocuments(and(list)).awaitFirstOrNull() ?: 0L
         } else {
             mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
