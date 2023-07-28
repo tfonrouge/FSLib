@@ -451,16 +451,6 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         )
     }
 
-    /*
-        @OptIn(InternalSerializationApi::class)
-        fun calcChecksum(list: List<T>): String {
-            val encoded = Json.encodeToString(ListSerializer(klass.serializer()), list)
-            val crC32 = CRC32()
-            crC32.update(encoded.toByteArray())
-            return crC32.value.toString()
-        }
-    */
-
     /**
      * Returns a [ListState] builded with the parameters provided
      **/
