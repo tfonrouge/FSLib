@@ -84,7 +84,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        listFirstStage?.preLookupMatch?.let { pipeline.add(match(it)) }
+        listFirstStage?.preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
         listFirstStage?.sort?.let { pipeline.add(sort(it)) }
         finalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
         postProcessPipeline?.let { it(pipeline) }
@@ -471,6 +471,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             page = page,
             preLookupMatch = preLookupMatch,
             postLookupMatch = and(postLookupMatchList),
+            sort = sortDocument
         )
         /*
                 val count = when (countType) {
