@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ApiList<FILT : ApiFilter>(
-    var tabPage: Int? = null,
-    var tabSize: Int? = null,
+    var tabPage: Int = 1,
+    var tabSize: Int = 10,
     var tabFilter: List<RemoteFilter>? = null,
     var tabSorter: List<RemoteSorter>? = null,
     var sorter: String? = null,

@@ -11,6 +11,7 @@ import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.serializers.StringId
+import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
 import com.mongodb.reactivestreams.client.AggregatePublisher
@@ -18,9 +19,7 @@ import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.*
 import org.bson.conversions.Bson
@@ -50,6 +49,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     val collectionName = collectionName(klass)
+    open val countType: CountType = CountType.PreLookup
 
     /**
      * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function
@@ -80,28 +80,31 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
-        postLookupMatch: Bson? = null,
-        sort: Bson? = null,
-        skip: Int = 0,
-        limit: Int? = null,
+        listFirstStage: ListFirstStage? = null,
+        pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        sort?.let { pipeline.add(sort(it)) }
+        listFirstStage?.preLookupMatch?.let { pipeline.add(match(it)) }
+        listFirstStage?.sort?.let { pipeline.add(sort(it)) }
         finalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
         postProcessPipeline?.let { it(pipeline) }
-        postLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
-        kotlin.math.max(skip, 0).let { if (it > 0) pipeline.add(skip(it)) }
-        limit?.let { pipeline.add(limit(it)) }
-        val curTime = Date().time
+        listFirstStage?.postLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
+        listFirstStage?.let {
+            val pageCountInfo: PageCountInfo = when (countType) {
+                CountType.PreLookup -> PageCountInfo(match = listFirstStage.preLookupMatch)
+                CountType.PostLookup -> PageCountInfo(pipeline = pipeline + Aggregates.count())
+                CountType.Estimated -> PageCountInfo()
+                CountType.Unknown -> PageCountInfo()
+            }
+            pageStateInfoFun?.invoke(pageCountInfo)
+            (it.pageSize * (it.page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
+            pipeline.add(limit(it.pageSize))
+        }
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate pipeline:")
             println(pipeline.json)
         }
-        return mongoColl.aggregate(pipeline, klass.java).also {
-            if (debug ?: globalDebug) {
-                println("Class: ${klass.simpleName}, Aggregate time: ${Date().time - curTime}ms")
-            }
-        }
+        return mongoColl.aggregate(pipeline, klass.java)
     }
 
     /**
@@ -320,16 +323,102 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         return ItemState(isOk = false, msgError = "insertOne(): apiItem.item contains null value...")
     }
 
-    private suspend fun listFirstStage(
+    /**
+     * Builds a [ListState] back to frontend
+     *
+     * @param postProcessList Allows to post-process the List<[T]> before send it to the frontend
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun listContainer(
+        listFirstStage: ListFirstStage,
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
+        apiFilter: FILT,
+        noContentHashCode: Boolean = false,
+        postProcessList: ((List<T>) -> Unit)? = null,
+    ): ListState<T> {
+        var pageCountInfo: PageCountInfo? = null
+        val publisher = aggregateLookup(
+            pipeline = listFirstStage.pipeline,
+            lookups = lookupWrappers,
+            apiFilter = apiFilter,
+            listFirstStage = listFirstStage,
+            postProcessPipeline = postProcessPipeline,
+            pageStateInfoFun = {
+                pageCountInfo = it
+            }
+        )
+        val curTime = Date().time
+        var t1: Long? = null
+        var t2: Long? = null
+        var list: List<T> = emptyList()
+        coroutineScope {
+            val j1 = launch {
+                list = publisher.toList()
+                t1 = Date().time - curTime
+            }
+            val j2 = launch {
+                pageCountInfo?.count(this@Coll, listFirstStage.pageSize)
+                t2 = Date().time - curTime
+            }
+            joinAll(j1, j2)
+        }
+        if (debug ?: globalDebug) {
+            println("Class: ${klass.simpleName}, Aggregate time: ${t1}ms, Count time: ${t2}ms")
+        }
+        postProcessList?.let { it(list) }
+        val contentHashCode = if (!noContentHashCode) {
+            (list as List<Any>).toTypedArray().contentDeepHashCode()
+        } else null
+        return ListState(
+            data = list,
+            last_page = pageCountInfo?.lastPage,
+            last_row = pageCountInfo?.lastRow,
+            contentHashCode = contentHashCode,
+        )
+    }
+
+    /**
+     * Returns a [ListState] builded with the parameters provided
+     **/
+    @Suppress("unused")
+    suspend fun listContainer(
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
         sort: Bson? = null,
-        page: Int? = null,
-        size: Int? = null,
-        strictCounter: Boolean = true,
+        apiList: ApiList<FILT>,
+        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
+        noContentHashCode: Boolean = false,
+        postProcessList: ((List<T>) -> Unit)? = null
+    ): ListState<T> {
+        return listContainer(
+            listFirstStage = listFirstStage(
+                preLookupMatch = preLookupMatch,
+                postLookupMatch = postLookupMatch,
+                sort = sort,
+                page = apiList.tabPage,
+                size = apiList.tabSize,
+                filter = apiList.tabFilter,
+                sorter = apiList.tabSorter,
+            ),
+            lookupWrappers = lookupWrappers,
+            postProcessPipeline = postProcessPipeline,
+            apiFilter = apiList.apiFilter,
+            noContentHashCode = noContentHashCode,
+            postProcessList = postProcessList
+        )
+    }
+
+    private fun listFirstStage(
+        preLookupMatch: Bson? = null,
+        postLookupMatch: Bson? = null,
+        sort: Bson? = null,
+        page: Int,
+        size: Int,
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
-    ): FirstStage {
+    ): ListFirstStage {
         val pipeline = mutableListOf<Bson>()
         val postLookupMatchList: MutableList<Bson> = mutableListOf()
         postLookupMatch?.let { postLookupMatchList.add(it) }
@@ -376,113 +465,55 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                 )
             }
         }
-        val count = if (strictCounter) {
-            val list = mutableListOf<Bson>()
-            preLookupMatch?.let { if (Document.parse(it.json).size > 0) list.add(it) }
-//            postLookupMatchList.let { list.addAll(it) }
-            mongoColl.countDocuments(and(list)).awaitFirstOrNull() ?: 0L
-        } else {
-            mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
-        }
-        if (page == null) {
-            preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(preLookupMatch)) }
-            return FirstStage(
-                pipeline = pipeline,
-                count = count,
-                last_page = -1,
-                last_row = null,
-                postLookupMatch = and(postLookupMatchList),
-                sort = sortDocument,
-                limit = null,
-            )
-        } else {
-            require(size == null || size > 0)
-            val nSize = size ?: 10
-            val maxPage = ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt()
-            val nPage = kotlin.math.min(maxPage, page)
-            val nSkip = nSize * (nPage - 1)
-            preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(preLookupMatch)) }
-            return FirstStage(
-                pipeline = pipeline,
-                count = count,
-                last_page = maxPage,
-                last_row = null,
-                postLookupMatch = and(postLookupMatchList),
-                sort = sortDocument,
-                skip = nSkip,
-                limit = nSize,
-            )
-        }
-    }
-
-    /**
-     * Builds a [ListState] back to frontend
-     *
-     * @param postProcessList Allows to post-process the List<[T]> before send it to the frontend
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun listContainer(
-        firstStage: FirstStage,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
-        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        apiFilter: FILT,
-        noContentHashCode: Boolean = false,
-        postProcessList: ((List<T>) -> Unit)? = null,
-    ): ListState<T> {
-        val list = aggregateLookup(
-            pipeline = firstStage.pipeline,
-            lookups = lookupWrappers,
-            apiFilter = apiFilter,
-            postLookupMatch = firstStage.postLookupMatch,
-            sort = firstStage.sort,
-            skip = firstStage.skip,
-            limit = firstStage.limit,
-            postProcessPipeline = postProcessPipeline
-        ).toList()
-        postProcessList?.let { it(list) }
-        val contentHashCode = if (!noContentHashCode) {
-            (list as List<Any>).toTypedArray().contentDeepHashCode()
-        } else null
-        return ListState(
-            data = list,
-            last_page = firstStage.last_page,
-            last_row = firstStage.last_row,
-            contentHashCode = contentHashCode,
+        return ListFirstStage(
+            pipeline = pipeline,
+            pageSize = size,
+            page = page,
+            preLookupMatch = preLookupMatch,
+            postLookupMatch = and(postLookupMatchList),
         )
-    }
+        /*
+                val count = when (countType) {
+                    CountType.PreLookup -> {
+                        val list = mutableListOf<Bson>()
+                        preLookupMatch?.let { if (Document.parse(it.json).size > 0) list.add(it) }
+                        mongoColl.countDocuments(and(list)).awaitFirstOrNull() ?: 0L
+                    }
 
-    /**
-     * Returns a [ListState] builded with the parameters provided
-     **/
-    @Suppress("unused")
-    suspend fun listContainer(
-        preLookupMatch: Bson? = null,
-        postLookupMatch: Bson? = null,
-        sort: Bson? = null,
-        strictCounter: Boolean = true,
-        apiList: ApiList<FILT>,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
-        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        noContentHashCode: Boolean = false,
-        postProcessList: ((List<T>) -> Unit)? = null
-    ): ListState<T> {
-        return listContainer(
-            firstStage = listFirstStage(
-                preLookupMatch = preLookupMatch,
-                postLookupMatch = postLookupMatch,
-                sort = sort,
-                page = apiList.tabPage,
-                size = apiList.tabSize,
-                strictCounter = strictCounter,
-                filter = apiList.tabFilter,
-                sorter = apiList.tabSorter,
-            ),
-            lookupWrappers = lookupWrappers,
-            postProcessPipeline = postProcessPipeline,
-            apiFilter = apiList.apiFilter,
-            noContentHashCode = noContentHashCode,
-            postProcessList = postProcessList
-        )
+                    CountType.Estimated -> mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
+                    else -> null
+                }
+                if (page == null) {
+                    preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(preLookupMatch)) }
+                    return ListFirstStage(
+                        pipeline = pipeline,
+                        page = page,
+                        count = count,
+                        last_page = -1,
+                        last_row = null,
+                        postLookupMatch = and(postLookupMatchList),
+                        sort = sortDocument,
+                        limit = null,
+                    )
+                } else {
+                    require(size == null || size > 0)
+                    val nSize = size ?: 10
+                    val maxPage = count?.let { ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt() }
+                    val nPage = maxPage?.let { kotlin.math.min(maxPage, page) } ?: page
+                    val nSkip = nSize * (nPage - 1)
+                    preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(preLookupMatch)) }
+                    return ListFirstStage(
+                        pipeline = pipeline,
+                        count = count,
+                        last_page = maxPage,
+                        last_row = null,
+                        postLookupMatch = and(postLookupMatchList),
+                        sort = sortDocument,
+                        skip = nSkip,
+                        limit = nSize,
+                    )
+                }
+        */
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -528,6 +559,47 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         CoroutineScope(Dispatchers.IO).launch {
             with(coroutineColl) {
                 ensureIndexes()
+            }
+        }
+    }
+
+    enum class CountType {
+        PreLookup,
+        PostLookup,
+        Estimated,
+        Unknown
+    }
+
+    data class PageCountInfo(
+        val match: Bson? = null,
+        val pipeline: List<Bson>? = null,
+        var lastPage: Int? = null,
+        var lastRow: Int? = null,
+    ) {
+        suspend fun count(coll: Coll<*, *, *>, pageSize: Int) {
+            val count = when (coll.countType) {
+                CountType.PreLookup ->
+                    coll.mongoColl.coroutine.countDocuments(
+                        match?.let {
+                            if (Document.parse(match.json).size > 0)
+                                it
+                            else
+                                EMPTY_BSON
+                        } ?: EMPTY_BSON
+                    )
+
+
+                CountType.PostLookup -> pipeline?.let {
+                    coll.mongoColl.coroutine.aggregate<Document>(it).first()?.getInteger("count")
+                        ?.toLong()
+                }
+
+                CountType.Estimated -> coll.mongoColl.coroutine.estimatedDocumentCount()
+                CountType.Unknown -> null
+            }
+            count?.let {
+                lastPage = (count / pageSize + if (count.toInt() % pageSize > 0) 1 else 0).toInt()
+                lastRow = it.toInt()
             }
         }
     }

@@ -72,8 +72,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Ap
     private val urlPrefix: String = if (kvUrlPrefix != undefined) "$kvUrlPrefix/" else ""
 
     internal fun apiCall() {
-        val page: Int? = jsTabulator?.getPage() as? Int
-        val size: Int? = jsTabulator?.getPageSize()?.toInt()
+        val page: Int = jsTabulator?.getPage() as? Int ?: 1
+        val size: Int = jsTabulator?.getPageSize()?.toInt() ?: 10
         val filters: List<RemoteFilter>? = jsTabulator?.getHeaderFilters()?.map {
             RemoteFilter(field = it.field, type = it.type, value = "${it.value}")
         }
@@ -94,8 +94,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Ap
     }
 
     private fun promise(
-        page: Int?,
-        size: Int?,
+        page: Int,
+        size: Int,
         filters: List<RemoteFilter>?,
         sorters: List<RemoteSorter>?,
     ): Promise<dynamic> {
@@ -163,8 +163,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Ap
         callAgent = CallAgent()
         options.ajaxURL = urlPrefix + url.drop(1)
         options.ajaxRequestFunc = { _, _, params ->
-            val page: Int? = params.page as? Int
-            val size: Int? = params.size as? Int
+            val page: Int = params.page as? Int ?: 1
+            val size: Int = params.size as? Int ?: 10
             val filters = if (params.filter != null) {
                 Json.decodeFromString(ListSerializer(RemoteFilter::class.serializer()), JSON.stringify(params.filter))
             } else {

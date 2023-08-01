@@ -3,13 +3,12 @@ package com.fonrouge.fsLib.mongoDb
 import org.bson.conversions.Bson
 
 @Suppress("unused")
-class FirstStage(
+data class ListFirstStage(
     val pipeline: MutableList<Bson>,
-    val count: Long,
-    val last_page: Int,
-    val last_row: Int?,
+    val pageSize: Int,
+    val page: Int,
+//    var count: Long? = null,
+    val preLookupMatch: Bson? = null,
     val postLookupMatch: Bson? = null,
     val sort: Bson? = null,
-    val skip: Int = 0,
-    val limit: Int?,
 )
