@@ -85,10 +85,11 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
         listFirstStage?.preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
-        listFirstStage?.sort?.let { pipeline.add(sort(it)) }
+        listFirstStage?.preLookupSort?.let { pipeline.add(sort(it)) }
         finalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
         postProcessPipeline?.let { it(pipeline) }
         listFirstStage?.postLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
+        listFirstStage?.postLookupSort?.let { pipeline.add(sort(it)) }
         listFirstStage?.let {
             val pageCountInfo: PageCountInfo = when (countType) {
                 CountType.PreLookup -> PageCountInfo(match = listFirstStage.preLookupMatch)
@@ -385,7 +386,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     suspend fun listContainer(
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
-        sort: Bson? = null,
+        preLookupSort: Bson? = null,
+        postLookupSort: Bson? = null,
         apiList: ApiList<FILT>,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -396,7 +398,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             listFirstStage = listFirstStage(
                 preLookupMatch = preLookupMatch,
                 postLookupMatch = postLookupMatch,
-                sort = sort,
+                preLookupSort = preLookupSort,
+                postLookupSort = postLookupSort,
                 page = apiList.tabPage,
                 size = apiList.tabSize,
                 filter = apiList.tabFilter,
@@ -413,7 +416,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     private fun listFirstStage(
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
-        sort: Bson? = null,
+        preLookupSort: Bson? = null,
+        postLookupSort: Bson? = null,
         page: Int,
         size: Int,
         filter: List<RemoteFilter>? = null,
@@ -451,8 +455,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             if (result.size > 0) postLookupMatchList.add(and(result))
         }
         var sortDocument: Bson? = null
-        if (sort != null) {
-            sortDocument = sort
+        if (preLookupSort != null) {
+            sortDocument = preLookupSort
         } else if (!sorter.isNullOrEmpty()) {
             sortDocument = BsonDocument()
             sorter.forEach { remoteSorter ->
@@ -471,50 +475,9 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             page = page,
             preLookupMatch = preLookupMatch,
             postLookupMatch = and(postLookupMatchList),
-            sort = sortDocument
+            preLookupSort = sortDocument,
+            postLookupSort = postLookupSort
         )
-        /*
-                val count = when (countType) {
-                    CountType.PreLookup -> {
-                        val list = mutableListOf<Bson>()
-                        preLookupMatch?.let { if (Document.parse(it.json).size > 0) list.add(it) }
-                        mongoColl.countDocuments(and(list)).awaitFirstOrNull() ?: 0L
-                    }
-
-                    CountType.Estimated -> mongoColl.estimatedDocumentCount().awaitFirstOrNull() ?: 0L
-                    else -> null
-                }
-                if (page == null) {
-                    preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(preLookupMatch)) }
-                    return ListFirstStage(
-                        pipeline = pipeline,
-                        page = page,
-                        count = count,
-                        last_page = -1,
-                        last_row = null,
-                        postLookupMatch = and(postLookupMatchList),
-                        sort = sortDocument,
-                        limit = null,
-                    )
-                } else {
-                    require(size == null || size > 0)
-                    val nSize = size ?: 10
-                    val maxPage = count?.let { ((count / nSize) + if ((count % nSize) > 0) 1 else 0).toInt() }
-                    val nPage = maxPage?.let { kotlin.math.min(maxPage, page) } ?: page
-                    val nSkip = nSize * (nPage - 1)
-                    preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(preLookupMatch)) }
-                    return ListFirstStage(
-                        pipeline = pipeline,
-                        count = count,
-                        last_page = maxPage,
-                        last_row = null,
-                        postLookupMatch = and(postLookupMatchList),
-                        sort = sortDocument,
-                        skip = nSkip,
-                        limit = nSize,
-                    )
-                }
-        */
     }
 
     @Suppress("MemberVisibilityCanBePrivate")

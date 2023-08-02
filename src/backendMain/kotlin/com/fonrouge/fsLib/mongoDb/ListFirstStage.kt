@@ -10,5 +10,6 @@ data class ListFirstStage(
 //    var count: Long? = null,
     val preLookupMatch: Bson? = null,
     val postLookupMatch: Bson? = null,
-    val sort: Bson? = null,
+    val preLookupSort: Bson? = null,
+    val postLookupSort: Bson? = null,
 )
