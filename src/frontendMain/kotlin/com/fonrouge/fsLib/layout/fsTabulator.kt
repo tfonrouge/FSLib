@@ -96,7 +96,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
 inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : ApiFilter> Container.fsTabulator(
     viewList: ViewList<T, E, ID, FILT>,
     options: TabulatorOptions<T> = TabulatorOptions(),
-    types: Set<TableType> = setOf(),
+    types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
