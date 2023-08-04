@@ -112,11 +112,12 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         formPanel?.let { formPanel ->
             if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
                 if (formPanel.validate()) {
+                    val data = formPanel.getData()
                     configView.callItemService(
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Action,
                         itemId = encodedId(),
-                        item = onDataFormBeforeApiCall(formPanel.getData()),
+                        item = onDataFormBeforeApiCall(data),
                         apiFilter = apiFilter.value,
                     ) { itemResponse ->
                         block?.let { it(itemResponse) }
@@ -201,7 +202,6 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                             acceptUpsertAction()
                         }
                     }
-
             } else {
                 if (!noBackButton) {
                     val histLength = window.history.length
