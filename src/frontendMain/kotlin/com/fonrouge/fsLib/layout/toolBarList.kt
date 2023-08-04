@@ -42,6 +42,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     label = if (minToolbarSize) "" else "Detail",
                     icon = iconCrud(CrudTask.Read),
                 ) {
+                    hide()
                     onClick {
                         it.preventDefault()
                         AppScope.launch {
@@ -67,6 +68,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         label = if (minToolbarSize) "" else "Update",
                         icon = iconCrud(CrudTask.Update)
                     ) {
+                        hide()
                         onClick {
                             it.preventDefault()
                             AppScope.launch {
@@ -79,6 +81,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         label = if (minToolbarSize) "" else "Delete",
                         icon = iconCrud(CrudTask.Delete)
                     ) {
+                        hide()
                         onClick {
                             it.preventDefault()
                             AppScope.launch {
