@@ -308,10 +308,15 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
      *
      * @param configViewList the [ConfigViewList] of the external viewList to embed
      */
-    fun Container.pageListBody(configViewList: ConfigViewList<*, *, *, *, *>, urlParams: UrlParams? = null) {
-        with(configViewList.newViewInstance(urlParams = urlParams)) {
+    fun Container.pageListBody(
+        configViewList: ConfigViewList<*, *, *, *, *>,
+        urlParams: UrlParams? = null
+    ): ViewList<*, *, *, *> {
+        val viewList = configViewList.newViewInstance(urlParams = urlParams)
+        with(viewList) {
             pageListBody()
         }
+        return viewList
     }
 
     fun updateLinks(item: T?, size: Int) {
