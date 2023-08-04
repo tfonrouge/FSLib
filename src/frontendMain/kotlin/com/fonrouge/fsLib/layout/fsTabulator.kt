@@ -139,7 +139,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
                         if (it.isEmpty()) null else it[0]
                     }
                     viewList.updateLinks(viewList.selectedItem, tList.size)
-                    viewList.onRowSelected(viewList.selectedItem)
+                    viewList.onRowSelected?.invoke(viewList.selectedItem)
                 }
                 viewList.onDataLoadedTabulator?.let { func ->
                     dataLoadedTabulator = { func(it.detail.unsafeCast<List<T>>()) }

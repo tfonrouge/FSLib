@@ -290,7 +290,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     /**
      * open function that fires when a row is selected in the tabulator
      */
-    open fun onRowSelected(item: T?) {}
+    var onRowSelected: ((T?) -> Unit)? = null
 
     /**
      * allows to set a custom context to be included in url params
@@ -308,15 +308,17 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
      *
      * @param configViewList the [ConfigViewList] of the external viewList to embed
      */
-    fun Container.pageListBody(
-        configViewList: ConfigViewList<*, *, *, *, *>,
-        urlParams: UrlParams? = null
-    ): ViewList<*, *, *, *> {
-        val viewList = configViewList.newViewInstance(urlParams = urlParams)
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun <V1 : ViewList<*, *, *, *>> Container.pageListBody(
+        configViewList: ConfigViewList<*, V1, *, *, *>,
+        urlParams: UrlParams? = null,
+        init: (V1.() -> Unit)? = null
+    ) {
+        val viewList: V1 = configViewList.newViewInstance(urlParams = urlParams)
         with(viewList) {
             pageListBody()
         }
-        return viewList
+        init?.invoke(viewList)
     }
 
     fun updateLinks(item: T?, size: Int) {
