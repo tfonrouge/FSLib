@@ -303,40 +303,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
      */
     abstract fun Container.pageListBody()
 
-    /**
-     * Allows to insert the [pageListBody] from and external [ViewList]
-     *
-     * @param configViewList the [ConfigViewList] of the external viewList to embed
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun <V1 : ViewList<*, *, *, *>> Container.pageListBody(
-        configViewList: ConfigViewList<*, V1, *, *, *>,
-        urlParams: UrlParams? = null,
-        init: (V1.() -> Unit)? = null
-    ) {
-        val viewList: V1 = configViewList.newViewInstance(urlParams = urlParams)
-        with(viewList) {
-            pageListBody()
-        }
-        init?.invoke(viewList)
-    }
-
-    /**
-     * Allows to insert the [pageListBody] from and external [ViewList]
-     *
-     * @param viewList the external [ViewList] to embed
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun <V1 : ViewList<*, *, *, *>> Container.pageListBody(
-        viewList: V1,
-        init: (V1.() -> Unit)? = null
-    ) {
-        with(viewList) {
-            pageListBody()
-        }
-        init?.invoke(viewList)
-    }
-
     fun updateLinks(item: T?, size: Int) {
         val id = item?._id
         if (id != null && size == 1) {
