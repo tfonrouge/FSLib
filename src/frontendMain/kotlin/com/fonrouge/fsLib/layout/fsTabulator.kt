@@ -105,7 +105,7 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
-        val apiList: ApiList<FILT> = ApiList<FILT>(apiFilter = viewList.apiFilter.value)
+        val apiList: ApiList<FILT> = ApiList(apiFilter = viewList.apiFilter.value)
         apiList.params = JSON.stringify(urlParams?.params)
         apiList
     }
@@ -130,8 +130,8 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
             options = tabulatorOptions,
             types = types,
         ) {
+            id = viewList::class.simpleName
             init?.invoke(this)
-            id = viewList.urlParams?.toString()
             onEvent {
                 rowSelectionChangedTabulator = {
                     val tList = self.getSelectedData()
