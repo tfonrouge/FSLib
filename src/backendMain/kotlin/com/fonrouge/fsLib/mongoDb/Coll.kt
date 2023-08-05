@@ -76,7 +76,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * @param postProcessPipeline allow to post-process the resulted [Bson] list before call aggregate
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    fun aggregateLookup(
+    suspend fun aggregateLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
@@ -116,7 +116,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * @param lookupWrappers array of [LookupWrapper] items to extract lookup info
      * @return List<Bson>
      */
-    private fun buildLookupList(
+    private suspend fun buildLookupList(
         lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
     ): MutableList<Bson> {
@@ -190,14 +190,6 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         return bson
     }
 
-    /**
-     * Allows to build a custom pipeline to be added to the [finalPipeline] in the db engine call
-     */
-    open fun customPipelineItems(
-        pipeline: MutableList<Bson> = mutableListOf(),
-        apiFilter: FILT? = null
-    ): MutableList<Bson> = pipeline
-
     suspend fun deleteOne(filter: Bson): ItemState<T> {
         return try {
             ItemState(
@@ -233,13 +225,13 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     /**
      * Builds the final pipeline to be used in the db engine including defined lookups in [lookupFun]
      */
-    fun finalPipeline(
+    suspend fun finalPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
     ): MutableList<Bson> {
         pipeline.addAll(
-            customPipelineItems(
+            refactorPipeline(
                 pipeline = buildLookupList(lookupWrappers = lookups, apiFilter = apiFilter),
                 apiFilter = apiFilter
             )
@@ -479,6 +471,14 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             postLookupSort = postLookupSort
         )
     }
+
+    /**
+     * Allows to build a custom pipeline to be added to the [finalPipeline] in the db engine call
+     */
+    open suspend fun refactorPipeline(
+        pipeline: MutableList<Bson> = mutableListOf(),
+        apiFilter: FILT? = null
+    ): MutableList<Bson> = pipeline
 
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun updateOne(
