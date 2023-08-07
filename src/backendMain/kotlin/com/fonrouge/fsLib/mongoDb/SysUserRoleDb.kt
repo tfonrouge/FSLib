@@ -18,7 +18,8 @@ var SysUserRoleColl: Coll<SysUserRole, OId<SysUserRole>, ApiFilter> =
     ) {
         override suspend fun refactorPipeline(
             pipeline: MutableList<Bson>,
-            apiFilter: ApiFilter?,
+            resultUnit: ResultUnit,
+            apiFilter: ApiFilter?
         ): MutableList<Bson> {
             pipeline.addAll(
                 listOf(

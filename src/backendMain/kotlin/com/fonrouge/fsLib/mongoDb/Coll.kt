@@ -66,7 +66,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     /**
      * build an AggregatePublisher<T>.
      *
-     * Is the base for the find(), findOne(), findOneById()
+     * process calls from backend service which provide an [ListFirstStage] from an
+     * frontend requiring a list of items.
      * accept a custom pipeline (list of Bson) argument and
      * also accept a list of [LookupWrapper] to be added to the
      * final pipeline on the aggregate operation
@@ -76,7 +77,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * @param postProcessPipeline allow to post-process the resulted [Bson] list before call aggregate
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun aggregateLookup(
+    suspend fun aggregateListLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
@@ -86,7 +87,12 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     ): AggregatePublisher<T> {
         listFirstStage?.preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
         listFirstStage?.preLookupSort?.let { pipeline.add(sort(it)) }
-        finalPipeline(pipeline = pipeline, lookups = lookups, apiFilter = apiFilter)
+        finalPipeline(
+            pipeline = pipeline,
+            lookups = lookups,
+            resultUnit = ResultUnit.List,
+            apiFilter = apiFilter
+        )
         postProcessPipeline?.let { it(pipeline) }
         listFirstStage?.postLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
         listFirstStage?.postLookupSort?.let { pipeline.add(sort(it)) }
@@ -101,6 +107,26 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             (it.pageSize * (it.page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
             pipeline.add(limit(it.pageSize))
         }
+        if (debug ?: globalDebug) {
+            println("Class: ${klass.simpleName}, Aggregate pipeline:")
+            println(pipeline.json)
+        }
+        return mongoColl.aggregate(pipeline, klass.java)
+    }
+
+    suspend fun aggregateOneLookup(
+        pipeline: MutableList<Bson> = mutableListOf(),
+        lookups: Array<out LookupWrapper<*, *>>? = null,
+        apiFilter: FILT? = null,
+        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
+    ): AggregatePublisher<T> {
+        finalPipeline(
+            pipeline = pipeline,
+            lookups = lookups,
+            resultUnit = ResultUnit.One,
+            apiFilter = apiFilter
+        )
+        postProcessPipeline?.let { it(pipeline) }
         if (debug ?: globalDebug) {
             println("Class: ${klass.simpleName}, Aggregate pipeline:")
             println(pipeline.json)
@@ -228,11 +254,13 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     suspend fun finalPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>>? = null,
+        resultUnit: ResultUnit,
         apiFilter: FILT? = null,
     ): MutableList<Bson> {
         pipeline.addAll(
             refactorPipeline(
                 pipeline = buildLookupList(lookupWrappers = lookups, apiFilter = apiFilter),
+                resultUnit = resultUnit,
                 apiFilter = apiFilter
             )
         )
@@ -252,7 +280,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
     ): List<T> {
-        return aggregateLookup(
+        return aggregateListLookup(
             pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
             lookups = lookupWrappers,
             apiFilter = apiFilter,
@@ -265,7 +293,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         apiFilter: FILT? = null,
     ): T? {
-        return aggregateLookup(
+        return aggregateOneLookup(
             pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
             lookups = lookupWrappers,
             apiFilter = apiFilter,
@@ -331,7 +359,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         postProcessList: ((List<T>) -> Unit)? = null,
     ): ListState<T> {
         var pageCountInfo: PageCountInfo? = null
-        val publisher = aggregateLookup(
+        val publisher = aggregateListLookup(
             pipeline = listFirstStage.pipeline,
             lookups = lookupWrappers,
             apiFilter = apiFilter,
@@ -477,7 +505,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      */
     open suspend fun refactorPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
-        apiFilter: FILT? = null
+        resultUnit: ResultUnit,
+        apiFilter: FILT? = null,
     ): MutableList<Bson> = pipeline
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -566,5 +595,10 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                 lastRow = it.toInt()
             }
         }
+    }
+
+    enum class ResultUnit {
+        One,
+        List,
     }
 }

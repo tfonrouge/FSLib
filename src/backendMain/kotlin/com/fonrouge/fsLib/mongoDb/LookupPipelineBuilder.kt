@@ -27,7 +27,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
         resultProperty = resultField,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
         limit = 1,
-        resultUnit = ResultUnit.One /* TODO: Make this impose a {$limit: 1} on returned data */
+        resultUnit = Coll.ResultUnit.One /* TODO: Make this impose a {$limit: 1} on returned data */
     ) {}
 }
 
@@ -49,7 +49,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
         resultProperty = resultFieldArray,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
         limit = limit,
-        resultUnit = ResultUnit.List
+        resultUnit = Coll.ResultUnit.List
     ) {}
 }
 
@@ -61,7 +61,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     internal val resultProperty: KProperty1<in T, *>,
     internal val preserveNullAndEmptyArrays: Boolean = true,
     internal val limit: Int? = null,
-    val resultUnit: ResultUnit,
+    val resultUnit: Coll.ResultUnit,
 ) {
     internal suspend fun pipelineList(lookup: LookupWrapper<*, *>? = null): List<Bson> {
         val pip2 = mutableListOf<Bson>()
@@ -70,10 +70,11 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
             coll.finalPipeline(
                 pipeline = mutableListOf(),
                 lookups = lookup?.lookupWrappers,
+                resultUnit = resultUnit,
                 apiFilter = null
             ).let {
                 pip2 += it
-                if (resultUnit == ResultUnit.One) pip2 += limit(1)
+                if (resultUnit == Coll.ResultUnit.One) pip2 += limit(1)
             }
         }
         val pipeline = mutableListOf<Bson>()
@@ -93,7 +94,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 pipeline = pip2
             )
         }
-        if (resultUnit == ResultUnit.One) {
+        if (resultUnit == Coll.ResultUnit.One) {
             resultProperty.let {
                 pipeline += resultProperty.unwind(
                     UnwindOptions().preserveNullAndEmptyArrays(
@@ -103,10 +104,5 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
             }
         }
         return pipeline
-    }
-
-    enum class ResultUnit {
-        One,
-        List,
     }
 }
