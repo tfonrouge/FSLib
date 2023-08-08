@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.view.KVWebManager.pageContainerWidth
 import io.kvision.core.Container
 import io.kvision.html.Align
 import io.kvision.html.Div
+import web.cssom.ClassName
 
 @Suppress("unused")
 fun Container.formColumn(
@@ -12,13 +13,14 @@ fun Container.formColumn(
     rich: Boolean = false,
     align: Align? = null,
     containerWidth: String = pageContainerWidth,
+    className: String = "",
     init: (Div.() -> Unit)? = null,
 ): Div {
     val div = Div(
         content = content,
         rich = rich,
         align = align,
-        className = columnWidth.let { "col-$containerWidth-$it " } + "form-group",
+        className = columnWidth.let { "col-$containerWidth-$it " } + "form-group $className",
         init = init
     )
     this.add(div)
