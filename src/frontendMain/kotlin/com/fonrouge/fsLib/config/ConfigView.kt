@@ -36,7 +36,7 @@ abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilter] from the [UrlParams]
      */
     fun newViewInstance(urlParams: UrlParams?): V {
-        val view = viewFunc.js.createInstance<V>(urlParams)
+        val view = viewFunc.js.createInstance<V>()
         view.urlParams = urlParams
         return view
     }
