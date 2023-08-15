@@ -41,6 +41,8 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     editable = editable,
     icon = icon,
 ) {
+    var allowInstallUpdate: Boolean = true
+
     /**
      * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
      * matching by name
@@ -225,7 +227,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     /**
      * forces an update for the tabulator data
      */
-    override suspend fun dataUpdate() {
+    final override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
             if (reloadColumnDefinitions) {
                 reloadColumnDefinitions = false

@@ -39,11 +39,15 @@ abstract class ViewDataContainer<FILT : ApiFilter>(
     var suspendPeriodicUpdate = false
     abstract suspend fun dataUpdate()
 
+    open suspend fun onDataUpdate() {
+        dataUpdate()
+    }
+
     fun installUpdate(first: Boolean) {
         val callBlock = {
             AppScope.launch {
                 try {
-                    dataUpdate()
+                    onDataUpdate()
                 } catch (e: Exception) {
                     console.error("Error on interval =", e)
                 }

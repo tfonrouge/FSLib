@@ -422,7 +422,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
 
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
-    override suspend fun dataUpdate() {
+    final override suspend fun dataUpdate() {
         urlParams?.crudTask?.let { crudAction ->
             configView.callItemService(
                 crudTask = crudAction,

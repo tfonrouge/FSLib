@@ -180,6 +180,8 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
             }
         }
     }
-    viewList.installUpdate(true)
+    if (viewList.allowInstallUpdate) {
+        viewList.installUpdate(true)
+    }
     return viewList
 }
