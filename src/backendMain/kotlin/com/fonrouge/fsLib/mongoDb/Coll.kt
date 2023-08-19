@@ -98,10 +98,10 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         listFirstStage?.postLookupSort?.let { pipeline.add(sort(it)) }
         listFirstStage?.let {
             val pageCountInfo: PageCountInfo = when (countType) {
-                CountType.PreLookup -> PageCountInfo(match = listFirstStage.preLookupMatch)
-                CountType.PostLookup -> PageCountInfo(pipeline = pipeline + Aggregates.count())
-                CountType.Estimated -> PageCountInfo()
-                CountType.Unknown -> PageCountInfo()
+                CountType.PreLookup -> PageCountInfo(match = listFirstStage.preLookupMatch, countType = countType)
+                CountType.PostLookup -> PageCountInfo(pipeline = pipeline + Aggregates.count(), countType = countType)
+                CountType.Estimated -> PageCountInfo(countType = countType)
+                CountType.Unknown -> PageCountInfo(countType = countType)
             }
             pageStateInfoFun?.invoke(pageCountInfo)
             (it.pageSize * (it.page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
@@ -573,7 +573,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         val pipeline: List<Bson>? = null,
         var lastPage: Int? = null,
         var lastRow: Int? = null,
-        val countType: CountType = CountType.PreLookup,
+        val countType: CountType,
     ) {
         suspend fun count(coll: Coll<*, *, *>, pageSize: Int) {
             val count = when (countType) {
