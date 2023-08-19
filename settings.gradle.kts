@@ -5,6 +5,7 @@ pluginManagement {
         mavenLocal()
         gradlePluginPortal()
     }
+/*
     resolutionStrategy {
         eachPlugin {
             if (requested.id.namespace == "com.android") {
@@ -12,6 +13,7 @@ pluginManagement {
             }
         }
     }
+*/
 }
 
 rootProject.name = "FSLib"

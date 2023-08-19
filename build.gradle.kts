@@ -5,7 +5,7 @@ plugins {
     val kvisionVersion: String by System.getProperties()
     kotlin("plugin.serialization") version kotlinVersion
     kotlin("multiplatform") version kotlinVersion
-    id("com.android.library")
+    id("com.android.library") version "8.0.0" apply true
     id("io.kvision") version kvisionVersion
     id("maven-publish")
 }
@@ -146,3 +146,9 @@ tasks.withType<KspTaskMetadata> {
     dependsOn(tasks.getByPath(":backendSourcesJar"))
     dependsOn(tasks.getByPath(":sourcesJar"))
 }
+
+fun org.gradle.api.Project.`android`(configure: Action<com.android.build.gradle.LibraryExtension>): Unit =
+    (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("android", configure)
+
+
+

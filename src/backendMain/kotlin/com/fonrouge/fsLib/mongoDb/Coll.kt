@@ -49,7 +49,6 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     val collectionName = collectionName(klass)
-    open val countType: CountType = CountType.PreLookup
 
     /**
      * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function
@@ -66,7 +65,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     /**
      * build an AggregatePublisher<T>.
      *
-     * process calls from backend service which provide an [ListFirstStage] from an
+     * process calls from backend service which provide an [ListFirstStage] from a
      * frontend requiring a list of items.
      * accept a custom pipeline (list of Bson) argument and
      * also accept a list of [LookupWrapper] to be added to the
@@ -82,6 +81,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         lookups: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
         listFirstStage: ListFirstStage? = null,
+        countType: CountType = CountType.PreLookup,
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
@@ -114,6 +114,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         return mongoColl.aggregate(pipeline, klass.java)
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun aggregateOneLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>>? = null,
@@ -356,6 +357,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         apiFilter: FILT,
         noContentHashCode: Boolean = false,
+        countType: CountType = CountType.PreLookup,
         postProcessList: ((List<T>) -> Unit)? = null,
     ): ListState<T> {
         var pageCountInfo: PageCountInfo? = null
@@ -364,6 +366,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             lookups = lookupWrappers,
             apiFilter = apiFilter,
             listFirstStage = listFirstStage,
+            countType = countType,
             postProcessPipeline = postProcessPipeline,
             pageStateInfoFun = {
                 pageCountInfo = it
@@ -400,7 +403,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     /**
-     * Returns a [ListState] builded with the parameters provided
+     * Returns a [ListState] built with the parameters provided
      **/
     @Suppress("unused")
     suspend fun listContainer(
@@ -409,6 +412,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         preLookupSort: Bson? = null,
         postLookupSort: Bson? = null,
         apiList: ApiList<FILT>,
+        countType: CountType = CountType.PreLookup,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         noContentHashCode: Boolean = false,
@@ -429,6 +433,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             postProcessPipeline = postProcessPipeline,
             apiFilter = apiList.apiFilter,
             noContentHashCode = noContentHashCode,
+            countType = countType,
             postProcessList = postProcessList
         )
     }
@@ -568,9 +573,10 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         val pipeline: List<Bson>? = null,
         var lastPage: Int? = null,
         var lastRow: Int? = null,
+        val countType: CountType = CountType.PreLookup,
     ) {
         suspend fun count(coll: Coll<*, *, *>, pageSize: Int) {
-            val count = when (coll.countType) {
+            val count = when (countType) {
                 CountType.PreLookup ->
                     coll.mongoColl.coroutine.countDocuments(
                         match?.let {
