@@ -146,9 +146,3 @@ tasks.withType<KspTaskMetadata> {
     dependsOn(tasks.getByPath(":backendSourcesJar"))
     dependsOn(tasks.getByPath(":sourcesJar"))
 }
-
-fun org.gradle.api.Project.`android`(configure: Action<com.android.build.gradle.LibraryExtension>): Unit =
-    (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("android", configure)
-
-
-
