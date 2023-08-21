@@ -1,17 +1,18 @@
 import com.google.devtools.ksp.gradle.KspTaskMetadata
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     val kotlinVersion: String by System.getProperties()
-    val kvisionVersion: String by System.getProperties()
     kotlin("plugin.serialization") version kotlinVersion
     kotlin("multiplatform") version kotlinVersion
     id("com.android.library") version "8.0.0" apply true
+    val kvisionVersion: String by System.getProperties()
     id("io.kvision") version kvisionVersion
     id("maven-publish")
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.8.0"
+version = "1.9.0"
 
 repositories {
     google()
@@ -29,8 +30,10 @@ val kotlinxDatetimeVersion: String by project
 val commonsCodecVersion: String by project
 //val logbackVersion: String by project
 
+val mainClassName = "io.ktor.server.netty.EngineMain"
+
 kotlin {
-    jvm("backend") {
+    jvm {
         compilations.all {
             java {
                 targetCompatibility = JavaVersion.VERSION_17
@@ -40,12 +43,16 @@ kotlin {
                 freeCompilerArgs = listOf("-Xjsr305=strict")
             }
         }
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        mainRun {
+            mainClass.set(mainClassName)
+        }
     }
-    js("frontend") {
+    js(IR) {
         browser()
-        binaries.library()
+        binaries.executable()
     }
-    android {
+    androidTarget {
         publishLibraryVariants("release", "debug")
     }
     sourceSets {
@@ -57,7 +64,7 @@ kotlin {
             }
         }
 
-        val backendMain by getting {
+        val jvmMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
@@ -89,7 +96,7 @@ kotlin {
             }
         }
 
-        val frontendMain by getting {
+        val jsMain by getting {
             dependencies {
                 api("org.litote.kmongo:kmongo-id:$kmongoVersion")
                 api("io.kvision:kvision:$kvisionVersion")
@@ -114,7 +121,7 @@ kotlin {
                 api("io.kvision:kvision-tom-select:$kvisionVersion")
                 api("io.kvision:kvision-tom-select-remote:$kvisionVersion")
             }
-            kotlin.srcDir("build/generated-src/frontend")
+//            kotlin.srcDir("build/generated-src/frontend")
         }
 
         val androidMain by getting
@@ -143,6 +150,6 @@ tasks.withType<KspTaskMetadata> {
     dependsOn(tasks.getByPath(":compileDebugKotlinAndroid"))
     dependsOn(tasks.getByPath(":androidReleaseSourcesJar"))
     dependsOn(tasks.getByPath(":androidDebugSourcesJar"))
-    dependsOn(tasks.getByPath(":backendSourcesJar"))
+    dependsOn(tasks.getByPath(":jvmSourcesJar"))
     dependsOn(tasks.getByPath(":sourcesJar"))
 }
