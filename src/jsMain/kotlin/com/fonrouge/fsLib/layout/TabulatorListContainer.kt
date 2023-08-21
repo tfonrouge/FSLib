@@ -132,15 +132,11 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Ap
                     diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
                     contentHashCode = result.contentHashCode as? Int
                 }
-                if (page != null) {
+                run {
                     if (result.data == undefined) {
                         result.data = js("[]")
                     }
                     result
-                } else if (result.data == undefined) {
-                    js("[]")
-                } else {
-                    result.data
                 }
             } else {
                 console.error("Server response error:", r)

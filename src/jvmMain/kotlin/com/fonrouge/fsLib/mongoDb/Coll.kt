@@ -82,6 +82,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         apiFilter: FILT? = null,
         listFirstStage: ListFirstStage? = null,
         countType: CountType = CountType.PreLookup,
+        debug: Boolean? = this.debug,
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
@@ -358,6 +359,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         apiFilter: FILT,
         noContentHashCode: Boolean = false,
         countType: CountType = CountType.PreLookup,
+        debug: Boolean? = this.debug,
         postProcessList: ((List<T>) -> Unit)? = null,
     ): ListState<T> {
         var pageCountInfo: PageCountInfo? = null
@@ -367,6 +369,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             apiFilter = apiFilter,
             listFirstStage = listFirstStage,
             countType = countType,
+            debug = debug,
             postProcessPipeline = postProcessPipeline,
             pageStateInfoFun = {
                 pageCountInfo = it
@@ -413,6 +416,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         postLookupSort: Bson? = null,
         apiList: ApiList<FILT>,
         countType: CountType = CountType.PreLookup,
+        debug: Boolean? = this.debug,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         noContentHashCode: Boolean = false,
@@ -434,6 +438,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             apiFilter = apiList.apiFilter,
             noContentHashCode = noContentHashCode,
             countType = countType,
+            debug = debug,
             postProcessList = postProcessList
         )
     }
