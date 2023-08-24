@@ -460,6 +460,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             val result = mutableListOf<Bson>()
             val kProperty1s = klass.memberProperties
             filter.forEach { remoteFilter ->
+                /* TODO: allow follow kproperty on compound fields (field1.field2) */
                 val kfield = kProperty1s.firstOrNull { it.name == remoteFilter.field }
                 val value: BsonValue? = when (kfield?.returnType?.classifier) {
                     Array<String>::class, String::class, StringId::class, null -> {
