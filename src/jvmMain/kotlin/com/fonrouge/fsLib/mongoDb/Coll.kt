@@ -110,7 +110,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             pipeline.add(limit(it.pageSize))
         }
         if (debug ?: globalDebug) {
-            println("Class: ${klass.simpleName}, Aggregate pipeline:")
+            println("Class: ${klass.simpleName} ('$collectionName'), Aggregate pipeline:")
             println(pipeline.json)
         }
         return mongoColl.aggregate(pipeline, klass.java)
@@ -131,7 +131,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         )
         postProcessPipeline?.let { it(pipeline) }
         if (debug ?: globalDebug) {
-            println("Class: ${klass.simpleName}, Aggregate pipeline:")
+            println("Class: ${klass.simpleName} ('$collectionName'), Aggregate pipeline:")
             println(pipeline.json)
         }
         return mongoColl.aggregate(pipeline, klass.java)
@@ -392,7 +392,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             joinAll(j1, j2)
         }
         if (debug ?: globalDebug) {
-            println("Class: ${klass.simpleName}, Aggregate time: ${t1}ms, Count time: ${t2}ms")
+            println("Class: ${klass.simpleName} ('$collectionName'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
         }
         postProcessList?.let { it(list) }
         val contentHashCode = if (!noContentHashCode) {
