@@ -29,6 +29,7 @@ import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import java.util.*
 import kotlin.reflect.KClass
+import kotlin.reflect.KClassifier
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -443,6 +444,17 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         )
     }
 
+    private fun findFieldType(kClass: KClass<*>, fieldName: String): KClassifier? {
+        val k = kClass.memberProperties
+        return if (fieldName.contains('.')) {
+            k.firstOrNull { it.name == fieldName.substringBefore('.') }?.returnType?.classifier?.let {
+                findFieldType(it as KClass<*>, fieldName.substringAfter('.'))
+            }
+        } else {
+            k.firstOrNull { it.name == fieldName }?.returnType?.classifier
+        }
+    }
+
     private fun listFirstStage(
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
@@ -458,11 +470,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         postLookupMatch?.let { postLookupMatchList.add(it) }
         filter?.let {
             val result = mutableListOf<Bson>()
-            val kProperty1s = klass.memberProperties
             filter.forEach { remoteFilter ->
-                /* TODO: allow follow kproperty on compound fields (field1.field2) */
-                val kfield = kProperty1s.firstOrNull { it.name == remoteFilter.field }
-                val value: BsonValue? = when (kfield?.returnType?.classifier) {
+                val value: BsonValue? = when (findFieldType(klass, remoteFilter.field)) {
                     Array<String>::class, String::class, StringId::class, null -> {
                         when (remoteFilter.type) {
                             "like" -> BsonDocument(
