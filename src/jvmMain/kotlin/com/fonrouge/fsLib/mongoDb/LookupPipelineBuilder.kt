@@ -28,7 +28,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
         resultProperty = resultField,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
         limit = limit,
-        resultUnit = Coll.ResultUnit.One /* TODO: Make this impose a {$limit: 1} on returned data */
+        resultUnit = Coll.ResultUnit.One
     ) {}
 }
 
