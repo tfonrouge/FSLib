@@ -17,6 +17,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     foreignField: KProperty<*>,
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, U?>,
+    limit: Int? = 1,
     preserveNullAndEmptyArrays: Boolean = true,
 ): LookupPipelineBuilder<T, U, ID> {
     return object : LookupPipelineBuilder<T, U, ID>(
@@ -26,7 +27,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
         pipeline = pipeline,
         resultProperty = resultField,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
-        limit = 1,
+        limit = limit,
         resultUnit = Coll.ResultUnit.One /* TODO: Make this impose a {$limit: 1} on returned data */
     ) {}
 }
@@ -57,10 +58,10 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val collKClass: KClass<out Coll<U, ID, *>>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,
-    private val pipeline: List<Bson>? = null,
+    private val pipeline: List<Bson>?,
     internal val resultProperty: KProperty1<in T, *>,
-    internal val preserveNullAndEmptyArrays: Boolean = true,
-    internal val limit: Int? = null,
+    internal val preserveNullAndEmptyArrays: Boolean,
+    internal val limit: Int?,
     val resultUnit: Coll.ResultUnit,
 ) {
     internal suspend fun pipelineList(lookup: LookupWrapper<*, *>? = null): List<Bson> {
@@ -74,7 +75,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 apiFilter = null
             ).let {
                 pip2 += it
-                if (resultUnit == Coll.ResultUnit.One) pip2 += limit(1)
+                limit?.let { pip2 += limit(it) }
             }
         }
         val pipeline = mutableListOf<Bson>()
