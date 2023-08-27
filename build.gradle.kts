@@ -75,6 +75,7 @@ kotlin {
                 api("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
                 api("io.ktor:ktor-client-serialization:${ktor_version}")
                 api("io.ktor:ktor-server-auth:$ktor_version")
+                api("io.ktor:ktor-server-auth-jwt:$ktor_version")
                 api("io.ktor:ktor-server-call-logging:$ktor_version")
                 api("io.ktor:ktor-server-compression:$ktor_version")
                 api("io.ktor:ktor-server-core:$ktor_version")
