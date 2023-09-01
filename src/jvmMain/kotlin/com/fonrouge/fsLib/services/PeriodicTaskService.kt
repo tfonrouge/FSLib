@@ -35,12 +35,15 @@ enum class TimeUnit {
 @Suppress("unused")
 fun Application.startPeriodicTask(
     klass: KClass<out IPeriodicTaskService>,
-    timeUnit: TimeUnit = TimeUnit.Minute
+    timeUnit: TimeUnit = TimeUnit.Minute,
+    debug: Boolean = false,
 ) {
     koin {
         val periodicTask by inject<IPeriodicTaskService>(klass.java)
         flow {
-            println("Installing ${klass.simpleName} with [$timeUnit] periodicity ...")
+            if (debug) {
+                println("Installing ${klass.simpleName} with [$timeUnit] periodicity ...")
+            }
             while (true) {
                 emit(Unit)
                 delay(1000)
@@ -60,7 +63,9 @@ fun Application.startPeriodicTask(
                     if (kCallable.hasAnnotation<Task>()) {
                         if (!periodicTask.workingTaskMap.contains(kCallable.name)) {
                             periodicTask.workingTaskMap.add(kCallable.name)
-                            println("* Periodic Task Service: Starting ${klass.simpleName}::${kCallable.name}")
+                            if (debug) {
+                                println("* Periodic Task Service: Starting ${klass.simpleName}::${kCallable.name}")
+                            }
                             this@startPeriodicTask.launch {
                                 try {
                                     kCallable.callSuspend(periodicTask)
@@ -69,7 +74,9 @@ fun Application.startPeriodicTask(
                                     System.err.println("* Periodic Task Service: Error ${klass.simpleName}::${kCallable.name} = $msgErr")
                                     e.printStackTrace()
                                 }
-                                println("* Periodic Task Service: Finalizing ${klass.simpleName}::${kCallable.name}")
+                                if (debug) {
+                                    println("* Periodic Task Service: Finalizing ${klass.simpleName}::${kCallable.name}")
+                                }
                                 periodicTask.workingTaskMap.remove(kCallable.name)
                             }
                         }

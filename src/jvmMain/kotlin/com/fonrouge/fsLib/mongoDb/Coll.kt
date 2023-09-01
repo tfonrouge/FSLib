@@ -77,7 +77,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * @param postProcessPipeline allow to post-process the resulted [Bson] list before call aggregate
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun aggregateListLookup(
+    suspend fun aggregateLookupPublisher(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
@@ -278,15 +278,39 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * @return list of T items
      */
     @Suppress("unused")
-    suspend fun find(
+    suspend fun findPublisher(
         filter: Bson? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
         apiFilter: FILT? = null,
-    ): List<T> {
-        return aggregateListLookup(
+        debug: Boolean = false,
+    ): AggregatePublisher<T> {
+        return aggregateLookupPublisher(
             pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
             lookups = lookupWrappers,
             apiFilter = apiFilter,
+            debug = debug,
+        )
+    }
+
+    /**
+     * Find [filter] expression in collection and returns a list of [T] items
+     *
+     * @param filter bson expression
+     * @param lookupWrappers array of [LookupWrapper]
+     * @return list of T items
+     */
+    @Suppress("unused")
+    suspend fun findList(
+        filter: Bson? = null,
+        lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
+        apiFilter: FILT? = null,
+        debug: Boolean = false,
+    ): List<T> {
+        return findPublisher(
+            filter = filter,
+            lookupWrappers = lookupWrappers,
+            apiFilter = apiFilter,
+            debug = debug,
         ).toList()
     }
 
@@ -295,11 +319,13 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         filter: Bson? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         apiFilter: FILT? = null,
+        debug: Boolean = false,
     ): T? {
-        return aggregateOneLookup(
-            pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
-            lookups = lookupWrappers,
+        return findPublisher(
+            filter = filter,
+            lookupWrappers = lookupWrappers,
             apiFilter = apiFilter,
+            debug = debug,
         ).awaitFirstOrNull()
     }
 
@@ -364,7 +390,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         postProcessList: ((List<T>) -> Unit)? = null,
     ): ListState<T> {
         var pageCountInfo: PageCountInfo? = null
-        val publisher = aggregateListLookup(
+        val publisher = aggregateLookupPublisher(
             pipeline = listFirstStage.pipeline,
             lookups = lookupWrappers,
             apiFilter = apiFilter,
