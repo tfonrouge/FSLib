@@ -41,6 +41,8 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var iConfigView: IConfigView? = null
 
+    var getSysUser: (suspend () -> Any)? = null
+
     var afterInitialize: (() -> Unit)? = null
 
     var routing: Routing = Routing.init()
@@ -53,6 +55,10 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
         if (iConfigView == null) {
             Toast.warning("${this::iConfigView.name} not implemented...")
+        }
+
+        if (getSysUser == null) {
+            Toast.warning("${this::getSysUser.name} block not defined...")
         }
 
         afterInitialize?.invoke()

@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.view.KVWebManager.getSysUser
 import io.kvision.core.Container
 import io.kvision.html.div
 import io.kvision.state.bind
@@ -12,7 +13,8 @@ class ViewState(
 )
 
 @Suppress("unused")
-fun Container.showView(viewState: ViewState) {
+suspend fun Container.showView(viewState: ViewState) {
+    getSysUser?.let { it() }
     val view = viewState.configView.newViewInstance(viewState.urlParams)
     val viewDataContainer = view as? ViewDataContainer<*>
     view.apply {
