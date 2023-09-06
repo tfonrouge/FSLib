@@ -116,7 +116,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         return mongoColl.aggregate(pipeline, klass.java)
     }
 
-    @Suppress("MemberVisibilityCanBePrivate")
+    @Suppress("MemberVisibilityCanBePrivate", "unused")
     suspend fun aggregateOneLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: Array<out LookupWrapper<*, *>>? = null,
@@ -277,7 +277,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      * @param lookupWrappers array of [LookupWrapper]
      * @return list of T items
      */
-    @Suppress("unused")
+    @Suppress("unused", "MemberVisibilityCanBePrivate")
     suspend fun findPublisher(
         filter: Bson? = null,
         lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
@@ -353,7 +353,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     @Suppress("unused")
-    suspend fun insertOne(apiItem: ApiItem<T, FILT>): ItemState<T> {
+    suspend fun insertOne(apiItem: ApiItem<T, ID, FILT>): ItemState<T> {
         apiItem.item?.let {
             checkDontPersist(it)
             try {
@@ -558,7 +558,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun updateOne(
         filter: Bson,
-        apiItem: ApiItem<T, FILT>,
+        apiItem: ApiItem<T, ID, FILT>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> = apiItem.item?.let {
         checkDontPersist(apiItem.item)
@@ -582,7 +582,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     @Suppress("unused")
     suspend fun updateOneById(
         id: ID?,
-        apiItem: ApiItem<T, FILT>,
+        apiItem: ApiItem<T, ID, FILT>,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
         return updateOne(

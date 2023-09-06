@@ -116,7 +116,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                     configView.callItemService(
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Action,
-                        itemId = encodedId(),
+                        id = item?._id,
                         item = onDataFormBeforeApiCall(data),
                         apiFilter = apiFilter.value,
                     ) { itemResponse ->
@@ -242,6 +242,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
      */
     open fun onAfterDisplayForm(crudTask: CrudTask) {}
 
+    @OptIn(InternalSerializationApi::class)
     override fun Container.displayPage() {
         vPanel(className = "showItem") {
             flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
@@ -252,7 +253,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                     configView.callItemService(
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Query,
-                        itemId = urlParams?.id,
+                        id = urlParams?.id?.let { Json.decodeFromString(configView.idKClass.serializer(), it) },
                         apiFilter = apiFilter.value
                     ) { itemResponse ->
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
@@ -327,7 +328,12 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                                                         configView.callItemService(
                                                             crudTask = CrudTask.Delete,
                                                             callType = ApiItem.CallType.Action,
-                                                            itemId = urlParams?.id,
+                                                            id = urlParams?.id?.let {
+                                                                Json.decodeFromString(
+                                                                    configView.idKClass.serializer(),
+                                                                    it
+                                                                )
+                                                            },
                                                             apiFilter = apiFilter.value
                                                         ) { itemResponse1 ->
                                                             buttonCancel?.hide()
@@ -407,14 +413,15 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         }
     }
 
-    fun encodedId(id: ID? = item?._id): String {
-        return configView.encodedId(id = id)
-    }
-
     override val label: String
         get() {
             return "${configView.label}: ${configView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
+
+    @OptIn(InternalSerializationApi::class)
+    fun encodeId(id: ID? = item?._id): String? {
+        return id?.let { Json.encodeToString(configView.idKClass.serializer(), id) }
+    }
 
     open fun onChangeDataContainer(itemResponse: ItemState<T>?) {
 
@@ -427,7 +434,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
             configView.callItemService(
                 crudTask = crudAction,
                 callType = ApiItem.CallType.Query,
-                itemId = encodedId(),
+                id = item?._id,
                 apiFilter = apiFilter.value
             ) { itemResponse ->
                 data.value = itemResponse

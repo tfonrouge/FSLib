@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.view.KVWebManager.pageContainerWidth
 import io.kvision.core.Container
 import io.kvision.html.Align
 import io.kvision.html.Div
-import web.cssom.ClassName
 
 @Suppress("unused")
 fun Container.formColumn(

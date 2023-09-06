@@ -1,11 +1,14 @@
 package com.fonrouge.fsLib.model.apiData
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
-open class ApiFilter(
+open class ApiFilter @OptIn(ExperimentalSerializationApi::class) constructor(
+    @EncodeDefault(mode = EncodeDefault.Mode.NEVER)
     var masterItemIdSerialized: String? = null
 ) {
     @Suppress("unused")

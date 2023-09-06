@@ -75,13 +75,10 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
     var masterViewItem: ViewItem<*, *, out FILT>? = null
         set(value) {
-            value?.item?._id.let {
-                apiFilter.value.masterItemIdSerialized = value?.encodedId()
-            }
+            apiFilter.value.masterItemIdSerialized = value?.encodeId()
             editable = value?.urlParams?.actionUpsert == true
             field = value
         }
-
     val parentContextUrlParams: String
         get() {
             return masterViewItem?.data?.value?.let {
@@ -125,8 +122,8 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
         val url: String? = when (crudTask) {
             CrudTask.Create -> listOf("action" to CrudTask.Create.name)
             else -> {
-                encodedId(item)?.let { id ->
-                    listOf("action" to crudTask.name, "id" to id)
+                item?._id?.let {
+                    listOf("action" to crudTask.name, "id" to Json.encodeToString(configView.idKClass.serializer(), it))
                 }
             }
         }?.let { params ->
@@ -255,10 +252,6 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
             pageBanner()
         }
         pageListBody()
-    }
-
-    private fun encodedId(item: T?): String? {
-        return item?.let { configView.encodedId(it._id) }
     }
 
     /**

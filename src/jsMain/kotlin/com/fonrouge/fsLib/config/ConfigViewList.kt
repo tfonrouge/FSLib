@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 
 abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT>, E : IDataList, ID : Any, FILT : ApiFilter>(
     itemKClass: KClass<T>,
-    idKClass: KClass<ID>? = null,
+    idKClass: KClass<ID>,
     apiFilterKClass: KClass<FILT>,
     label: String,
     viewFunc: KClass<out V>,
@@ -37,15 +37,15 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT>, E :
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT>, E : IDataList, ID : Any, FILT : ApiFilter> configViewList(
+inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, E, ID, FILT>, E : IDataList, reified ID : Any, reified FILT : ApiFilter> configViewList(
     itemKClass: KClass<T>,
-    idKClass: KClass<ID>? = null,
+    idKClass: KClass<ID> = ID::class,
     apiFilterKClass: KClass<FILT>,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     serviceManager: KVServiceManager<E>,
-    function: suspend E.(ApiList<FILT>) -> ListState<T>,
+    noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
 ): ConfigViewList<T, V, E, ID, FILT> = object : ConfigViewList<T, V, E, ID, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,

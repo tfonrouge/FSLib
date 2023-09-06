@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 
 @Suppress("unused")
 @Serializable
-data class ApiItem<T : BaseDoc<*>, FILT : ApiFilter>(
+data class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
+    val id: ID? = null,
     val item: T? = null,
     val callType: CallType = CallType.Query,
     val crudTask: CrudTask = CrudTask.Read,
