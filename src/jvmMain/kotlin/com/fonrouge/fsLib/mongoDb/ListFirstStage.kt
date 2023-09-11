@@ -4,7 +4,7 @@ import org.bson.conversions.Bson
 
 @Suppress("unused")
 data class ListFirstStage(
-    val pipeline: MutableList<Bson>,
+    val pipeline: MutableList<Bson> = mutableListOf(),
     val pageSize: Int,
     val page: Int,
 //    var count: Long? = null,
