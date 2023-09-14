@@ -16,6 +16,7 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT>, E :
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
+    requireCredentials: Boolean,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
 ) : ConfigViewContainer<T, V, ID, FILT>(
@@ -25,7 +26,8 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT>, E :
     name = itemKClass.simpleName!!,
     label = label,
     viewFunc = viewFunc,
-    baseUrl = baseUrl
+    baseUrl = baseUrl,
+    requireCredentials = requireCredentials,
 ) {
     companion object {
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *>>()
@@ -44,6 +46,7 @@ inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, E, ID, FILT>, E : I
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
+    requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
 ): ConfigViewList<T, V, E, ID, FILT> = object : ConfigViewList<T, V, E, ID, FILT>(
@@ -53,6 +56,7 @@ inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, E, ID, FILT>, E : I
     label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
+    requireCredentials = requireCredentials,
     serviceManager = serviceManager,
     function = function,
 ) {}

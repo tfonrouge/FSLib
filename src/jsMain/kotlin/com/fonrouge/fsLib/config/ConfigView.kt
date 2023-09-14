@@ -23,7 +23,8 @@ abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
     val label: String,
     val viewFunc: KClass<out V>,
     val apiFilterKClass: KClass<FILT>,
-    val baseUrl: String = viewFunc.simpleName!!
+    val baseUrl: String = viewFunc.simpleName!!,
+    val requireCredentials: Boolean,
 ) {
     companion object {
         val configViewMap = mutableMapOf<String, ConfigView<*, *>>()
@@ -90,11 +91,13 @@ fun <V : View<FILT>, FILT : ApiFilter> configView(
     label: String,
     viewFunc: KClass<out V>,
     apiFilterKClass: KClass<FILT>,
-    baseUrl: String = viewFunc.simpleName!!
+    baseUrl: String = viewFunc.simpleName!!,
+    requireCredentials: Boolean = true,
 ): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
     name = name,
     label = label,
     viewFunc = viewFunc,
     apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
+    requireCredentials = requireCredentials,
 ) {}

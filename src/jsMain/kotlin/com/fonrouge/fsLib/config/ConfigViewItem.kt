@@ -31,6 +31,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : ID
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
+    requireCredentials: Boolean,
     private val serviceManager: KVServiceManager<E>,
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
@@ -41,7 +42,8 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : ID
     name = itemKClass.simpleName!!,
     label = label,
     viewFunc = viewFunc,
-    baseUrl = baseUrl
+    baseUrl = baseUrl,
+    requireCredentials = requireCredentials
 ) {
     companion object {
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *>>()
@@ -165,6 +167,7 @@ inline fun <reified T : BaseDoc<ID>, reified V : ViewItem<T, ID, FILT>, E : IDat
     label: String,
     viewFunc: KClass<out V> = V::class,
     baseUrl: String = viewFunc.simpleName!!,
+    requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     noinline labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
@@ -175,6 +178,7 @@ inline fun <reified T : BaseDoc<ID>, reified V : ViewItem<T, ID, FILT>, E : IDat
     label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
+    requireCredentials = requireCredentials,
     serviceManager = serviceManager,
     function = function,
     labelIdFunc = labelIdFunc,

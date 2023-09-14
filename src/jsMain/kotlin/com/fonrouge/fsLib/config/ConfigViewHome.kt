@@ -11,12 +11,14 @@ abstract class ConfigViewHome<V : ViewHome<FILT>, FILT : ApiFilter>(
     viewFunc: KClass<V>,
     apiFilterKClass: KClass<FILT>,
     baseUrl: String = "",
+    requireCredentials: Boolean = true,
 ) : ConfigView<V, FILT>(
     name = name,
     label = label,
     viewFunc = viewFunc,
     apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
+    requireCredentials = requireCredentials
 ) {
     init {
         configViewHome = this

@@ -13,10 +13,12 @@ abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<FILT>,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String,
+    requireCredentials: Boolean,
 ) : ConfigView<V, FILT>(
     name = name,
     label = label,
     viewFunc = viewFunc,
     apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
+    requireCredentials = requireCredentials,
 )
