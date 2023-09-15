@@ -24,7 +24,7 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : IDataItem, ID : Any, FILT : ApiFilter>(
+abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : ApiFilter>(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>,
     apiFilterKClass: KClass<FILT>,
@@ -160,7 +160,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, V : ViewItem<T, ID, FILT>, E : ID
 }
 
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, reified V : ViewItem<T, ID, FILT>, E : IDataItem, reified ID : Any, reified FILT : ApiFilter> configViewItem(
+inline fun <reified T : BaseDoc<ID>, reified ID : Any, reified V : ViewItem<T, ID, FILT>, E : IDataItem, reified FILT : ApiFilter> configViewItem(
     itemKClass: KClass<T> = T::class,
     idKClass: KClass<ID> = ID::class,
     apiFilterKClass: KClass<FILT> = FILT::class,
@@ -171,7 +171,7 @@ inline fun <reified T : BaseDoc<ID>, reified V : ViewItem<T, ID, FILT>, E : IDat
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     noinline labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
-): ConfigViewItem<T, V, E, ID, FILT> = object : ConfigViewItem<T, V, E, ID, FILT>(
+): ConfigViewItem<T, ID, V, E, FILT> = object : ConfigViewItem<T, ID, V, E, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
     apiFilterKClass = apiFilterKClass,

@@ -69,17 +69,17 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     )
 }
 
-inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : ApiFilter> Container.fsTabulator(
-    configViewList: ConfigViewList<T, out ViewList<T, E, ID, FILT>, E, ID, FILT>,
+inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : ApiFilter> Container.fsTabulator(
+    configViewList: ConfigViewList<T, ID, out ViewList<T, ID, E, FILT>, E, FILT>,
     masterViewItem: ViewItem<*, *, out FILT>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
-): ViewList<T, E, ID, FILT> {
-    val viewList: ViewList<T, E, ID, FILT> = configViewList.newViewInstance(null)
+    noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
+): ViewList<T, ID, E, FILT> {
+    val viewList: ViewList<T, ID, E, FILT> = configViewList.newViewInstance(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
@@ -93,15 +93,15 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : Api
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, reified FILT : ApiFilter> Container.fsTabulator(
-    viewList: ViewList<T, E, ID, FILT>,
+inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : ApiFilter> Container.fsTabulator(
+    viewList: ViewList<T, ID, E, FILT>,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
-): ViewList<T, E, ID, FILT> {
+    noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
+): ViewList<T, ID, E, FILT> {
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams

@@ -28,10 +28,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 @Suppress("unused")
-abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter>(
+abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilter>(
     urlParams: UrlParams? = null,
-    final override val configView: ConfigViewList<T, out ViewList<T, E, ID, FILT>, E, ID, FILT>,
-    configViewItem: ConfigViewItem<T, *, *, ID, FILT>? = null,
+    final override val configView: ConfigViewList<T, ID, out ViewList<T, ID, E, FILT>, E, FILT>,
+    configViewItem: ConfigViewItem<T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -47,7 +47,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
      * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
      * matching by name
      */
-    var configViewItem: ConfigViewItem<T, *, *, ID, FILT>? = configViewItem
+    var configViewItem: ConfigViewItem<T, ID, *, *, FILT>? = configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewFunc.simpleName!!
@@ -56,7 +56,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
             } else {
                 "ViewItem${configView.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, *, *, ID, FILT>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, ID, *, *, FILT>>()
         }
 
     open val columnDefaults: ColumnDefinition<T>? = null
@@ -101,7 +101,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     /**
      * the tabulator list
      */
-    var tabulator: TabulatorListContainer<T, E, ID, FILT>? = null
+    var tabulator: TabulatorListContainer<T, ID, E, FILT>? = null
 
     /**
      * observable that triggers an update on the list's toolbar
@@ -117,7 +117,7 @@ abstract class ViewList<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilt
     open suspend fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItem,
-        configViewItem: ConfigViewItem<*, *, *, ID, *>? = this.configViewItem,
+        configViewItem: ConfigViewItem<*, ID, *, *, *>? = this.configViewItem,
     ) {
         val url: String? = when (crudTask) {
             CrudTask.Create -> listOf("action" to CrudTask.Create.name)

@@ -10,7 +10,7 @@ import io.kvision.core.Container
  * @param configViewList the [ConfigViewList] of the external viewList to embed
  */
 fun <V1 : ViewList<*, *, *, *>> Container.pageListBody(
-    configViewList: ConfigViewList<*, V1, *, *, *>,
+    configViewList: ConfigViewList<*, *, V1, *, *>,
     urlParams: UrlParams? = null,
     init: (V1.() -> Unit)? = null
 ) {

@@ -31,7 +31,7 @@ import web.prompts.confirm
 @Suppress("unused")
 abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     urlParams: UrlParams? = null,
-    final override val configView: ConfigViewItem<T, out ViewItem<T, ID, FILT>, *, ID, FILT>,
+    final override val configView: ConfigViewItem<T, ID, out ViewItem<T, ID, FILT>, *, FILT>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,

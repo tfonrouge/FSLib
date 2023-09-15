@@ -26,7 +26,7 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter>(
+class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilter>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(ApiList<FILT>) -> ListState<T>,
     private val apiListBlock: (() -> ApiList<FILT>),
@@ -191,7 +191,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : Ap
     }
 }
 
-inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilter> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
     noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
     noinline apiListBlock: (() -> ApiList<FILT>),
@@ -204,8 +204,8 @@ inline fun <reified T : BaseDoc<ID>, E : IDataList, ID : Any, FILT : ApiFilter> 
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
     noinline requestFilter: (suspend RequestInit.() -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, E, ID, FILT>.() -> Unit)? = null
-): TabulatorListContainer<T, E, ID, FILT> {
+    noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
+): TabulatorListContainer<T, ID, E, FILT> {
     val tabulatorListContainer =
         TabulatorListContainer(
             serviceManager = serviceManager,

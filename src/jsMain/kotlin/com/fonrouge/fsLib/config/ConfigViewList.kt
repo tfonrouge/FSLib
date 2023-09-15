@@ -9,7 +9,7 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT>, E : IDataList, ID : Any, FILT : ApiFilter>(
+abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, FILT>, E : IDataList, FILT : ApiFilter>(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>,
     apiFilterKClass: KClass<FILT>,
@@ -39,7 +39,7 @@ abstract class ConfigViewList<T : BaseDoc<ID>, V : ViewList<T, E, ID, FILT>, E :
 }
 
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, E, ID, FILT>, E : IDataList, reified ID : Any, reified FILT : ApiFilter> configViewList(
+inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, ID, E, FILT>, E : IDataList, reified ID : Any, reified FILT : ApiFilter> configViewList(
     itemKClass: KClass<T>,
     idKClass: KClass<ID> = ID::class,
     apiFilterKClass: KClass<FILT>,
@@ -49,7 +49,7 @@ inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, E, ID, FILT>, E : I
     requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
-): ConfigViewList<T, V, E, ID, FILT> = object : ConfigViewList<T, V, E, ID, FILT>(
+): ConfigViewList<T, ID, V, E, FILT> = object : ConfigViewList<T, ID, V, E, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
     apiFilterKClass = apiFilterKClass,
