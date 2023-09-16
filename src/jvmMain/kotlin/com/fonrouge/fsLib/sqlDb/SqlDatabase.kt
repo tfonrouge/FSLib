@@ -98,8 +98,8 @@ abstract class SqlDatabase(
         explicitStatementType: StatementType? = null,
         debug: Boolean = false,
         /* TODO: how to make this block suspended */
-        crossinline doBlock: (ResultSet) -> T? = {
-            sqlEntityTo<T>(it)
+        crossinline doBlock: (ResultSet) -> T? = { resultSet ->
+            sqlEntityTo<T>(resultSet)
         },
     ): List<T> {
         if (debug) {
@@ -131,14 +131,30 @@ abstract class SqlDatabase(
         args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
         debug: Boolean = false,
-        crossinline doBlock: (ResultSet) -> T? = {
-            sqlEntityTo<T>(it)
+        crossinline doBlock: (ResultSet) -> T? = { resultSet ->
+            sqlEntityTo<T>(resultSet)
         }
     ): List<T> {
         return forEachResult<T>(
             sql = sql,
-//            doBlock = { t: T -> result.add(t) },
             doBlock = doBlock,
+            args = args,
+            explicitStatementType = explicitStatementType,
+            debug = debug,
+        )
+    }
+
+    suspend inline fun <reified T> findJsonList(
+        @Language("SQL") sql: String,
+        args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
+        explicitStatementType: StatementType? = null,
+        debug: Boolean = false,
+    ): List<JsonObject> {
+        return forEachResult<JsonObject>(
+            sql = sql,
+            doBlock = { resultSet ->
+                sqlEntityToJson<T>(resultSet)
+            },
             args = args,
             explicitStatementType = explicitStatementType,
             debug = debug,
@@ -278,9 +294,12 @@ abstract class SqlDatabase(
         }
     }
 
+    inline fun <reified T> sqlEntityToJson(resultSet: ResultSet): JsonObject {
+        return buildJsonFromResultSet(T::class, resultSet)
+    }
+
     inline fun <reified T> sqlEntityTo(resultSet: ResultSet): T {
-        val jsonObject = buildJsonFromResultSet(T::class, resultSet)
-        return Json.decodeFromJsonElement(jsonObject)
+        return Json.decodeFromJsonElement(sqlEntityToJson<T>(resultSet))
     }
 
     suspend fun <T> transaction(trans: Transaction.() -> T): T {
