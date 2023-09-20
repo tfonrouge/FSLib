@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.9.4"
+version = "1.9.5"
 
 repositories {
     google()
@@ -125,7 +125,16 @@ kotlin {
 //            kotlin.srcDir("build/generated-src/frontend")
         }
 
-        val androidMain by getting
+        val androidMain by getting {
+            dependencies {
+                api("io.ktor:ktor-client-cio:${ktor_version}")
+                api("io.ktor:ktor-client-auth:${ktor_version}")
+                api("io.ktor:ktor-client-content-negotiation:${ktor_version}")
+                api("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+                api("io.ktor:ktor-client-serialization:${ktor_version}")
+                api("io.ktor:ktor-client-logging:$ktor_version")
+            }
+        }
     }
 }
 
