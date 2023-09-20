@@ -16,36 +16,41 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 
 @Suppress("unused")
-object ArelApi {
-    const val version = "2.0"
-    var urlBase = "localhost"
+object AppApi {
+    var version: String = "0.0"
+    var urlBase: String = "localhost"
+    var appRoute: String = "appRoute"
+    var userAgent: String = "AppAndroid"
     private var jwtToken: JwtToken? = null
-    val client: HttpClient = HttpClient(CIO) {
-        install(Auth) {
-            bearer {
-                refreshTokens {
-                    jwtToken?.let {
-                        BearerTokens(accessToken = it.token, it.token)
+    val client: HttpClient by lazy {
+        HttpClient(CIO) {
+            install(Auth) {
+                bearer {
+                    refreshTokens {
+                        jwtToken?.let {
+                            BearerTokens(accessToken = it.token, it.token)
+                        }
                     }
                 }
             }
-        }
-        install(ContentNegotiation) {
-            json()
-        }
-        install(UserAgent) {
-            agent = "ArelDroid"
-        }
-        install(HttpCookies)
-        install(DefaultRequest) {
-            contentType(ContentType.Application.Json)
-        }
-        install(Logging) {
-            logger = Logger.ANDROID
-            level = LogLevel.ALL
-            sanitizeHeader { header -> header == HttpHeaders.Authorization }
+            install(ContentNegotiation) {
+                json()
+            }
+            install(UserAgent) {
+                agent = userAgent
+            }
+            install(HttpCookies)
+            install(DefaultRequest) {
+                contentType(ContentType.Application.Json)
+            }
+            install(Logging) {
+                logger = Logger.ANDROID
+                level = LogLevel.ALL
+                sanitizeHeader { header -> header == HttpHeaders.Authorization }
+            }
         }
     }
+
 
     val logged: Boolean
         get() {

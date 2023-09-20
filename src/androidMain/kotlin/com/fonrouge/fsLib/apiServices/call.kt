@@ -13,7 +13,7 @@ inline fun <reified PAR> serialize(value: PAR): String {
 fun <A : IApiService> A.urlString(): String =
     this::class.simpleName?.let { apiServiceName ->
         val callerFuncName = Thread.currentThread().stackTrace[3].methodName
-        "${ArelApi.urlBase}/arelDroid/$apiServiceName/${callerFuncName}"
+        "${AppApi.urlBase}/${AppApi.appRoute}/$apiServiceName/${callerFuncName}"
     } ?: throw Exception("Error")
 
 @Suppress("unused")
@@ -38,7 +38,7 @@ suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified RET : A
 suspend inline fun <A : IApiService, reified RET : Any> A.remoteCall(params: List<String?>): RET {
     val urlString = urlString()
     val response = try {
-        ArelApi.client.post(urlString) {
+        AppApi.client.post(urlString) {
             contentType(ContentType.Application.Json)
             setBody(params)
         }
