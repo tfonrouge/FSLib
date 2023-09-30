@@ -28,7 +28,7 @@ val ktor_version: String by project
 val kmongoVersion: String by project
 val kotlinxDatetimeVersion: String by project
 val commonsCodecVersion: String by project
-//val logbackVersion: String by project
+val logbackVersion: String by project
 
 val mainClassName = "io.ktor.server.netty.EngineMain"
 
@@ -66,7 +66,6 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
                 api("io.ktor:ktor-client-core:${ktor_version}")
                 api("io.ktor:ktor-client-cio:${ktor_version}")
@@ -86,6 +85,7 @@ kotlin {
                 api("io.ktor:ktor-server-http-redirect:$ktor_version")
                 api("io.ktor:ktor-server-partial-content:$ktor_version")
                 api("io.ktor:ktor-server-content-negotiation:$ktor_version")
+                api("ch.qos.logback:logback-classic:$logbackVersion")
                 api("org.litote.kmongo:kmongo-coroutine-serialization:$kmongoVersion")
                 api("org.litote.kmongo:kmongo-id-serialization:$kmongoVersion")
                 api("org.jetbrains.exposed:exposed-core:$exposedVersion")
