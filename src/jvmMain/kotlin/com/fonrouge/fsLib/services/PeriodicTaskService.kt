@@ -28,12 +28,14 @@ interface IPeriodicTaskService {
  * @param klass Kotlin class which contains functions (marked with the @Task annotation) to be executed
  */
 @Suppress("unused")
-fun Application.startPeriodicTask(
-    klass: KClass<out IPeriodicTaskService>,
+inline fun <reified T: IPeriodicTaskService> Application.startPeriodicTask(
+    klass: KClass<T>,
     debug: Boolean = false,
 ) {
     koin {
-        val periodicTask by inject<IPeriodicTaskService>(klass.java)
+//        val periodicTask by inject<IPeriodicTaskService>(klass.java)
+        val periodicTask by inject<T>(klass.java)
+        println("periodicTask working task map = ${periodicTask.workingTaskMap}")
         val pairPeriodFunc: List<Pair<TimeUnit, KCallable<*>>> = klass.members.mapNotNull { kFunction ->
             kFunction.findAnnotation<Task>()?.let { task: Task ->
                 task.timeUnit to kFunction
