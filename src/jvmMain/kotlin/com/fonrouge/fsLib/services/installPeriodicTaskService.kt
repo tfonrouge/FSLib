@@ -25,7 +25,7 @@ interface IPeriodicTaskService {
  * @param debug Shows some info when running tasks
  */
 @Suppress("unused")
-inline fun <reified T : IPeriodicTaskService> Application.startPeriodicTask(
+inline fun <reified T : IPeriodicTaskService> Application.installPeriodicTaskService(
     debug: Boolean = false,
 ) {
     val periodicTask: T by inject<T>()
