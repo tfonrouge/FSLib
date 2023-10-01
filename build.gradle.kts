@@ -80,6 +80,7 @@ kotlin {
                 api("io.ktor:ktor-server-core:$ktor_version")
                 api("io.ktor:ktor-server-default-headers:$ktor_version")
                 api("io.ktor:ktor-server-netty:$ktor_version")
+                api("io.ktor:ktor-server-sessions:$ktor_version")
                 api("io.ktor:ktor-network-tls-certificates:$ktor_version")
                 api("io.ktor:ktor-server-auto-head-response:$ktor_version")
                 api("io.ktor:ktor-server-http-redirect:$ktor_version")
