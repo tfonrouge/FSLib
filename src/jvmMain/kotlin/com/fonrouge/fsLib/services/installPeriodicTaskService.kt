@@ -30,7 +30,6 @@ inline fun <reified T : IPeriodicTaskService> Application.installPeriodicTaskSer
 ) {
     val periodicTask: T by inject<T>()
     val klass = periodicTask::class
-    println("periodicTask working task map = ${periodicTask.workingTaskMap}")
     val pairPeriodFunc: List<Pair<TimeUnit, KCallable<*>>> = klass.members.mapNotNull { kFunction ->
         kFunction.findAnnotation<Task>()?.let { task: Task ->
             task.timeUnit to kFunction
