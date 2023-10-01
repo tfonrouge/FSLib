@@ -21,6 +21,7 @@ object AppApi {
     var urlBase: String = "localhost"
     var appRoute: String = "appRoute"
     var userAgent: String = "AppAndroid"
+    var username: String? = null
     private var jwtToken: JwtToken? = null
     val client: HttpClient by lazy {
         HttpClient(CIO) {
@@ -73,6 +74,7 @@ object AppApi {
         }
         jwtToken = itemState.item
         return jwtToken?.token?.let {
+            username = userLogin.username
             SimpleState(isOk = true)
         } ?: SimpleState(isOk = false, msgError = itemState.msgError)
     }
