@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.apiServices
 
+import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
 import io.ktor.client.*
@@ -7,13 +8,15 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Suppress("unused")
 object AppApi {
@@ -21,19 +24,10 @@ object AppApi {
     var urlBase: String = "localhost"
     var appRoute: String = "appRoute"
     var userAgent: String = "AppAndroid"
-    var username: String? = null
-    private var jwtToken: JwtToken? = null
+    var serializedISysUser: String? = null
     val client: HttpClient by lazy {
         HttpClient(CIO) {
-            install(Auth) {
-                bearer {
-                    refreshTokens {
-                        jwtToken?.let {
-                            BearerTokens(accessToken = it.token, it.token)
-                        }
-                    }
-                }
-            }
+            install(Auth)
             install(ContentNegotiation) {
                 json()
             }
@@ -52,41 +46,43 @@ object AppApi {
         }
     }
 
+    val logged get() = serializedISysUser != null
 
-    val logged: Boolean
-        get() {
-            return jwtToken != null
-        }
-
-    suspend fun login(userLogin: UserLogin): SimpleState {
-        jwtToken = null
-        val httpResponse = try {
-            client.post("$urlBase/jwtLogin") {
-                setBody(userLogin)
-            }
-        } catch (e: Exception) {
-            return SimpleState(isOk = false, e.message)
-        }
-        val itemState = try {
-            httpResponse.body<ItemState<JwtToken>>()
-        } catch (e: Exception) {
-            return SimpleState(isOk = false, e.message)
-        }
-        jwtToken = itemState.item
-        return jwtToken?.token?.let {
-            username = userLogin.username
-            SimpleState(isOk = true)
-        } ?: SimpleState(isOk = false, msgError = itemState.msgError)
+    inline fun <reified T : ISysUser> getISysUser(): T? {
+        return serializedISysUser?.let { Json.decodeFromString(it) }
     }
 
-    suspend fun logout() {
-        try {
-            val logoutResponse = client.get("$urlBase/logout") {
-//                jwtToken?.token?.let { bearerAuth(it) }
+    suspend inline fun <reified T : ISysUser> loginForm(loginUrl: String, userLogin: UserLogin): ItemState<T> {
+        serializedISysUser = null
+        val httpResponse = try {
+            client.submitForm(
+                url = "$urlBase/$loginUrl",
+                formParameters = parameters {
+                    append(UserLogin::username.name, userLogin.username)
+                    append(UserLogin::password.name, userLogin.password)
+                }
+            )
+        } catch (e: Exception) {
+            return ItemState(isOk = false, msgError = e.message)
+        }
+        val itemState = try {
+            ItemState(item = httpResponse.body<T>()).also {
+                serializedISysUser = Json.encodeToString(it.item)
             }
-            println(logoutResponse)
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
+            ItemState(isOk = false, msgError = e.message)
+        }
+        return itemState
+    }
+
+    suspend fun logout(logoutUrl: String = "/logout"): SimpleState {
+        serializedISysUser = null
+        return try {
+            client.get("$urlBase/$logoutUrl")
+            SimpleState(isOk = true)
+        } catch (e: Exception) {
             e.printStackTrace()
+            SimpleState(isOk = false, msgError = e.message)
         }
     }
 }
