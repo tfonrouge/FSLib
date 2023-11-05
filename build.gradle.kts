@@ -4,10 +4,10 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 plugins {
     val kotlinVersion: String by System.getProperties()
     kotlin("plugin.serialization") version kotlinVersion
-    kotlin("multiplatform") version kotlinVersion
-    id("com.android.library") version "8.0.0" apply true
+    id("com.android.library") version "8.1.0"
     val kvisionVersion: String by System.getProperties()
     id("io.kvision") version kvisionVersion
+    kotlin("multiplatform") version kotlinVersion
     id("maven-publish")
 }
 
