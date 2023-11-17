@@ -25,28 +25,43 @@ object AppApi {
     var appRoute: String = "appRoute"
     var userAgent: String = "AppAndroid"
     var serializedISysUser: String? = null
-    val client: HttpClient by lazy {
-        HttpClient(CIO) {
-            install(Auth)
-            install(ContentNegotiation) {
-                json()
+    private var _httpClient: HttpClient? = null
+    val client: HttpClient
+        get() {
+            if (_httpClient == null) {
+                _httpClient = HttpClient(CIO) {
+                    install(Auth)
+                    install(ContentNegotiation) {
+                        json()
+                    }
+                    install(UserAgent) {
+                        agent = userAgent
+                    }
+                    install(HttpCookies)
+                    install(DefaultRequest) {
+                        contentType(ContentType.Application.Json)
+                    }
+                    install(Logging) {
+                        logger = Logger.ANDROID
+                        level = LogLevel.ALL
+                        sanitizeHeader { header -> header == HttpHeaders.Authorization }
+                    }
+                    install(HttpTimeout) {
+                        requestTimeoutMillis = 10000
+                        connectTimeoutMillis = 10000
+                        socketTimeoutMillis = 10000
+                    }
+                }
             }
-            install(UserAgent) {
-                agent = userAgent
-            }
-            install(HttpCookies)
-            install(DefaultRequest) {
-                contentType(ContentType.Application.Json)
-            }
-            install(Logging) {
-                logger = Logger.ANDROID
-                level = LogLevel.ALL
-                sanitizeHeader { header -> header == HttpHeaders.Authorization }
-            }
+            return _httpClient!!
         }
-    }
 
     val logged get() = serializedISysUser != null
+
+    fun clearHttpClient() {
+        _httpClient?.close()
+        _httpClient = null
+    }
 
     inline fun <reified T : ISysUser> getISysUser(): T? {
         return serializedISysUser?.let { Json.decodeFromString(it) }
