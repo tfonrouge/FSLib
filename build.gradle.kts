@@ -3,11 +3,11 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     val kotlinVersion: String by System.getProperties()
-    kotlin("plugin.serialization") version kotlinVersion
-    id("com.android.library") version "8.1.4"
     val kvisionVersion: String by System.getProperties()
-    id("io.kvision") version kvisionVersion
+    id("com.android.library") version "8.1.4"
     kotlin("multiplatform") version kotlinVersion
+    kotlin("plugin.serialization") version kotlinVersion
+    id("io.kvision") version kvisionVersion
     id("maven-publish")
 }
 
@@ -147,8 +147,16 @@ android {
         targetSdk = 33
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+        }
+        getByName("debug") {
+            isMinifyEnabled = false
+        }
     }
 }
 
