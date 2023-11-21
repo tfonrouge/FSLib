@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.apiServices
 import android.util.Log
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -39,24 +38,19 @@ suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified RET : A
 @Suppress("unused")
 suspend inline fun <A : IApiService, reified RET : Any> A.remoteCall(params: List<String?>): RET {
     val urlString = urlString()
-    var response: HttpResponse? = null
-    var retry = true
-    while (retry) {
-        try {
-            Log.d("API CALL Url", urlString)
-            Log.d("API CALL Type", "${RET::class.simpleName}")
-            response = AppApi.client.post(urlString) {
-                contentType(ContentType.Application.Json)
-                setBody(params)
-            }
-            retry = false
-        } catch (e: Exception) {
-            Log.d("CONN ERR", "Url: $urlString , error: ${e.message}")
-            AppApi.clearHttpClient()
-            e.printStackTrace()
+    val response = try {
+        Log.d("API CALL Url", urlString)
+        Log.d("API CALL Type", "${RET::class.simpleName}")
+        AppApi.client.post(urlString) {
+            contentType(ContentType.Application.Json)
+            setBody(params)
         }
+    } catch (e: Exception) {
+        Log.d("CONN ERR", "Url: $urlString , error: ${e.message}")
+        AppApi.clearHttpClient()
+        e.printStackTrace()
+        throw e
     }
-    response ?: throw Exception()
     if (response.status.isSuccess()) {
         val item: RET = try {
             response.body()
