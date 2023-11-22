@@ -580,6 +580,10 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     } ?: ItemState(isOk = false, msgError = "Invalid data on StateItem ...")
 
     @Suppress("unused")
+    suspend fun updateOne(apiItem: ApiItem<T, ID, FILT>): ItemState<T> =
+        updateOneById(id = apiItem.id, apiItem = apiItem)
+
+    @Suppress("unused")
     suspend fun updateOneById(
         id: ID?,
         apiItem: ApiItem<T, ID, FILT>,
