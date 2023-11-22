@@ -338,7 +338,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     }
 
     @Suppress("unused")
-    suspend fun findOneByIdResponse(
+    suspend fun findItemStateById(
         id: ID?,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
     ): ItemState<T> {
