@@ -47,9 +47,9 @@ object AppApi {
                         sanitizeHeader { header -> header == HttpHeaders.Authorization }
                     }
                     install(HttpTimeout) {
-                        requestTimeoutMillis = 10000
-                        connectTimeoutMillis = 10000
-                        socketTimeoutMillis = 10000
+                        requestTimeoutMillis = 30000
+                        connectTimeoutMillis = 30000
+                        socketTimeoutMillis = 30000
                     }
                 }
             }
