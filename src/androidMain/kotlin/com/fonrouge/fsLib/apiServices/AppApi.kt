@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.apiServices
 
+import android.util.Log
 import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
@@ -42,9 +43,12 @@ object AppApi {
                         contentType(ContentType.Application.Json)
                     }
                     install(Logging) {
-                        logger = Logger.ANDROID
                         level = LogLevel.ALL
-                        sanitizeHeader { header -> header == HttpHeaders.Authorization }
+                        logger = object : Logger {
+                            override fun log(message: String) {
+                                Log.i("HttpClient", message)
+                            }
+                        }
                     }
                     install(HttpTimeout) {
                         requestTimeoutMillis = 30000
