@@ -47,7 +47,7 @@ suspend inline fun <A : IApiService, reified RET : Any> A.remoteCall(params: Lis
         }
     } catch (e: Exception) {
         Log.d("CONN ERR", "Url: $urlString , error: ${e.message}")
-        AppApi.clearHttpClient()
+//        AppApi.clearHttpClient()
         e.printStackTrace()
         throw e
     }
