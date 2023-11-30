@@ -97,6 +97,7 @@ object AppApi {
     suspend fun logout(logoutUrl: String = "/logout"): SimpleState {
         serializedISysUser = null
         return try {
+            clearHttpClient()
             client.get("$urlBase/$logoutUrl")
             SimpleState(isOk = true)
         } catch (e: Exception) {
