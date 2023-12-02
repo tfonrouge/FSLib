@@ -2,10 +2,13 @@ package com.fonrouge.fsLib.apiServices
 
 import android.util.Log
 import io.ktor.client.call.*
+import io.ktor.client.network.sockets.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.util.concurrent.TimeoutException
 
 inline fun <reified PAR> serialize(value: PAR): String {
     return Json.encodeToString(value)
@@ -38,6 +41,7 @@ suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified RET : A
 @Suppress("unused")
 suspend inline fun <A : IApiService, reified RET : Any> A.remoteCall(params: List<String?>): RET {
     val urlString = urlString()
+    val tag = "HttpClient"
     val response = try {
         Log.d("API CALL Url", urlString)
         Log.d("API CALL Type", "${RET::class.simpleName}")
@@ -45,9 +49,24 @@ suspend inline fun <A : IApiService, reified RET : Any> A.remoteCall(params: Lis
             contentType(ContentType.Application.Json)
             setBody(params)
         }
+    } catch (e: ClientRequestException) {
+        Log.d(tag, "ClientRequestException ${e.message}")
+        e.printStackTrace()
+        throw e
+    } catch (e: ServerResponseException) {
+        Log.d(tag, "ServerResponseException ${e.message}")
+        e.printStackTrace()
+        throw e
+    } catch (e: TimeoutException) {
+        Log.d(tag, "TimeoutException ${e.message}")
+        e.printStackTrace()
+        throw e
+    } catch (e: ConnectTimeoutException) {
+        Log.d(tag, "ConnectTimeoutException ${e.message}")
+        e.printStackTrace()
+        throw e
     } catch (e: Exception) {
-        Log.d("CONN ERR", "Url: $urlString , error: ${e.message}")
-//        AppApi.clearHttpClient()
+        Log.d(tag, "Url: $urlString , error: ${e.message}")
         e.printStackTrace()
         throw e
     }
