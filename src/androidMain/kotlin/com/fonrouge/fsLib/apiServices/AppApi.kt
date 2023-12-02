@@ -6,7 +6,7 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -30,7 +30,7 @@ object AppApi {
     val client: HttpClient
         get() {
             if (_httpClient == null) {
-                _httpClient = HttpClient(CIO) {
+                _httpClient = HttpClient(OkHttp) {
                     install(Auth)
                     install(ContentNegotiation) {
                         json()
@@ -52,9 +52,9 @@ object AppApi {
                     }
 /*
                     install(HttpTimeout) {
-                        requestTimeoutMillis = 30000
-                        connectTimeoutMillis = 30000
-                        socketTimeoutMillis = 30000
+                        requestTimeoutMillis = 10000
+                        connectTimeoutMillis = 10000
+                        socketTimeoutMillis = 10000
                     }
 */
                 }
