@@ -50,11 +50,13 @@ object AppApi {
                             }
                         }
                     }
+/*
                     install(HttpTimeout) {
                         requestTimeoutMillis = 30000
                         connectTimeoutMillis = 30000
                         socketTimeoutMillis = 30000
                     }
+*/
                 }
             }
             return _httpClient!!
