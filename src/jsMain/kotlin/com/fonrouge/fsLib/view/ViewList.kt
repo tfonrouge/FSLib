@@ -22,7 +22,6 @@ import io.kvision.tabulator.toJs
 import io.kvision.toast.Toast
 import js.uri.encodeURIComponent
 import kotlinx.browser.window
-import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -114,7 +113,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
      * calling the list crud action required
      */
     @OptIn(InternalSerializationApi::class)
-    open suspend fun goActionUrl(
+    open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItem,
         configViewItem: ConfigViewItem<*, ID, *, *, *>? = this.configViewItem,
@@ -179,9 +178,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
                     label = "Detail of",
                     icon = iconCrud(CrudTask.Read),
                     action = { _, _ ->
-                        AppScope.launch {
-                            goActionUrl(CrudTask.Read, item)
-                        }
+                        goActionUrl(CrudTask.Read, item)
                     }
                 )
                 if (editable) {
@@ -190,27 +187,21 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
                         label = "Create",
                         icon = iconCrud(CrudTask.Create),
                         action = { _, _ ->
-                            AppScope.launch {
-                                goActionUrl(CrudTask.Create, item)
-                            }
+                            goActionUrl(CrudTask.Create, item)
                         }
                     )
                     menuItem(
                         label = "Update",
                         icon = iconCrud(CrudTask.Update),
                         action = { _, _ ->
-                            AppScope.launch {
-                                goActionUrl(CrudTask.Update, item)
-                            }
+                            goActionUrl(CrudTask.Update, item)
                         }
                     )
                     menuItem(
                         label = "Delete",
                         icon = iconCrud(CrudTask.Delete),
                         action = { _, _ ->
-                            AppScope.launch {
-                                goActionUrl(CrudTask.Delete, item)
-                            }
+                            goActionUrl(CrudTask.Delete, item)
                         }
                     )
                 }

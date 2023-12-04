@@ -45,9 +45,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     hide()
                     onClick {
                         it.preventDefault()
-                        AppScope.launch {
-                            viewList.goActionUrl(CrudTask.Read)
-                        }
+                        viewList.goActionUrl(CrudTask.Read)
                     }
                     enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                 }
@@ -58,9 +56,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     ) {
                         onClick {
                             it.preventDefault()
-                            AppScope.launch {
-                                viewList.goActionUrl(CrudTask.Create)
-                            }
+                            viewList.goActionUrl(CrudTask.Create)
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                     }
@@ -71,9 +67,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         hide()
                         onClick {
                             it.preventDefault()
-                            AppScope.launch {
-                                viewList.goActionUrl(CrudTask.Update)
-                            }
+                            viewList.goActionUrl(CrudTask.Update)
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                     }
@@ -84,9 +78,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         hide()
                         onClick {
                             it.preventDefault()
-                            AppScope.launch {
-                                viewList.goActionUrl(CrudTask.Delete)
-                            }
+                            viewList.goActionUrl(CrudTask.Delete)
                         }
                         enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                     }

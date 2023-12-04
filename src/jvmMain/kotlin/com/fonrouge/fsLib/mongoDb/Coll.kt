@@ -21,6 +21,7 @@ import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -357,14 +358,15 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         apiItem.item?.let {
             checkDontPersist(it)
             try {
-                val insertOneResult = mongoColl.insertOne(it).awaitFirstOrNull()
-                val result = insertOneResult?.insertedId != null
+                val insertOneResult = mongoColl.insertOne(it).awaitSingle()
+                val result = insertOneResult.insertedId != null
+                val itemAlreadyOn = result &&
+                        apiItem.callType == ApiItem.CallType.Query &&
+                        apiItem.crudTask == CrudTask.Create
                 return ItemState(
                     item = it,
                     isOk = result,
-                    itemAlreadyOn = result &&
-                            apiItem.callType == ApiItem.CallType.Query &&
-                            apiItem.crudTask == CrudTask.Create
+                    itemAlreadyOn = itemAlreadyOn
                 )
             } catch (e: Exception) {
                 return ItemState(isOk = false, msgError = e.message)
