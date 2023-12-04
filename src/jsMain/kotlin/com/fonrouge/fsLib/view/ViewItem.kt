@@ -256,15 +256,16 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                         id = urlParams?.id?.let { Json.decodeFromString(configView.idKClass.serializer(), it) },
                         apiFilter = apiFilter.value
                     ) { itemResponse ->
+                        console.warn(">> showing with urlParams", urlParams, "itemResponse", itemResponse)
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams?.params?.set("action", CrudTask.Update.name)
-                            @Suppress("UNUSED_VARIABLE")
                             val url = (configView.url + urlParams.toString()).asDynamic()
 
                             @Suppress("UNUSED_VARIABLE")
                             val stateObj =
                                 "{${itemResponse::class.simpleName}: \"${itemResponse.item?._id}\"}".asDynamic()
                             js("""history.replaceState(stateObj,"createToUpdate",url)""")
+                            console.warn(">> replacing state with", url)
                         }
                         var buttonCancel: Button? = null
                         var buttonAccept: Button? = null
@@ -430,6 +431,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
     final override suspend fun dataUpdate() {
+/*
         urlParams?.crudTask?.let { crudAction ->
             configView.callItemService(
                 crudTask = crudAction,
@@ -441,5 +443,6 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                 itemResponse
             }
         }
+*/
     }
 }
