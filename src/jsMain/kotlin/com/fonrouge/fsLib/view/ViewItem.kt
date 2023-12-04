@@ -259,6 +259,9 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
                         console.warn(">> showing with urlParams", urlParams, "itemResponse", itemResponse)
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams?.params?.set("action", CrudTask.Update.name)
+                            itemResponse.item?._id?.let {
+                                urlParams?.params?.set("id", Json.encodeToString(configView.idKClass.serializer(), it))
+                            }
                             val url = (configView.url + urlParams.toString()).asDynamic()
 
                             @Suppress("UNUSED_VARIABLE")
@@ -431,18 +434,18 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
     final override suspend fun dataUpdate() {
-/*
-        urlParams?.crudTask?.let { crudAction ->
-            configView.callItemService(
-                crudTask = crudAction,
-                callType = ApiItem.CallType.Query,
-                id = item?._id,
-                apiFilter = apiFilter.value
-            ) { itemResponse ->
-                data.value = itemResponse
-                itemResponse
-            }
-        }
-*/
+        /*
+                urlParams?.crudTask?.let { crudAction ->
+                    configView.callItemService(
+                        crudTask = crudAction,
+                        callType = ApiItem.CallType.Query,
+                        id = item?._id,
+                        apiFilter = apiFilter.value
+                    ) { itemResponse ->
+                        data.value = itemResponse
+                        itemResponse
+                    }
+                }
+        */
     }
 }
