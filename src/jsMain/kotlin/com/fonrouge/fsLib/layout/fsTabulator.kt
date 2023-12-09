@@ -71,7 +71,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
 
 inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : ApiFilter> Container.fsTabulator(
     configViewList: ConfigViewList<T, ID, out ViewList<T, ID, E, FILT>, E, FILT>,
-    masterViewItem: ViewItem<*, *, out FILT>? = null,
+    masterViewItem: ViewItem<*, *, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
     minToolbarSize: Boolean = true,
