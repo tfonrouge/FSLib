@@ -1,5 +1,8 @@
 package com.fonrouge.fsLib.model.state
 
+import com.fonrouge.fsLib.offsetDateTimeNow
+import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
+import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,6 +15,9 @@ data class ItemState<T>(
     override val msgError: String? = "Operation Failed ...",
     override val state: String? = null,
 ) : ISimpleState {
+    @Serializable(with = FSOffsetDateTimeSerializer::class)
+    override val dateTime: OffsetDateTime = offsetDateTimeNow()
+
     @Suppress("unused")
     constructor(simpleResponse: SimpleState) : this(
         isOk = simpleResponse.isOk,
@@ -19,4 +25,7 @@ data class ItemState<T>(
         msgError = simpleResponse.msgError,
         state = simpleResponse.state,
     )
+
+    @Suppress("unused")
+    val asSimpleState get() = SimpleState(this)
 }

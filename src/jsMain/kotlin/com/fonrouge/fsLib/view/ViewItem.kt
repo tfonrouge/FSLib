@@ -112,12 +112,12 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         formPanel?.let { formPanel ->
             if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
                 if (formPanel.validate()) {
-                    val data = formPanel.getData()
+                    val data = formPanelGetData()
                     configView.callItemService(
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Action,
                         id = item?._id,
-                        item = onDataFormBeforeApiCall(data),
+                        item = data?.let { onDataFormBeforeApiCall(it) },
                         apiFilter = apiFilter.value,
                     ) { itemResponse ->
                         block?.let { it(itemResponse) }
@@ -141,7 +141,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         var proceedClose = true
         if (confirmCancel && formPanel != null) {
             try {
-                val s1 = formPanel?.getData()?.let {
+                val s1 = formPanelGetData()?.let {
                     Json.encodeToString(configView.itemKClass.serializer(), onDataFormBeforeApiCall(it))
                 }
                 val s2 = item?.let { Json.encodeToString(configView.itemKClass.serializer(), it) }
@@ -426,6 +426,8 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     fun encodeId(id: ID? = item?._id): String? {
         return id?.let { Json.encodeToString(configView.idKClass.serializer(), id) }
     }
+
+    open fun formPanelGetData(): T? = formPanel?.getData()
 
     open fun onChangeDataContainer(itemResponse: ItemState<T>?) {
 
