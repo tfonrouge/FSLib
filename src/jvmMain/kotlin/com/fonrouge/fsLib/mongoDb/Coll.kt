@@ -235,9 +235,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         if (id != null) {
             return try {
                 ItemState(
-                    isOk = mongoColl
-                        .deleteOne(BaseDoc<*>::_id eq id)
-                        .awaitFirstOrNull()?.deletedCount == 1L
+                    isOk = mongoColl.deleteOne(BaseDoc<*>::_id eq id).awaitSingle().deletedCount == 1L
                 )
             } catch (e: Exception) {
                 ItemState(isOk = false, msgError = e.message)
