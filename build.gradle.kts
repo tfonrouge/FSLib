@@ -142,10 +142,10 @@ kotlin {
 
 android {
     namespace = "com.fonrouge.fsLib"
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
-        minSdk = 27
-        targetSdk = 33
+        minSdk = 29
+        targetSdk = 34
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
