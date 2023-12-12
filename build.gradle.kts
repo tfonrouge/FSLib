@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.9.7"
+version = "1.9.8"
 
 repositories {
     google()
@@ -124,18 +124,6 @@ kotlin {
                 api("io.kvision:kvision-tom-select-remote:$kvisionVersion")
             }
 //            kotlin.srcDir("build/generated-src/frontend")
-        }
-
-        val androidMain by getting {
-            dependencies {
-                api("io.ktor:ktor-client-cio:${ktor_version}")
-                api("io.ktor:ktor-client-okhttp:$ktor_version")
-                api("io.ktor:ktor-client-auth:${ktor_version}")
-                api("io.ktor:ktor-client-content-negotiation:${ktor_version}")
-                api("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-                api("io.ktor:ktor-client-serialization:${ktor_version}")
-                api("io.ktor:ktor-client-logging:$ktor_version")
-            }
         }
     }
 }
