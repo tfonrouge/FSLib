@@ -1,18 +1,17 @@
-import com.google.devtools.ksp.gradle.KspTaskMetadata
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     val kotlinVersion: String by System.getProperties()
     val kvisionVersion: String by System.getProperties()
-    id("com.android.library") version "8.1.4"
+    id("com.android.library") version "8.2.0"
     kotlin("multiplatform") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
-    id("io.kvision") version kvisionVersion
+//    id("io.kvision") version kvisionVersion
     id("maven-publish")
 }
 
 group = "com.fonrouge.fsLib"
-version = "1.9.8"
+version = "2.0.0"
 
 repositories {
     google()
@@ -33,6 +32,7 @@ val logbackVersion: String by project
 val mainClassName = "io.ktor.server.netty.EngineMain"
 
 kotlin {
+    jvmToolchain(17)
     jvm {
         compilations.all {
             java {
@@ -149,17 +149,4 @@ android {
         }
     }
 */
-}
-
-/*
-Required to avoid error on dependency not declared on gradle v8.0.2
-TODO: find out how to solve
- */
-tasks.withType<KspTaskMetadata> {
-    dependsOn(tasks.getByPath(":compileReleaseKotlinAndroid"))
-    dependsOn(tasks.getByPath(":compileDebugKotlinAndroid"))
-    dependsOn(tasks.getByPath(":androidReleaseSourcesJar"))
-    dependsOn(tasks.getByPath(":androidDebugSourcesJar"))
-    dependsOn(tasks.getByPath(":jvmSourcesJar"))
-    dependsOn(tasks.getByPath(":sourcesJar"))
 }
