@@ -132,7 +132,7 @@ android {
     namespace = "com.fonrouge.fsLib"
     compileSdk = 34
     defaultConfig {
-        minSdk = 23
+        minSdk = 29
         targetSdk = 34
     }
     compileOptions {
