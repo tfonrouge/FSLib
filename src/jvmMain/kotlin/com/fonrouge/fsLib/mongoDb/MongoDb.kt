@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.model.base.SysUser
 import com.fonrouge.fsLib.serializers.*
 import com.mongodb.client.model.Collation
 import com.mongodb.client.model.CollationStrength
@@ -46,15 +45,6 @@ class MongoDbPluginConfiguration {
     var database: String = "test"
     var locale: String = Locale.getDefault().language
 
-    /**
-     * Name of collection for implementation of ISysUser, any collection name given to implemented
-     * subclasses will be ignored
-     */
-    var sysUsersCollectionName: String
-        get() = SysUser.sysUsersCollectionName
-        set(value) {
-            SysUser.sysUsersCollectionName = value
-        }
     val connectionString
         get() = "mongodb://" + if (user != null || password != null) {
             "$user:$password@"

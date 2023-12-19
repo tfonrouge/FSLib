@@ -7,7 +7,6 @@ import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.base.ISysUser
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.serializers.StringId
@@ -35,7 +34,6 @@ import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
 abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
@@ -46,8 +44,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         var globalDebug = false
         internal val collMap = mutableMapOf<KClass<*>, Coll<*, *, *>>()
         fun collectionName(klass: KClass<out BaseDoc<*>>): String =
-            if (klass.isSubclassOf(ISysUser::class)) mongoDbPluginConfiguration.sysUsersCollectionName
-            else klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
+            klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
     }
 
     val collectionName = collectionName(klass)
@@ -62,7 +59,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
     open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, klass.java)
 
-    val coroutineColl = mongoColl.coroutine
+    val coroutineColl: CoroutineCollection<T> = mongoColl.coroutine
 
     /**
      * build an AggregatePublisher<T>.

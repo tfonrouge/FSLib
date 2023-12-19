@@ -1,12 +1,9 @@
 package com.fonrouge.fsLib.services
 
-import com.fonrouge.fsLib.model.base.AppRole
-import com.fonrouge.fsLib.model.base.ISysUser
-import com.fonrouge.fsLib.model.base.PermissionType
-import com.fonrouge.fsLib.model.base.SysUserRole
+import com.fonrouge.fsLib.model.base.*
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.mongoDb.AppRoleDb
-import com.fonrouge.fsLib.mongoDb.SysUserRoleColl
+import com.fonrouge.fsLib.mongoDb.IUserRoleColl
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
 import io.kvision.remote.ServiceException
@@ -15,26 +12,29 @@ import kotlin.jvm.internal.FunctionReferenceImpl
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
-inline fun <reified T : ISysUser> ApplicationCall.getSysUser(): T? {
+inline fun <reified U : IUser<*>> ApplicationCall.getUser(): U? {
     return sessions.get()
 }
 
 @Suppress("unused")
-inline fun <reified T : ISysUser> ApplicationCall.setSysUser(sysUser: T) {
-    sessions.set(sysUser)
+inline fun <reified U : IUser<*>> ApplicationCall.setUser(user: U) {
+    sessions.set(user)
 }
 
 @Suppress("unused")
-inline fun <RESP, reified U : ISysUser> ApplicationCall.withSysUser(block: (U) -> RESP): RESP {
-    return getSysUser<U>()?.let {
+inline fun <RESP, reified U : IUser<*>> ApplicationCall.withUser(block: (U) -> RESP): RESP {
+    return getUser<U>()?.let {
         block(it)
     } ?: throw ServiceException("App User not set!")
 }
 
 @Suppress("unused")
-suspend inline fun <reified U : ISysUser> ApplicationCall?.getUserPermission(kCallable: KCallable<*>): SimpleState {
+suspend inline fun <reified U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>> ApplicationCall?.getUserPermission(
+    kCallable: KCallable<*>,
+    userRoleColl: IUserRoleColl<U, UID, UR, *>
+): SimpleState {
     this ?: return SimpleState(isOk = false, msgError = "Operation denied ...")
-    val user = getSysUser<U>() ?: return SimpleState(isOk = false, msgError = "User not valid ...")
+    val user = getUser<U>() ?: return SimpleState(isOk = false, msgError = "User not valid ...")
     if (user.rootUser) {
         return SimpleState(isOk = true)
     }
@@ -44,10 +44,10 @@ suspend inline fun <reified U : ISysUser> ApplicationCall?.getUserPermission(kCa
         AppRole::classOwner eq classOwner,
         AppRole::funcName eq funcName
     ) ?: return SimpleState(isOk = false, msgError = "App role doesn't exist '$classOwner::$funcName' ... ")
-    SysUserRoleColl.coroutineColl.find(
-        filter = SysUserRole::sysUser_id eq user._id
+    userRoleColl.coroutineColl.find(
+        filter = IUserRole<U, UID>::userId eq user._id
     ).toList().forEach { userRole ->
-        if (userRole.appRole_id == appRole._id)
+        if (userRole.appRoleId == appRole._id)
             return if (userRole.permission == PermissionType.Allow
                 || (userRole.permission == PermissionType.Default
                         && appRole.defaultPermission == PermissionType.Allow)
