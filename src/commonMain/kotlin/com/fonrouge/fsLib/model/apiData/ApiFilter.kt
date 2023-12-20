@@ -7,10 +7,10 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
-open class ApiFilter @OptIn(ExperimentalSerializationApi::class) constructor(
+@OptIn(ExperimentalSerializationApi::class)
+open class ApiFilter {
     @EncodeDefault(mode = EncodeDefault.Mode.NEVER)
-    var masterItemIdSerialized: String? = null
-) {
+    open var masterItemIdSerialized: String? = null
     @Suppress("unused")
     inline fun <reified T> masterItemId(): T? {
         return masterItemIdSerialized?.let { Json.decodeFromString<T>(it) }

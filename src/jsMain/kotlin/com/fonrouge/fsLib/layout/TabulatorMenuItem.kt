@@ -27,9 +27,11 @@ fun MutableList<TabulatorMenuItem>.menuItem(
     menu: TabulatorMenuItem? = null,
     header: Boolean = false,
     url: String? = null,
+    target: String? = null,
+    features: String = "",
     action: ((e: Event, c: dynamic) -> Unit) = { _, _ ->
         url?.let {
-            window.location.href = it
+            target?.let { window.open(url = url, target = target, features = features) } ?: window.open(url = url, features = features)
         }
     }
 ): TabulatorMenuItem {
