@@ -6,7 +6,6 @@ plugins {
     id("com.android.library") version "8.1.0"
     kotlin("multiplatform") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
-//    id("io.kvision") version kvisionVersion
     id("maven-publish")
 }
 
@@ -123,7 +122,10 @@ kotlin {
                 api("io.kvision:kvision-tom-select:$kvisionVersion")
                 api("io.kvision:kvision-tom-select-remote:$kvisionVersion")
             }
-//            kotlin.srcDir("build/generated-src/frontend")
+        }
+
+        val androidMain by getting {
+
         }
     }
 }
