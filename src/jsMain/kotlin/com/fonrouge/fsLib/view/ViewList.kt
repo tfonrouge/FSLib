@@ -117,8 +117,9 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItem,
-        configViewItem: ConfigViewItem<*, ID, *, *, *>? = this.configViewItem,
+        configViewItem: ConfigViewItem<*, ID, *, *, FILT>? = this.configViewItem,
     ) {
+/*
         val url: String? = when (crudTask) {
             CrudTask.Create -> listOf("action" to CrudTask.Create.name)
             else -> {
@@ -140,16 +141,18 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
                 configViewItem.url + urlParams.toString()
             }
         }
-        val url2 = urlApiItem(
-            configViewItem = configViewItem,
-            apiItem = ApiItem(
-                id = item?._id,
-                item = item,
-                callType = ApiItem.CallType.Query,
-                crudTask = crudTask,
-                apiFilter =
+*/
+        val url = configViewItem?.let {
+            urlApiItem(
+                configViewItem = configViewItem,
+                apiItem = ApiItem(
+                    id = item?._id,
+                    item = item,
+                    crudTask = crudTask,
+                    apiFilter = apiFilter.value
+                )
             )
-        )
+        }
         if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
             masterViewItem?.acceptUpsertAction { itemResponse ->
                 if (itemResponse.isOk) {

@@ -267,38 +267,6 @@ abstract class View<FILT : ApiFilter>(
         return configView.urlWithParams(*params.toTypedArray())
     }
 
-    @OptIn(InternalSerializationApi::class)
-    fun <T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, F>, F : ApiFilter> urlApiItem(
-        configViewItem: ConfigViewItem<T, ID, V, *, F>,
-        apiItem: ApiItem<T, ID, F>
-    ): String? {
-        val url: String? = when (apiItem.crudTask) {
-            CrudTask.Create -> listOf("action" to CrudTask.Create.name)
-            else -> {
-                apiItem.item?._id?.let {
-                    listOf(
-                        "action" to apiItem.crudTask.name,
-                        "id" to Json.encodeToString(configViewItem.idKClass.serializer(), it)
-                    )
-                }
-            }
-        }?.let { params ->
-            val urlParams = UrlParams(*params.toTypedArray())
-            configViewItem.let { configViewItem ->
-                urlParams.pushParam(
-                    "apiFilter" to encodeURIComponent(
-                        Json.encodeToString(
-                            configViewItem.apiFilterKClass.serializer(),
-                            apiItem.apiFilter
-                        )
-                    )
-                )
-                configViewItem.url + urlParams.toString()
-            }
-        }
-        return url
-    }
-
     /**
      * open function that builds a filter form
      */
@@ -318,4 +286,38 @@ abstract class View<FILT : ApiFilter>(
             offCanvasFilter?.show()
         }
     }
+}
+
+/**
+ * Builds a string Url based on a [ConfigViewItem] and a [ApiItem] parameters
+ * @return Url string
+ */
+@OptIn(InternalSerializationApi::class)
+fun <T : BaseDoc<ID>, ID : Any, F : ApiFilter> urlApiItem(
+    configViewItem: ConfigViewItem<*, ID, *, *, F>,
+    apiItem: ApiItem<T, ID, F>
+): String? {
+    val url: String? = when (apiItem.crudTask) {
+        CrudTask.Create -> listOf("action" to CrudTask.Create.name)
+        else -> {
+            apiItem.item?._id?.let {
+                listOf(
+                    "action" to apiItem.crudTask.name,
+                    "id" to Json.encodeToString(configViewItem.idKClass.serializer(), it)
+                )
+            }
+        }
+    }?.let { params ->
+        val urlParams = UrlParams(*params.toTypedArray())
+        urlParams.pushParam(
+            "apiFilter" to encodeURIComponent(
+                Json.encodeToString(
+                    configViewItem.apiFilterKClass.serializer(),
+                    apiItem.apiFilter
+                )
+            )
+        )
+        configViewItem.url + urlParams.toString()
+    }
+    return url
 }
