@@ -12,6 +12,7 @@ import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiFilter
+import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
@@ -139,6 +140,16 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
                 configViewItem.url + urlParams.toString()
             }
         }
+        val url2 = urlApiItem(
+            configViewItem = configViewItem,
+            apiItem = ApiItem(
+                id = item?._id,
+                item = item,
+                callType = ApiItem.CallType.Query,
+                crudTask = crudTask,
+                apiFilter =
+            )
+        )
         if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
             masterViewItem?.acceptUpsertAction { itemResponse ->
                 if (itemResponse.isOk) {

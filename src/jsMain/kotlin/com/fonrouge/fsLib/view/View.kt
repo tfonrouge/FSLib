@@ -1,9 +1,13 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
+import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiFilter
+import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.*
 import io.kvision.html.*
 import io.kvision.navbar.Navbar
@@ -18,6 +22,7 @@ import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
 import io.kvision.utils.px
+import js.uri.encodeURIComponent
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -260,6 +265,38 @@ abstract class View<FILT : ApiFilter>(
         val params = mutableListOf<Pair<String, String>>()
         params.add(configView.apiFilterParam(apiFilter))
         return configView.urlWithParams(*params.toTypedArray())
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    fun <T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, F>, F : ApiFilter> urlApiItem(
+        configViewItem: ConfigViewItem<T, ID, V, *, F>,
+        apiItem: ApiItem<T, ID, F>
+    ): String? {
+        val url: String? = when (apiItem.crudTask) {
+            CrudTask.Create -> listOf("action" to CrudTask.Create.name)
+            else -> {
+                apiItem.item?._id?.let {
+                    listOf(
+                        "action" to apiItem.crudTask.name,
+                        "id" to Json.encodeToString(configViewItem.idKClass.serializer(), it)
+                    )
+                }
+            }
+        }?.let { params ->
+            val urlParams = UrlParams(*params.toTypedArray())
+            configViewItem.let { configViewItem ->
+                urlParams.pushParam(
+                    "apiFilter" to encodeURIComponent(
+                        Json.encodeToString(
+                            configViewItem.apiFilterKClass.serializer(),
+                            apiItem.apiFilter
+                        )
+                    )
+                )
+                configViewItem.url + urlParams.toString()
+            }
+        }
+        return url
     }
 
     /**
