@@ -29,15 +29,13 @@ inline fun <RESP, reified U : IUser<*>> ApplicationCall.withUser(block: (U) -> R
 }
 
 @Suppress("unused")
-suspend inline fun <reified U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>> ApplicationCall?.getUserPermission(
+suspend fun <U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>> getUserPermission(
+    user: U?,
     kCallable: KCallable<*>,
     userRoleColl: IUserRoleColl<U, UID, UR, *>
 ): SimpleState {
-    this ?: return SimpleState(isOk = false, msgError = "Operation denied ...")
-    val user = getUser<U>() ?: return SimpleState(isOk = false, msgError = "User not valid ...")
-    if (user.rootUser) {
-        return SimpleState(isOk = true)
-    }
+    user ?: return SimpleState(isOk = false, "Empty user")
+    if (user.rootUser) return SimpleState(isOk = true)
     val classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName
     val funcName = kCallable.name
     val appRole = AppRoleDb.coroutineColl.findOne(
