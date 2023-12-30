@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.services
 
 import com.fonrouge.fsLib.model.base.*
 import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.mongoDb.AppRoleDb
+import com.fonrouge.fsLib.mongoDb.AppRoleColl
 import com.fonrouge.fsLib.mongoDb.IUserRoleColl
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
@@ -38,7 +38,7 @@ suspend fun <U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>> getUserPermissio
     if (user.rootUser) return SimpleState(isOk = true)
     val classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName
     val funcName = kCallable.name
-    val appRole = AppRoleDb.coroutineColl.findOne(
+    val appRole = AppRoleColl.coroutineColl.findOne(
         AppRole::classOwner eq classOwner,
         AppRole::funcName eq funcName
     ) ?: return SimpleState(isOk = false, msgError = "App role doesn't exist '$classOwner::$funcName' ... ")

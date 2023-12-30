@@ -4,6 +4,6 @@ import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.base.AppRole
 import com.fonrouge.fsLib.serializers.OId
 
-val AppRoleDb: Coll<AppRole, OId<AppRole>, ApiFilter> = object : Coll<AppRole, OId<AppRole>, ApiFilter>(
+val AppRoleColl: Coll<AppRole, OId<AppRole>, ApiFilter> = object : Coll<AppRole, OId<AppRole>, ApiFilter>(
     klass = AppRole::class
 ) {}
