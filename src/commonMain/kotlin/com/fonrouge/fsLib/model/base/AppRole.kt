@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 class AppRole(
     override val _id: OId<AppRole> = OId(),
     val classOwner: String,
-    var funcName: String,
+    val funcName: String,
     val roleType: RoleType,
     val description: String?,
     val detail: String?,
