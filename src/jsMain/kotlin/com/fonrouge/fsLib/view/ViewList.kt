@@ -21,11 +21,7 @@ import io.kvision.tabulator.RowRangeLookup
 import io.kvision.tabulator.js.Tabulator
 import io.kvision.tabulator.toJs
 import io.kvision.toast.Toast
-import js.uri.encodeURIComponent
 import kotlinx.browser.window
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
 @Suppress("unused")
 abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilter>(
@@ -113,35 +109,11 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
      * which is currently on Update action, if so, then performs an update call to back end before
      * calling the list crud action required
      */
-    @OptIn(InternalSerializationApi::class)
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItem,
         configViewItem: ConfigViewItem<*, ID, *, *, FILT>? = this.configViewItem,
     ) {
-/*
-        val url: String? = when (crudTask) {
-            CrudTask.Create -> listOf("action" to CrudTask.Create.name)
-            else -> {
-                item?._id?.let {
-                    listOf("action" to crudTask.name, "id" to Json.encodeToString(configView.idKClass.serializer(), it))
-                }
-            }
-        }?.let { params ->
-            val urlParams = UrlParams(*params.toTypedArray())
-            configViewItem?.let { configViewItem ->
-                urlParams.pushParam(
-                    "apiFilter" to encodeURIComponent(
-                        Json.encodeToString(
-                            configView.apiFilterKClass.serializer(),
-                            apiFilter.value
-                        )
-                    )
-                )
-                configViewItem.url + urlParams.toString()
-            }
-        }
-*/
         val url = configViewItem?.let {
             urlApiItem(
                 configViewItem = configViewItem,
@@ -291,12 +263,6 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
      * open function that fires when a row is selected in the tabulator
      */
     var onRowSelected: ((T?) -> Unit)? = null
-
-    /**
-     * allows to set a custom context to be included in url params
-     */
-    @Deprecated(message = "contextClass/contextId url params", replaceWith = ReplaceWith("ApiFilter [FILT]"))
-    open fun onSetContext(): Pair<String?, String>? = null
 
     /**
      * the main display for the viewList tabulator area

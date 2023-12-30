@@ -133,7 +133,9 @@ abstract class View<FILT : ApiFilter>(
     @OptIn(InternalSerializationApi::class)
     open fun onNewApiFilterInstance(): FILT {
         return try {
-            Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
+            val r = Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
+            console.warn("onNewApiFilterInstance", r)
+            r
         } catch (e: SerializationException) {
             val errMsg = """
                 Error creating instance of apiFilter: ${e.message},
@@ -309,14 +311,16 @@ fun <T : BaseDoc<ID>, ID : Any, F : ApiFilter> urlApiItem(
         }
     }?.let { params ->
         val urlParams = UrlParams(*params.toTypedArray())
-        urlParams.pushParam(
-            "apiFilter" to encodeURIComponent(
-                Json.encodeToString(
-                    configViewItem.apiFilterKClass.serializer(),
-                    apiItem.apiFilter
+        apiItem.apiFilter?.let {
+            urlParams.pushParam(
+                "apiFilter" to encodeURIComponent(
+                    Json.encodeToString(
+                        configViewItem.apiFilterKClass.serializer(),
+                        apiItem.apiFilter
+                    )
                 )
             )
-        )
+        }
         configViewItem.url + urlParams.toString()
     }
     return url
