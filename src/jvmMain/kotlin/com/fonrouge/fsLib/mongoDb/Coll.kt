@@ -382,7 +382,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
         listFirstStage: ListFirstStage,
         lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        apiFilter: FILT,
+        apiFilter: FILT? = null,
         noContentHashCode: Boolean = false,
         countType: CountType = CountType.PreLookup,
         debug: Boolean? = this.debug,

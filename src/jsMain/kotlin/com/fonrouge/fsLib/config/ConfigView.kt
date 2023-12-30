@@ -22,7 +22,7 @@ abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
     val name: String,
     val label: String,
     val viewFunc: KClass<out V>,
-    val apiFilterKClass: KClass<FILT>,
+    val apiFilterKClass: KClass<FILT>? = null,
     val baseUrl: String = viewFunc.simpleName!!,
     val requireCredentials: Boolean,
 ) {
@@ -72,8 +72,8 @@ abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
      */
     @Suppress("unused")
     @OptIn(InternalSerializationApi::class)
-    fun apiFilterParam(obj: FILT): Pair<String, String> =
-        pairParam(key = "apiFilter", serializer = apiFilterKClass.serializer(), obj = obj)
+    fun apiFilterParam(obj: FILT): Pair<String, String>? =
+        apiFilterKClass?.let { pairParam(key = "apiFilter", serializer = apiFilterKClass.serializer(), obj = obj) }
 
     init {
         if (this !is ConfigViewContainer<*, *, *, *>) {

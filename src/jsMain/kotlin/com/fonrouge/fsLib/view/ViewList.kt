@@ -71,7 +71,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilt
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
     var masterViewItem: ViewItem<*, *, *>? = null
         set(value) {
-            apiFilter.value.masterItemIdSerialized = value?.encodeId()
+            apiFilter.value?.masterItemIdSerialized = value?.encodeId()
             editable = value?.urlParams?.actionUpsert == true
             field = value
         }

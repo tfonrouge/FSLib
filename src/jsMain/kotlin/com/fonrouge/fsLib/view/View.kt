@@ -71,16 +71,18 @@ abstract class View<FILT : ApiFilter>(
      * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
      * or programmatically, and it's delivered to the backend
      */
-    val apiFilter: ObservableValue<FILT> by lazy {
+    val apiFilter: ObservableValue<FILT?> by lazy {
         ObservableValue(apiFilterFromUrl ?: onNewApiFilterInstance())
     }
 
     @OptIn(InternalSerializationApi::class)
     protected val apiFilterFromUrl: FILT?
-        get() = urlParams?.pullUrlParam(
-            serializer = configView.apiFilterKClass.serializer(),
-            key = "apiFilter"
-        )
+        get() = configView.apiFilterKClass?.let {
+            urlParams?.pullUrlParam(
+                serializer = it.serializer(),
+                key = "apiFilter"
+            )
+        }
 
     /**
      * assignable var that contains a defined [Offcanvas] filter area, if any
@@ -108,8 +110,13 @@ abstract class View<FILT : ApiFilter>(
      */
     @OptIn(InternalSerializationApi::class)
     fun apiFilterToUrl() {
-        val pair = configView.pairParam("apiFilter", configView.apiFilterKClass.serializer(), apiFilter.value)
-        urlParams?.params?.set(pair.first, pair.second)
+        configView.apiFilterKClass?.let { filtkClass ->
+            apiFilter.value?.let { apiFilter ->
+                configView.pairParam("apiFilter", filtkClass.serializer(), apiFilter).let { pair ->
+                    urlParams?.params?.set(pair.first, pair.second)
+                }
+            }
+        }
         @Suppress("UNUSED_VARIABLE")
         val url = (configView.url + urlParams.toString()).asDynamic()
 
@@ -131,15 +138,15 @@ abstract class View<FILT : ApiFilter>(
      * Builds a new instance of [apiFilter]
      */
     @OptIn(InternalSerializationApi::class)
-    open fun onNewApiFilterInstance(): FILT {
+    open fun onNewApiFilterInstance(): FILT? {
         return try {
-            val r = Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
-            console.warn("onNewApiFilterInstance", r)
-            r
+            configView.apiFilterKClass?.let {
+                Json.decodeFromString(it.serializer(), """{}""")
+            }
         } catch (e: SerializationException) {
             val errMsg = """
                 Error creating instance of apiFilter: ${e.message},
-                hint: Set @Serializable annotation to [${configView.apiFilterKClass.simpleName}]::class,
+                hint: Set @Serializable annotation to [${configView.apiFilterKClass?.simpleName}]::class,
                 """.trimIndent()
             e.message
             console.error(errMsg)
@@ -157,7 +164,7 @@ abstract class View<FILT : ApiFilter>(
         } catch (e: Exception) {
             val errMsg = """
                 Error creating instance of apiFilter,
-                hint: [${configView.apiFilterKClass.simpleName}]::class must *not* have required constructor parameters,
+                hint: [${configView.apiFilterKClass?.simpleName}]::class must *not* have required constructor parameters,
                 or need to override the onNewApiFilterInstance() function
                 """.trimIndent()
             e.message
@@ -265,7 +272,7 @@ abstract class View<FILT : ApiFilter>(
         apiFilter: F,
     ): String {
         val params = mutableListOf<Pair<String, String>>()
-        params.add(configView.apiFilterParam(apiFilter))
+        configView.apiFilterParam(apiFilter)?.let { params.add(it) }
         return configView.urlWithParams(*params.toTypedArray())
     }
 
@@ -312,14 +319,16 @@ fun <T : BaseDoc<ID>, ID : Any, F : ApiFilter> urlApiItem(
     }?.let { params ->
         val urlParams = UrlParams(*params.toTypedArray())
         apiItem.apiFilter?.let {
-            urlParams.pushParam(
-                "apiFilter" to encodeURIComponent(
-                    Json.encodeToString(
-                        configViewItem.apiFilterKClass.serializer(),
-                        apiItem.apiFilter
+            configViewItem.apiFilterKClass?.let {
+                urlParams.pushParam(
+                    "apiFilter" to encodeURIComponent(
+                        Json.encodeToString(
+                            configViewItem.apiFilterKClass.serializer(),
+                            apiItem.apiFilter
+                        )
                     )
                 )
-            )
+            }
         }
         configViewItem.url + urlParams.toString()
     }

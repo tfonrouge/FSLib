@@ -18,5 +18,5 @@ data class ApiList<FILT : ApiFilter>(
     var sorter: String? = null,
     var params: String? = null,
     var contentHashCode: Int? = null,
-    var apiFilter: FILT,
+    var apiFilter: FILT? = null,
 )

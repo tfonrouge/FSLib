@@ -97,27 +97,29 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
         callType: ApiItem.CallType,
         id: ID? = null,
         item: T? = null,
-        apiFilter: FILT,
+        apiFilter: FILT? = null,
         block: (ItemState<T>) -> ItemState<T>,
     ) {
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
-        val paramList = listOf(
-            Json.encodeToString(
-                serializer = ApiItem.serializer(
-                    itemKClass.serializer(),
-                    idKClass.serializer(),
-                    apiFilterKClass.serializer()
+        val paramList = apiFilterKClass?.let {
+            listOf(
+                Json.encodeToString(
+                    serializer = ApiItem.serializer(
+                        itemKClass.serializer(),
+                        idKClass.serializer(),
+                        apiFilterKClass.serializer()
+                    ),
+                    value = ApiItem(
+                        id = id,
+                        item = item,
+                        callType = callType,
+                        crudTask = crudTask,
+                        apiFilter = apiFilter,
+                    )
                 ),
-                value = ApiItem(
-                    id = id,
-                    item = item,
-                    callType = callType,
-                    crudTask = crudTask,
-                    apiFilter = apiFilter,
-                )
-            ),
-        )
+            )
+        } ?: listOf()
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
                 id = 0,
