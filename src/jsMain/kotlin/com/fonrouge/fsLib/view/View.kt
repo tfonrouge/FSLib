@@ -266,7 +266,7 @@ abstract class View<FILT : IApiFilter>(
         apiFilter: F,
     ): String {
         val params = mutableListOf<Pair<String, String>>()
-        configView.apiFilterParam(apiFilter)?.let { params.add(it) }
+        configView.apiFilterParam(apiFilter).let { params.add(it) }
         return configView.urlWithParams(*params.toTypedArray())
     }
 
