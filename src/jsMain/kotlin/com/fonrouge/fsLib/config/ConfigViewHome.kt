@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.view.KVWebManager.configViewHome
 import com.fonrouge.fsLib.view.ViewHome
-import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 
 abstract class ConfigViewHome<V : ViewHome<FILT>, FILT : IApiFilter>(
