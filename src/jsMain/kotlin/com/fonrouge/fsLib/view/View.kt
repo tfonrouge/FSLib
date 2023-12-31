@@ -5,8 +5,8 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudTask
-import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.*
 import io.kvision.html.*
@@ -28,7 +28,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-abstract class View<FILT : ApiFilter>(
+abstract class View<FILT : IApiFilter>(
     var urlParams: UrlParams? = null,
     open val configView: ConfigView<*, FILT>,
     var editable: Boolean = true,
@@ -77,12 +77,10 @@ abstract class View<FILT : ApiFilter>(
 
     @OptIn(InternalSerializationApi::class)
     protected val apiFilterFromUrl: FILT?
-        get() = configView.apiFilterKClass?.let {
-            urlParams?.pullUrlParam(
-                serializer = it.serializer(),
-                key = "apiFilter"
-            )
-        }
+        get() = urlParams?.pullUrlParam(
+            serializer = configView.apiFilterKClass.serializer(),
+            key = "apiFilter"
+        )
 
     /**
      * assignable var that contains a defined [Offcanvas] filter area, if any
@@ -110,11 +108,9 @@ abstract class View<FILT : ApiFilter>(
      */
     @OptIn(InternalSerializationApi::class)
     fun apiFilterToUrl() {
-        configView.apiFilterKClass?.let { filtkClass ->
-            apiFilter.value?.let { apiFilter ->
-                configView.pairParam("apiFilter", filtkClass.serializer(), apiFilter).let { pair ->
-                    urlParams?.params?.set(pair.first, pair.second)
-                }
+        apiFilter.value?.let { apiFilter ->
+            configView.pairParam("apiFilter", configView.apiFilterKClass.serializer(), apiFilter).let { pair ->
+                urlParams?.params?.set(pair.first, pair.second)
             }
         }
         @Suppress("UNUSED_VARIABLE")
@@ -140,13 +136,11 @@ abstract class View<FILT : ApiFilter>(
     @OptIn(InternalSerializationApi::class)
     open fun onNewApiFilterInstance(): FILT? {
         return try {
-            configView.apiFilterKClass?.let {
-                Json.decodeFromString(it.serializer(), """{}""")
-            }
+            Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
         } catch (e: SerializationException) {
             val errMsg = """
                 Error creating instance of apiFilter: ${e.message},
-                hint: Set @Serializable annotation to [${configView.apiFilterKClass?.simpleName}]::class,
+                hint: Set @Serializable annotation to [${configView.apiFilterKClass}]::class,
                 """.trimIndent()
             e.message
             console.error(errMsg)
@@ -164,7 +158,7 @@ abstract class View<FILT : ApiFilter>(
         } catch (e: Exception) {
             val errMsg = """
                 Error creating instance of apiFilter,
-                hint: [${configView.apiFilterKClass?.simpleName}]::class must *not* have required constructor parameters,
+                hint: [${configView.apiFilterKClass}]::class must *not* have required constructor parameters,
                 or need to override the onNewApiFilterInstance() function
                 """.trimIndent()
             e.message
@@ -267,7 +261,7 @@ abstract class View<FILT : ApiFilter>(
      *
      * @param configView - The [ConfigView] of the [View] to go
      */
-    fun <F : ApiFilter> urlApiFilter(
+    fun <F : IApiFilter> urlApiFilter(
         configView: ConfigView<*, F>,
         apiFilter: F,
     ): String {
@@ -302,7 +296,7 @@ abstract class View<FILT : ApiFilter>(
  * @return Url string
  */
 @OptIn(InternalSerializationApi::class)
-fun <T : BaseDoc<ID>, ID : Any, F : ApiFilter> urlApiItem(
+fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlApiItem(
     configViewItem: ConfigViewItem<*, ID, *, *, F>,
     apiItem: ApiItem<T, ID, F>
 ): String? {
@@ -319,16 +313,14 @@ fun <T : BaseDoc<ID>, ID : Any, F : ApiFilter> urlApiItem(
     }?.let { params ->
         val urlParams = UrlParams(*params.toTypedArray())
         apiItem.apiFilter?.let {
-            configViewItem.apiFilterKClass?.let {
-                urlParams.pushParam(
-                    "apiFilter" to encodeURIComponent(
-                        Json.encodeToString(
-                            configViewItem.apiFilterKClass.serializer(),
-                            apiItem.apiFilter
-                        )
+            urlParams.pushParam(
+                "apiFilter" to encodeURIComponent(
+                    Json.encodeToString(
+                        configViewItem.apiFilterKClass.serializer(),
+                        apiItem.apiFilter
                     )
                 )
-            }
+            )
         }
         configViewItem.url + urlParams.toString()
     }

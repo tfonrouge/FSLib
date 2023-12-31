@@ -4,7 +4,7 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
-import com.fonrouge.fsLib.model.apiData.ApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
@@ -29,7 +29,7 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
+abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
     final override val configView: ConfigViewItem<T, ID, out ViewItem<T, ID, FILT>, *, FILT>,
     periodicUpdateDataView: Boolean? = null,

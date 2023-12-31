@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.apiData.ApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewDataContainer
 import io.kvision.utils.createInstance
@@ -18,11 +18,11 @@ private const val navigoPrefix = "#/"
 /*
     TODO: encode/decode baseUrl to be url compliant
  */
-abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
+abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
     val name: String,
     val label: String,
     val viewFunc: KClass<out V>,
-    val apiFilterKClass: KClass<FILT>? = null,
+    val apiFilterKClass: KClass<FILT>,
     val baseUrl: String = viewFunc.simpleName!!,
     val requireCredentials: Boolean,
 ) {
@@ -70,10 +70,10 @@ abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
     /**
      * helper to build an api filter parameter in the url string
      */
-    @Suppress("unused")
     @OptIn(InternalSerializationApi::class)
-    fun apiFilterParam(obj: FILT): Pair<String, String>? =
-        apiFilterKClass?.let { pairParam(key = "apiFilter", serializer = apiFilterKClass.serializer(), obj = obj) }
+    @Suppress("unused")
+    fun apiFilterParam(obj: FILT): Pair<String, String> =
+        pairParam(key = "apiFilter", serializer = apiFilterKClass.serializer(), obj = obj)
 
     init {
         if (this !is ConfigViewContainer<*, *, *, *>) {
@@ -86,7 +86,7 @@ abstract class ConfigView<V : View<FILT>, FILT : ApiFilter>(
 fun String.rh() = this.removePrefix("#/")
 
 @Suppress("unused")
-fun <V : View<FILT>, FILT : ApiFilter> configView(
+fun <V : View<FILT>, FILT : IApiFilter> configView(
     name: String,
     label: String,
     viewFunc: KClass<out V>,

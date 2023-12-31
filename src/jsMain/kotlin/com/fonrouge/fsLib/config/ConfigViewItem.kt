@@ -3,8 +3,8 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.IDataItem
-import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
@@ -24,7 +24,7 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : ApiFilter>(
+abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>,
     apiFilterKClass: KClass<FILT>,
@@ -102,24 +102,22 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     ) {
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
-        val paramList = apiFilterKClass?.let {
-            listOf(
-                Json.encodeToString(
-                    serializer = ApiItem.serializer(
-                        itemKClass.serializer(),
-                        idKClass.serializer(),
-                        apiFilterKClass.serializer()
-                    ),
-                    value = ApiItem(
-                        id = id,
-                        item = item,
-                        callType = callType,
-                        crudTask = crudTask,
-                        apiFilter = apiFilter,
-                    )
+        val paramList = listOf(
+            Json.encodeToString(
+                serializer = ApiItem.serializer(
+                    itemKClass.serializer(),
+                    idKClass.serializer(),
+                    apiFilterKClass.serializer()
                 ),
-            )
-        } ?: listOf()
+                value = ApiItem(
+                    id = id,
+                    item = item,
+                    callType = callType,
+                    crudTask = crudTask,
+                    apiFilter = apiFilter,
+                )
+            ),
+        )
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
                 id = 0,
@@ -162,7 +160,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
 }
 
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, reified ID : Any, reified V : ViewItem<T, ID, FILT>, E : IDataItem, reified FILT : ApiFilter> configViewItem(
+inline fun <reified T : BaseDoc<ID>, reified ID : Any, reified V : ViewItem<T, ID, FILT>, E : IDataItem, reified FILT : IApiFilter> configViewItem(
     itemKClass: KClass<T> = T::class,
     idKClass: KClass<ID> = ID::class,
     apiFilterKClass: KClass<FILT> = FILT::class,

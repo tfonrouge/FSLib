@@ -2,9 +2,9 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewHome
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.apiData.ApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 
-abstract class ViewHome<FILT : ApiFilter>(
+abstract class ViewHome<FILT : IApiFilter>(
     urlParams: UrlParams? = null,
     configView: ConfigViewHome<*, FILT>,
     editable: Boolean = true,

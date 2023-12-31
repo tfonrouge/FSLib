@@ -4,8 +4,8 @@ package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.IDataList
-import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
@@ -69,7 +69,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     )
 }
 
-inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : ApiFilter> Container.fsTabulator(
+inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IApiFilter> Container.fsTabulator(
     configViewList: ConfigViewList<T, ID, out ViewList<T, ID, E, FILT>, E, FILT>,
     masterViewItem: ViewItem<*, *, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
@@ -93,7 +93,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : Api
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : ApiFilter> Container.fsTabulator(
+inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IApiFilter> Container.fsTabulator(
     viewList: ViewList<T, ID, E, FILT>,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
@@ -110,13 +110,11 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : Api
         apiList
     }
 
-    val apiListSerialize: (ApiList<FILT>) -> String? = { apiList: ApiList<FILT> ->
-        viewList.configView.apiFilterKClass?.let {
-            Json.encodeToString(
-                serializer = ApiList.serializer(viewList.configView.apiFilterKClass.serializer()),
-                value = apiList
-            )
-        }
+    val apiListSerialize: (ApiList<FILT>) -> String = { apiList: ApiList<FILT> ->
+        Json.encodeToString(
+            serializer = ApiList.serializer(viewList.configView.apiFilterKClass.serializer()),
+            value = apiList
+        )
     }
 
     vPanel {

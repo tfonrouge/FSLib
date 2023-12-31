@@ -2,12 +2,12 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.apiData.ApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlin.js.Date
 
-abstract class ViewDataContainer<FILT : ApiFilter>(
+abstract class ViewDataContainer<FILT : IApiFilter>(
     urlParams: UrlParams?,
     val configViewContainer: ConfigViewContainer<*, *, *, FILT>,
     editable: Boolean = true,

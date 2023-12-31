@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.model.*
-import com.fonrouge.fsLib.model.apiData.ApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -37,7 +37,7 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
-abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : ApiFilter>(
+abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     private val klass: KClass<T>,
     var debug: Boolean? = null
 ) {

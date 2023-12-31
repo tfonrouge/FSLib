@@ -1,8 +1,8 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.model.IDataList
-import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import io.kvision.core.Container
@@ -26,7 +26,7 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilter>(
+class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFilter>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(ApiList<FILT>) -> ListState<T>,
     private val apiListBlock: (() -> ApiList<FILT>),
@@ -106,6 +106,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : Ap
             tabSorter = sorters
             contentHashCode = this@TabulatorListContainer.contentHashCode
         }
+        console.warn(">>> apiList on promise", apiList)
         apiListUpdate?.invoke(apiList)
         val data =
             Serialization.plain.encodeToString(
@@ -117,6 +118,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : Ap
                     )
                 )
             )
+        console.warn(">>> data", data)
         return callAgent.remoteCall(
             url,
             data,
@@ -191,7 +193,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : Ap
     }
 }
 
-inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : ApiFilter> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFilter> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
     noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
     noinline apiListBlock: (() -> ApiList<FILT>),

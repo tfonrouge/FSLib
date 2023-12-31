@@ -1,15 +1,15 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.model.IDataList
-import com.fonrouge.fsLib.model.apiData.ApiFilter
 import com.fonrouge.fsLib.model.apiData.ApiList
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, FILT>, E : IDataList, FILT : ApiFilter>(
+abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, FILT>, E : IDataList, FILT : IApiFilter>(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>,
     apiFilterKClass: KClass<FILT>,
@@ -39,10 +39,10 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
 }
 
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, ID, E, FILT>, E : IDataList, reified ID : Any, reified FILT : ApiFilter> configViewList(
+inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, ID, E, FILT>, E : IDataList, reified ID : Any, reified FILT : IApiFilter> configViewList(
     itemKClass: KClass<T>,
     idKClass: KClass<ID> = ID::class,
-    apiFilterKClass: KClass<FILT>,
+    apiFilterKClass: KClass<FILT> = FILT::class,
     label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,

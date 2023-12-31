@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.model.apiData.ApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.IUser
 import com.fonrouge.fsLib.model.base.IUserRole
 import com.fonrouge.fsLib.model.state.SimpleState
@@ -10,7 +10,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
-abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, FILT : ApiFilter>(
+abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, FILT : IApiFilter>(
     klass: KClass<UR>,
 ) : Coll<UR, OId<IUserRole<U, UID>>, FILT>(
     klass = klass
