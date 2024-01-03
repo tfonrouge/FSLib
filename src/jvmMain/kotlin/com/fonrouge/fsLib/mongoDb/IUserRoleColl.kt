@@ -6,13 +6,9 @@ import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.serializers.OId
 import com.mongodb.client.model.UnwindOptions
 import kotlinx.serialization.Serializable
-import org.bson.Document
 import org.bson.conversions.Bson
+import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.eq
-import org.litote.kmongo.match
-import org.litote.kmongo.replaceRoot
-import org.litote.kmongo.unwind
 import kotlin.jvm.internal.FunctionReferenceImpl
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -48,23 +44,32 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
             AppRole::classOwner eq classOwner,
             AppRole::funcName eq funcName
         ) ?: return SimpleState(isOk = false, msgError = "App role doesn't exist '$classOwner::$funcName' ... ")
-//        val allowed = checkGroupUserPermission(user, appRole)
-        coroutineColl.find(
-            filter = IUserRole<U, UID>::userId eq user._id
-        ).toList().forEach { userRole: UR ->
-            if (userRole.appRoleId == appRole._id)
-                return if (userRole.permission == PermissionType.Allow
-                    || (userRole.permission == PermissionType.Default
-                            && appRole.defaultPermission == PermissionType.Allow)
-                ) SimpleState(isOk = true)
-                else SimpleState(isOk = false, msgError = "Permission denied ...")
+        val groupPermissionType: PermissionType? = getGroupPermission(user, appRole)
+        val userPermissionType: PermissionType? = coroutineColl.find(
+            filter = and(
+                IUserRole<U, UID>::userId eq user._id,
+                IUserRole<U, UID>::appRoleId eq appRole._id
+            )
+        ).first()?.permission
+        val combinedPermissionType =
+            if (groupPermissionType == userPermissionType ||
+                (groupPermissionType != null && userPermissionType == null)
+            ) groupPermissionType else {
+                userPermissionType
+            }
+        if (combinedPermissionType != null) {
+            return if (combinedPermissionType == PermissionType.Allow
+                || (combinedPermissionType == PermissionType.Default
+                        && appRole.defaultPermission == PermissionType.Allow)
+            ) SimpleState(isOk = true)
+            else SimpleState(isOk = false, msgError = "Permission denied ...")
         }
         return SimpleState(isOk = false, msgError = "User not authorized ...")
     }
 
-    private suspend fun checkGroupUserPermission(user: U, appRole: AppRole): Boolean? {
+    private suspend fun getGroupPermission(user: U, appRole: AppRole): PermissionType? {
         val userGroupColl = userGroupColl() ?: return null
-        val groupRoleColl = groupRoleColl() ?: return null
+        val groupRoleColl: IGroupRoleColl<out IGroupRole, out IApiFilter> = groupRoleColl() ?: return null
         val pipeline = mutableListOf<Bson>()
         pipeline.add(0, match(IUserGroup<U, UID>::userId eq user._id))
         pipeline += lookup5(
@@ -78,16 +83,29 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
         )
         pipeline += IUserGroup<U, UID>::groupRoles.unwind(UnwindOptions().preserveNullAndEmptyArrays(false))
         pipeline += replaceRoot(IUserGroup<U, UID>::groupRoles)
-        val r = userGroupColl.coroutineColl.aggregate<Document>(
+        val groupRoleList = userGroupColl.coroutineColl.aggregate<GroupRole>(
             pipeline = pipeline
-        )
-        println(r)
-        return null
+        ).toList()
+        // group by permissionType
+        val permissionTypeListMap = groupRoleList.groupBy { it.permission }
+        return if (permissionTypeListMap.size == 1) {
+            // only one permissionType
+            val entry = permissionTypeListMap.entries.first()
+            if (entry.value.all { it.permission == entry.key })
+            // permissionType if all groupRole list has same permissionType
+                entry.key
+            else
+                null
+        } else {
+            null
+        }
     }
 }
 
 @Serializable
-data class RolesInGroupsByUser(
-    val groupUserId: OId<IGroupUser>,
-    val groupRoles: List<IGroupRole>
-)
+private data class GroupRole(
+    override val _id: OId<IGroupRole>,
+    override val groupUserId: OId<IGroupUser>,
+    override val appRoleId: OId<AppRole>,
+    override val permission: PermissionType
+) : IGroupRole
