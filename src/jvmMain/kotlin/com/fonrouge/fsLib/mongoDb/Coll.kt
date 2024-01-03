@@ -38,7 +38,7 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-    private val klass: KClass<T>,
+    val klass: KClass<T>,
     var debug: Boolean? = null
 ) {
     companion object {
