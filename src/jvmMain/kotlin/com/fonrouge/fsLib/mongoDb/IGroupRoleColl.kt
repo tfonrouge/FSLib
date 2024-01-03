@@ -11,6 +11,6 @@ abstract class IGroupRoleColl<GR : IGroupRole, FILT : IApiFilter>(klass: KClass<
     klass = klass
 ) {
     override suspend fun CoroutineCollection<GR>.ensureIndexes() {
-        ensureUniqueIndex(IGroupRole::groupUserId, IGroupRole::appRoleId)
+        ensureUniqueIndex(IGroupRole::groupOfUserId, IGroupRole::appRoleId)
     }
 }

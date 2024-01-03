@@ -27,7 +27,6 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
 
     open fun groupRoleColl(): IGroupRoleColl<out IGroupRole, out IApiFilter>? = null
 
-    //    open fun groupUserColl(): IGroupUserColl<out IGroupUser, out IApiFilter>? = null
     open fun userGroupColl(): IUserGroupColl<U, UID, out IUserGroup<U, UID>, out IApiFilter>? = null
     open fun rootUser(user: U?): Boolean? = null
 
@@ -74,8 +73,8 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
         pipeline.add(0, match(IUserGroup<U, UID>::userId eq user._id))
         pipeline += lookup5(
             from = groupRoleColl.collectionName,
-            localField = IUserGroup<U, UID>::groupUserId,
-            foreignField = IGroupRole::groupUserId,
+            localField = IUserGroup<U, UID>::groupOfUserId,
+            foreignField = IGroupRole::groupOfUserId,
             resultField = IUserGroup<U, UID>::groupRoles,
             pipeline = listOf(
                 match(IGroupRole::appRoleId eq appRole._id)
@@ -83,7 +82,7 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
         )
         pipeline += IUserGroup<U, UID>::groupRoles.unwind(UnwindOptions().preserveNullAndEmptyArrays(false))
         pipeline += replaceRoot(IUserGroup<U, UID>::groupRoles)
-        val groupRoleList = userGroupColl.coroutineColl.aggregate<GroupRole>(
+        val groupRoleList = userGroupColl.coroutineColl.aggregate<GroupRole<Any>>(
             pipeline = pipeline
         ).toList()
         // group by permissionType
@@ -103,9 +102,9 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
 }
 
 @Serializable
-private data class GroupRole(
+private data class GroupRole<T : Any>(
     override val _id: OId<IGroupRole>,
-    override val groupUserId: OId<IGroupUser>,
+    override val groupOfUserId: OId<IGroupOfUser>,
     override val appRoleId: OId<AppRole>,
     override val permission: PermissionType
 ) : IGroupRole

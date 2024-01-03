@@ -4,7 +4,7 @@ import com.fonrouge.fsLib.serializers.OId
 
 interface IGroupRole : BaseDoc<OId<IGroupRole>> {
     override val _id: OId<IGroupRole>
-    val groupUserId: OId<IGroupUser>
+    val groupOfUserId: OId<IGroupOfUser>
     val appRoleId: OId<AppRole>
     val permission: PermissionType
 }

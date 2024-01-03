@@ -15,6 +15,6 @@ abstract class IUserGroupColl<U : IUser<UID>, UID : Any, UG : IUserGroup<U, UID>
     debug = true
 ) {
     override suspend fun CoroutineCollection<UG>.ensureIndexes() {
-        ensureUniqueIndex(IUserGroup<U, UID>::userId, IUserGroup<U, UID>::groupUserId)
+        ensureUniqueIndex(IUserGroup<U, UID>::userId, IUserGroup<U, UID>::groupOfUserId)
     }
 }
