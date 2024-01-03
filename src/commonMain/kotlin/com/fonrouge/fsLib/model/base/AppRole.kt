@@ -7,7 +7,7 @@ import com.fonrouge.fsLib.serializers.XEnumSerializer
 import kotlinx.serialization.Serializable
 
 @Suppress("unused")
-@Collection(name = "__appRoles")
+@Collection(name = "__appRole")
 @Serializable
 class AppRole(
     override val _id: OId<AppRole> = OId(),
