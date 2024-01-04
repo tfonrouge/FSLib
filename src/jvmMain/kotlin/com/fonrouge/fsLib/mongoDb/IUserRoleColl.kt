@@ -25,7 +25,6 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
         )
     }
 
-    //    open fun groupRoleColl(): IGroupRoleColl<out IGroupRole<Any>, Any, out IApiFilter>? = null
     open fun groupRoleColl(): IGroupRoleColl<GR, *, GOU, *>? = null
     open fun userGroupColl(): IUserGroupColl<U, UID, out IUserGroup<U, UID, *, *>, *, *, out IApiFilter>? = null
     open fun rootUser(user: U?): Boolean? = null
@@ -114,12 +113,3 @@ private data class GroupRole(
     override val appRoleId: OId<AppRole>,
     override val permission: PermissionType,
 ) : IGroupRole<GroupRole, GroupOfUser>
-/*
-@Serializable
-private data class GroupRole<GOU : IGroupOfUser<*>>(
-    override val _id: OId<GroupRole<GOU>>,
-    override val groupOfUserId: OId<GOU>,
-    override val appRoleId: OId<AppRole>,
-    override val permission: PermissionType,
-) : IGroupRole<GroupRole<GOU>, GOU>
-*/
