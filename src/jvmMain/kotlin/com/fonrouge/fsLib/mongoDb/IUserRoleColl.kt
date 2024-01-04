@@ -32,12 +32,20 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
     @Suppress("unused")
     suspend fun getUserPermission(
         user: U?,
-        kCallable: KCallable<*>,
+        kCallable: KCallable<*>? = null,
     ): SimpleState {
         user ?: return SimpleState(isOk = false, "Empty user")
         if (rootUser(user = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
-        val classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName
-        val funcName = kCallable.name
+        val classOwner: String
+        val funcName: String
+        if (kCallable != null) {
+            classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName ?: ""
+            funcName = kCallable.name
+        } else {
+            val st = Thread.currentThread().stackTrace[2]
+            classOwner = st.className.substringAfterLast('.')
+            funcName = st.methodName
+        }
         val appRole = AppRoleColl.coroutineColl.findOne(
             AppRole::classOwner eq classOwner,
             AppRole::funcName eq funcName
