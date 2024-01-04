@@ -16,7 +16,7 @@ class AppRole(
     val roleType: RoleType = RoleType.Simple,
     val description: String?,
     val detail: String?,
-    val defaultPermission: PermissionType = PermissionType.Deny
+    val defaultPermission: PermissionType = PermissionType.Allow
 ) : BaseDoc<OId<AppRole>> {
     @Serializable
     enum class RoleType(
