@@ -5,8 +5,8 @@ import io.ktor.server.application.*
 import io.ktor.server.sessions.*
 import io.kvision.remote.ServiceException
 
-inline fun <reified U : IUser<*>> ApplicationCall.getUser(): U? {
-    return sessions.get()
+inline fun <reified U : IUser<*>> ApplicationCall.getUser(): U {
+    return sessions.get() ?: throw Exception("User not valid")
 }
 
 @Suppress("unused")
@@ -16,7 +16,5 @@ inline fun <reified U : IUser<*>> ApplicationCall.setUser(user: U) {
 
 @Suppress("unused")
 inline fun <RESP, reified U : IUser<*>> ApplicationCall.withUser(block: (U) -> RESP): RESP {
-    return getUser<U>()?.let {
-        block(it)
-    } ?: throw ServiceException("App User not set!")
+    return block(getUser<U>()) ?: throw ServiceException("App User not set!")
 }
