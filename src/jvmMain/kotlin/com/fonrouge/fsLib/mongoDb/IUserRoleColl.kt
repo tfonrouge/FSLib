@@ -14,7 +14,7 @@ import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, FILT : IApiFilter>(
+abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter>(
     klass: KClass<UR>,
 ) : Coll<UR, OId<IUserRole<U, UID>>, FILT>(
     klass = klass
@@ -25,9 +25,9 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
         )
     }
 
-    open fun groupRoleColl(): IGroupRoleColl<out IGroupRole, out IApiFilter>? = null
-
-    open fun userGroupColl(): IUserGroupColl<U, UID, out IUserGroup<U, UID>, out IApiFilter>? = null
+    //    open fun groupRoleColl(): IGroupRoleColl<out IGroupRole<Any>, Any, out IApiFilter>? = null
+    open fun groupRoleColl(): IGroupRoleColl<GR, *, GOU, *>? = null
+    open fun userGroupColl(): IUserGroupColl<U, UID, out IUserGroup<U, UID, *, *>, *, *, out IApiFilter>? = null
     open fun rootUser(user: U?): Boolean? = null
 
     @Suppress("unused")
@@ -68,21 +68,21 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
 
     private suspend fun getGroupPermission(user: U, appRole: AppRole): PermissionType? {
         val userGroupColl = userGroupColl() ?: return null
-        val groupRoleColl: IGroupRoleColl<out IGroupRole, out IApiFilter> = groupRoleColl() ?: return null
+        val groupRoleColl = groupRoleColl() ?: return null
         val pipeline = mutableListOf<Bson>()
-        pipeline.add(0, match(IUserGroup<U, UID>::userId eq user._id))
+        pipeline.add(0, match(IUserGroup<U, UID, *, *>::userId eq user._id))
         pipeline += lookup5(
             from = groupRoleColl.collectionName,
-            localField = IUserGroup<U, UID>::groupOfUserId,
-            foreignField = IGroupRole::groupOfUserId,
-            resultField = IUserGroup<U, UID>::groupRoles,
+            localField = IUserGroup<U, UID, *, *>::groupOfUserId,
+            foreignField = IGroupRole<*, GOU>::groupOfUserId,
+            resultField = IUserGroup<U, UID, *, *>::groupRoles,
             pipeline = listOf(
-                match(IGroupRole::appRoleId eq appRole._id)
+                match(IGroupRole<*, GOU>::appRoleId eq appRole._id)
             )
         )
-        pipeline += IUserGroup<U, UID>::groupRoles.unwind(UnwindOptions().preserveNullAndEmptyArrays(false))
-        pipeline += replaceRoot(IUserGroup<U, UID>::groupRoles)
-        val groupRoleList = userGroupColl.coroutineColl.aggregate<GroupRole<Any>>(
+        pipeline += IUserGroup<U, UID, *, *>::groupRoles.unwind(UnwindOptions().preserveNullAndEmptyArrays(false))
+        pipeline += replaceRoot(IUserGroup<U, UID, *, *>::groupRoles)
+        val groupRoleList = userGroupColl.coroutineColl.aggregate<GroupRole>(
             pipeline = pipeline
         ).toList()
         // group by permissionType
@@ -102,9 +102,24 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
 }
 
 @Serializable
-private data class GroupRole<T : Any>(
-    override val _id: OId<IGroupRole>,
-    override val groupOfUserId: OId<IGroupOfUser>,
+private data class GroupOfUser(
+    override val _id: OId<GroupOfUser>,
+    override val description: String
+) : IGroupOfUser<GroupOfUser>
+
+@Serializable
+private data class GroupRole(
+    override val _id: OId<GroupRole>,
+    override val groupOfUserId: OId<GroupOfUser>,
     override val appRoleId: OId<AppRole>,
-    override val permission: PermissionType
-) : IGroupRole
+    override val permission: PermissionType,
+) : IGroupRole<GroupRole, GroupOfUser>
+/*
+@Serializable
+private data class GroupRole<GOU : IGroupOfUser<*>>(
+    override val _id: OId<GroupRole<GOU>>,
+    override val groupOfUserId: OId<GOU>,
+    override val appRoleId: OId<AppRole>,
+    override val permission: PermissionType,
+) : IGroupRole<GroupRole<GOU>, GOU>
+*/

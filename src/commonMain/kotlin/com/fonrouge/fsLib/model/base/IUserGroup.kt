@@ -2,9 +2,10 @@ package com.fonrouge.fsLib.model.base
 
 import com.fonrouge.fsLib.serializers.OId
 
-interface IUserGroup<U : IUser<UID>, UID : Any> : BaseDoc<OId<IUserGroup<U, UID>>> {
-    override val _id: OId<IUserGroup<U, UID>>
+interface IUserGroup<U : IUser<UID>, UID : Any, GOU : IGroupOfUser<*>, GR : IGroupRole<*, GOU>> :
+    BaseDoc<OId<IUserGroup<U, UID, GOU, GR>>> {
+    override val _id: OId<IUserGroup<U, UID, GOU, GR>>
     val userId: UID
-    val groupOfUserId: OId<IGroupOfUser>
-    var groupRoles: List<IGroupRole>
+    val groupOfUserId: OId<GOU>
+    var groupRoles: List<GR>
 }
