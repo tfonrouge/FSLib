@@ -42,7 +42,7 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
             classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName ?: ""
             funcName = kCallable.name
         } else {
-            val st = Thread.currentThread().stackTrace[2]
+            val st = Thread.currentThread().stackTrace[3]
             classOwner = st.className.substringAfterLast('.')
             funcName = st.methodName
         }
