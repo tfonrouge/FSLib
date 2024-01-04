@@ -39,8 +39,8 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
 }
 
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, reified V : ViewList<T, ID, E, FILT>, E : IDataList, reified ID : Any, reified FILT : IApiFilter> configViewList(
-    itemKClass: KClass<T>,
+inline fun <reified T : BaseDoc<ID>, V : ViewList<T, ID, E, FILT>, E : IDataList, reified ID : Any, reified FILT : IApiFilter> configViewList(
+    itemKClass: KClass<T> = T::class,
     idKClass: KClass<ID> = ID::class,
     apiFilterKClass: KClass<FILT> = FILT::class,
     label: String,

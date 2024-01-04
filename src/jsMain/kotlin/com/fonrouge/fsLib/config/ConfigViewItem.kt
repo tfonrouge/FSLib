@@ -160,12 +160,12 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
 }
 
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, reified ID : Any, reified V : ViewItem<T, ID, FILT>, E : IDataItem, reified FILT : IApiFilter> configViewItem(
+inline fun <reified T : BaseDoc<ID>, reified ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, reified FILT : IApiFilter> configViewItem(
     itemKClass: KClass<T> = T::class,
     idKClass: KClass<ID> = ID::class,
     apiFilterKClass: KClass<FILT> = FILT::class,
     label: String,
-    viewFunc: KClass<out V> = V::class,
+    viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,

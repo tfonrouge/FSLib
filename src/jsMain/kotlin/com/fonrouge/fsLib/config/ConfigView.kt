@@ -86,11 +86,11 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
 fun String.rh() = this.removePrefix("#/")
 
 @Suppress("unused")
-fun <V : View<FILT>, FILT : IApiFilter> configView(
+inline fun <V : View<FILT>, reified FILT : IApiFilter> configView(
     name: String,
     label: String,
     viewFunc: KClass<out V>,
-    apiFilterKClass: KClass<FILT>,
+    apiFilterKClass: KClass<FILT> = FILT::class,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
 ): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
