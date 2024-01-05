@@ -112,7 +112,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IAp
 
     val apiListSerialize: (ApiList<FILT>) -> String = { apiList: ApiList<FILT> ->
         Json.encodeToString(
-            serializer = ApiList.serializer(viewList.configView.commonView.apiFilterKClass.serializer()),
+            serializer = ApiList.serializer(viewList.configView.apiFilterKClass.serializer()),
             value = apiList
         )
     }

@@ -12,16 +12,17 @@ import kotlin.reflect.KClass
 abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, FILT>, E : IDataList, FILT : IApiFilter>(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>,
+    apiFilterKClass: KClass<FILT>,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
-//    commonView: CommonViewList<T, ID, E, FILT>,
-    commonView: CommonView<FILT>,
+    override val commonView: CommonViewList<T, ID,  FILT>,
 ) : ConfigViewContainer<T, V, ID, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
+    apiFilterKClass = apiFilterKClass,
     name = itemKClass.simpleName!!,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
@@ -41,23 +42,21 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
 inline fun <reified T : BaseDoc<ID>, V : ViewList<T, ID, E, FILT>, E : IDataList, reified ID : Any, reified FILT : IApiFilter> configViewList(
     itemKClass: KClass<T> = T::class,
     idKClass: KClass<ID> = ID::class,
+    apiFilterKClass: KClass<FILT> = FILT::class,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
-//    commonView: CommonViewList<T, ID, E, FILT>,
-    commonView: CommonView<FILT>,
+    commonView: CommonViewList<T, ID, FILT>,
 ): ConfigViewList<T, ID, V, E, FILT> = object : ConfigViewList<T, ID, V, E, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
+    apiFilterKClass = apiFilterKClass,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
     serviceManager = serviceManager,
     function = function,
     commonView = commonView,
-) {
-    //    override var commonView: CommonViewList<T, ID, E, FILT> = commonView
-    override var commonView: CommonView<FILT> = commonView
-}
+) {}
