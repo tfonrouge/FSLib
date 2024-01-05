@@ -12,22 +12,21 @@ import kotlin.reflect.KClass
 abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, FILT>, E : IDataList, FILT : IApiFilter>(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>,
-    apiFilterKClass: KClass<FILT>,
-    label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
+//    commonView: CommonViewList<T, ID, E, FILT>,
+    commonView: CommonView<FILT>,
 ) : ConfigViewContainer<T, V, ID, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
-    apiFilterKClass = apiFilterKClass,
     name = itemKClass.simpleName!!,
-    label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
+    commonView = commonView,
 ) {
     companion object {
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *>>()
@@ -42,21 +41,23 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
 inline fun <reified T : BaseDoc<ID>, V : ViewList<T, ID, E, FILT>, E : IDataList, reified ID : Any, reified FILT : IApiFilter> configViewList(
     itemKClass: KClass<T> = T::class,
     idKClass: KClass<ID> = ID::class,
-    apiFilterKClass: KClass<FILT> = FILT::class,
-    label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
+//    commonView: CommonViewList<T, ID, E, FILT>,
+    commonView: CommonView<FILT>,
 ): ConfigViewList<T, ID, V, E, FILT> = object : ConfigViewList<T, ID, V, E, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
-    apiFilterKClass = apiFilterKClass,
-    label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
     serviceManager = serviceManager,
     function = function,
-) {}
+    commonView = commonView,
+) {
+    //    override var commonView: CommonViewList<T, ID, E, FILT> = commonView
+    override var commonView: CommonView<FILT> = commonView
+}

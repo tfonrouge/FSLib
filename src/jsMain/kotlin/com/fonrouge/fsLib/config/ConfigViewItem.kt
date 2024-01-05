@@ -27,39 +27,38 @@ import kotlin.reflect.KClass
 abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
     itemKClass: KClass<T>,
     idKClass: KClass<ID>,
-    apiFilterKClass: KClass<FILT>,
-    label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean,
     private val serviceManager: KVServiceManager<E>,
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
+//    commonView: CommonViewItem<T, ID, E, FILT>
+    commonView: CommonView<FILT>
 ) : ConfigViewContainer<T, V, ID, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
-    apiFilterKClass = apiFilterKClass,
     name = itemKClass.simpleName!!,
-    label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
-    requireCredentials = requireCredentials
+    requireCredentials = requireCredentials,
+    commonView = commonView
 ) {
     companion object {
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *>>()
         val a: KClass<Unit> = Unit::class
     }
 
-    val labelDelete = "Delete $label"
-    val labelDetail = "Detail of $label"
-    val labelCreate = "Create $label"
-    val labelUpdate = "Update $label"
+    val labelDelete by lazy { "Delete ${commonView.label}" }
+    val labelDetail by lazy { "Detail of ${commonView.label}" }
+    val labelCreate by lazy { "Create ${commonView.label}" }
+    val labelUpdate by lazy { "Update ${commonView.label}" }
 
     @Suppress("unused")
-    fun labelUrlRead(id: ID) = label to urlRead(id)
+    fun labelUrlRead(id: ID) = commonView.label to urlRead(id)
 
     @Suppress("unused")
-    fun labelUrlUpdate(id: ID) = label to urlUpdate(id)
+    fun labelUrlUpdate(id: ID) = commonView.label to urlUpdate(id)
 
     @Suppress("unused")
     val urlCreate: String
@@ -107,7 +106,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
                 serializer = ApiItem.serializer(
                     itemKClass.serializer(),
                     idKClass.serializer(),
-                    apiFilterKClass.serializer()
+                    commonView.apiFilterKClass.serializer()
                 ),
                 value = ApiItem(
                     id = id,
@@ -163,23 +162,25 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
 inline fun <reified T : BaseDoc<ID>, reified ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, reified FILT : IApiFilter> configViewItem(
     itemKClass: KClass<T> = T::class,
     idKClass: KClass<ID> = ID::class,
-    apiFilterKClass: KClass<FILT> = FILT::class,
-    label: String,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     noinline labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
+//    commonView: CommonViewItem<T, ID, E, FILT>
+    commonView: CommonView<FILT>
 ): ConfigViewItem<T, ID, V, E, FILT> = object : ConfigViewItem<T, ID, V, E, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
-    apiFilterKClass = apiFilterKClass,
-    label = label,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
     serviceManager = serviceManager,
     function = function,
     labelIdFunc = labelIdFunc,
-) {}
+    commonView = commonView
+) {
+//    override var commonView: CommonViewItem<T, ID, E, FILT> = commonView
+    override var commonView: CommonView<FILT> = commonView
+}

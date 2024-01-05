@@ -2,7 +2,7 @@
 
 package com.fonrouge.fsLib.view
 
-import com.fonrouge.fsLib.config.ConfigViewHome
+import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.config.IConfigView
 import com.fonrouge.fsLib.routing.initialize
 import io.kvision.routing.Routing
@@ -23,7 +23,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var motto = "<motto>"
     var pageContainerWidth = "md"
 
-    var configViewHome: ConfigViewHome<*, *>? = null
+    var configViewHome: ConfigView<*, *>? = null
 
     /**
      * Global variable to allow periodic update on [ViewItem]

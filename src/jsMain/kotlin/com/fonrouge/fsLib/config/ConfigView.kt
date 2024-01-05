@@ -20,18 +20,18 @@ private const val navigoPrefix = "#/"
  */
 abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
     val name: String,
-    val label: String,
     val viewFunc: KClass<out V>,
-    val apiFilterKClass: KClass<FILT>,
     val baseUrl: String = viewFunc.simpleName!!,
     val requireCredentials: Boolean,
 ) {
+    abstract val commonView: CommonView<FILT>
+
     companion object {
         val configViewMap = mutableMapOf<String, ConfigView<*, *>>()
     }
 
     val url: String = navigoPrefix + this.baseUrl
-    val labelUrl: Pair<String, String> = label to url
+    val labelUrl: Pair<String, String> by lazy { commonView.label to url }
 
     /**
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilter] from the [UrlParams]
@@ -52,7 +52,7 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
         key to encodeURIComponent(Json.encodeToString(serializer, obj))
 
     /**
-     * builds a url with a list of pair values of key=value url parameters
+     * builds an url with a list of pair values of key=value url parameters
      */
     fun urlWithParams(vararg pairParams: Pair<String, String>): String {
         return if (pairParams.isNotEmpty()) {
@@ -73,7 +73,7 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
     fun apiFilterParam(obj: FILT): Pair<String, String> =
-        pairParam(key = "apiFilter", serializer = apiFilterKClass.serializer(), obj = obj)
+        pairParam(key = "apiFilter", serializer = commonView.apiFilterKClass.serializer(), obj = obj)
 
     init {
         if (this !is ConfigViewContainer<*, *, *, *>) {
@@ -88,16 +88,15 @@ fun String.rh() = this.removePrefix("#/")
 @Suppress("unused")
 inline fun <V : View<FILT>, reified FILT : IApiFilter> configView(
     name: String,
-    label: String,
     viewFunc: KClass<out V>,
-    apiFilterKClass: KClass<FILT> = FILT::class,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
+    commonView: CommonView<FILT>,
 ): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
     name = name,
-    label = label,
     viewFunc = viewFunc,
-    apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
-) {}
+) {
+    override var commonView: CommonView<FILT> = commonView
+}

@@ -33,7 +33,7 @@ abstract class View<FILT : IApiFilter>(
     open val configView: ConfigView<*, FILT>,
     var editable: Boolean = true,
     val icon: String? = null,
-    open val label: String = configView.label
+    open val label: String = configView.commonView.label
 ) {
     open var labelBanner: String?
         get() {
@@ -78,7 +78,7 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     protected val apiFilterFromUrl: FILT?
         get() = urlParams?.pullUrlParam(
-            serializer = configView.apiFilterKClass.serializer(),
+            serializer = configView.commonView.apiFilterKClass.serializer(),
             key = "apiFilter"
         )
 
@@ -109,9 +109,10 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     fun apiFilterToUrl() {
         apiFilter.value?.let { apiFilter ->
-            configView.pairParam("apiFilter", configView.apiFilterKClass.serializer(), apiFilter).let { pair ->
-                urlParams?.params?.set(pair.first, pair.second)
-            }
+            configView.pairParam("apiFilter", configView.commonView.apiFilterKClass.serializer(), apiFilter)
+                .let { pair ->
+                    urlParams?.params?.set(pair.first, pair.second)
+                }
         }
         @Suppress("UNUSED_VARIABLE")
         val url = (configView.url + urlParams.toString()).asDynamic()
@@ -136,11 +137,11 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     open fun onNewApiFilterInstance(): FILT? {
         return try {
-            Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
+            Json.decodeFromString(configView.commonView.apiFilterKClass.serializer(), """{}""")
         } catch (e: SerializationException) {
             val errMsg = """
                 Error creating instance of apiFilter: ${e.message},
-                hint: Set @Serializable annotation to [${configView.apiFilterKClass}]::class,
+                hint: Set @Serializable annotation to [${configView.commonView.apiFilterKClass}]::class,
                 """.trimIndent()
             e.message
             console.error(errMsg)
@@ -158,7 +159,7 @@ abstract class View<FILT : IApiFilter>(
         } catch (e: Exception) {
             val errMsg = """
                 Error creating instance of apiFilter,
-                hint: [${configView.apiFilterKClass}]::class must *not* have required constructor parameters,
+                hint: [${configView.commonView.apiFilterKClass}]::class must *not* have required constructor parameters,
                 or need to override the onNewApiFilterInstance() function
                 """.trimIndent()
             e.message
@@ -252,7 +253,7 @@ abstract class View<FILT : IApiFilter>(
     }
 
     fun updateMainBannerLink(text: String, url: String) {
-        pageBannerLink?.label = "${configView.label}: $text"
+        pageBannerLink?.label = "${configView.commonView.label}: $text"
         pageBannerLink?.url = "${configView.url}/$url"
     }
 
@@ -316,7 +317,7 @@ fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlApiItem(
             urlParams.pushParam(
                 "apiFilter" to encodeURIComponent(
                     Json.encodeToString(
-                        configViewItem.apiFilterKClass.serializer(),
+                        configViewItem.commonView.apiFilterKClass.serializer(),
                         apiItem.apiFilter
                     )
                 )

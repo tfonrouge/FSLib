@@ -155,7 +155,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFil
             with(menu) {
                 val labelId = configViewItem?.labelIdFunc?.invoke(item)
                 menuItem(
-                    label = " <font size=\"+1\">${configViewItem?.label}</font>: <b>$labelId</b>",
+                    label = " <font size=\"+1\">${configViewItem?.commonView?.label}</font>: <b>$labelId</b>",
                     disabled = false,
                     header = true
                 )

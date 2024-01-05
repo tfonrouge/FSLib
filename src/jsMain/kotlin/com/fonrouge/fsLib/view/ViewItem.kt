@@ -300,7 +300,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                                 ) {
                                     val labelId = itemResponse.item?.let { configView.labelIdFunc?.invoke(it) }
                                     if (itemResponse.item != null && labelId != null) {
-                                        div(content = "Please confirm delete of ${this@ViewItem.configView.label} '$labelId'") {
+                                        div(content = "Please confirm delete of ${this@ViewItem.configView.commonView.label} '$labelId'") {
                                             fontSize = 1.5.em
                                         }
                                         flexPanel(
@@ -419,7 +419,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
 
     override val label: String
         get() {
-            return "${configView.label}: ${configView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
+            return "${configView.commonView.label}: ${configView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
 
     @OptIn(InternalSerializationApi::class)
