@@ -25,7 +25,7 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
     val baseUrl: String = viewFunc.simpleName!!,
     val requireCredentials: Boolean,
 ) {
-    abstract val commonView: CommonView<FILT>
+    abstract val commonView: ICommonView<FILT>
 
     companion object {
         val configViewMap = mutableMapOf<String, ConfigView<*, *>>()
@@ -93,7 +93,7 @@ inline fun <V : View<FILT>, reified FILT : IApiFilter> configView(
     apiFilterKClass: KClass<FILT> = FILT::class,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
-    commonView: CommonView<FILT>,
+    commonView: ICommonView<FILT>,
 ): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
     name = name,
     viewFunc = viewFunc,
@@ -101,5 +101,5 @@ inline fun <V : View<FILT>, reified FILT : IApiFilter> configView(
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
 ) {
-    override var commonView: CommonView<FILT> = commonView
+    override var commonView: ICommonView<FILT> = commonView
 }

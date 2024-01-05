@@ -5,9 +5,9 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 
-abstract class CommonViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ICommonViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     label: String,
-) : CommonViewContainer<FILT>(
+) : ICommonViewContainer<FILT>(
     label = label,
 ) {
     var apiList: ApiList<FILT>? = null

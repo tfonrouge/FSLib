@@ -2,6 +2,6 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 
-abstract class CommonViewContainer<FILT : IApiFilter>(
+abstract class ICommonViewContainer<FILT : IApiFilter>(
     label: String,
-) : CommonView<FILT>(label = label)
+) : ICommonView<FILT>(label = label)

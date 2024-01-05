@@ -13,7 +13,7 @@ abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<FILT>,
     viewFunc: KClass<out V>,
     baseUrl: String,
     requireCredentials: Boolean,
-    override val commonView: CommonViewContainer<FILT>
+    override val commonView: ICommonViewContainer<FILT>
 ) : ConfigView<V, FILT>(
     name = name,
     viewFunc = viewFunc,

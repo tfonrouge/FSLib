@@ -34,7 +34,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     private val serviceManager: KVServiceManager<E>,
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     val labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
-    override val commonView: CommonViewItem<T, ID, FILT>
+    override val commonView: ICommonViewItem<T, ID, FILT>
 ) : ConfigViewContainer<T, V, ID, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
@@ -170,7 +170,7 @@ inline fun <reified T : BaseDoc<ID>, reified ID : Any, V : ViewItem<T, ID, FILT>
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     noinline labelIdFunc: ((T?) -> String?)? = { it?._id?.toString() ?: "<no-item>" },
-    commonView: CommonViewItem<T, ID, FILT>
+    commonView: ICommonViewItem<T, ID, FILT>
 ): ConfigViewItem<T, ID, V, E, FILT> = object : ConfigViewItem<T, ID, V, E, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
