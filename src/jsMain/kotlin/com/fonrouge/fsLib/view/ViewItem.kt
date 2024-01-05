@@ -63,7 +63,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
 
-    val labelId get() = configView.labelIdFunc?.let { it(item) }
+    val labelId get() = configView.commonView.labelIdFunc?.let { it(item) }
 
     //    var itemId: U? = null
     var noBackButton = false
@@ -298,7 +298,8 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                                     alignItems = AlignItems.CENTER,
                                     spacing = 10
                                 ) {
-                                    val labelId = itemResponse.item?.let { configView.labelIdFunc?.invoke(it) }
+                                    val labelId =
+                                        itemResponse.item?.let { configView.commonView.labelIdFunc?.invoke(it) }
                                     if (itemResponse.item != null && labelId != null) {
                                         div(content = "Please confirm delete of ${this@ViewItem.configView.commonView.label} '$labelId'") {
                                             fontSize = 1.5.em
@@ -419,7 +420,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
 
     override val label: String
         get() {
-            return "${configView.commonView.label}: ${configView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
+            return "${configView.commonView.label}: ${configView.commonView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
 
     @OptIn(InternalSerializationApi::class)
