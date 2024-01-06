@@ -13,7 +13,7 @@ inline fun <reified T> IApiFilter.masterItemId(): T? {
 }
 
 @Suppress("unused")
-inline fun <reified T> IApiFilter.serializeMasterItemId(id: T): IApiFilter {
+inline fun <reified T, FILT : IApiFilter> FILT.serializeMasterItemId(id: T): FILT {
     masterItemIdSerialized = Json.encodeToString(id)
     return this
 }
