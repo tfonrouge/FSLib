@@ -77,7 +77,7 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
         pairParam(key = "apiFilter", serializer = apiFilterKClass.serializer(), obj = obj)
 
     init {
-        if (this !is ConfigViewContainer<*, *, *, *>) {
+        if (this !is ConfigViewContainer<*, *>) {
             configViewMap[baseUrl] = this
         }
     }

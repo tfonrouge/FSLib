@@ -9,7 +9,7 @@ import kotlin.js.Date
 
 abstract class ViewDataContainer<FILT : IApiFilter>(
     urlParams: UrlParams?,
-    val configViewContainer: ConfigViewContainer<*, *, *, FILT>,
+    val configViewContainer: ConfigViewContainer<*, FILT>,
     editable: Boolean = true,
     icon: String? = null,
 ) : View<FILT>(
