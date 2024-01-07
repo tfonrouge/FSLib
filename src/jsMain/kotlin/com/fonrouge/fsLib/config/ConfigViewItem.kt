@@ -16,15 +16,14 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.reflect.KClass
 
 abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
-    val itemSerializer: KSerializer<T>,
-    val idSerializer: KSerializer<ID>,
-    apiFilterSerializer: KSerializer<FILT>,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean,
@@ -32,7 +31,6 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonView: ICommonViewItem<T, ID, FILT>
 ) : ConfigViewContainer<V, FILT>(
-    apiFilterSerializer = apiFilterSerializer,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
@@ -64,7 +62,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     @OptIn(InternalSerializationApi::class)
     fun urlRead(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(idSerializer, id), "action" to CrudTask.Read.name)
+            UrlParams("id" to Json.encodeToString(commonView.idSerializer, id), "action" to CrudTask.Read.name)
         return url + urlParams.toString()
     }
 
@@ -72,14 +70,14 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     @Suppress("unused")
     fun urlDelete(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(idSerializer, id), "action" to CrudTask.Delete.name)
+            UrlParams("id" to Json.encodeToString(commonView.idSerializer, id), "action" to CrudTask.Delete.name)
         return url + urlParams.toString()
     }
 
     @OptIn(InternalSerializationApi::class)
     fun urlUpdate(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(idSerializer, id), "action" to CrudTask.Update.name)
+            UrlParams("id" to Json.encodeToString(commonView.idSerializer, id), "action" to CrudTask.Update.name)
         return url + urlParams.toString()
     }
 
@@ -98,9 +96,9 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
         val paramList = listOf(
             Json.encodeToString(
                 serializer = ApiItem.serializer(
-                    itemSerializer,
-                    idSerializer,
-                    apiFilterSerializer
+                    commonView.itemSerializer,
+                    commonView.idSerializer,
+                    commonView.apiFilterSerializer
                 ),
                 value = ApiItem(
                     id = id,
@@ -136,12 +134,19 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
             try {
                 val itemResponse: ItemState<T> =
                     Json.decodeFromDynamic(
-                        ItemState.serializer(itemSerializer),
+                        ItemState.serializer(commonView.itemSerializer),
                         result
                     )
                 block(itemResponse)
             } catch (e: Exception) {
-                console.error("Error decoding KClass", itemSerializer, "with serialized value", result, "exception:", e)
+                console.error(
+                    "Error decoding KClass",
+                    commonView.itemSerializer,
+                    "with serialized value",
+                    result,
+                    "exception:",
+                    e
+                )
                 e.printStackTrace()
             }
         }
@@ -152,22 +157,15 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     }
 }
 
-@OptIn(InternalSerializationApi::class)
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, reified ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, reified FILT : IApiFilter> configViewItem(
-    itemSerializer: KSerializer<T> = T::class.serializer(),
-    idSerializer: KSerializer<ID> = ID::class.serializer(),
-    apiFilterSerializer: KSerializer<FILT> = FILT::class.serializer(),
+fun <T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
-    noinline function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
+    function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     commonView: ICommonViewItem<T, ID, FILT>
 ): ConfigViewItem<T, ID, V, E, FILT> = object : ConfigViewItem<T, ID, V, E, FILT>(
-    itemSerializer = itemSerializer,
-    idSerializer = idSerializer,
-    apiFilterSerializer = apiFilterSerializer,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,

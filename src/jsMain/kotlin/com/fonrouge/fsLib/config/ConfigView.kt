@@ -10,7 +10,6 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 private const val navigoPrefix = "#/"
@@ -20,7 +19,6 @@ private const val navigoPrefix = "#/"
  */
 abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
     val viewFunc: KClass<out V>,
-    val apiFilterSerializer: KSerializer<FILT>,
     val baseUrl: String = viewFunc.simpleName!!,
     val requireCredentials: Boolean,
 ) {
@@ -73,7 +71,7 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
     fun apiFilterParam(obj: FILT): Pair<String, String> =
-        pairParam(key = "apiFilter", serializer = apiFilterSerializer, obj = obj)
+        pairParam(key = "apiFilter", serializer = commonView.apiFilterSerializer, obj = obj)
 
     init {
         if (this !is ConfigViewContainer<*, *>) {
@@ -85,17 +83,14 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
 @Suppress("unused")
 fun String.rh() = this.removePrefix("#/")
 
-@OptIn(InternalSerializationApi::class)
 @Suppress("unused")
 inline fun <V : View<FILT>, reified FILT : IApiFilter> configView(
     viewFunc: KClass<out V>,
-    apiFilterSerializer: KSerializer<FILT> = FILT::class.serializer(),
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
     commonView: ICommonView<FILT>,
 ): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
     viewFunc = viewFunc,
-    apiFilterSerializer = apiFilterSerializer,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
 ) {

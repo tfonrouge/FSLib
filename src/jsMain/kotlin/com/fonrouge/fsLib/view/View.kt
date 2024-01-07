@@ -26,7 +26,6 @@ import js.uri.encodeURIComponent
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
 abstract class View<FILT : IApiFilter>(
     var urlParams: UrlParams? = null,
@@ -78,7 +77,7 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     protected val apiFilterFromUrl: FILT?
         get() = urlParams?.pullUrlParam(
-            serializer = configView.apiFilterSerializer,
+            serializer = configView.commonView.apiFilterSerializer,
             key = "apiFilter"
         )
 
@@ -109,7 +108,7 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     fun apiFilterToUrl() {
         apiFilter.value?.let { apiFilter ->
-            configView.pairParam("apiFilter", configView.apiFilterSerializer, apiFilter)
+            configView.pairParam("apiFilter", configView.commonView.apiFilterSerializer, apiFilter)
                 .let { pair ->
                     urlParams?.params?.set(pair.first, pair.second)
                 }
@@ -137,11 +136,11 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     open fun onNewApiFilterInstance(): FILT? {
         return try {
-            Json.decodeFromString(configView.apiFilterSerializer, """{}""")
+            Json.decodeFromString(configView.commonView.apiFilterSerializer, """{}""")
         } catch (e: SerializationException) {
             val errMsg = """
                 Error creating instance of apiFilter: ${e.message},
-                hint: Set @Serializable annotation to [${configView.apiFilterSerializer}]::class,
+                hint: Set @Serializable annotation to [${configView.commonView.apiFilterSerializer}]::class,
                 """.trimIndent()
             e.message
             console.error(errMsg)
@@ -159,7 +158,7 @@ abstract class View<FILT : IApiFilter>(
         } catch (e: Exception) {
             val errMsg = """
                 Error creating instance of apiFilter,
-                hint: [${configView.apiFilterSerializer}]::class must *not* have required constructor parameters,
+                hint: [${configView.commonView.apiFilterSerializer}]::class must *not* have required constructor parameters,
                 or need to override the onNewApiFilterInstance() function
                 """.trimIndent()
             e.message
@@ -307,7 +306,7 @@ fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlApiItem(
             apiItem.item?._id?.let {
                 listOf(
                     "action" to apiItem.crudTask.name,
-                    "id" to Json.encodeToString(configViewItem.idSerializer, it)
+                    "id" to Json.encodeToString(configViewItem.commonView.idSerializer, it)
                 )
             }
         }
@@ -317,7 +316,7 @@ fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlApiItem(
             urlParams.pushParam(
                 "apiFilter" to encodeURIComponent(
                     Json.encodeToString(
-                        configViewItem.apiFilterSerializer,
+                        configViewItem.commonView.apiFilterSerializer,
                         apiItem.apiFilter
                     )
                 )

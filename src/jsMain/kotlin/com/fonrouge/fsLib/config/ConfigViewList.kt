@@ -7,15 +7,10 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, FILT>, E : IDataList, FILT : IApiFilter>(
     val itemKClass: KClass<T>,
-    val idKClass: KClass<ID>,
-    apiFilterSerializer: KSerializer<FILT>,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean,
@@ -23,7 +18,6 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
     override val commonView: ICommonViewList<T, ID, FILT>,
 ) : ConfigViewContainer<V, FILT>(
-    apiFilterSerializer = apiFilterSerializer,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
@@ -38,12 +32,9 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
     }
 }
 
-@OptIn(InternalSerializationApi::class)
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, V : ViewList<T, ID, E, FILT>, E : IDataList, reified ID : Any, reified FILT : IApiFilter> configViewList(
+inline fun <reified T : BaseDoc<ID>, V : ViewList<T, ID, E, FILT>, E : IDataList, ID : Any, FILT : IApiFilter> configViewList(
     itemKClass: KClass<T> = T::class,
-    idKClass: KClass<ID> = ID::class,
-    apiFilterSerializer: KSerializer<FILT> = FILT::class.serializer(),
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
@@ -52,8 +43,6 @@ inline fun <reified T : BaseDoc<ID>, V : ViewList<T, ID, E, FILT>, E : IDataList
     commonView: ICommonViewList<T, ID, FILT>,
 ): ConfigViewList<T, ID, V, E, FILT> = object : ConfigViewList<T, ID, V, E, FILT>(
     itemKClass = itemKClass,
-    idKClass = idKClass,
-    apiFilterSerializer = apiFilterSerializer,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,

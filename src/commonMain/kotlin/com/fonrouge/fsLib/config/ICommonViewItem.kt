@@ -5,13 +5,14 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 abstract class ICommonViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     val labelIdFunc: ((T?) -> String)? = { it?._id?.toString() ?: "<no-item>" },
-    val itemSerializer: KSerializer<T>? = null,
-    val itemIdSerializer: KSerializer<ID>? = null,
+    val itemSerializer: KSerializer<T>,
+    val idSerializer: KSerializer<ID>,
     label: String,
-    apiFilterSerializer: KSerializer<FILT>? = null
+    apiFilterSerializer: KSerializer<FILT>
 ) : ICommonViewContainer<FILT>(
     label = label,
     apiFilterSerializer = apiFilterSerializer

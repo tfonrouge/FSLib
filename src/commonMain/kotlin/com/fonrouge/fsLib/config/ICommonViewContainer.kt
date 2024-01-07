@@ -5,7 +5,7 @@ import kotlinx.serialization.KSerializer
 
 abstract class ICommonViewContainer<FILT : IApiFilter>(
     label: String,
-    apiFilterSerializer: KSerializer<FILT>? = null
+    apiFilterSerializer: KSerializer<FILT>
 ) : ICommonView<FILT>(
     label = label,
     apiFilterSerializer = apiFilterSerializer

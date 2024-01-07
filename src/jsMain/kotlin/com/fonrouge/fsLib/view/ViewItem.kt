@@ -135,15 +135,14 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
         }
     }
 
-    @OptIn(InternalSerializationApi::class)
     fun backCloseAction(confirmCancel: Boolean = false) {
         var proceedClose = true
         if (confirmCancel && formPanel != null) {
             try {
                 val s1 = formPanelGetData()?.let {
-                    Json.encodeToString(configView.itemSerializer, onDataFormBeforeApiCall(it))
+                    Json.encodeToString(configView.commonView.itemSerializer, onDataFormBeforeApiCall(it))
                 }
-                val s2 = item?.let { Json.encodeToString(configView.itemSerializer, it) }
+                val s2 = item?.let { Json.encodeToString(configView.commonView.itemSerializer, it) }
                 if (s1 != s2) {
                     proceedClose = confirm("Cancel and forget current changes ?")
                 }
@@ -252,14 +251,17 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                     configView.callItemService(
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Query,
-                        id = urlParams?.id?.let { Json.decodeFromString(configView.idSerializer, it) },
+                        id = urlParams?.id?.let { Json.decodeFromString(configView.commonView.idSerializer, it) },
                         apiFilter = apiFilter.value
                     ) { itemResponse ->
                         console.warn(">> showing with urlParams", urlParams, "itemResponse", itemResponse)
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams?.params?.set("action", CrudTask.Update.name)
                             itemResponse.item?._id?.let {
-                                urlParams?.params?.set("id", Json.encodeToString(configView.idSerializer, it))
+                                urlParams?.params?.set(
+                                    "id",
+                                    Json.encodeToString(configView.commonView.idSerializer, it)
+                                )
                             }
                             val url = (configView.url + urlParams.toString()).asDynamic()
 
@@ -334,7 +336,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                                                             callType = ApiItem.CallType.Action,
                                                             id = urlParams?.id?.let {
                                                                 Json.decodeFromString(
-                                                                    configView.idSerializer,
+                                                                    configView.commonView.idSerializer,
                                                                     it
                                                                 )
                                                             },
@@ -424,7 +426,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
 
     @OptIn(InternalSerializationApi::class)
     fun encodeId(id: ID? = item?._id): String? {
-        return id?.let { Json.encodeToString(configView.idSerializer, id) }
+        return id?.let { Json.encodeToString(configView.commonView.idSerializer, id) }
     }
 
     open fun formPanelGetData(): T? = formPanel?.getData()

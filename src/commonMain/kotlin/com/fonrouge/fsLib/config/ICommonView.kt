@@ -6,7 +6,7 @@ import kotlinx.serialization.KSerializer
 // TODO: integrate with IApiService
 abstract class ICommonView<FILT : IApiFilter>(
     val label: String,
-    val apiFilterSerializer: KSerializer<FILT>? = null,
+    val apiFilterSerializer: KSerializer<FILT>,
 ) {
     val name: String get() = this::class.simpleName?.removePrefix("Common") ?: "?"
     open fun route(): String = name
