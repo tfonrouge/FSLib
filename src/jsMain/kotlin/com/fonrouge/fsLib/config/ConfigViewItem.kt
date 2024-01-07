@@ -24,7 +24,7 @@ import kotlin.reflect.KClass
 abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
     val itemSerializer: KSerializer<T>,
     val idSerializer: KSerializer<ID>,
-    apiFilterKClass: KClass<FILT>,
+    apiFilterSerializer: KSerializer<FILT>,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean,
@@ -32,7 +32,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonView: ICommonViewItem<T, ID, FILT>
 ) : ConfigViewContainer<V, FILT>(
-    apiFilterKClass = apiFilterKClass,
+    apiFilterSerializer = apiFilterSerializer,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,
@@ -100,7 +100,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
                 serializer = ApiItem.serializer(
                     itemSerializer,
                     idSerializer,
-                    apiFilterKClass.serializer()
+                    apiFilterSerializer
                 ),
                 value = ApiItem(
                     id = id,
@@ -157,7 +157,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
 inline fun <reified T : BaseDoc<ID>, reified ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, reified FILT : IApiFilter> configViewItem(
     itemSerializer: KSerializer<T> = T::class.serializer(),
     idSerializer: KSerializer<ID> = ID::class.serializer(),
-    apiFilterKClass: KClass<FILT> = FILT::class,
+    apiFilterSerializer: KSerializer<FILT> = FILT::class.serializer(),
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
@@ -167,7 +167,7 @@ inline fun <reified T : BaseDoc<ID>, reified ID : Any, V : ViewItem<T, ID, FILT>
 ): ConfigViewItem<T, ID, V, E, FILT> = object : ConfigViewItem<T, ID, V, E, FILT>(
     itemSerializer = itemSerializer,
     idSerializer = idSerializer,
-    apiFilterKClass = apiFilterKClass,
+    apiFilterSerializer = apiFilterSerializer,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,

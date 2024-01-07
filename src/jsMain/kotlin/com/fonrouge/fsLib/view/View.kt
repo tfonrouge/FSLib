@@ -78,7 +78,7 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     protected val apiFilterFromUrl: FILT?
         get() = urlParams?.pullUrlParam(
-            serializer = configView.apiFilterKClass.serializer(),
+            serializer = configView.apiFilterSerializer,
             key = "apiFilter"
         )
 
@@ -109,7 +109,7 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     fun apiFilterToUrl() {
         apiFilter.value?.let { apiFilter ->
-            configView.pairParam("apiFilter", configView.apiFilterKClass.serializer(), apiFilter)
+            configView.pairParam("apiFilter", configView.apiFilterSerializer, apiFilter)
                 .let { pair ->
                     urlParams?.params?.set(pair.first, pair.second)
                 }
@@ -137,11 +137,11 @@ abstract class View<FILT : IApiFilter>(
     @OptIn(InternalSerializationApi::class)
     open fun onNewApiFilterInstance(): FILT? {
         return try {
-            Json.decodeFromString(configView.apiFilterKClass.serializer(), """{}""")
+            Json.decodeFromString(configView.apiFilterSerializer, """{}""")
         } catch (e: SerializationException) {
             val errMsg = """
                 Error creating instance of apiFilter: ${e.message},
-                hint: Set @Serializable annotation to [${configView.apiFilterKClass}]::class,
+                hint: Set @Serializable annotation to [${configView.apiFilterSerializer}]::class,
                 """.trimIndent()
             e.message
             console.error(errMsg)
@@ -159,7 +159,7 @@ abstract class View<FILT : IApiFilter>(
         } catch (e: Exception) {
             val errMsg = """
                 Error creating instance of apiFilter,
-                hint: [${configView.apiFilterKClass}]::class must *not* have required constructor parameters,
+                hint: [${configView.apiFilterSerializer}]::class must *not* have required constructor parameters,
                 or need to override the onNewApiFilterInstance() function
                 """.trimIndent()
             e.message
@@ -317,7 +317,7 @@ fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlApiItem(
             urlParams.pushParam(
                 "apiFilter" to encodeURIComponent(
                     Json.encodeToString(
-                        configViewItem.apiFilterKClass.serializer(),
+                        configViewItem.apiFilterSerializer,
                         apiItem.apiFilter
                     )
                 )
