@@ -18,7 +18,7 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
     requireCredentials: Boolean,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
-    override val commonView: ICommonViewList<T, ID,  FILT>,
+    override val commonView: ICommonViewList<T, ID, FILT>,
 ) : ConfigViewContainer<T, V, ID, FILT>(
     itemKClass = itemKClass,
     idKClass = idKClass,
