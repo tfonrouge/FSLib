@@ -6,8 +6,8 @@ import com.fonrouge.fsLib.view.ViewDataContainer
 import kotlin.reflect.KClass
 
 abstract class ConfigViewContainer<T : BaseDoc<ID>, V : ViewDataContainer<FILT>, ID : Any, FILT : IApiFilter>(
-    val itemKClass: KClass<T>,
-    val idKClass: KClass<ID>,
+//    val itemKClass: KClass<T>,
+//    val idKClass: KClass<ID>,
     apiFilterKClass: KClass<FILT>,
     name: String,
     viewFunc: KClass<out V>,

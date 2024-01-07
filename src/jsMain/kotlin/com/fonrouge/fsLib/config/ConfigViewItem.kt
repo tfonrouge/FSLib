@@ -25,8 +25,8 @@ import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
-    itemKClass: KClass<T>,
-    idKClass: KClass<ID>,
+    val itemKClass: KClass<T>,
+    val idKClass: KClass<ID>,
     apiFilterKClass: KClass<FILT>,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
@@ -35,8 +35,8 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonView: ICommonViewItem<T, ID, FILT>
 ) : ConfigViewContainer<T, V, ID, FILT>(
-    itemKClass = itemKClass,
-    idKClass = idKClass,
+//    itemKClass = itemKClass,
+//    idKClass = idKClass,
     apiFilterKClass = apiFilterKClass,
     name = itemKClass.simpleName!!,
     viewFunc = viewFunc,

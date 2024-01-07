@@ -10,8 +10,8 @@ import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
 abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, FILT>, E : IDataList, FILT : IApiFilter>(
-    itemKClass: KClass<T>,
-    idKClass: KClass<ID>,
+    val itemKClass: KClass<T>,
+    val idKClass: KClass<ID>,
     apiFilterKClass: KClass<FILT>,
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
@@ -20,8 +20,8 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
     override val commonView: ICommonViewList<T, ID, FILT>,
 ) : ConfigViewContainer<T, V, ID, FILT>(
-    itemKClass = itemKClass,
-    idKClass = idKClass,
+//    itemKClass = itemKClass,
+//    idKClass = idKClass,
     apiFilterKClass = apiFilterKClass,
     name = itemKClass.simpleName!!,
     viewFunc = viewFunc,
