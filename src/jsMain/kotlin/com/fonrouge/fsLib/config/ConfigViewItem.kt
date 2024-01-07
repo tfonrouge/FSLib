@@ -35,10 +35,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonView: ICommonViewItem<T, ID, FILT>
 ) : ConfigViewContainer<V, FILT>(
-//    itemKClass = itemKClass,
-//    idKClass = idKClass,
     apiFilterKClass = apiFilterKClass,
-    name = itemKClass.simpleName!!,
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,

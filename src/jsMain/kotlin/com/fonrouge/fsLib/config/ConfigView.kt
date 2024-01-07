@@ -19,7 +19,6 @@ private const val navigoPrefix = "#/"
     TODO: encode/decode baseUrl to be url compliant
  */
 abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
-    val name: String,
     val viewFunc: KClass<out V>,
     val apiFilterKClass: KClass<FILT>,
     val baseUrl: String = viewFunc.simpleName!!,
@@ -95,7 +94,7 @@ inline fun <V : View<FILT>, reified FILT : IApiFilter> configView(
     requireCredentials: Boolean = true,
     commonView: ICommonView<FILT>,
 ): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
-    name = name,
+//    name = name,
     viewFunc = viewFunc,
     apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
