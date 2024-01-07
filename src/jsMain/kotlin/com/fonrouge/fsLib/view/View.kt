@@ -307,7 +307,7 @@ fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlApiItem(
             apiItem.item?._id?.let {
                 listOf(
                     "action" to apiItem.crudTask.name,
-                    "id" to Json.encodeToString(configViewItem.idKClass.serializer(), it)
+                    "id" to Json.encodeToString(configViewItem.idSerializer, it)
                 )
             }
         }

@@ -87,14 +87,12 @@ fun String.rh() = this.removePrefix("#/")
 
 @Suppress("unused")
 inline fun <V : View<FILT>, reified FILT : IApiFilter> configView(
-    name: String,
     viewFunc: KClass<out V>,
     apiFilterKClass: KClass<FILT> = FILT::class,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
     commonView: ICommonView<FILT>,
 ): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
-//    name = name,
     viewFunc = viewFunc,
     apiFilterKClass = apiFilterKClass,
     baseUrl = baseUrl,
