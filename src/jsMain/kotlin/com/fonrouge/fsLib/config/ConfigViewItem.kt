@@ -38,7 +38,6 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
 ) {
     companion object {
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *>>()
-        val a: KClass<Unit> = Unit::class
     }
 
     val labelDelete by lazy { "Delete ${commonView.label}" }
