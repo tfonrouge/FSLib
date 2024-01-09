@@ -298,7 +298,7 @@ fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlFromApiItem(
     val url: String? = when (apiItem.crudTask) {
         CrudTask.Create -> listOf("action" to CrudTask.Create.name)
         else -> {
-            apiItem.item?._id?.let {
+            apiItem.id?.let {
                 listOf(
                     "action" to apiItem.crudTask.name,
                     "id" to Json.encodeToString(configViewItem.commonView.idSerializer, it)
