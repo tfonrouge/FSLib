@@ -203,7 +203,7 @@ abstract class View<FILT : IApiFilter>(
                 bannerLegend()
             }
             nav(rightAlign = true) {
-                if (this@View is ViewItem<*, *, *>) {
+                if (this@View is ViewItem<*, *, *, *>) {
                     if (urlParams?.actionUpsert == true) {
                         navButtonBack = button(text = " ", icon = "fas fa-reply", style = ButtonStyle.OUTLINEPRIMARY) {
                             hide()
@@ -291,9 +291,9 @@ abstract class View<FILT : IApiFilter>(
  * Builds a string Url based on a [ConfigViewItem] and a [ApiItem] parameters
  * @return Url string
  */
-fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlFromApiItem(
-    configViewItem: ConfigViewItem<*, ID, *, *, F>,
-    apiItem: ApiItem<T, ID, F>
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
+    configViewItem: ConfigViewItem<*, *, ID, *, *, FILT>,
+    apiItem: ApiItem<T, ID, FILT>
 ): String? {
     val url: String? = when (apiItem.crudTask) {
         CrudTask.Create -> listOf("action" to CrudTask.Create.name)

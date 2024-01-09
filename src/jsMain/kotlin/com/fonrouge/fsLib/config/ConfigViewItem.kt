@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
+abstract class ConfigViewItem<CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean,
@@ -37,7 +37,7 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
     commonView = commonView
 ) {
     companion object {
-        val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *>>()
+        val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
     }
 
     val labelDelete by lazy { "Delete ${commonView.label}" }
@@ -157,14 +157,14 @@ abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FIL
 }
 
 @Suppress("unused")
-fun <T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, E : IDataItem, FILT : IApiFilter> configViewItem(
+fun <CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : IDataItem, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
     baseUrl: String = viewFunc.simpleName!!,
     requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
-    commonView: ICommonViewItem<T, ID, FILT>
-): ConfigViewItem<T, ID, V, E, FILT> = object : ConfigViewItem<T, ID, V, E, FILT>(
+    commonView: CV
+): ConfigViewItem<CV, T, ID, V, E, FILT> = object : ConfigViewItem<CV, T, ID, V, E, FILT>(
     viewFunc = viewFunc,
     baseUrl = baseUrl,
     requireCredentials = requireCredentials,

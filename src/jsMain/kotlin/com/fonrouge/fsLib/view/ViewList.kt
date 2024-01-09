@@ -27,7 +27,7 @@ import kotlinx.browser.window
 abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
     final override val configView: ConfigViewList<T, ID, out ViewList<T, ID, E, FILT>, E, FILT>,
-    configViewItem: ConfigViewItem<T, ID, *, *, FILT>? = null,
+    configViewItem: ConfigViewItem<*, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
@@ -43,7 +43,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFil
      * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
      * matching by name
      */
-    var configViewItem: ConfigViewItem<T, ID, *, *, FILT>? = configViewItem
+    var configViewItem: ConfigViewItem<*, T, ID, *, *, FILT>? = configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewFunc.simpleName!!
@@ -52,7 +52,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFil
             } else {
                 "ViewItem${configView.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, ID, *, *, FILT>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<*, T, ID, *, *, FILT>>()
         }
 
     open val columnDefaults: ColumnDefinition<T>? = null
@@ -69,7 +69,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFil
     /* dynamic content only used to get _id */
     var overItem: Any? = null
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
-    var masterViewItem: ViewItem<*, *, *>? = null
+    var masterViewItem: ViewItem<*, *, *, *>? = null
         set(value) {
             apiFilter.value?.masterItemIdSerialized = value?.encodeId()
             editable = value?.urlParams?.actionUpsert == true
@@ -112,7 +112,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFil
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItem,
-        configViewItem: ConfigViewItem<*, ID, *, *, FILT>? = this.configViewItem,
+        configViewItem: ConfigViewItem<*, *, ID, *, *, FILT>? = this.configViewItem,
     ) {
         val url = configViewItem?.let {
             urlFromApiItem(
