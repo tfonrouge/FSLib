@@ -115,7 +115,7 @@ abstract class ViewList<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFil
         configViewItem: ConfigViewItem<*, ID, *, *, FILT>? = this.configViewItem,
     ) {
         val url = configViewItem?.let {
-            urlApiItem(
+            urlFromApiItem(
                 configViewItem = configViewItem,
                 apiItem = ApiItem(
                     id = item?._id,

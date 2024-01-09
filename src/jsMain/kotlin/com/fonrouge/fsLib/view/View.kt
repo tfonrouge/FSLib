@@ -23,7 +23,6 @@ import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
 import io.kvision.utils.px
 import js.uri.encodeURIComponent
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
@@ -74,7 +73,6 @@ abstract class View<FILT : IApiFilter>(
         ObservableValue(apiFilterFromUrl ?: onNewApiFilterInstance())
     }
 
-    @OptIn(InternalSerializationApi::class)
     protected val apiFilterFromUrl: FILT?
         get() = urlParams?.pullUrlParam(
             serializer = configView.commonView.apiFilterSerializer,
@@ -105,7 +103,6 @@ abstract class View<FILT : IApiFilter>(
     /**
      * Sets the current browser url with an [apiFilter] url parameter
      */
-    @OptIn(InternalSerializationApi::class)
     fun apiFilterToUrl() {
         apiFilter.value?.let { apiFilter ->
             configView.pairParam("apiFilter", configView.commonView.apiFilterSerializer, apiFilter)
@@ -133,7 +130,6 @@ abstract class View<FILT : IApiFilter>(
     /**
      * Builds a new instance of [apiFilter]
      */
-    @OptIn(InternalSerializationApi::class)
     open fun onNewApiFilterInstance(): FILT? {
         return try {
             Json.decodeFromString(configView.commonView.apiFilterSerializer, """{}""")
@@ -295,8 +291,7 @@ abstract class View<FILT : IApiFilter>(
  * Builds a string Url based on a [ConfigViewItem] and a [ApiItem] parameters
  * @return Url string
  */
-@OptIn(InternalSerializationApi::class)
-fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlApiItem(
+fun <T : BaseDoc<ID>, ID : Any, F : IApiFilter> urlFromApiItem(
     configViewItem: ConfigViewItem<*, ID, *, *, F>,
     apiItem: ApiItem<T, ID, F>
 ): String? {
