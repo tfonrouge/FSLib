@@ -14,7 +14,7 @@ import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter>(
+abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter>(
     klass: KClass<UR>,
 ) : Coll<UR, OId<IUserRole<U, UID>>, FILT>(
     klass = klass
@@ -26,7 +26,7 @@ abstract class IUserRoleColl<U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, 
     }
 
     open fun groupRoleColl(): IGroupRoleColl<GR, *, GOU, *>? = null
-    open fun userGroupColl(): IUserGroupColl<U, UID, out IUserGroup<U, UID, *, *>, *, *, out IApiFilter>? = null
+    open fun userGroupColl(): IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter>? = null
     open fun rootUser(user: U?): Boolean? = null
 
     @Suppress("unused")

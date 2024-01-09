@@ -10,7 +10,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class IUserGroupColl<U : IUser<UID>, UID : Any, UG : IUserGroup<U, UID, GOU, GR>, GOU : IGroupOfUser<*>, GR : IGroupRole<*, GOU>, FILT : IApiFilter>(
+abstract class IUserGroupColl<UG : IUserGroup<U, UID, GOU, GR>, U : IUser<UID>, UID : Any, GOU : IGroupOfUser<*>, GR : IGroupRole<*, GOU>, FILT : IApiFilter>(
     klass: KClass<UG>,
 ) : Coll<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>(
     klass = klass,
