@@ -6,7 +6,6 @@ import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewDataContainer
 import io.kvision.utils.createInstance
 import js.uri.encodeURIComponent
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -68,7 +67,6 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
     /**
      * helper to build an api filter parameter in the url string
      */
-    @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
     fun apiFilterParam(obj: FILT): Pair<String, String> =
         pairParam(key = "apiFilter", serializer = commonView.apiFilterSerializer, obj = obj)

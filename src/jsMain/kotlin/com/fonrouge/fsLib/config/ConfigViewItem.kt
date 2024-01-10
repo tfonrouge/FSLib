@@ -17,7 +17,6 @@ import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
@@ -58,14 +57,12 @@ abstract class ConfigViewItem<CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>
             return url + urlParams.toString()
         }
 
-    @OptIn(InternalSerializationApi::class)
     fun urlRead(id: ID): String {
         val urlParams =
             UrlParams("id" to Json.encodeToString(commonView.idSerializer, id), "action" to CrudTask.Read.name)
         return url + urlParams.toString()
     }
 
-    @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
     fun urlDelete(id: ID): String {
         val urlParams =
@@ -73,7 +70,6 @@ abstract class ConfigViewItem<CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>
         return url + urlParams.toString()
     }
 
-    @OptIn(InternalSerializationApi::class)
     fun urlUpdate(id: ID): String {
         val urlParams =
             UrlParams("id" to Json.encodeToString(commonView.idSerializer, id), "action" to CrudTask.Update.name)
@@ -81,7 +77,7 @@ abstract class ConfigViewItem<CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>
     }
 
     @Suppress("unused")
-    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    @OptIn(ExperimentalSerializationApi::class)
     fun callItemService(
         crudTask: CrudTask,
         callType: ApiItem.CallType,

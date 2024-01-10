@@ -27,6 +27,13 @@ abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, 
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *>>()
     }
 
+    /**
+     * builds an url string with optional [IApiFilter] parameter
+     */
+    fun url(apiFilter: FILT? = null): String {
+        return baseUrl + (apiFilter?.let { "?" + pairParam("apiFilter", commonView.apiFilterSerializer, apiFilter) } ?: "")
+    }
+
     init {
         configViewListMap[baseUrl] = this
     }
