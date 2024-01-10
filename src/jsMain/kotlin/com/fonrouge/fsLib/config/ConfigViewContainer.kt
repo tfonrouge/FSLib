@@ -4,13 +4,12 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.view.ViewDataContainer
 import kotlin.reflect.KClass
 
-abstract class ConfigViewContainer<V : ViewDataContainer<FILT>, FILT : IApiFilter>(
+abstract class ConfigViewContainer<CV : ICommonContainer<FILT>, V : ViewDataContainer<CV, FILT>, FILT : IApiFilter>(
+    override val commonView: CV,
     viewFunc: KClass<out V>,
-    baseUrl: String,
-    requireCredentials: Boolean,
-    override val commonView: ICommonViewContainer<FILT>
-) : ConfigView<V, FILT>(
+    baseUrl: String? = null,
+) : ConfigView<CV, V, FILT>(
     viewFunc = viewFunc,
-    baseUrl = baseUrl,
-    requireCredentials = requireCredentials,
+    commonView = commonView,
+    _baseUrl = baseUrl,
 )

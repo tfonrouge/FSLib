@@ -3,6 +3,7 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.config.ConfigViewList
+import com.fonrouge.fsLib.config.ICommonList
 import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
@@ -23,7 +24,7 @@ import org.w3c.dom.events.Event
 
 fun <T : BaseDoc<*>> defaultTabulatorOptions(
     tabulatorOptions: TabulatorOptions<T>,
-    viewList: ViewList<T, *, *, *>
+    viewList: ViewList<*, T, *, *, *>
 ): TabulatorOptions<T> {
     val autoResize = tabulatorOptions.autoResize ?: true
     val columns = tabulatorOptions.columns ?: viewList.columnDefinitionList()
@@ -69,8 +70,8 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     )
 }
 
-inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IApiFilter> Container.fsTabulator(
-    configViewList: ConfigViewList<T, ID, out ViewList<T, ID, E, FILT>, E, FILT>,
+inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IApiFilter> Container.fsTabulator(
+    configViewList: ConfigViewList<CV, T, ID, out ViewList<CV, T, ID, E, FILT>, E, FILT>,
     masterViewItem: ViewItem<*, *, *, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
@@ -78,8 +79,8 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IAp
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
-): ViewList<T, ID, E, FILT> {
-    val viewList: ViewList<T, ID, E, FILT> = configViewList.newViewInstance(null)
+): ViewList<CV, T, ID, E, FILT> {
+    val viewList: ViewList<CV, T, ID, E, FILT> = configViewList.newViewInstance(null)
     viewList.masterViewItem = masterViewItem
     return fsTabulator(
         viewList = viewList,
@@ -93,15 +94,15 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IAp
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IApiFilter> Container.fsTabulator(
-    viewList: ViewList<T, ID, E, FILT>,
+inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : IDataList, reified FILT : IApiFilter> Container.fsTabulator(
+    viewList: ViewList<CV, T, ID, E, FILT>,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
-): ViewList<T, ID, E, FILT> {
+): ViewList<CV, T, ID, E, FILT> {
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams

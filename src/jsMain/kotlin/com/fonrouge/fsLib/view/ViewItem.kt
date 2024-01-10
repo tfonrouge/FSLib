@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewItem
-import com.fonrouge.fsLib.config.ICommonViewItem
+import com.fonrouge.fsLib.config.ICommonItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
@@ -29,13 +29,13 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
     final override val configView: ConfigViewItem<CV, T, ID, out ViewItem<CV, T, ID, FILT>, *, FILT>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-) : ViewDataContainer<FILT>(
+) : ViewDataContainer<CV, FILT>(
     urlParams = urlParams,
     configViewContainer = configView,
     editable = editable,

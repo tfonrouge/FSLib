@@ -23,7 +23,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var motto = "<motto>"
     var pageContainerWidth = "md"
 
-    var configViewHome: ConfigView<*, *>? = null
+    var configViewHome: ConfigView<*, *, *>? = null
 
     /**
      * Global variable to allow periodic update on [ViewItem]
@@ -41,8 +41,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var iConfigView: IConfigView? = null
 
-    var getCredentials: (suspend () -> Any)? = null
-
     var afterInitialize: (() -> Unit)? = null
 
     var routing: Routing = Routing.init()
@@ -55,10 +53,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
         if (iConfigView == null) {
             Toast.warning("${this::iConfigView.name} not implemented...")
-        }
-
-        if (getCredentials == null) {
-            Toast.warning("${this::getCredentials.name} block not defined...")
         }
 
         afterInitialize?.invoke()

@@ -2,6 +2,8 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.config.ConfigViewItem
+import com.fonrouge.fsLib.config.ICommon
+import com.fonrouge.fsLib.config.ICommonItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudTask
@@ -26,9 +28,9 @@ import js.uri.encodeURIComponent
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
-abstract class View<FILT : IApiFilter>(
+abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     var urlParams: UrlParams? = null,
-    open val configView: ConfigView<*, FILT>,
+    open val configView: ConfigView<CV, *, FILT>,
     var editable: Boolean = true,
     val icon: String? = null,
     open val label: String = configView.commonView.label
@@ -93,7 +95,7 @@ abstract class View<FILT : IApiFilter>(
     /**
      * Allows to insert the whole view to the current DSL container
      */
-    fun Container.add(view: View<*>): Container {
+    fun Container.add(view: View<*, *>): Container {
         view.apply {
             displayPage()
         }
@@ -258,7 +260,7 @@ abstract class View<FILT : IApiFilter>(
      * @param configView - The [ConfigView] of the [View] to go
      */
     fun <F : IApiFilter> urlApiFilter(
-        configView: ConfigView<*, F>,
+        configView: ConfigView<*, *, F>,
         apiFilter: F,
     ): String {
         val params = mutableListOf<Pair<String, String>>()
@@ -292,13 +294,13 @@ abstract class View<FILT : IApiFilter>(
  * @return Url string
  */
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
-    configViewItem: ConfigViewItem<*, *, ID, *, *, FILT>,
+    configViewItem: ConfigViewItem<out ICommonItem<T, ID, FILT>, *, ID, *, *, FILT>,
     apiItem: ApiItem<T, ID, FILT>
 ): String? {
     val url: String? = when (apiItem.crudTask) {
         CrudTask.Create -> listOf("action" to CrudTask.Create.name)
         else -> {
-            apiItem.id?.let {
+            apiItem.id?.let { it: ID ->
                 listOf(
                     "action" to apiItem.crudTask.name,
                     "id" to Json.encodeToString(configViewItem.commonView.idSerializer, it)

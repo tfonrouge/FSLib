@@ -2,23 +2,19 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.view.KVWebManager.getCredentials
 import io.kvision.core.Container
 import io.kvision.html.div
 import io.kvision.state.bind
 
 class ViewState(
-    val configView: ConfigView<*, *>,
+    val configView: ConfigView<*, *, *>,
     val urlParams: UrlParams?
 )
 
 @Suppress("unused")
-suspend fun Container.showView(viewState: ViewState) {
-    if (viewState.configView.requireCredentials) {
-        getCredentials?.let { it() }
-    }
+fun Container.showView(viewState: ViewState) {
     val view = viewState.configView.newViewInstance(viewState.urlParams)
-    val viewDataContainer = view as? ViewDataContainer<*>
+    val viewDataContainer = view as? ViewDataContainer<*, *>
     view.apply {
         div {
             addBeforeDisposeHook {

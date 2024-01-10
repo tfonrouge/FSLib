@@ -9,51 +9,49 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, E, FILT>, E : IDataList, FILT : IApiFilter>(
+abstract class ConfigViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CV, T, ID, E, FILT>, E : IDataList, FILT : IApiFilter>(
     val itemKClass: KClass<T>,
-    viewFunc: KClass<out V>,
-    baseUrl: String = viewFunc.simpleName!!,
-    requireCredentials: Boolean,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
-    override val commonView: ICommonViewList<T, ID, FILT>,
-) : ConfigViewContainer<V, FILT>(
+    override val commonView: CV,
+    viewFunc: KClass<out V>,
+    baseUrl: String? = null
+) : ConfigViewContainer<CV, V, FILT>(
     viewFunc = viewFunc,
-    baseUrl = baseUrl,
-    requireCredentials = requireCredentials,
     commonView = commonView,
+    baseUrl = baseUrl
 ) {
     companion object {
-        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *>>()
+        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *>>()
     }
 
     /**
      * builds an url string with optional [IApiFilter] parameter
      */
     fun url(apiFilter: FILT? = null): String {
-        return baseUrl + (apiFilter?.let { "?" + pairParam("apiFilter", commonView.apiFilterSerializer, apiFilter) } ?: "")
+        return baseUrl + (apiFilter?.let { "?" + pairParam("apiFilter", commonView.apiFilterSerializer, apiFilter) }
+            ?: "")
     }
 
     init {
-        configViewListMap[baseUrl] = this
+        console.warn("ConfigViewList REGISTERING WITH", this.baseUrl)
+        configViewListMap[this.baseUrl] = this
     }
 }
 
 @Suppress("unused")
-inline fun <reified T : BaseDoc<ID>, V : ViewList<T, ID, E, FILT>, E : IDataList, ID : Any, FILT : IApiFilter> configViewList(
+inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, V : ViewList<CV, T, ID, E, FILT>, E : IDataList, ID : Any, FILT : IApiFilter> configViewList(
     itemKClass: KClass<T> = T::class,
     viewFunc: KClass<out V>,
-    baseUrl: String = viewFunc.simpleName!!,
-    requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
-    commonView: ICommonViewList<T, ID, FILT>,
-): ConfigViewList<T, ID, V, E, FILT> = object : ConfigViewList<T, ID, V, E, FILT>(
+    commonView: CV,
+    baseUrl: String? = null,
+): ConfigViewList<CV, T, ID, V, E, FILT> = object : ConfigViewList<CV, T, ID, V, E, FILT>(
     itemKClass = itemKClass,
     viewFunc = viewFunc,
-    baseUrl = baseUrl,
-    requireCredentials = requireCredentials,
     serviceManager = serviceManager,
     function = function,
     commonView = commonView,
+    baseUrl = baseUrl
 ) {}

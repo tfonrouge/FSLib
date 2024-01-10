@@ -16,18 +16,23 @@ private const val navigoPrefix = "#/"
 /*
     TODO: encode/decode baseUrl to be url compliant
  */
-abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
+abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFilter>(
     val viewFunc: KClass<out V>,
-    val baseUrl: String = viewFunc.simpleName!!,
-    val requireCredentials: Boolean,
+    open val commonView: CV,
+    private val _baseUrl: String? = null,
 ) {
-    abstract val commonView: ICommonView<FILT>
+    val baseUrl: String
+        get() {
+            val result =
+                _baseUrl ?: if (commonView == undefined) "error: commonView undefined" else ("View" + commonView.name)
+            return result
+        }
 
     companion object {
-        val configViewMap = mutableMapOf<String, ConfigView<*, *>>()
+        val configViewMap = mutableMapOf<String, ConfigView<*, *, *>>()
     }
 
-    val url: String = navigoPrefix + this.baseUrl
+    val url: String get() = navigoPrefix + this.baseUrl
     val labelUrl: Pair<String, String> by lazy { commonView.label to url }
 
     /**
@@ -72,8 +77,9 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
         pairParam(key = "apiFilter", serializer = commonView.apiFilterSerializer, obj = obj)
 
     init {
-        if (this !is ConfigViewContainer<*, *>) {
-            configViewMap[baseUrl] = this
+        if (this !is ConfigViewContainer<*, *, *>) {
+            console.warn("ConfigView REGISTERING WITH", this.baseUrl)
+            configViewMap[this.baseUrl] = this
         }
     }
 }
@@ -82,15 +88,12 @@ abstract class ConfigView<V : View<FILT>, FILT : IApiFilter>(
 fun String.rh() = this.removePrefix("#/")
 
 @Suppress("unused")
-inline fun <V : View<FILT>, reified FILT : IApiFilter> configView(
+inline fun <CV : ICommon<FILT>, V : View<CV, FILT>, reified FILT : IApiFilter> configView(
     viewFunc: KClass<out V>,
-    baseUrl: String = viewFunc.simpleName!!,
-    requireCredentials: Boolean = true,
-    commonView: ICommonView<FILT>,
-): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
+    commonView: CV,
+    baseUrl: String? = null,
+): ConfigView<CV, V, FILT> = object : ConfigView<CV, V, FILT>(
     viewFunc = viewFunc,
-    baseUrl = baseUrl,
-    requireCredentials = requireCredentials,
-) {
-    override var commonView: ICommonView<FILT> = commonView
-}
+    commonView = commonView,
+    _baseUrl = baseUrl,
+) {}

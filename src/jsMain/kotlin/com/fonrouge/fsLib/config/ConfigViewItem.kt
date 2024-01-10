@@ -22,18 +22,16 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
-    viewFunc: KClass<out V>,
-    baseUrl: String = viewFunc.simpleName!!,
-    requireCredentials: Boolean,
+abstract class ConfigViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
     private val serviceManager: KVServiceManager<E>,
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
-    override val commonView: ICommonViewItem<T, ID, FILT>
-) : ConfigViewContainer<V, FILT>(
+    override val commonView: CV,
+    viewFunc: KClass<out V>,
+    baseUrl: String? = null
+) : ConfigViewContainer<CV, V, FILT>(
     viewFunc = viewFunc,
+    commonView = commonView,
     baseUrl = baseUrl,
-    requireCredentials = requireCredentials,
-    commonView = commonView
 ) {
     companion object {
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
@@ -148,23 +146,22 @@ abstract class ConfigViewItem<CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>
     }
 
     init {
-        configViewItemMap[baseUrl] = this
+        console.warn("ConfigViewItem REGISTERING WITH", this.baseUrl)
+        configViewItemMap[this.baseUrl] = this
     }
 }
 
 @Suppress("unused")
-fun <CV : ICommonViewItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : IDataItem, FILT : IApiFilter> configViewItem(
+fun <CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : IDataItem, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
-    baseUrl: String = viewFunc.simpleName!!,
-    requireCredentials: Boolean = true,
     serviceManager: KVServiceManager<E>,
     function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
-    commonView: CV
+    commonView: CV,
+    baseUrl: String? = null
 ): ConfigViewItem<CV, T, ID, V, E, FILT> = object : ConfigViewItem<CV, T, ID, V, E, FILT>(
     viewFunc = viewFunc,
-    baseUrl = baseUrl,
-    requireCredentials = requireCredentials,
     serviceManager = serviceManager,
     function = function,
     commonView = commonView,
+    baseUrl = baseUrl
 ) {}
