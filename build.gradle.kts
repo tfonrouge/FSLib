@@ -70,6 +70,7 @@ kotlin {
                 api("io.ktor:ktor-client-cio:${ktor_version}")
                 api("io.ktor:ktor-client-auth:${ktor_version}")
                 api("io.ktor:ktor-client-content-negotiation:${ktor_version}")
+                api("io.ktor:ktor-client-encoding:$ktor_version")
                 api("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
                 api("io.ktor:ktor-client-serialization:${ktor_version}")
                 api("io.ktor:ktor-server-auth:$ktor_version")
