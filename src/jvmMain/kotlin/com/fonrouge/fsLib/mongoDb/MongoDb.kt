@@ -58,6 +58,7 @@ class MongoDbPluginConfiguration {
         registerSerializer(OIdSerializer)
         registerSerializer(StringIdSerializer)
         registerSerializer(IntIdSerializer)
+        registerSerializer(LongIdSerializer)
         registerSerializer(FSOffsetDateTimeSerializer)
         registerSerializer(FSLocalDateSerializer)
         registerSerializer(FSLocalDateTimeSerializer)

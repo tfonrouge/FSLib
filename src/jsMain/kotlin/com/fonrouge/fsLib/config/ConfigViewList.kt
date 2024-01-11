@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -9,7 +8,7 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CV, T, ID, E, FILT>, E : IDataList, FILT : IApiFilter>(
+abstract class ConfigViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CV, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
     val itemKClass: KClass<T>,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
@@ -40,7 +39,7 @@ abstract class ConfigViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID
 }
 
 @Suppress("unused")
-inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, V : ViewList<CV, T, ID, E, FILT>, E : IDataList, ID : Any, FILT : IApiFilter> configViewList(
+inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, V : ViewList<CV, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
     itemKClass: KClass<T> = T::class,
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<E>,

@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.layout
 
-import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -26,7 +25,7 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFilter>(
+class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
     serviceManager: KVServiceMgr<E>,
     function: suspend E.(ApiList<FILT>) -> ListState<T>,
     private val apiListBlock: (() -> ApiList<FILT>),
@@ -193,7 +192,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IA
     }
 }
 
-inline fun <reified T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFilter> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter> Container.tabulatorListContainer(
     serviceManager: KVServiceMgr<E>,
     noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
     noinline apiListBlock: (() -> ApiList<FILT>),

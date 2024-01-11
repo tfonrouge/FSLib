@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
-import com.fonrouge.fsLib.model.IDataItem
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -22,7 +21,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : IDataItem, FILT : IApiFilter>(
+abstract class ConfigViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter>(
     private val serviceManager: KVServiceManager<E>,
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonView: CV,
@@ -152,7 +151,7 @@ abstract class ConfigViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID
 }
 
 @Suppress("unused")
-fun <CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : IDataItem, FILT : IApiFilter> configViewItem(
+fun <CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<E>,
     function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,

@@ -94,6 +94,7 @@ kotlin {
                 api("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$kotlinxDatetimeVersion")
                 api("net.sourceforge.jtds:jtds:1.3.1")
                 api("com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre8")
+//                api("org.mongodb:mongodb-driver-kotlin-coroutine:4.11.0")
             }
         }
 

@@ -12,7 +12,6 @@ import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudTask
-import com.fonrouge.fsLib.model.IDataList
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -26,7 +25,7 @@ import io.kvision.toast.Toast
 import kotlinx.browser.window
 
 @Suppress("unused")
-abstract class ViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : IDataList, FILT : IApiFilter>(
+abstract class ViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
     final override val configView: ConfigViewList<CV, T, ID, out ViewList<CV, T, ID, E, FILT>, E, FILT>,
     configViewItem: ConfigViewItem<ICommonItem<T, ID, FILT>, T, ID, *, *, FILT>? = null,
