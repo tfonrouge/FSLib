@@ -6,6 +6,7 @@ import com.fonrouge.fsLib.annotations.SqlOneToOne
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.KV_DEFAULT_DATETIME_FORMAT
+import com.fonrouge.fsLib.serializers.LongId
 import com.fonrouge.fsLib.serializers.StringId
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
 import kotlinx.coroutines.Dispatchers
@@ -212,6 +213,12 @@ abstract class SqlDatabase(
 
             Integer::class, IntId::class -> {
                 val result: Int = resultSet.getInt(index)
+                field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                result
+            }
+
+            Long::class, LongId::class -> {
+                val result: Long = resultSet.getLong(index)
                 field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
                 result
             }

@@ -10,6 +10,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.serializers.IntId
+import com.fonrouge.fsLib.serializers.LongId
 import com.fonrouge.fsLib.serializers.StringId
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
@@ -509,7 +510,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                     }
 
                     Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()?.let { BsonInt32(it) }
-                    Long::class -> remoteFilter.value?.toLongOrNull()?.let { BsonInt64(it) }
+                    Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()?.let { BsonInt64(it) }
                     Double::class -> remoteFilter.value?.toDoubleOrNull()?.let { BsonDouble(it) }
                     else -> null
                 }
