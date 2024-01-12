@@ -35,7 +35,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-) : ViewDataContainer<CV, T,ID, FILT>(
+) : ViewDataContainer<CV, T, ID, FILT>(
     urlParams = urlParams,
     configViewContainer = configView,
     editable = editable,
