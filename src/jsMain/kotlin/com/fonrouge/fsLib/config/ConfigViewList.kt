@@ -9,7 +9,6 @@ import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
 abstract class ConfigViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CV, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
-    val itemKClass: KClass<T>,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
     override val commonView: CV,
@@ -50,15 +49,13 @@ abstract class ConfigViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 @Suppress("unused")
-inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, V : ViewList<CV, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
-    itemKClass: KClass<T> = T::class,
+fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CV, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<E>,
-    noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
+    function: suspend E.(ApiList<FILT>) -> ListState<T>,
     commonView: CV,
     baseUrl: String? = null,
 ): ConfigViewList<CV, T, ID, V, E, FILT> = object : ConfigViewList<CV, T, ID, V, E, FILT>(
-    itemKClass = itemKClass,
     viewFunc = viewFunc,
     serviceManager = serviceManager,
     function = function,

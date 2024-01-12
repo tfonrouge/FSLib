@@ -8,9 +8,9 @@ import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-    val labelIdFunc: ((T?) -> String)? = { it?._id?.toString() ?: "<no-item>" },
     val itemKClass: KClass<T>,
     val idSerializer: KSerializer<ID>,
+    val labelIdFunc: ((T?) -> String)? = { it?._id?.toString() ?: "<no-item>" },
     val labelItem: String = "${itemKClass.simpleName}",
     val labelList: String = "List of ${itemKClass.simpleName}",
     apiFilterSerializer: KSerializer<FILT>

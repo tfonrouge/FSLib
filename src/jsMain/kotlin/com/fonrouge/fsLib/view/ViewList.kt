@@ -50,7 +50,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             val name = if (viewClassName.contains("ViewList")) {
                 viewClassName.replace("ViewList", "ViewItem")
             } else {
-                "ViewItem${configView.itemKClass.js.name}"
+                "ViewItem${configView.commonView.itemKClass.js.name}"
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>>()
         }
@@ -208,7 +208,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 tabulator?.let { tabulator ->
                     tabulator.jsTabulator?.setColumns(
                         columnDefinitionList().map {
-                            it.toJs(tabulator, tabulator::translate, configView.itemKClass)
+                            it.toJs(tabulator, tabulator::translate, configView.commonView.itemKClass)
                         }.toTypedArray()
                     )
                     columnDefinitionList()

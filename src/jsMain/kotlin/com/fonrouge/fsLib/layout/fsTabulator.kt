@@ -43,7 +43,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
             "page" to json("page" to true),
         )
     */
-    val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.itemKClass.simpleName
+    val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.commonView.itemKClass.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
     val selectable = tabulatorOptions.selectable ?: 1
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
