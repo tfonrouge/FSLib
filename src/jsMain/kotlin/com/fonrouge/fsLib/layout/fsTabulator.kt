@@ -3,7 +3,7 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.config.ConfigViewList
-import com.fonrouge.fsLib.config.ICommonList
+import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -69,7 +69,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     )
 }
 
-inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
+inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
     configViewList: ConfigViewList<CV, T, ID, out ViewList<CV, T, ID, E, FILT>, E, FILT>,
     masterViewItem: ViewItem<*, *, *, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
@@ -93,7 +93,7 @@ inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E 
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
+inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
     viewList: ViewList<CV, T, ID, E, FILT>,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),

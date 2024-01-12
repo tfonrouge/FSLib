@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewItem
-import com.fonrouge.fsLib.config.ICommonItem
+import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.CrudTask
@@ -29,13 +29,13 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
     final override val configView: ConfigViewItem<CV, T, ID, out ViewItem<CV, T, ID, FILT>, *, FILT>,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-) : ViewDataContainer<CV, FILT>(
+) : ViewDataContainer<CV, T,ID, FILT>(
     urlParams = urlParams,
     configViewContainer = configView,
     editable = editable,
@@ -303,7 +303,7 @@ abstract class ViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any
                                     val labelId =
                                         itemResponse.item?.let { configView.commonView.labelIdFunc?.invoke(it) }
                                     if (itemResponse.item != null && labelId != null) {
-                                        div(content = "Please confirm delete of ${this@ViewItem.configView.commonView.label} '$labelId'") {
+                                        div(content = "Please confirm delete of ${this@ViewItem.label} '$labelId'") {
                                             fontSize = 1.5.em
                                         }
                                         flexPanel(
@@ -422,7 +422,7 @@ abstract class ViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any
 
     override val label: String
         get() {
-            return "${configView.commonView.label}: ${configView.commonView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
+            return "${configView.label}: ${configView.commonView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
 
     @OptIn(InternalSerializationApi::class)

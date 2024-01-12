@@ -21,31 +21,42 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter>(
+abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter>(
     private val serviceManager: KVServiceManager<E>,
     private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonView: CV,
     viewFunc: KClass<out V>,
     baseUrl: String? = null
-) : ConfigViewContainer<CV, V, FILT>(
+) : ConfigViewContainer<CV, T, ID, V, FILT>(
     viewFunc = viewFunc,
     commonView = commonView,
     baseUrl = baseUrl,
 ) {
+    override val baseUrl: String
+        get() {
+            val result =
+                _baseUrl
+                    ?: if (commonView == undefined) "error: commonView undefined" else ("ViewItem" + commonView.name)
+            return result
+        }
+
     companion object {
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
     }
 
-    val labelDelete by lazy { "Delete ${commonView.label}" }
-    val labelDetail by lazy { "Detail of ${commonView.label}" }
-    val labelCreate by lazy { "Create ${commonView.label}" }
-    val labelUpdate by lazy { "Update ${commonView.label}" }
+    override val label: String get() = commonView.labelItem
+    val labelDelete by lazy { "Delete ${commonView.labelItem}" }
+    val labelDetail by lazy { "Detail of ${commonView.labelIdFunc}" }
+    val labelCreate by lazy { "Create ${commonView.labelItem}" }
+    val labelUpdate by lazy { "Update ${commonView.labelItem}" }
+
+    override val labelUrl: Pair<String, String> by lazy { commonView.labelItem to url }
 
     @Suppress("unused")
-    fun labelUrlRead(id: ID) = commonView.label to urlRead(id)
+    fun labelUrlRead(id: ID) = commonView.labelItem to urlRead(id)
 
     @Suppress("unused")
-    fun labelUrlUpdate(id: ID) = commonView.label to urlUpdate(id)
+    fun labelUrlUpdate(id: ID) = commonView.labelItem to urlUpdate(id)
 
     @Suppress("unused")
     val urlCreate: String
@@ -151,7 +162,7 @@ abstract class ConfigViewItem<CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID
 }
 
 @Suppress("unused")
-fun <CV : ICommonItem<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter> configViewItem(
+fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<E>,
     function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,

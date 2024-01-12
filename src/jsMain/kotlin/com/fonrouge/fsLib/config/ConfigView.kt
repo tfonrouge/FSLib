@@ -19,9 +19,9 @@ private const val navigoPrefix = "#/"
 abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFilter>(
     val viewFunc: KClass<out V>,
     open val commonView: CV,
-    private val _baseUrl: String? = null,
+    internal val _baseUrl: String? = null,
 ) {
-    val baseUrl: String
+    open val baseUrl: String
         get() {
             val result =
                 _baseUrl ?: if (commonView == undefined) "error: commonView undefined" else ("View" + commonView.name)
@@ -33,7 +33,8 @@ abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFil
     }
 
     val url: String get() = navigoPrefix + this.baseUrl
-    val labelUrl: Pair<String, String> by lazy { commonView.label to url }
+    open val label: String get() = commonView.label
+    open val labelUrl: Pair<String, String> by lazy { commonView.label to url }
 
     /**
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilter] from the [UrlParams]
@@ -77,7 +78,7 @@ abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFil
         pairParam(key = "apiFilter", serializer = commonView.apiFilterSerializer, obj = obj)
 
     init {
-        if (this !is ConfigViewContainer<*, *, *>) {
+        if (this !is ConfigViewContainer<*, *, *, *, *>) {
             console.warn("ConfigView REGISTERING WITH", this.baseUrl)
             configViewMap[this.baseUrl] = this
         }

@@ -3,8 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
-import com.fonrouge.fsLib.config.ICommonItem
-import com.fonrouge.fsLib.config.ICommonList
+import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.layout.NavbarTabulator
 import com.fonrouge.fsLib.layout.TabulatorListContainer
 import com.fonrouge.fsLib.layout.TabulatorMenuItem
@@ -25,14 +24,14 @@ import io.kvision.toast.Toast
 import kotlinx.browser.window
 
 @Suppress("unused")
-abstract class ViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
+abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
     final override val configView: ConfigViewList<CV, T, ID, out ViewList<CV, T, ID, E, FILT>, E, FILT>,
-    configViewItem: ConfigViewItem<ICommonItem<T, ID, FILT>, T, ID, *, *, FILT>? = null,
+    configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: Boolean = true,
     icon: String? = null,
-) : ViewDataContainer<CV, FILT>(
+) : ViewDataContainer<CV, T, ID, FILT>(
     urlParams = urlParams,
     configViewContainer = configView,
     editable = editable,
@@ -44,7 +43,7 @@ abstract class ViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any
      * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
      * matching by name
      */
-    var configViewItem: ConfigViewItem<ICommonItem<T, ID, FILT>, T, ID, *, *, FILT>? = configViewItem
+    var configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewFunc.simpleName!!
@@ -53,7 +52,7 @@ abstract class ViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any
             } else {
                 "ViewItem${configView.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonItem<T, ID, FILT>, T, ID, *, *, FILT>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>>()
         }
 
     open val columnDefaults: ColumnDefinition<T>? = null
@@ -113,7 +112,7 @@ abstract class ViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItem,
-        configViewItem: ConfigViewItem<ICommonItem<T, ID, FILT>, *, ID, *, *, FILT>? = this.configViewItem,
+        configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, *, ID, *, *, FILT>? = this.configViewItem,
     ) {
         val url = configViewItem?.let {
             urlFromApiItem(
@@ -156,7 +155,7 @@ abstract class ViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any
             with(menu) {
                 val labelId = configViewItem?.commonView?.labelIdFunc?.invoke(item)
                 menuItem(
-                    label = " <font size=\"+1\">${configViewItem?.commonView?.label}</font>: <b>$labelId</b>",
+                    label = " <font size=\"+1\">${configViewItem?.label}</font>: <b>$labelId</b>",
                     disabled = false,
                     header = true
                 )
@@ -241,6 +240,8 @@ abstract class ViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any
     fun getItem(cell: Tabulator.CellComponent): T? {
         return tabulator?.toKotlinObj(cell.getData())
     }
+
+    override val label: String get() = configView.commonView.labelList
 
     /**
      * export to file download

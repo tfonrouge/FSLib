@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ICommon
-import com.fonrouge.fsLib.config.ICommonItem
+import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.CrudTask
@@ -33,8 +33,8 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     open val configView: ConfigView<CV, *, FILT>,
     var editable: Boolean = true,
     val icon: String? = null,
-    open val label: String = configView.commonView.label
 ) {
+    open val label: String get() = configView.label
     open var labelBanner: String?
         get() {
             return linkBanner?.label
@@ -294,7 +294,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
  * @return Url string
  */
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
-    configViewItem: ConfigViewItem<out ICommonItem<T, ID, FILT>, *, ID, *, *, FILT>,
+    configViewItem: ConfigViewItem<out ICommonContainer<T, ID, FILT>, *, ID, *, *, FILT>,
     apiItem: ApiItem<T, ID, FILT>
 ): String? {
     val url: String? = when (apiItem.crudTask) {

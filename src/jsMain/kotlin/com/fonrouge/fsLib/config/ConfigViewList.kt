@@ -8,21 +8,32 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CV, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
+abstract class ConfigViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CV, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
     val itemKClass: KClass<T>,
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
     override val commonView: CV,
     viewFunc: KClass<out V>,
     baseUrl: String? = null
-) : ConfigViewContainer<CV, V, FILT>(
+) : ConfigViewContainer<CV, T, ID, V, FILT>(
     viewFunc = viewFunc,
     commonView = commonView,
     baseUrl = baseUrl
 ) {
+    override val baseUrl: String
+        get() {
+            val result =
+                _baseUrl
+                    ?: if (commonView == undefined) "error: commonView undefined" else ("ViewList" + commonView.name)
+            return result
+        }
+
     companion object {
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *>>()
     }
+
+    override val label: String get() = commonView.labelList
+    override val labelUrl: Pair<String, String> by lazy { commonView.labelList to url }
 
     /**
      * builds an url string with optional [IApiFilter] parameter
@@ -39,7 +50,7 @@ abstract class ConfigViewList<CV : ICommonList<T, ID, FILT>, T : BaseDoc<ID>, ID
 }
 
 @Suppress("unused")
-inline fun <CV : ICommonList<T, ID, FILT>, reified T : BaseDoc<ID>, V : ViewList<CV, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
+inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, V : ViewList<CV, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
     itemKClass: KClass<T> = T::class,
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<E>,

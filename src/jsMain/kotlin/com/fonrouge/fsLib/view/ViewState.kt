@@ -14,7 +14,7 @@ class ViewState(
 @Suppress("unused")
 fun Container.showView(viewState: ViewState) {
     val view = viewState.configView.newViewInstance(viewState.urlParams)
-    val viewDataContainer = view as? ViewDataContainer<*, *>
+    val viewDataContainer = view as? ViewDataContainer<*,*,*, *>
     view.apply {
         div {
             addBeforeDisposeHook {
