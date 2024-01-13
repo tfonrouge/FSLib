@@ -21,10 +21,10 @@ class AppRole(
     @Serializable
     enum class RoleType(
         override val encoded: String,
-        override val label: String = ""
+        override val label: String
     ) : XEnum {
-        Simple("S"),
-        DataAction("DA"),
+        Simple("S", "Simple"),
+        DataAction("DA", "Data Action"),
     }
 }
 
