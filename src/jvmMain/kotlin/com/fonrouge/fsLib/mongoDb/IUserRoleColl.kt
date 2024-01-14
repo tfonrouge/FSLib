@@ -25,8 +25,9 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         )
     }
 
-    open fun groupRoleColl(): IGroupRoleColl<GR, *, GOU, *>? = null
-    open fun userGroupColl(): IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter>? = null
+    abstract val appRoleColl: Coll<out IAppRole, OId<IAppRole>, out IApiFilter>
+    abstract val groupRoleColl: IGroupRoleColl<GR, *, GOU, *>
+    abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter>
     open fun rootUser(user: U?): Boolean? = null
 
     @Suppress("unused")
@@ -46,9 +47,9 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
             classOwner = st.className.substringAfterLast('.')
             funcName = st.methodName
         }
-        val appRole = AppRoleColl.coroutineColl.findOne(
-            AppRole::classOwner eq classOwner,
-            AppRole::funcName eq funcName
+        val appRole = appRoleColl.coroutineColl.findOne(
+            IAppRole::classOwner eq classOwner,
+            IAppRole::funcName eq funcName
         ) ?: return SimpleState(isOk = false, msgError = "App role doesn't exist '$classOwner::$funcName' ... ")
         val groupPermissionType: PermissionType? = getGroupPermission(user, appRole)
         val userPermissionType: PermissionType? = coroutineColl.find(
@@ -73,9 +74,9 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         return SimpleState(isOk = false, msgError = "User not authorized ...")
     }
 
-    private suspend fun getGroupPermission(user: U, appRole: AppRole): PermissionType? {
-        val userGroupColl = userGroupColl() ?: return null
-        val groupRoleColl = groupRoleColl() ?: return null
+    private suspend fun getGroupPermission(user: U, appRole: IAppRole): PermissionType? {
+        val userGroupColl = userGroupColl
+        val groupRoleColl = groupRoleColl
         val pipeline = mutableListOf<Bson>()
         pipeline.add(0, match(IUserGroup<U, UID, *, *>::userId eq user._id))
         pipeline += lookup5(
@@ -118,6 +119,6 @@ private data class GroupOfUser(
 private data class GroupRole(
     override val _id: OId<GroupRole>,
     override val groupOfUserId: OId<GroupOfUser>,
-    override val appRoleId: OId<AppRole>,
+    override val appRoleId: OId<IAppRole>,
     override val permission: PermissionType,
 ) : IGroupRole<GroupRole, GroupOfUser>
