@@ -10,7 +10,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.bson.BsonType
 
-@Suppress("unused")
+@Suppress("unused", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSNumberDoubleSerializer : KSerializer<Double> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Number as Double Serializer", PrimitiveKind.DOUBLE)

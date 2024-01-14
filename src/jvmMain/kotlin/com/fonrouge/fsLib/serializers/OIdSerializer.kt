@@ -14,6 +14,7 @@ import java.time.OffsetDateTime
 @Suppress("unused")
 const val EMPTY_OID = "000000000000000000000000"
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object OIdSerializer : KSerializer<OId<Any>> {
     override fun deserialize(decoder: Decoder): OId<Any> {
         return if (decoder is BsonFlexibleDecoder) {

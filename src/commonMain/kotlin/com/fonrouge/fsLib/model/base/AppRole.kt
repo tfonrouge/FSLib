@@ -18,7 +18,7 @@ class AppRole(
     val detail: String?,
     val defaultPermission: PermissionType = PermissionType.Allow
 ) : BaseDoc<OId<AppRole>> {
-    @Serializable
+    @Serializable(with = RoleTypeSerializer::class)
     enum class RoleType(
         override val encoded: String,
         override val label: String
