@@ -9,5 +9,5 @@ abstract class ICommon<FILT : IApiFilter>(
     val apiFilterSerializer: KSerializer<FILT>,
 ) {
     val name: String get() = this::class.simpleName?.removePrefix("Common") ?: "?"
-    open fun route(): String = name
+    fun route(): String = name
 }

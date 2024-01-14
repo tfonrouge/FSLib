@@ -19,4 +19,9 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
 ) {
     @OptIn(InternalSerializationApi::class)
     val itemSerializer get() = itemKClass.serializer()
+    fun route(type: Type): String = "${type}${super.route()}"
+    enum class Type {
+        Item,
+        List,
+    }
 }
