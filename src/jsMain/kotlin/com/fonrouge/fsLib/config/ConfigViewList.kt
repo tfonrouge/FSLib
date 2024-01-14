@@ -43,7 +43,6 @@ abstract class ConfigViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     }
 
     init {
-        console.warn("ConfigViewList REGISTERING WITH", this.baseUrl)
         configViewListMap[this.baseUrl] = this
     }
 }

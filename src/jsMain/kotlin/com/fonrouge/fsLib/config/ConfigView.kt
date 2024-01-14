@@ -79,7 +79,6 @@ abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFil
 
     init {
         if (this !is ConfigViewContainer<*, *, *, *, *>) {
-            console.warn("ConfigView REGISTERING WITH", this.baseUrl)
             configViewMap[this.baseUrl] = this
         }
     }

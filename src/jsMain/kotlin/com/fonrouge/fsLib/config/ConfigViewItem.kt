@@ -156,7 +156,6 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     }
 
     init {
-        console.warn("ConfigViewItem REGISTERING WITH", this.baseUrl)
         configViewItemMap[this.baseUrl] = this
     }
 }
