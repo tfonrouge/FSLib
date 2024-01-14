@@ -73,7 +73,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 lookups = lookup?.lookupWrappers,
                 resultUnit = resultUnit,
                 apiFilter = null
-            ).let {
+            ).let { it ->
                 pip2 += it
                 limit?.let { pip2 += limit(it) }
             }

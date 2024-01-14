@@ -26,16 +26,16 @@ data class UrlParams(
 
     val crudTask: CrudTask?
         get() {
-            return CrudTask.values().find { it.name == params.get("action") }
+            return CrudTask.entries.find { it.name == params["action"] }
         }
 
     val actionUpsert: Boolean
         get() {
-            return params.get("action") in listOf(CrudTask.Create.name, CrudTask.Update.name)
+            return params["action"] in listOf(CrudTask.Create.name, CrudTask.Update.name)
         }
     val id: String?
         get() {
-            return params.get("id") as? String
+            return params["id"] as? String
         }
 
     /**
