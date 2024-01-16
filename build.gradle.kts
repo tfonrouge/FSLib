@@ -52,7 +52,7 @@ kotlin {
         binaries.executable()
     }
     androidTarget {
-        publishLibraryVariants("release", "debug")
+//        publishLibraryVariants("release", "debug")
     }
     sourceSets {
         val commonMain by getting {
