@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "2.2.2"
+version = "2.2.3"
 
 repositories {
     google()
@@ -52,7 +52,7 @@ kotlin {
         binaries.executable()
     }
     androidTarget {
-//        publishLibraryVariants("release", "debug")
+        publishLibraryVariants("release")
     }
     sourceSets {
         val commonMain by getting {
