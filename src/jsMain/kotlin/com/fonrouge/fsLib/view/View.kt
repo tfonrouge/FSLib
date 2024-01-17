@@ -255,20 +255,6 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     }
 
     /**
-     * Builds an url with an [apiFilter] parameter value
-     *
-     * @param configView - The [ConfigView] of the [View] to go
-     */
-    fun <F : IApiFilter> urlApiFilter(
-        configView: ConfigView<*, *, F>,
-        apiFilter: F,
-    ): String {
-        val params = mutableListOf<Pair<String, String>>()
-        configView.apiFilterParam(apiFilter).let { params.add(it) }
-        return configView.urlWithParams(*params.toTypedArray())
-    }
-
-    /**
      * open function that builds a filter form
      */
     open fun Container.buildOffCanvasFilterView(): Offcanvas? = null
@@ -322,4 +308,18 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
         configViewItem.url + urlParams.toString()
     }
     return url
+}
+
+/**
+ * Builds an url with an [apiFilter] parameter value
+ *
+ * @param configView - The [ConfigView] of the [View] to go
+ */
+fun <FILT : IApiFilter> urlApiFilter(
+    configView: ConfigView<*, *, FILT>,
+    apiFilter: FILT,
+): String {
+    val params = mutableListOf<Pair<String, String>>()
+    configView.apiFilterParam(apiFilter).let { params.add(it) }
+    return configView.urlWithParams(*params.toTypedArray())
 }
