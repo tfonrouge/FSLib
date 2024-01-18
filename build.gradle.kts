@@ -3,14 +3,14 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 plugins {
     val kotlinVersion: String by System.getProperties()
     val kvisionVersion: String by System.getProperties()
-    id("com.android.library") version "8.1.1"
+    id("com.android.library") version "8.2.1"
     kotlin("multiplatform") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
     id("maven-publish")
 }
 
 group = "com.fonrouge.fsLib"
-version = "2.2.3"
+version = "3.0.0"
 
 repositories {
     google()
@@ -143,14 +143,32 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-/*
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-        getByName("debug") {
-            isMinifyEnabled = false
-        }
+    dependencies {
+        implementation("androidx.core:core-ktx:1.12.0")
+        implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+        implementation("androidx.activity:activity-compose:1.8.2")
+        implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+        implementation("androidx.compose.ui:ui")
+        implementation("androidx.compose.ui:ui-graphics")
+        implementation("androidx.compose.ui:ui-tooling-preview")
+        implementation("androidx.compose.material3:material3:1.1.2")
+        implementation("androidx.compose.material:material-icons-extended:1.5.4")
+        implementation("androidx.navigation:navigation-compose:2.7.6")
     }
-*/
+    /*
+        buildTypes {
+            getByName("release") {
+                isMinifyEnabled = false
+            }
+            getByName("debug") {
+                isMinifyEnabled = false
+            }
+        }
+    */
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
 }
