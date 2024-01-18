@@ -17,6 +17,7 @@ repositories {
     mavenCentral()
     mavenLocal()
     gradlePluginPortal()
+    maven { url = uri("https://jitpack.io") }
 }
 
 val kvisionVersion: String by System.getProperties()
@@ -154,6 +155,37 @@ android {
         implementation("androidx.compose.material3:material3:1.1.2")
         implementation("androidx.compose.material:material-icons-extended:1.5.4")
         implementation("androidx.navigation:navigation-compose:2.7.6")
+
+        implementation("androidx.paging:paging-compose:3.2.1")
+        /* scanner service provided by Google Play */
+        implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
+        implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+        api("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+
+        val cameraxVersion = "1.4.0-alpha03"
+        implementation("androidx.camera:camera-camera2:$cameraxVersion")
+        implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+        implementation("androidx.camera:camera-view:$cameraxVersion")
+
+        api("com.google.mlkit:barcode-scanning:17.2.0")
+
+        /* permission*/
+        implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+        /* replacement for pullRefresh that doesn't exist in Material3 */
+        api("eu.bambooapps:compose-material3-pullrefresh:1.0.1")
+        /* multi-button floating action button */
+        api("com.github.iamageo:MultiFab:1.0.6")
+
+        implementation("io.ktor:ktor-client-cio:2.3.7")
+        implementation("io.ktor:ktor-client-okhttp:2.3.7")
+        implementation("io.ktor:ktor-client-android:2.3.7")
+        implementation("io.ktor:ktor-client-auth:2.3.7")
+        implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+        implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+        implementation("io.ktor:ktor-client-serialization:2.3.7")
+        implementation("io.ktor:ktor-client-logging:2.3.7")
+
+        debugImplementation("androidx.compose.ui:ui-tooling:1.5.4")
     }
     /*
         buildTypes {
