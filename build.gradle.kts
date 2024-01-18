@@ -93,6 +93,7 @@ kotlin {
                 api("org.jetbrains.exposed:exposed-core:$exposedVersion")
                 api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
                 api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+                api("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
                 api("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$kotlinxDatetimeVersion")
                 api("net.sourceforge.jtds:jtds:1.3.1")
                 api("com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre8")
