@@ -42,7 +42,6 @@ fun <T : BaseDoc<*>> BodyList(
     pullRefreshState: PullRefreshState,
     content: @Composable (T?) -> Unit
 ) {
-    Screen1()
     Box(
         modifier = Modifier
             .pullRefresh(state = pullRefreshState)
