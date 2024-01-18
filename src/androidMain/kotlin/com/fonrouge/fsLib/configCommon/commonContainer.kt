@@ -17,7 +17,6 @@ import kotlinx.serialization.json.Json
 val ICommonContainer<*, *, *>.routeItem: String get() = "ViewItem$name?apiItem={apiItem}"
 val ICommonContainer<*, *, *>.routeList: String get() = "ViewList$name?apiFilter={apiFilter}"
 
-@Suppress("unused")
 @Composable
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.DecodeRouteItemParams(
     navBackStackEntry: NavBackStackEntry,
@@ -49,7 +48,6 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     )
 }
 
-@Suppress("unused")
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.navigateItem(
     navHostController: NavHostController,
     apiItem: ApiItem<T, ID, FILT>
@@ -63,7 +61,6 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     )
 }
 
-@Suppress("unused")
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.navigateList(
     navHostController: NavHostController,
     apiFilter: FILT? = null,
@@ -87,7 +84,6 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     }
 }
 
-@Suppress("unused")
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableList(
     commonContainer: CV,
     function: @Composable AnimatedContentScope.(FILT?) -> Unit,
