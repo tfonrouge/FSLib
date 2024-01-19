@@ -23,7 +23,6 @@ import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
 import kotlinx.browser.window
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
@@ -241,7 +240,6 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      */
     open fun onAfterDisplayForm(crudTask: CrudTask) {}
 
-    @OptIn(InternalSerializationApi::class)
     override fun Container.displayPage() {
         vPanel(className = "showItem") {
             flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
@@ -263,6 +261,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                     Json.encodeToString(configView.commonView.idSerializer, it)
                                 )
                             }
+                            @Suppress("UNUSED_VARIABLE")
                             val url = (configView.url + urlParams.toString()).asDynamic()
 
                             @Suppress("UNUSED_VARIABLE")
@@ -423,7 +422,6 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             return "${configView.label}: ${configView.commonView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
         }
 
-    @OptIn(InternalSerializationApi::class)
     fun encodeId(id: ID? = item?._id): String? {
         return id?.let { Json.encodeToString(configView.commonView.idSerializer, id) }
     }
