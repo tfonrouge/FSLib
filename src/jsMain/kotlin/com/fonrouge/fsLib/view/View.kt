@@ -1,15 +1,10 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
-import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ICommon
-import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
-import com.fonrouge.fsLib.model.CrudTask
-import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.*
 import io.kvision.html.*
 import io.kvision.navbar.Navbar
@@ -21,8 +16,6 @@ import io.kvision.state.ObservableValue
 import io.kvision.state.bind
 import io.kvision.utils.em
 import io.kvision.utils.px
-import js.uri.encodeURIComponent
-import kotlinx.serialization.json.Json
 
 abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     var urlParams: UrlParams? = null,
@@ -68,7 +61,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
      * or programmatically, and it's delivered to the backend
      */
     val apiFilter: ObservableValue<FILT?> by lazy {
-        ObservableValue(apiFilterFromUrl ?: configView.apiFilterInstance())
+        ObservableValue(apiFilterInstance() ?: apiFilterFromUrl)
     }
 
     protected val apiFilterFromUrl: FILT?
@@ -125,7 +118,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     open fun Container.bannerLegend() {}
     abstract fun Container.displayPage()
     open fun onAfterDisplayPage() {}
-    open fun apiFilterInstance() = configView.apiFilterInstance()
+    open fun apiFilterInstance(): FILT? = null
     open fun onApiFilterUpdate() {
         updateBanner()
     }
