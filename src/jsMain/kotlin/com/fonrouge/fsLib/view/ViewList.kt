@@ -10,6 +10,7 @@ import com.fonrouge.fsLib.layout.TabulatorMenuItem
 import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
+import com.fonrouge.fsLib.lib.urlFromApiItem
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter

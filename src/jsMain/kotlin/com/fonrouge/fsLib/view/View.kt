@@ -19,13 +19,9 @@ import io.kvision.offcanvas.Offcanvas
 import io.kvision.panel.hPanel
 import io.kvision.state.ObservableValue
 import io.kvision.state.bind
-import io.kvision.toast.Toast
-import io.kvision.toast.ToastOptions
-import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
 import io.kvision.utils.px
 import js.uri.encodeURIComponent
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
@@ -72,7 +68,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
      * or programmatically, and it's delivered to the backend
      */
     val apiFilter: ObservableValue<FILT?> by lazy {
-        ObservableValue(apiFilterFromUrl ?: onNewApiFilterInstance())
+        ObservableValue(apiFilterFromUrl ?: configView.apiFilterInstance())
     }
 
     protected val apiFilterFromUrl: FILT?
@@ -128,54 +124,8 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
      */
     open fun Container.bannerLegend() {}
     abstract fun Container.displayPage()
-
-    /**
-     * Builds a new instance of [apiFilter]
-     */
-    open fun onNewApiFilterInstance(): FILT? {
-        return try {
-            Json.decodeFromString(configView.commonView.apiFilterSerializer, """{}""")
-        } catch (e: SerializationException) {
-            val errMsg = """
-                Error creating instance of apiFilter: ${e.message},
-                hint: Set @Serializable annotation to [${configView.commonView.apiFilterSerializer}]::class,
-                """.trimIndent()
-            e.message
-            console.error(errMsg)
-            Toast.danger(
-                message = errMsg,
-                options = ToastOptions(
-                    position = ToastPosition.BOTTOMRIGHT,
-                    escapeHtml = true,
-                    duration = 10000,
-                    stopOnFocus = true,
-                    newWindow = true
-                )
-            )
-            throw e
-        } catch (e: Exception) {
-            val errMsg = """
-                Error creating instance of apiFilter,
-                hint: [${configView.commonView.apiFilterSerializer}]::class must *not* have required constructor parameters,
-                or need to override the onNewApiFilterInstance() function
-                """.trimIndent()
-            e.message
-            console.error(errMsg)
-            Toast.danger(
-                message = errMsg,
-                options = ToastOptions(
-                    position = ToastPosition.BOTTOMRIGHT,
-                    escapeHtml = true,
-                    duration = 10000,
-                    stopOnFocus = true,
-                    newWindow = true
-                )
-            )
-            throw e
-        }
-    }
-
     open fun onAfterDisplayPage() {}
+    open fun apiFilterInstance() = configView.apiFilterInstance()
     open fun onApiFilterUpdate() {
         updateBanner()
     }
@@ -273,53 +223,4 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
             offCanvasFilter?.show()
         }
     }
-}
-
-/**
- * Builds a string Url based on a [ConfigViewItem] and a [ApiItem] parameters
- * @return Url string
- */
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
-    configViewItem: ConfigViewItem<out ICommonContainer<T, ID, FILT>, *, ID, *, *, FILT>,
-    apiItem: ApiItem<T, ID, FILT>
-): String? {
-    val url: String? = when (apiItem.crudTask) {
-        CrudTask.Create -> listOf("action" to CrudTask.Create.name)
-        else -> {
-            apiItem.id?.let { it: ID ->
-                listOf(
-                    "action" to apiItem.crudTask.name,
-                    "id" to Json.encodeToString(configViewItem.commonView.idSerializer, it)
-                )
-            }
-        }
-    }?.let { params ->
-        val urlParams = UrlParams(*params.toTypedArray())
-        apiItem.apiFilter?.let {
-            urlParams.pushParam(
-                "apiFilter" to encodeURIComponent(
-                    Json.encodeToString(
-                        configViewItem.commonView.apiFilterSerializer,
-                        apiItem.apiFilter
-                    )
-                )
-            )
-        }
-        configViewItem.url + urlParams.toString()
-    }
-    return url
-}
-
-/**
- * Builds an url with an [apiFilter] parameter value
- *
- * @param configView - The [ConfigView] of the [View] to go
- */
-fun <FILT : IApiFilter> urlApiFilter(
-    configView: ConfigView<*, *, FILT>,
-    apiFilter: FILT,
-): String {
-    val params = mutableListOf<Pair<String, String>>()
-    configView.apiFilterParam(apiFilter).let { params.add(it) }
-    return configView.urlWithParams(*params.toTypedArray())
 }

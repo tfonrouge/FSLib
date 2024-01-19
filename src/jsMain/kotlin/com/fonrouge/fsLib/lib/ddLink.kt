@@ -3,18 +3,18 @@ package com.fonrouge.fsLib.lib
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.layout.TabulatorMenuItem
-import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
+import io.kvision.dropdown.DropDown
+import io.kvision.dropdown.ddLink
 
 @Suppress("unused")
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> MutableList<TabulatorMenuItem>.menuItem(
+fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> DropDown.ddLink(
     configViewItem: ConfigViewItem<CV, T, ID, *, *, FILT>,
     apiItem: ApiItem<T, ID, FILT>,
 ) {
-    menuItem(
+    ddLink(
         label = configViewItem.label,
         url = urlFromApiItem(
             configViewItem = configViewItem,
@@ -24,11 +24,11 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 }
 
 @Suppress("unused")
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> MutableList<TabulatorMenuItem>.menuItem(
+fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> DropDown.ddLink(
     configViewList: ConfigViewList<CV, T, ID, *, *, FILT>,
     apiFilter: FILT = configViewList.apiFilterInstance(),
 ) {
-    menuItem(
+    ddLink(
         label = configViewList.label,
         url = urlApiFilter(
             configView = configViewList,
