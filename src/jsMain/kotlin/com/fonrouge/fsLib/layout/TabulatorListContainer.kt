@@ -105,7 +105,6 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
             tabSorter = sorters
             contentHashCode = this@TabulatorListContainer.contentHashCode
         }
-        console.warn(">>> apiList on promise", apiList)
         apiListUpdate?.invoke(apiList)
         val data =
             Serialization.plain.encodeToString(
@@ -117,7 +116,6 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
                     )
                 )
             )
-        console.warn(">>> data", data)
         return callAgent.remoteCall(
             url,
             data,

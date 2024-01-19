@@ -255,7 +255,6 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                         id = urlParams?.id?.let { Json.decodeFromString(configView.commonView.idSerializer, it) },
                         apiFilter = apiFilter.value
                     ) { itemResponse ->
-                        console.warn(">> showing with urlParams", urlParams, "itemResponse", itemResponse)
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams?.params?.set("action", CrudTask.Update.name)
                             itemResponse.item?._id?.let {
@@ -270,7 +269,6 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             val stateObj =
                                 "{${itemResponse::class.simpleName}: \"${itemResponse.item?._id}\"}".asDynamic()
                             js("""history.replaceState(stateObj,"createToUpdate",url)""")
-                            console.warn(">> replacing state with", url)
                         }
                         var buttonCancel: Button? = null
                         var buttonAccept: Button? = null
