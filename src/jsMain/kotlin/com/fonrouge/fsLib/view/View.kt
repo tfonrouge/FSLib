@@ -60,8 +60,8 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
      * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
      * or programmatically, and it's delivered to the backend
      */
-    val apiFilter: ObservableValue<FILT?> by lazy {
-        ObservableValue(apiFilterInstance() ?: apiFilterFromUrl)
+    val apiFilter: ObservableValue<FILT> by lazy {
+        ObservableValue(apiFilterInstance() ?: apiFilterFromUrl ?: configView.apiFilterInstance())
     }
 
     protected val apiFilterFromUrl: FILT?
