@@ -31,9 +31,9 @@ inline fun <reified VML : ViewModelPagingData<T, FILT>, T : BaseDoc<*>, FILT : I
     noinline topBarActions: @Composable RowScope.() -> Unit = {},
     noinline bottomBar: @Composable () -> Unit = {},
     noinline modalNavigationDrawerContent: @Composable ColumnScope.(DrawerState) -> Unit = {},
+    drawerState: DrawerState,
     noinline bodyListContent: @Composable (T?) -> Unit
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState(viewModel)) },
         topBar = {
