@@ -91,7 +91,7 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         callType: ApiItem.CallType,
         id: ID? = null,
         item: T? = null,
-        apiFilter: FILT? = null,
+        apiFilter: FILT,
         block: (ItemState<T>) -> ItemState<T>,
     ) {
         val (url, method) = serviceManager.requireCall(function)
