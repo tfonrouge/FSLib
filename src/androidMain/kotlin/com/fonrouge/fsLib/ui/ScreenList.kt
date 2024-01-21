@@ -19,7 +19,7 @@ import com.fonrouge.fsLib.viewModel.ViewModelPagingData
 @Suppress("unused")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-inline fun <reified VML : ViewModelPagingData<T, FILT>, T : BaseDoc<*>, FILT : IApiFilter> ScreenList(
+inline fun <reified VML : ViewModelPagingData<T, *>, T : BaseDoc<*>> ScreenList(
     navHostController: NavHostController = NavHostController(LocalContext.current),
     viewModel: VML = viewModel(),
     noinline topBarTitle: @Composable () -> Unit = {},
