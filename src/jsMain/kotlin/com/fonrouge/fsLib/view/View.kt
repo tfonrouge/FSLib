@@ -60,9 +60,16 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
      * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
      * or programmatically, and it's delivered to the backend
      */
-    val apiFilter: ObservableValue<FILT> by lazy {
+    val apiFilterObservableValue: ObservableValue<FILT> by lazy {
         ObservableValue(apiFilterInstance() ?: apiFilterFromUrl ?: configView.apiFilterInstance())
     }
+    var apiFilter: FILT
+        get() {
+            return apiFilterObservableValue.value
+        }
+        set(value) {
+            apiFilterObservableValue.value = value
+        }
 
     protected val apiFilterFromUrl: FILT?
         get() = urlParams?.pullUrlParam(
@@ -92,15 +99,13 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     }
 
     /**
-     * Sets the current browser url with an [apiFilter] url parameter
+     * Sets the current browser url with an [apiFilterObservableValue] url parameter
      */
     fun apiFilterToUrl() {
-        apiFilter.value?.let { apiFilter ->
-            configView.pairParam("apiFilter", configView.commonView.apiFilterSerializer, apiFilter)
-                .let { pair ->
-                    urlParams?.params?.set(pair.first, pair.second)
-                }
-        }
+        configView.pairParam("apiFilter", configView.commonView.apiFilterSerializer, apiFilter)
+            .let { pair ->
+                urlParams?.params?.set(pair.first, pair.second)
+            }
         @Suppress("UNUSED_VARIABLE")
         val url = (configView.url + urlParams.toString()).asDynamic()
 
@@ -113,7 +118,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     /**
      * Allows to describe a display that will be showed next to the view link banner
      * it can be triggered with [updateBanner] function.
-     * Note: don't try to update [apiFilter] inside this, or you'll get a recursive infinite loop
+     * Note: don't try to update [apiFilterObservableValue] inside this, or you'll get a recursive infinite loop
      */
     open fun Container.bannerLegend() {}
     abstract fun Container.displayPage()
@@ -203,7 +208,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     open fun Container.buildOffCanvasFilterView(): Offcanvas? = null
 
     /**
-     * open function that fires when toolbar's filter button is clicked. If [apiFilter] contains a null value then
+     * open function that fires when toolbar's filter button is clicked. If [apiFilterObservableValue] contains a null value then
      * a new [FILT] object is created (with no constructor parameters) and assign it to the apiFilter value.
      */
     open fun onClickFilter() {

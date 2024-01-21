@@ -105,7 +105,7 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
-        val apiList: ApiList<FILT> = ApiList(apiFilter = viewList.apiFilter.value)
+        val apiList: ApiList<FILT> = ApiList(apiFilter = viewList.apiFilter)
         apiList.params = JSON.stringify(urlParams?.params)
         apiList
     }

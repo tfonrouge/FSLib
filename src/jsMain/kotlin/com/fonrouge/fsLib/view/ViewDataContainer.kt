@@ -78,7 +78,7 @@ abstract class ViewDataContainer<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc
     }
 
     /**
-     * open function that allows to override the default action when the [apiFilter] observable changes.
+     * open function that allows to override the default action when the [apiFilterObservableValue] observable changes.
      * The default action will do an [updateBanner] and then an [dataUpdate]
      */
     override fun onApiFilterUpdate() {

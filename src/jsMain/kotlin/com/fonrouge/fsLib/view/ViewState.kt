@@ -23,7 +23,7 @@ fun Container.showView(viewState: ViewState) {
             onBeforeDisplayPage(this@showView)
             this@showView.displayPage()
             viewDataContainer?.let {
-                bind(viewDataContainer.apiFilter) {
+                bind(viewDataContainer.apiFilterObservableValue) {
                     viewDataContainer.onApiFilterUpdate()
                     viewDataContainer.apiFilterToUrl()
                 }

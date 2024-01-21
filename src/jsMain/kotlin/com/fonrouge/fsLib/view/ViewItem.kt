@@ -117,7 +117,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                         callType = ApiItem.CallType.Action,
                         id = item?._id,
                         item = data?.let { onDataFormBeforeApiCall(it) },
-                        apiFilter = apiFilter.value,
+                        apiFilter = apiFilter,
                     ) { itemResponse ->
                         block?.let { it(itemResponse) }
                         itemResponse
@@ -251,7 +251,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Query,
                         id = urlParams?.id?.let { Json.decodeFromString(configView.commonView.idSerializer, it) },
-                        apiFilter = apiFilter.value
+                        apiFilter = apiFilter
                     ) { itemResponse ->
                         if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
                             urlParams?.params?.set("action", CrudTask.Update.name)
@@ -338,7 +338,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                                                     it
                                                                 )
                                                             },
-                                                            apiFilter = apiFilter.value
+                                                            apiFilter = apiFilter
                                                         ) { itemResponse1 ->
                                                             buttonCancel?.hide()
                                                             buttonAccept?.hide()
