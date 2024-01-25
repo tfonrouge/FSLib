@@ -163,10 +163,9 @@ android {
         implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
         api("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-        val cameraxVersion = "1.4.0-alpha03"
-        implementation("androidx.camera:camera-camera2:$cameraxVersion")
-        implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-        implementation("androidx.camera:camera-view:$cameraxVersion")
+        implementation("androidx.camera:camera-camera2:1.4.0-alpha04")
+        implementation("androidx.camera:camera-lifecycle:1.4.0-alpha04")
+        implementation("androidx.camera:camera-view:1.4.0-alpha04")
 
         api("com.google.mlkit:barcode-scanning:17.2.0")
 
