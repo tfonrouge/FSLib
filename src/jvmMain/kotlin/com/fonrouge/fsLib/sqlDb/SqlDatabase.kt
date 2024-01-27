@@ -74,7 +74,7 @@ abstract class SqlDatabase(
                 exec(sql, args, explicitStatementType) { resultSet ->
                     if (resultSet.next()) {
                         result = if (T::class.isSubclassOf(Comparable::class)) {
-                            getElementFromClasifier(
+                            getElementFromClassifier(
                                 kClass = T::class,
                                 resultSet = resultSet,
                                 index = 1
@@ -189,7 +189,7 @@ abstract class SqlDatabase(
         return decodeMap
     }
 
-    fun getElementFromClasifier(
+    fun getElementFromClassifier(
         field: KCallable<*>? = null,
         kClass: KClass<*>? = field?.returnType?.classifier as? KClass<*>,
         resultSet: ResultSet,
@@ -261,7 +261,7 @@ abstract class SqlDatabase(
                 decodeMap.stringIntMap[metaData.getColumnName(index).uppercase()]?.let { indexMap ->
                     val field = decodeMap.fields[indexMap]
                     try {
-                        getElementFromClasifier(
+                        getElementFromClassifier(
                             field = field,
                             resultSet = resultSet,
                             index = index,
