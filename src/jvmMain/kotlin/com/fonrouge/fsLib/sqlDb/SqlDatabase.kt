@@ -246,8 +246,14 @@ abstract class SqlDatabase(
             }
 
             else -> {
-                field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, null) }
-                null
+                if (kClass?.isSubclassOf(Enum::class) == true) {
+                    val result = resultSet.getString(index)
+                    field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, result) }
+                    result
+                } else {
+                    field?.name?.let { fieldName -> jsonObjectBuilder?.put(fieldName, null) }
+                    null
+                }
             }
         }
     }
