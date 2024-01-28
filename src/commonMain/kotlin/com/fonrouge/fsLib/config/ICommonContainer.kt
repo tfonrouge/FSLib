@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
@@ -19,4 +20,9 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
 ) {
     @OptIn(InternalSerializationApi::class)
     val itemSerializer get() = itemKClass.serializer()
+
+    @Suppress("unused")
+    fun apiFilterInstance(): FILT {
+        return Json.decodeFromString(apiFilterSerializer, "{}")
+    }
 }

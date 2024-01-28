@@ -32,7 +32,7 @@ abstract class ViewModelPagingData<T : BaseDoc<*>, FILT : IApiFilter> : ViewMode
     val refreshingList: MutableState<Boolean> = mutableStateOf(false)
     var requestRefresh by mutableStateOf(false)
     val refreshByFilter = mutableStateOf(false)
-    abstract val apiFilter: MutableState<FILT?>
+    abstract val apiFilter: MutableState<FILT>
     abstract val listStateFunc: KSuspendFunction1<ApiList<FILT>, ListState<T>>
     open val onBeforeListStateGet: (() -> Unit)? = null
 

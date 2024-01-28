@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.*
 import com.fonrouge.fsLib.model.state.SimpleState
@@ -15,9 +16,9 @@ import kotlin.reflect.KClass
 
 @Suppress("unused")
 abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter>(
-    klass: KClass<UR>,
+    commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>
 ) : Coll<UR, OId<IUserRole<U, UID>>, FILT>(
-    klass = klass
+    commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<UR>.ensureIndexes() {
         coroutineColl.ensureUniqueIndex(

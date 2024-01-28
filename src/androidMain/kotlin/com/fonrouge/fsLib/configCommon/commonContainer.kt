@@ -34,7 +34,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 @Composable
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.DecodeRouteListParams(
     navBackStackEntry: NavBackStackEntry,
-    function: @Composable (apiFilter: FILT?) -> Unit
+    function: @Composable (apiFilter: FILT) -> Unit
 ) {
     val serializedApiFilter =
         navBackStackEntry.arguments?.getString("apiFilter")?.removePrefix("\"")?.removeSuffix("\"")
@@ -44,7 +44,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
                 apiFilterSerializer.nullable,
                 it
             )
-        }
+        } ?: apiFilterInstance()
     )
 }
 
@@ -63,9 +63,9 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.navigateList(
     navHostController: NavHostController,
-    apiFilter: FILT? = null,
+    apiFilter: FILT = apiFilterInstance(),
 ) {
-    val serializedApiFilter = Json.encodeToString(apiFilterSerializer.nullable, apiFilter)
+    val serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     navHostController.navigate(
         "ViewList$name?apiFilter=\"${Uri.encode(serializedApiFilter)}\""
     )
@@ -86,7 +86,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableList(
     commonContainer: CV,
-    function: @Composable AnimatedContentScope.(FILT?) -> Unit,
+    function: @Composable AnimatedContentScope.(FILT) -> Unit,
 ) {
     composable(commonContainer.routeList) { navBackStackEntry ->
         commonContainer.DecodeRouteListParams(

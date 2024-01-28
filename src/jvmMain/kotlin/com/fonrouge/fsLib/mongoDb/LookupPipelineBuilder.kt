@@ -64,7 +64,9 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     internal val limit: Int?,
     val resultUnit: Coll.ResultUnit,
 ) {
-    suspend fun pipelineList(lookup: LookupWrapper<*, *>? = null): List<Bson> {
+    suspend fun pipelineList(
+        lookup: LookupWrapper<*, *>? = null
+    ): List<Bson> {
         val pip2 = mutableListOf<Bson>()
         this.pipeline?.let { bsonList -> pip2 += bsonList }
         collMap[collKClass]?.let { coll ->
@@ -72,7 +74,6 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 pipeline = mutableListOf(),
                 lookups = lookup?.lookupWrappers,
                 resultUnit = resultUnit,
-                apiFilter = null
             ).let { it ->
                 pip2 += it
                 limit?.let { pip2 += limit(it) }
