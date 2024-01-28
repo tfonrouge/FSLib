@@ -183,10 +183,18 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
      * helper function to write a bulk write list and clean the list after that
      */
     @Suppress("unused")
-    suspend fun bulkWrite(writeModels: MutableList<WriteModel<T>>) {
-        if (writeModels.size > 0) {
-            coroutineColl.bulkWrite(writeModels)
-            writeModels.clear()
+    fun bulkWrite(writeModels: MutableList<WriteModel<T>>, debug: Boolean = false) {
+        CoroutineScope(context = Dispatchers.IO).launch {
+            if (writeModels.size > 0) {
+                if (debug) {
+                    println("BulkWrite ${writeModels.hashCode()} start with ${writeModels.size} items.")
+                }
+                val r = coroutineColl.bulkWrite(writeModels)
+                if (debug) {
+                    println("BulkWrite ${writeModels.hashCode()} result = ${r.insertedCount}")
+                }
+                writeModels.clear()
+            }
         }
     }
 
