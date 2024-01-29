@@ -11,7 +11,7 @@ data class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     val item: T? = null,
     val callType: CallType = CallType.Query,
     val crudTask: CrudTask = CrudTask.Read,
-    val apiFilter: FILT? = null,
+    val apiFilter: FILT,
 ) {
     @Serializable
     enum class CallType {
