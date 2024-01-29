@@ -92,9 +92,3 @@ abstract class ViewModelPagingData<T : BaseDoc<*>, FILT : IApiFilter> : ViewMode
         data object EditingFilter : UIBaseEvent()
     }
 }
-
-@OptIn(InternalSerializationApi::class)
-inline fun <reified FILT : IApiFilter> encodeApiFilter(apiFilter: FILT): String {
-    val a = FILT::class.serializer()
-    return Json.encodeToString(apiFilter)
-}
