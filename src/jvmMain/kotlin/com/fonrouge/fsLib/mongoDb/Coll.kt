@@ -61,7 +61,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
         apiFilter: FILT = commonContainer.apiFilterInstance()
     ): List<KProperty1<in T, *>>? = null
 
-    open val lookupFun: ((FILT) -> List<LookupPipelineBuilder<T, *, *>>) = { listOf() }
+    open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
     open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, commonContainer.itemKClass.java)
 

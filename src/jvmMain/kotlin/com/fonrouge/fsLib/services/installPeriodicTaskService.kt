@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.ktor.ext.inject
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import kotlin.reflect.KCallable
 import kotlin.reflect.full.callSuspend
@@ -74,18 +75,18 @@ inline fun <reified T : IPeriodicTaskService> Application.installPeriodicTaskSer
             if (!periodicTask.workingTaskMap.contains(kCallable.name)) {
                 periodicTask.workingTaskMap.add(kCallable.name)
                 if (debug) {
-                    println("* Periodic Task Service: Starting ${klass.simpleName}::${kCallable.name}")
+                    println("[${LocalDateTime.now()}] Periodic Task Service: Starting ${klass.simpleName}::${kCallable.name}")
                 }
                 launch {
                     try {
                         kCallable.callSuspend(periodicTask)
                     } catch (e: Exception) {
                         val msgErr = e.message ?: e.cause?.message
-                        System.err.println("* Periodic Task Service: Error ${klass.simpleName}::${kCallable.name} = $msgErr")
+                        System.err.println("[${LocalDateTime.now()}] Periodic Task Service: Error ${klass.simpleName}::${kCallable.name} = $msgErr")
                         e.printStackTrace()
                     }
                     if (debug) {
-                        println("* Periodic Task Service: Finalizing ${klass.simpleName}::${kCallable.name}")
+                        println("[${LocalDateTime.now()}] Periodic Task Service: Finalizing ${klass.simpleName}::${kCallable.name}")
                     }
                     periodicTask.workingTaskMap.remove(kCallable.name)
                 }
