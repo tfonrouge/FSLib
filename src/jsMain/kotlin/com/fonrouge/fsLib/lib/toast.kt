@@ -21,7 +21,7 @@ fun ISimpleState.toast() {
             message = msgError ?: "Unkown error",
             options = ToastOptions(
                 avatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAACgUlEQVR4nO1Zy2oUURBtNC5052vj4x+Enjq2EmioGoILl0ZFPyTqxo2PrENICP6BEhca/A9FP0DNRieGZO7tmLhpqRkddIL0496e7pE+UNDQiz6nbt17q04HQYsWLZyRzs8f3RO6YhkPLGPdCn2wQttG8ENDn63g/fAd7iddROnD4EhQN/bmOheNYNEIbVpBWiSM0GfDeJrEuDBx4v1rl84apjXDOChK/JAQxoFlrOwKnZ4IedOlO5bpmyvxQ8HYMtK5VRnxNAyPGcEz78RlvLSwmsbxjF/y18MTRvCmavJ2VFa0od/0mfnC5NPe9l9RSkTsYSXKlo2rADvcFyuO5Olu2TLwIkCQmi7dLEVejzUr6NUtwDK2+nF4pnj2mdZcNqI3AaJBy4XI6+3oekn5FGAY+wlH5/NnX7DoljHfKwA9lZ7kIq9NlvYpjRMgtKlNY6aAQVfp+LEqBFhBmnCITAGDlrihAmyX7uWp/5eNFSD0InsFdPBoqgCmdzlKyE+rXM0KoJddQh6GlKoEGMb+/y/ATnsJ2enfxFhvrADB8+m+yJgWMgWo6dRUAYl0KF8zx/jUNAGG8TG3m6eOmaea9RZG6HEu8r4GGq/kueBAo1BHoG7i9ncwloKi2JmLTlnG1yYM9btlfVPDl2/XLaDPuFGK/EiEYLU2AVyidMahc2iZIcfdWsRrbybvwNxl2qhsk8oYecGrNIqOeyE/EhHHMxM5mRhL3u31P6FepYvl+G/i9MV5wxY6YoWW9YJxLxf6rlnfmZ09GUwaejuqY1amd9LexggeJd2r54K6oU2Wmk7q26j1oYOHTnbajgx/4umUR29/vVvQrrIRv1lbtAimHz8BNz/RC6gTB7UAAAAASUVORK5CYII="
-            )
+            ) // https://icons8.com/icons/set/warning
         )
     }
 }
