@@ -16,10 +16,6 @@ import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.state.SimpleState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import kotlin.reflect.KSuspendFunction1
 
 abstract class ViewModelPagingData<T : BaseDoc<*>, FILT : IApiFilter> : ViewModelBase() {

@@ -29,16 +29,14 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
         }
     }?.let { params ->
         val urlParams = UrlParams(*params.toTypedArray())
-        apiItem.apiFilter?.let {
-            urlParams.pushParam(
-                "apiFilter" to encodeURIComponent(
-                    Json.encodeToString(
-                        configViewItem.commonView.apiFilterSerializer,
-                        apiItem.apiFilter
-                    )
+        urlParams.pushParam(
+            "apiFilter" to encodeURIComponent(
+                Json.encodeToString(
+                    configViewItem.commonView.apiFilterSerializer,
+                    apiItem.apiFilter
                 )
             )
-        }
+        )
         configViewItem.url + urlParams.toString()
     }
     return url

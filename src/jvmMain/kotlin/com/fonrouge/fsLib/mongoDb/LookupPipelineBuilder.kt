@@ -64,6 +64,10 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     internal val limit: Int?,
     val resultUnit: Coll.ResultUnit,
 ) {
+    suspend fun <U : BaseDoc<*>, V : BaseDoc<*>> pipelineList(
+        lookupWrappers: List<LookupWrapper<V, U>>
+    ): List<Bson> = pipelineList(LookupWrapper<U, V>(lookupWrappers))
+
     suspend fun pipelineList(
         lookup: LookupWrapper<*, *>? = null
     ): List<Bson> {
@@ -72,7 +76,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
         collMap[collKClass]?.let { coll ->
             coll.finalPipeline(
                 pipeline = mutableListOf(),
-                lookups = lookup?.lookupWrappers,
+                lookups = lookup?.lookupWrappers ?: emptyList(),
                 resultUnit = resultUnit,
             ).let { it ->
                 pip2 += it

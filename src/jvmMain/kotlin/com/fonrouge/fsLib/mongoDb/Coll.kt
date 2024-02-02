@@ -83,7 +83,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun aggregateLookupPublisher(
         pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: Array<out LookupWrapper<*, *>>? = null,
+        lookups: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         listFirstStage: ListFirstStage? = null,
         countType: CountType = CountType.PreLookup,
@@ -124,7 +124,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     // TODO: find a better func name
     suspend fun aggregateOneLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: Array<out LookupWrapper<*, *>>? = null,
+        lookups: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
@@ -151,16 +151,16 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
      * @return List<Bson>
      */
     private suspend fun buildLookupList(
-        lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         val lookupPipelineBuilders =
-            lookupFun(apiFilter).plus(lookupWrappers?.mapNotNull {
+            lookupFun(apiFilter).plus(lookupWrappers.mapNotNull {
                 if (it is LookupByPipeline<*, *, *>) it.pipeline else null
-            } ?: emptyList())
+            })
         lookupPipelineBuilders.forEach { lookupPipelineBuilder ->
-            val lookupWrapper = lookupWrappers?.find {
+            val lookupWrapper = lookupWrappers.find {
                 lookupPipelineBuilder.resultProperty == when (it) {
                     is LookupByProperty -> it.resultProperty
                     is LookupByPipeline<*, *, *> -> it.pipeline.resultProperty
@@ -267,7 +267,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
      */
     suspend fun finalPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: Array<out LookupWrapper<*, *>>? = null,
+        lookups: List<LookupWrapper<*, *>> = emptyList(),
         resultUnit: ResultUnit,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> {
@@ -291,7 +291,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     @Suppress("unused", "MemberVisibilityCanBePrivate")
     suspend fun findPublisher(
         filter: Bson? = null,
-        lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         debug: Boolean = false,
     ): AggregatePublisher<T> {
@@ -313,7 +313,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     @Suppress("unused")
     suspend fun findList(
         filter: Bson? = null,
-        lookupWrappers: Array<out LookupWrapper<*, *>>? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         debug: Boolean = false,
     ): List<T> {
@@ -328,7 +328,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOne(
         filter: Bson? = null,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         debug: Boolean = false,
     ): T? {
@@ -343,7 +343,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOneById(
         id: ID?,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): T? {
         return findOne(BaseDoc<*>::_id eq id, lookupWrappers, apiFilter)
@@ -352,7 +352,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     @Suppress("unused")
     suspend fun findItemStateById(
         id: ID?,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray()
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
     ): ItemState<T> {
         return try {
             ItemState(
@@ -394,7 +394,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun listContainer(
         listFirstStage: ListFirstStage,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         noContentHashCode: Boolean = false,
@@ -457,7 +457,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
         apiList: ApiList<FILT>,
         countType: CountType = CountType.PreLookup,
         debug: Boolean? = this.debug,
-        lookupWrappers: Array<out LookupWrapper<*, *>> = emptyArray(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         noContentHashCode: Boolean = false,
         postProcessList: ((List<T>) -> Unit)? = null

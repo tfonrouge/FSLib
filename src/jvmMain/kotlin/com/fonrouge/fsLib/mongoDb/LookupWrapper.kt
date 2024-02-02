@@ -3,16 +3,16 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlin.reflect.KProperty1
 
-interface LookupWrapper<T : BaseDoc<*>, ID : BaseDoc<*>> {
-    val lookupWrappers: Array<out LookupWrapper<ID, *>>
-}
+open class LookupWrapper<T : BaseDoc<*>, U : BaseDoc<*>>(
+    open val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
+)
 
-class LookupByProperty<T : BaseDoc<*>, ID : BaseDoc<*>>(
-    val resultProperty: KProperty1<T, ID?>,
-    override vararg val lookupWrappers: LookupWrapper<ID, *>
-) : LookupWrapper<T, ID>
+class LookupByProperty<T : BaseDoc<*>, U : BaseDoc<*>>(
+    val resultProperty: KProperty1<T, U?>,
+    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
+) : LookupWrapper<T, U>()
 
-class LookupByPipeline<T : BaseDoc<*>, ID : BaseDoc<W>, W : Any>(
-    val pipeline: LookupPipelineBuilder<T, ID, W>,
-    override vararg val lookupWrappers: LookupWrapper<ID, *>
-) : LookupWrapper<T, ID>
+class LookupByPipeline<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
+    val pipeline: LookupPipelineBuilder<T, U, ID>,
+    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
+) : LookupWrapper<T, U>()
