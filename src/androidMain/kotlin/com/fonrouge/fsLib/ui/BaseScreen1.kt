@@ -103,8 +103,8 @@ fun ItemCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DismissBackgroundDelete(
-    dismissState: DismissState,
-    dismissDirection: DismissDirection,
+    dismissState: SwipeToDismissBoxState,
+    dismissDirection: SwipeToDismissBoxValue,
 ) {
     var vibrate by remember { mutableStateOf(false) }
     val color =
