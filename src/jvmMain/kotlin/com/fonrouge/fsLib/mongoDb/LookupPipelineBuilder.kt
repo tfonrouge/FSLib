@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.mongoDb.Coll.Companion.collMap
 import com.mongodb.client.model.UnwindOptions
+import com.mongodb.client.model.Variable
 import org.bson.conversions.Bson
 import org.litote.kmongo.limit
 import org.litote.kmongo.unwind
@@ -15,6 +16,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     collKClass: KClass<out Coll<U, ID, *>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
+    let: List<Variable<out Any>>? = null,
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, U?>,
     limit: Int? = 1,
@@ -24,6 +26,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
         collKClass = collKClass,
         localField = localField,
         foreignField = foreignField,
+        let = let,
         pipeline = pipeline,
         resultProperty = resultField,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
@@ -37,6 +40,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     collKClass: KClass<out Coll<out U, ID, *>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
+    let: List<Variable<out Any>>? = null,
     pipeline: List<Bson>? = null,
     resultFieldArray: KProperty1<in T, List<U>?>,
     preserveNullAndEmptyArrays: Boolean = true,
@@ -46,6 +50,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
         collKClass = collKClass,
         localField = localField,
         foreignField = foreignField,
+        let = let,
         pipeline = pipeline,
         resultProperty = resultFieldArray,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
@@ -58,6 +63,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val collKClass: KClass<out Coll<out U, ID, *>>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,
+    private val let: List<Variable<out Any>>? = null,
     private val pipeline: List<Bson>?,
     internal val resultProperty: KProperty1<in T, *>,
     internal val preserveNullAndEmptyArrays: Boolean,
@@ -96,6 +102,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 from = collMap[collKClass]?.mongoColl?.namespace?.collectionName ?: throw Exception(),
                 localField = localField,
                 foreignField = foreignField,
+                let = let,
                 resultField = resultProperty,
                 pipeline = pip2
             )
