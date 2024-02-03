@@ -26,7 +26,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 @Suppress("unused")
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> DropDown.ddLink(
     configViewList: ConfigViewList<CV, T, ID, *, *, FILT>,
-    apiFilter: FILT = configViewList.apiFilterInstance(),
+    apiFilter: FILT = configViewList.commonView.apiFilterInstance(),
 ) {
     ddLink(
         label = configViewList.label,

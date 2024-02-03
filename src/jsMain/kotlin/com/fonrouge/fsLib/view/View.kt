@@ -64,7 +64,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
      * or programmatically, and it's delivered to the backend
      */
     val apiFilterObservableValue: ObservableValue<FILT> by lazy {
-        ObservableValue(apiFilterInstance(apiFilterFromUrl) ?: configView.apiFilterInstance())
+        ObservableValue(apiFilterInstance(apiFilterFromUrl) ?: configView.commonView.apiFilterInstance())
     }
     var apiFilter: FILT
         get() {
@@ -110,7 +110,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
         item: T? = null,
         callType: ApiItem.CallType = ApiItem.CallType.Query,
         crudTask: CrudTask = CrudTask.Read,
-        apiFilter: FILT = configView.apiFilterInstance(),
+        apiFilter: FILT = configView.commonView.apiFilterInstance(),
     ): ApiItem<T, ID, FILT> {
         return ApiItem(
             id = id,

@@ -4,13 +4,9 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewDataContainer
-import io.kvision.toast.Toast
-import io.kvision.toast.ToastOptions
-import io.kvision.toast.ToastPosition
 import io.kvision.utils.createInstance
 import js.uri.encodeURIComponent
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
@@ -39,52 +35,6 @@ abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFil
     val url: String get() = navigoPrefix + this.baseUrl
     open val label: String get() = commonView.label
     open val labelUrl: Pair<String, String> by lazy { commonView.label to url }
-
-    /**
-     * Builds a new instance of [FILT]
-     */
-    open fun apiFilterInstance(): FILT {
-        return try {
-            Json.decodeFromString(commonView.apiFilterSerializer, """{}""")
-        } catch (e: SerializationException) {
-            val errMsg = """
-                Error creating instance of apiFilter: ${e.message},
-                hint: Set @Serializable annotation to [${commonView.apiFilterSerializer}]::class,
-                """.trimIndent()
-            e.message
-            console.error(errMsg)
-            Toast.danger(
-                message = errMsg,
-                options = ToastOptions(
-                    position = ToastPosition.BOTTOMRIGHT,
-                    escapeHtml = true,
-                    duration = 10000,
-                    stopOnFocus = true,
-                    newWindow = true
-                )
-            )
-            throw e
-        } catch (e: Exception) {
-            val errMsg = """
-                Error creating instance of apiFilter,
-                hint: [${commonView.apiFilterSerializer}]::class must *not* have required constructor parameters,
-                or need to override the onNewApiFilterInstance() function
-                """.trimIndent()
-            e.message
-            console.error(errMsg)
-            Toast.danger(
-                message = errMsg,
-                options = ToastOptions(
-                    position = ToastPosition.BOTTOMRIGHT,
-                    escapeHtml = true,
-                    duration = 10000,
-                    stopOnFocus = true,
-                    newWindow = true
-                )
-            )
-            throw e
-        }
-    }
 
     /**
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservableValue] from the [UrlParams]
