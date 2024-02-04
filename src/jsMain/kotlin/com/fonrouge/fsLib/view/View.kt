@@ -165,7 +165,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     /**
      * Contains the [linkBanner] where is the main label and the banner legend zone [bannerLegend]
      */
-    open fun Container.bannerPanelContainer(): Container =
+    open fun Container.bannerLeggendContainer(): Container =
         hPanel(alignItems = AlignItems.CENTER, className = "container-fluid")
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
@@ -174,7 +174,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
             observableState = pageBannerUpdateObservable,
             removeChildren = true
         ) {
-            bannerPanelContainer().apply {
+            bannerLeggendContainer().apply {
                 linkBanner = link(
                     label = this@View.label,
                     url = navigoUrlWithParams,
