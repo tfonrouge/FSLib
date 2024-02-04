@@ -154,9 +154,9 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         if (item != null) {
             val menu = mutableListOf<TabulatorMenuItem>()
             with(menu) {
-                val labelId = configViewItem?.commonView?.labelIdFunc?.invoke(item)
+                val labelId = configViewItem?.commonView?.labelIdFunc?.invoke(item) ?: "${item._id}"
                 menuItem(
-                    label = " <font size=\"+1\">${configViewItem?.label}</font>: <b>$labelId</b>",
+                    label = " <font size=\"+1\">${configViewItem?.label ?: item::class.simpleName}</font>: <b>$labelId</b>",
                     disabled = false,
                     header = true
                 )
