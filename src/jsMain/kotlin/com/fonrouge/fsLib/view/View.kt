@@ -150,7 +150,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     /**
      * Build an [FILT] class for the current view
      *
-     * @param apiFilter current [FILT] object decoded from the url 'apiFilter' param
+     * @param apiFilter [FILT] object decoded from the current url 'apiFilter' param view
      */
     open fun apiFilterInstance(apiFilter: FILT?): FILT? = apiFilter
     open fun onApiFilterUpdate() {
