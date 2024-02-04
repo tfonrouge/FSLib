@@ -62,7 +62,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
 
-    val labelId get() = configView.commonView.labelIdFunc?.let { it(item) }
+    val labelId get() = configView.commonView.labelIdFunc(item)
 
     //    var itemId: U? = null
     var noBackButton = false
@@ -297,8 +297,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                     alignItems = AlignItems.CENTER,
                                     spacing = 10
                                 ) {
-                                    val labelId =
-                                        itemResponse.item?.let { configView.commonView.labelIdFunc?.invoke(it) }
+                                    val labelId = itemResponse.item?.let { configView.commonView.labelIdFunc(it) }
                                     if (itemResponse.item != null && labelId != null) {
                                         div(content = "Please confirm delete of ${this@ViewItem.label} '$labelId'") {
                                             fontSize = 1.5.em
@@ -418,9 +417,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     override val label: String
-        get() {
-            return "${configView.label}: ${configView.commonView.labelIdFunc?.invoke(item) ?: " < no - item > "}"
-        }
+        get() = "${configView.label}: ${configView.commonView.labelIdFunc(item)}"
 
     fun encodeId(id: ID? = item?._id): String? {
         return id?.let { Json.encodeToString(configView.commonView.idSerializer, id) }

@@ -151,52 +151,51 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 null
             }
         }
-        if (item != null) {
-            val menu = mutableListOf<TabulatorMenuItem>()
-            with(menu) {
-                val labelId = configViewItem?.commonView?.labelIdFunc?.invoke(item) ?: "${item._id}"
-                menuItem(
-                    label = " <font size=\"+1\">${configViewItem?.label ?: item::class.simpleName}</font>: <b>$labelId</b>",
-                    disabled = false,
-                    header = true
-                )
+        val configViewItem = configViewItem
+        if (item == null || configViewItem == null) return null
+        val menu = mutableListOf<TabulatorMenuItem>()
+        with(menu) {
+            val labelId = configViewItem.commonView.labelIdFunc(item)
+            menuItem(
+                label = " <font size=\"+1\">${configViewItem.label}</font>: <b>$labelId</b>",
+                disabled = false,
+                header = true
+            )
+            menuItem(separator = true)
+            menuItem(
+                label = "Detail of",
+                icon = iconCrud(CrudTask.Read),
+                action = { _, _ ->
+                    goActionUrl(CrudTask.Read, item)
+                }
+            )
+            if (editable) {
                 menuItem(separator = true)
                 menuItem(
-                    label = "Detail of",
-                    icon = iconCrud(CrudTask.Read),
+                    label = "Create",
+                    icon = iconCrud(CrudTask.Create),
                     action = { _, _ ->
-                        goActionUrl(CrudTask.Read, item)
+                        goActionUrl(CrudTask.Create, item)
                     }
                 )
-                if (editable) {
-                    menuItem(separator = true)
-                    menuItem(
-                        label = "Create",
-                        icon = iconCrud(CrudTask.Create),
-                        action = { _, _ ->
-                            goActionUrl(CrudTask.Create, item)
-                        }
-                    )
-                    menuItem(
-                        label = "Update",
-                        icon = iconCrud(CrudTask.Update),
-                        action = { _, _ ->
-                            goActionUrl(CrudTask.Update, item)
-                        }
-                    )
-                    menuItem(
-                        label = "Delete",
-                        icon = iconCrud(CrudTask.Delete),
-                        action = { _, _ ->
-                            goActionUrl(CrudTask.Delete, item)
-                        }
-                    )
-                }
-                contextRowMenu(item)
+                menuItem(
+                    label = "Update",
+                    icon = iconCrud(CrudTask.Update),
+                    action = { _, _ ->
+                        goActionUrl(CrudTask.Update, item)
+                    }
+                )
+                menuItem(
+                    label = "Delete",
+                    icon = iconCrud(CrudTask.Delete),
+                    action = { _, _ ->
+                        goActionUrl(CrudTask.Delete, item)
+                    }
+                )
             }
-            return menu.toTypedArray()
+            contextRowMenu(item)
         }
-        return null
+        return menu.toTypedArray()
     }
 
     /**
