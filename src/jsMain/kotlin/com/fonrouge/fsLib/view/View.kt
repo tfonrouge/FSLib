@@ -158,7 +158,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     /**
      * Contains the [linkBanner] where is the main label and the banner legend zone [bannerLegend]
      */
-    open fun Container.bannerPanel(): Container = hPanel(alignItems = AlignItems.CENTER)
+    open fun Container.bannerPanel(): Container = hPanel(alignItems = AlignItems.CENTER, className = "container-fluid")
 
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
