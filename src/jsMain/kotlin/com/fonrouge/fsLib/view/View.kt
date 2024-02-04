@@ -146,6 +146,12 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     open fun Container.bannerLegend() {}
     abstract fun Container.displayPage()
     open fun onAfterDisplayPage() {}
+
+    /**
+     * Build an [FILT] class for the current view
+     *
+     * @param apiFilter current [FILT] object decoded from the url 'apiFilter' param
+     */
     open fun apiFilterInstance(apiFilter: FILT?): FILT? = apiFilter
     open fun onApiFilterUpdate() {
         updateBanner()
