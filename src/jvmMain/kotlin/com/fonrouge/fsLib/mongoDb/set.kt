@@ -10,6 +10,6 @@ import org.litote.kmongo.util.KMongoUtil
  * @param updateOnlyNotNullProperties
  */
 @Suppress("unused")
-fun <T : Any> toSet(obj: T, updateOnlyNotNullProperties: Boolean = false): Bson {
+fun <T : Any> toBsonSet(obj: T, updateOnlyNotNullProperties: Boolean = false): Bson {
     return KMongoUtil.toBsonModifier(obj, updateOnlyNotNullProperties = updateOnlyNotNullProperties)
 }
