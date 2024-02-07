@@ -1,19 +1,18 @@
 package com.fonrouge.fsLib.model.base
 
-import com.fonrouge.fsLib.serializers.XEnum
-import com.fonrouge.fsLib.serializers.XEnumSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Serializable(with = PermissionTypeSerializer::class)
+@Serializable
 enum class PermissionType(
-    override val encoded: String,
-    override val label: String = ""
-) : XEnum {
+    val label: String = ""
+) {
+    @SerialName("1")
     Allow("1"),
-    Deny("0"),
-    Default("D")
-}
 
-object PermissionTypeSerializer : XEnumSerializer<PermissionType>() {
-    override fun enumEntries(): List<PermissionType> = PermissionType.entries
+    @SerialName("0")
+    Deny("0"),
+
+    @SerialName("D")
+    Default("D")
 }

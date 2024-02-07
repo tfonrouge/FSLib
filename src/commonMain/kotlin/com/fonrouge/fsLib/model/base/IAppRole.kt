@@ -1,8 +1,7 @@
 package com.fonrouge.fsLib.model.base
 
 import com.fonrouge.fsLib.serializers.OId
-import com.fonrouge.fsLib.serializers.XEnum
-import com.fonrouge.fsLib.serializers.XEnumSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Suppress("unused")
@@ -14,16 +13,14 @@ interface IAppRole : BaseDoc<OId<IAppRole>> {
     val detail: String?
     val defaultPermission: PermissionType
 
-    @Serializable(with = RoleTypeSerializer::class)
+    @Serializable
     enum class RoleType(
-        override val encoded: String,
-        override val label: String
-    ) : XEnum {
-        Simple("S", "Simple"),
-        DataAction("DA", "Data Action"),
-    }
-}
+        val label: String
+    ) {
+        @SerialName("S")
+        Simple("Simple"),
 
-object RoleTypeSerializer : XEnumSerializer<IAppRole.RoleType>() {
-    override fun enumEntries(): List<IAppRole.RoleType> = IAppRole.RoleType.entries
+        @SerialName("DA")
+        DataAction("Data Action"),
+    }
 }
