@@ -141,7 +141,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
 
-    fun contextRowMenuGenerator(): Array<TabulatorMenuItem>? {
+    fun contextRowMenuGenerator(): Array<TabulatorMenuItem> {
         val item: T? = overItem?.let {
             try {
                 tabulator?.toKotlinObj(it)
@@ -152,12 +152,11 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             }
         }
         val configViewItem = configViewItem
-        if (item == null || configViewItem == null) return null
         val menu = mutableListOf<TabulatorMenuItem>()
         with(menu) {
-            val labelId = configViewItem.commonView.labelIdFunc(item)
+            val labelId = configViewItem?.commonView?.labelIdFunc?.invoke(item) ?: ""
             menuItem(
-                label = " <font size=\"+1\">${configViewItem.label}</font>: <b>$labelId</b>",
+                label = " <font size=\"+1\">${configViewItem?.label ?: ""}</font>: <b>$labelId</b>",
                 disabled = false,
                 header = true
             )
