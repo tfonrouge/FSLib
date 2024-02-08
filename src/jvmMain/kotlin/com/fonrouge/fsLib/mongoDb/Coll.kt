@@ -110,8 +110,12 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                 CountType.Unknown -> PageCountInfo(countType = countType)
             }
             pageStateInfoFun?.invoke(pageCountInfo)
-            (it.pageSize * (it.page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
-            pipeline.add(limit(it.pageSize))
+            it.page?.let { page ->
+                it.pageSize?.let { pageSize ->
+                    (pageSize * (page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
+                    pipeline.add(limit(pageSize))
+                }
+            }
         }
         if (debug ?: globalDebug) {
             println("Class: ${commonContainer.itemKClass.simpleName} ('$collectionName'), Aggregate pipeline:")
@@ -425,7 +429,9 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                 t1 = Date().time - curTime
             }
             val j2 = launch {
-                pageCountInfo?.count(this@Coll, listFirstStage.pageSize)
+                listFirstStage.pageSize?.let {
+                    pageCountInfo?.count(this@Coll, listFirstStage.pageSize)
+                }
                 t2 = Date().time - curTime
             }
             joinAll(j1, j2)
@@ -499,8 +505,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
         postLookupMatch: Bson? = null,
         preLookupSort: Bson? = null,
         postLookupSort: Bson? = null,
-        page: Int,
-        size: Int,
+        page: Int? = null,
+        size: Int? = null,
         filter: List<RemoteFilter>? = null,
         sorter: List<RemoteSorter>? = null,
     ): ListFirstStage {
