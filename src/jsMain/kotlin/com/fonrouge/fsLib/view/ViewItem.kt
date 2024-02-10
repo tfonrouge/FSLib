@@ -116,7 +116,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                         crudTask = crudAction,
                         callType = ApiItem.CallType.Action,
                         id = item?._id,
-                        item = data?.let { onDataFormBeforeApiCall(it) },
+                        item = data?.let { transformData(it) },
                         apiFilter = apiFilter,
                     ) { itemResponse ->
                         block?.let { it(itemResponse) }
@@ -140,7 +140,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         if (confirmCancel && formPanel != null) {
             try {
                 val s1 = formPanelGetData()?.let {
-                    Json.encodeToString(configView.commonView.itemSerializer, onDataFormBeforeApiCall(it))
+                    Json.encodeToString(configView.commonView.itemSerializer, transformData(it))
                 }
                 val s2 = item?.let { Json.encodeToString(configView.commonView.itemSerializer, it) }
                 if (s1 != s2) {
@@ -163,7 +163,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * Override this function if you want to process the [formPanel] data content just *before*
      * to send it to the backend
      */
-    open fun onDataFormBeforeApiCall(item: T): T {
+    open fun transformData(item: T): T {
         return item
     }
 
