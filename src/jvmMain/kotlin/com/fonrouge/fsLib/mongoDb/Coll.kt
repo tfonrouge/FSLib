@@ -239,7 +239,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     suspend fun deleteOne(filter: Bson): ItemState<T> {
         return try {
             ItemState(
-                isOk = coroutineColl.deleteOne(filter = filter).deletedCount == 1L
+                isOk = coroutineColl.deleteOne(filter = filter).deletedCount == 1L,
+                msgOk = "Delete operation ok"
             )
         } catch (e: Exception) {
             ItemState(isOk = false, msgError = e.message)
@@ -251,7 +252,8 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
         if (id != null) {
             return try {
                 ItemState(
-                    isOk = mongoColl.deleteOne(BaseDoc<*>::_id eq id).awaitSingle().deletedCount == 1L
+                    isOk = mongoColl.deleteOne(BaseDoc<*>::_id eq id).awaitSingle().deletedCount == 1L,
+                    msgOk = "Delete operation ok"
                 )
             } catch (e: Exception) {
                 ItemState(isOk = false, msgError = e.message)

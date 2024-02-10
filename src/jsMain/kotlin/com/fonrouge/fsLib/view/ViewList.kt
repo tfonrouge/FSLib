@@ -23,6 +23,7 @@ import io.kvision.tabulator.js.Tabulator
 import io.kvision.tabulator.toJs
 import io.kvision.toast.Toast
 import kotlinx.browser.window
+import kotlinx.coroutines.launch
 
 @Suppress("unused")
 abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
@@ -113,19 +114,18 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItem,
-        configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, *, ID, *, *, FILT>? = this.configViewItem,
+        configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = this.configViewItem,
     ) {
-        val url = configViewItem?.let {
-            urlFromApiItem(
-                configViewItem = configViewItem,
-                apiItem = ApiItem(
-                    id = item?._id,
-                    item = item,
-                    crudTask = crudTask,
-                    apiFilter = apiFilter
-                )
+        configViewItem ?: return
+        val url = urlFromApiItem(
+            configViewItem = configViewItem,
+            apiItem = ApiItem(
+                id = item?._id,
+                item = item,
+                crudTask = crudTask,
+                apiFilter = apiFilter
             )
-        }
+        )
         if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
             masterViewItem?.acceptUpsertAction { itemResponse ->
                 if (itemResponse.isOk) {
@@ -135,7 +135,15 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 }
             }
         } else {
-            url?.let { window.open(url = url, target = "_blank") }
+            if (crudTask == CrudTask.Delete) {
+                item?.let {
+                    confirmDeleteView(item, configViewItem) {
+                        AppScope.launch { dataUpdate() }
+                    }
+                }
+            } else {
+                url?.let { window.open(url = url, target = "_blank") }
+            }
         }
     }
 

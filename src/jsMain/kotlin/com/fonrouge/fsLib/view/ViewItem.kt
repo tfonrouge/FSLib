@@ -247,47 +247,48 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     pageBanner()
                 }
                 urlParams?.crudTask?.let { crudAction ->
-                    configView.callItemService(
-                        crudTask = crudAction,
-                        callType = ApiItem.CallType.Query,
-                        id = urlParams?.id?.let { Json.decodeFromString(configView.commonView.idSerializer, it) },
-                        apiFilter = apiFilter
-                    ) { itemResponse ->
-                        if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
-                            urlParams?.params?.set("action", CrudTask.Update.name)
-                            itemResponse.item?._id?.let {
-                                urlParams?.params?.set(
-                                    "id",
-                                    Json.encodeToString(configView.commonView.idSerializer, it)
-                                )
-                            }
-                            @Suppress("UNUSED_VARIABLE")
-                            val url = (configView.url + urlParams.toString()).asDynamic()
-
-                            @Suppress("UNUSED_VARIABLE")
-                            val stateObj =
-                                "{${itemResponse::class.simpleName}: \"${itemResponse.item?._id}\"}".asDynamic()
-                            js("""history.replaceState(stateObj,"createToUpdate",url)""")
+                    if (crudAction == CrudTask.Delete) {
+                        item?.let { item ->
+                            confirmDeleteView(item, configView)
                         }
-                        var buttonCancel: Button? = null
-                        var buttonAccept: Button? = null
-                        var buttonBack: Button?
-                        var alreadyBack = false
-                        val toastOptions = ToastOptions(
-                            position = ToastPosition.BOTTOMRIGHT,
-                            stopOnFocus = true,
-                            duration = 10000,
-                            close = true,
-                            callback = {
-                                if (!alreadyBack) js("history.back()")
-                                Unit
-                            },
-                            escapeHtml = true,
-                        )
-                        val crudAction1 = urlParams?.crudTask
-                        if (itemResponse.isOk && crudAction1 != null) {
-                            data.value = itemResponse
-                            if (crudAction1 != CrudTask.Delete) {
+                    } else {
+                        configView.callItemService(
+                            crudTask = crudAction,
+                            callType = ApiItem.CallType.Query,
+                            id = urlParams?.id?.let { Json.decodeFromString(configView.commonView.idSerializer, it) },
+                            apiFilter = apiFilter
+                        ) { itemResponse ->
+                            if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
+                                urlParams?.params?.set("action", CrudTask.Update.name)
+                                itemResponse.item?._id?.let {
+                                    urlParams?.params?.set(
+                                        "id",
+                                        Json.encodeToString(configView.commonView.idSerializer, it)
+                                    )
+                                }
+                                @Suppress("UNUSED_VARIABLE")
+                                val url = (configView.url + urlParams.toString()).asDynamic()
+
+                                @Suppress("UNUSED_VARIABLE")
+                                val stateObj =
+                                    "{${itemResponse::class.simpleName}: \"${itemResponse.item?._id}\"}".asDynamic()
+                                js("""history.replaceState(stateObj,"createToUpdate",url)""")
+                            }
+                            var alreadyBack = false
+                            val toastOptions = ToastOptions(
+                                position = ToastPosition.BOTTOMRIGHT,
+                                stopOnFocus = true,
+                                duration = 10000,
+                                close = true,
+                                callback = {
+                                    if (!alreadyBack) js("history.back()")
+                                    Unit
+                                },
+                                escapeHtml = true,
+                            )
+                            val crudAction1 = urlParams?.crudTask
+                            if (itemResponse.isOk && crudAction1 != null) {
+                                data.value = itemResponse
                                 displayForm(crudAction1)
                             } else {
                                 flexPanel(
@@ -297,119 +298,32 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                     alignItems = AlignItems.CENTER,
                                     spacing = 10
                                 ) {
-                                    val labelId = itemResponse.item?.let { configView.commonView.labelIdFunc(it) }
-                                    if (itemResponse.item != null && labelId != null) {
-                                        div(content = "Please confirm delete of ${this@ViewItem.label} '$labelId'") {
-                                            fontSize = 1.5.em
-                                        }
-                                        flexPanel(
-                                            direction = FlexDirection.ROW,
-                                            justify = JustifyContent.CENTER,
-                                            spacing = 20
-                                        ) {
-                                            buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left") {
-                                                hide()
-                                                onClick {
-                                                    alreadyBack = true
-                                                    js("history.back()") as? Unit
-                                                }
-                                            }
-                                            buttonCancel = button("Cancel", style = ButtonStyle.OUTLINEDANGER) {
-                                                onClick {
-                                                    buttonCancel?.hide()
-                                                    buttonAccept?.hide()
-                                                    buttonBack?.show()
-                                                    Toast.warning(
-                                                        message = "$crudAction1 action cancelled ...",
-                                                        options = toastOptions
-                                                    )
-                                                }
-                                            }
-                                            buttonAccept =
-                                                button("Accept", style = ButtonStyle.OUTLINESUCCESS) {
-                                                    onClick {
-                                                        configView.callItemService(
-                                                            crudTask = CrudTask.Delete,
-                                                            callType = ApiItem.CallType.Action,
-                                                            id = urlParams?.id?.let {
-                                                                Json.decodeFromString(
-                                                                    configView.commonView.idSerializer,
-                                                                    it
-                                                                )
-                                                            },
-                                                            apiFilter = apiFilter
-                                                        ) { itemResponse1 ->
-                                                            buttonCancel?.hide()
-                                                            buttonAccept?.hide()
-                                                            buttonBack?.show()
-                                                            if (itemResponse1.isOk) {
-                                                                Toast.success(
-                                                                    message = itemResponse1.msgOk
-                                                                        ?: "$crudAction1 action successful ...",
-                                                                    options = toastOptions
-                                                                )
-                                                            } else {
-                                                                Toast.warning(
-                                                                    message = itemResponse1.msgError
-                                                                        ?: "$crudAction1 action failed ...",
-                                                                    options = toastOptions
-                                                                )
-                                                            }
-                                                            itemResponse1
-                                                        }
-                                                    }
-                                                }
-                                        }
-                                    } else {
-                                        div(content = "Error on Delete Query: item or item id reference null ...") {
-                                            fontSize = 1.5.em
-                                        }
-                                        flexPanel(
-                                            direction = FlexDirection.ROW,
-                                            justify = JustifyContent.CENTER,
-                                            spacing = 20
-                                        ) {
-                                            button("Back", icon = "fa-solid fa-arrow-rotate-left").onClick {
+                                    div(
+                                        content = "<i><b>[$crudAction1]</b></i> action denied: <b>${itemResponse.msgError}</b>",
+                                        rich = true
+                                    ) {
+                                        fontSize = 1.5.em
+                                    }
+                                    flexPanel(
+                                        direction = FlexDirection.ROW,
+                                        justify = JustifyContent.CENTER,
+                                        spacing = 20
+                                    ) {
+                                        button("Back", icon = "fa-solid fa-arrow-rotate-left") {
+                                            onClick {
                                                 alreadyBack = true
                                                 js("history.back()") as? Unit
                                             }
                                         }
                                     }
                                 }
+                                Toast.warning(
+                                    message = itemResponse.msgError ?: "$crudAction1 action denied ...",
+                                    options = toastOptions
+                                )
                             }
-                        } else {
-                            flexPanel(
-                                direction = FlexDirection.COLUMN,
-                                justify = JustifyContent.CENTER,
-                                alignContent = AlignContent.CENTER,
-                                alignItems = AlignItems.CENTER,
-                                spacing = 10
-                            ) {
-                                div(
-                                    content = "<i><b>[$crudAction1]</b></i> action denied: <b>${itemResponse.msgError}</b>",
-                                    rich = true
-                                ) {
-                                    fontSize = 1.5.em
-                                }
-                                flexPanel(
-                                    direction = FlexDirection.ROW,
-                                    justify = JustifyContent.CENTER,
-                                    spacing = 20
-                                ) {
-                                    buttonBack = button("Back", icon = "fa-solid fa-arrow-rotate-left") {
-                                        onClick {
-                                            alreadyBack = true
-                                            js("history.back()") as? Unit
-                                        }
-                                    }
-                                }
-                            }
-                            Toast.warning(
-                                message = itemResponse.msgError ?: "$crudAction1 action denied ...",
-                                options = toastOptions
-                            )
+                            itemResponse
                         }
-                        itemResponse
                     }
                 } ?: displayDefault(urlParams)
             }
