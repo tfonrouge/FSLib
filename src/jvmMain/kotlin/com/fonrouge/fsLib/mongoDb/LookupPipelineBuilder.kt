@@ -42,7 +42,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     foreignField: KProperty<*>,
     let: List<Variable<out Any>>? = null,
     pipeline: List<Bson>? = null,
-    resultFieldArray: KProperty1<in T, List<U>?>,
+    resultFieldArray: KProperty1<in T, Collection<U>?>,
     preserveNullAndEmptyArrays: Boolean = true,
     limit: Int? = null,
 ): LookupPipelineBuilder<T, U, ID> {

@@ -72,7 +72,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
 
     internal fun apiCall() {
         val page: Int = jsTabulator?.getPage() as? Int ?: 1
-        val size: Int = jsTabulator?.getPageSize()?.toInt() ?: 10
+        val size: Int = jsTabulator?.getPageSize()?.toInt() ?: 50
         val filters: List<RemoteFilter>? = jsTabulator?.getHeaderFilters()?.map {
             RemoteFilter(field = it.field, type = it.type, value = "${it.value}")
         }
@@ -159,7 +159,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
         options.ajaxURL = urlPrefix + url.drop(1)
         options.ajaxRequestFunc = { _, _, params ->
             val page: Int = params.page as? Int ?: 1
-            val size: Int = params.size as? Int ?: 10
+            val size: Int = params.size as? Int ?: 50
             val filters = if (params.filter != null) {
                 Json.decodeFromString(ListSerializer(RemoteFilter::class.serializer()), JSON.stringify(params.filter))
             } else {

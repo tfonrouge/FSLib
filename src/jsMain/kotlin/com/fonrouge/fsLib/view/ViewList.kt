@@ -126,15 +126,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 apiFilter = apiFilter
             )
         )
-        if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
-            masterViewItem?.acceptUpsertAction { itemResponse ->
-                if (itemResponse.isOk) {
-                    url?.let { window.open(url = it, target = "_blank") }
-                } else {
-                    Toast.danger(itemResponse.msgError ?: "unknown error")
-                }
-            }
-        } else {
+        val callBlock = {
             if (crudTask == CrudTask.Delete) {
                 item?.let {
                     confirmDeleteView(item, configViewItem) {
@@ -144,6 +136,17 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             } else {
                 url?.let { window.open(url = url, target = "_blank") }
             }
+        }
+        if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
+            masterViewItem?.acceptUpsertAction { itemResponse ->
+                if (itemResponse.isOk) {
+                    callBlock()
+                } else {
+                    Toast.danger(itemResponse.msgError ?: "unknown error")
+                }
+            }
+        } else {
+            callBlock()
         }
     }
 

@@ -7,6 +7,9 @@ open class LookupWrapper<T : BaseDoc<*>, U : BaseDoc<*>>(
     open val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
 )
 
+/**
+ * Allows to include a result property in a [LookupWrapper] list
+ */
 class LookupByProperty<T : BaseDoc<*>, U : BaseDoc<*>>(
     val resultProperty: KProperty1<T, U?>,
     override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()

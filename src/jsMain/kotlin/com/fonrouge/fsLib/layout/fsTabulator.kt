@@ -36,7 +36,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val pagination = tabulatorOptions.pagination ?: true
     val paginationCounter = tabulatorOptions.paginationCounter ?: "rows"
     val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
-    val paginationSize = tabulatorOptions.paginationSize ?: 10
+    val paginationSize = tabulatorOptions.paginationSize ?: 50
     val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100)
     /*
         val persistence = tabulatorOptions.persistence ?: json(
