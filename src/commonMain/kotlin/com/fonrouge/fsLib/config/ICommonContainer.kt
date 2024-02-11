@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.config
 
+import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.serialization.InternalSerializationApi
@@ -19,4 +20,9 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
 ) {
     @OptIn(InternalSerializationApi::class)
     val itemSerializer get() = itemKClass.serializer()
+
+    @Suppress("unused")
+    fun apiItem(id: ID?): ApiItem<T, ID, FILT> {
+        return ApiItem(id = id, apiFilter = apiFilterInstance())
+    }
 }
