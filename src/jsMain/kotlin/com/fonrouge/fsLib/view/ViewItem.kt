@@ -250,7 +250,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
                             confirmDeleteView(item, configView)
-                        }
+                        } ?: Toast.danger("${configView.commonView.labelItem} not valid ...")
                     } else {
                         configView.callItemService(
                             crudTask = crudAction,
