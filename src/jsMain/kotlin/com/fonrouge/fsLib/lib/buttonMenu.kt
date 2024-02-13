@@ -62,7 +62,6 @@ fun Container.buttonMenu(
             }
         }
         div().bind(menuOpen) {
-//            marginTop = 10.px
             if (it) show() else hide()
             table(
                 types = setOf(TableType.BORDERED, TableType.SMALL, TableType.HOVER)
@@ -74,7 +73,7 @@ fun Container.buttonMenu(
                             paddingRight = 1.rem
                             cursor = Cursor.POINTER
                             onClick {
-                                menuOpen.value = false
+//                                menuOpen.value = false
                                 window.open(url = pair.second, target = "_blank")
                             }
                         }
