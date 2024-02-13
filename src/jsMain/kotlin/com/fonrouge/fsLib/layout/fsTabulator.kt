@@ -45,7 +45,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     */
     val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.commonView.itemKClass.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
-    val selectable = tabulatorOptions.selectable ?: 1
+    val selectableRows = tabulatorOptions.selectableRows ?: 1
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
     return tabulatorOptions.copy(
         autoResize = autoResize,
@@ -64,7 +64,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
 //        persistence = persistence,
         persistenceID = persistenceID,
         rowContextMenu = rowContextMenu,
-        selectable = selectable,
+        selectableRows = selectableRows,
         sortMode = sortMode,
     )
 }
