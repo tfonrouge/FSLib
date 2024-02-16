@@ -87,7 +87,6 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
         types = types,
         minToolbarSize = minToolbarSize,
         apiListUpdate = apiListUpdate,
-        onResult = onResult,
         init = init
     )
 }
@@ -99,7 +98,6 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
     minToolbarSize: Boolean = true,
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
-    noinline onResult: ((dynamic) -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
 ): ViewList<CV, T, ID, E, FILT> {
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
@@ -120,12 +118,10 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     vPanel {
         viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
         viewList.tabulator = tabulatorListContainer(
-            serviceManager = viewList.configView.serviceManager,
-            function = viewList.configView.function,
+            viewList = viewList,
             apiListBlock = apiListBlock,
             apiListUpdate = apiListUpdate,
             apiListSerialize = apiListSerialize,
-            onResult = onResult,
             serializer = T::class.serializer(),
             options = tabulatorOptions,
             types = types,

@@ -1,9 +1,10 @@
 package com.fonrouge.fsLib.layout
 
+import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.ListState
+import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.remote.*
 import io.kvision.tabulator.TableType
@@ -26,8 +27,7 @@ import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
-    serviceManager: KVServiceMgr<E>,
-    function: suspend E.(ApiList<FILT>) -> ListState<T>,
+    val viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, E, FILT>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     private val apiListSerialize: (ApiList<FILT>) -> String?,
@@ -131,12 +131,11 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
                     diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
                     contentHashCode = result.contentHashCode as? Int
                 }
-                run {
-                    if (result.data == undefined) {
-                        result.data = js("[]")
-                    }
-                    result
+                if (result.data == undefined) {
+                    result.data = js("[]")
                 }
+                viewList.onReceivingData(result.data)
+                result
             } else {
                 console.error("Server response error:", r)
                 if (r.error != undefined && r.exceptionType != undefined) {
@@ -151,7 +150,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
     }
 
     init {
-        serviceManager.requireCall(function).let {
+        viewList.configView.serviceManager.requireCall(viewList.configView.function).let {
             url = it.first
             method = it.second
         }
@@ -191,8 +190,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
 }
 
 inline fun <reified T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter> Container.tabulatorListContainer(
-    serviceManager: KVServiceMgr<E>,
-    noinline function: suspend E.(ApiList<FILT>) -> ListState<T>,
+    viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, E, FILT>,
     noinline apiListBlock: (() -> ApiList<FILT>),
     noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline apiListSerialize: (ApiList<FILT>) -> String?,
@@ -207,8 +205,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter> Conta
 ): TabulatorListContainer<T, ID, E, FILT> {
     val tabulatorListContainer =
         TabulatorListContainer(
-            serviceManager = serviceManager,
-            function = function,
+            viewList = viewList,
             apiListBlock = apiListBlock,
             apiListUpdate = apiListUpdate,
             apiListSerialize = apiListSerialize,

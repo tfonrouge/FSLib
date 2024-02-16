@@ -89,11 +89,15 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewList
-    private var reloadColumnDefinitions = false
-    fun reloadColumnDefinitions() {
-        reloadColumnDefinitions = true
-    }
 
+    /**
+     * Set to true to reload column definitions on next [dataUpdate]
+     */
+    var markReloadColumnDefinitions = false
+
+    /**
+     * Contains id's from selected row(s)
+     */
     var selectedIdList: List<Any?>? = null
 
     /**
@@ -213,21 +217,29 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      */
     final override suspend fun dataUpdate() {
         if (jsTabulatorBuilt) {
-            if (reloadColumnDefinitions) {
-                reloadColumnDefinitions = false
-                tabulator?.let { tabulator ->
-                    tabulator.jsTabulator?.setColumns(
-                        columnDefinitionList().map {
-                            it.toJs(tabulator, tabulator::translate, configView.commonView.itemKClass)
-                        }.toTypedArray()
-                    )
-                    columnDefinitionList()
-                }
+            if (markReloadColumnDefinitions) {
+                markReloadColumnDefinitions = false
+                loadColumnDefinitions()
             }
             if (menuOpenedState != true) {
                 selectedIdList = tabulator?.getSelectedData()?.map { it._id }
                 tabulator?.apiCall()
             }
+        }
+    }
+
+    /**
+     * load the column definitions from [columnDefinitionList] to the [tabulator]
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun loadColumnDefinitions() {
+        tabulator?.let { tabulator ->
+            tabulator.jsTabulator?.setColumns(
+                columnDefinitionList().map {
+                    it.toJs(tabulator, tabulator::translate, configView.commonView.itemKClass)
+                }.toTypedArray()
+            )
+            //columnDefinitionList()
         }
     }
 
@@ -252,6 +264,11 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     override val label: String get() = configView.commonView.labelList
+
+    /**
+     * allows to process javascript array arrived from backend
+     */
+    open fun onReceivingData(data: dynamic) {}
 
     /**
      * export to file download
