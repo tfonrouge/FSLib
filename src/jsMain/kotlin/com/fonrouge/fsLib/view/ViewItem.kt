@@ -346,7 +346,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * Called when the [ItemState] value changes
      */
-    open fun onChangeItemState(itemState: ItemState<T>?) {}
+    open fun onChangeItemState(itemState: ItemState<T>) {}
 
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
