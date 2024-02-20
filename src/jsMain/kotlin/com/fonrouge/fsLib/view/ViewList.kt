@@ -79,7 +79,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
     val parentContextUrlParams: String
         get() {
-            return masterViewItem?.data?.value?.let {
+            return masterViewItem?.itemStateObservableValue?.value?.let {
                 "&contextClass=${it::class.simpleName}&contextId=${it.item?._id}"
             } ?: ""
         }
