@@ -49,7 +49,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     }
                     enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                 }
-                if (viewList.editable) {
+                if (viewList.editable()) {
                     navLink(
                         label = if (minToolbarSize) "" else "Create",
                         icon = iconCrud(CrudTask.Create),

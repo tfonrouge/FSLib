@@ -31,7 +31,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     final override val configView: ConfigViewList<CV, T, ID, out ViewList<CV, T, ID, E, FILT>, E, FILT>,
     configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
-    editable: Boolean = true,
+    editable: (() -> Boolean) = { true },
     icon: String? = null,
 ) : ViewDataContainer<CV, T, ID, FILT>(
     urlParams = urlParams,
@@ -74,7 +74,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var masterViewItem: ViewItem<*, *, *, *>? = null
         set(value) {
             apiFilter.masterItemIdSerialized = value?.encodeId()
-            editable = value?.urlParams?.actionUpsert == true
+            editable = { value?.urlParams?.actionUpsert == true }
             field = value
         }
     val parentContextUrlParams: String
@@ -183,7 +183,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     goActionUrl(CrudTask.Read, item)
                 }
             )
-            if (editable) {
+            if (editable()) {
                 menuItem(separator = true)
                 menuItem(
                     label = "Create",

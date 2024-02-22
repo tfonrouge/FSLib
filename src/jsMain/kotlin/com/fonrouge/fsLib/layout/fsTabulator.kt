@@ -75,18 +75,17 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
     minToolbarSize: Boolean = true,
-    noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
-    noinline onResult: ((dynamic) -> Unit)? = null,
+    noinline editable: (() -> Boolean)? = null,
     noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
 ): ViewList<CV, T, ID, E, FILT> {
     val viewList: ViewList<CV, T, ID, E, FILT> = configViewList.newViewInstance(null)
     viewList.masterViewItem = masterViewItem
+    editable?.let { viewList.editable = it }
     return fsTabulator(
         viewList = viewList,
         options = options,
         types = types,
         minToolbarSize = minToolbarSize,
-        apiListUpdate = apiListUpdate,
         init = init
     )
 }
@@ -97,7 +96,6 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
     minToolbarSize: Boolean = true,
-    noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
 ): ViewList<CV, T, ID, E, FILT> {
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
@@ -120,7 +118,6 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
         viewList.tabulator = tabulatorListContainer(
             viewList = viewList,
             apiListBlock = apiListBlock,
-            apiListUpdate = apiListUpdate,
             apiListSerialize = apiListSerialize,
             serializer = T::class.serializer(),
             options = tabulatorOptions,

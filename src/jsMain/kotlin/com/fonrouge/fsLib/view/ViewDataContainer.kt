@@ -12,7 +12,7 @@ import kotlin.js.Date
 abstract class ViewDataContainer<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     urlParams: UrlParams?,
     val configViewContainer: ConfigViewContainer<CV, T, ID, *, FILT>,
-    editable: Boolean = true,
+    editable: (() -> Boolean) = { true },
     icon: String? = null,
 ) : View<CV, FILT>(
     urlParams = urlParams,

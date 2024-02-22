@@ -32,7 +32,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     urlParams: UrlParams? = null,
     final override val configView: ConfigViewItem<CV, T, ID, out ViewItem<CV, T, ID, FILT>, *, FILT>,
     periodicUpdateDataView: Boolean? = null,
-    editable: Boolean = true,
+    editable: (() -> Boolean) = { true },
     icon: String? = null,
 ) : ViewDataContainer<CV, T, ID, FILT>(
     urlParams = urlParams,

@@ -29,9 +29,7 @@ import kotlin.reflect.KClass
 class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
     val viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, E, FILT>,
     private val apiListBlock: (() -> ApiList<FILT>),
-    private val apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     private val apiListSerialize: (ApiList<FILT>) -> String?,
-    var onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType>,
     className: String?,
@@ -105,7 +103,6 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
             tabSorter = sorters
             contentHashCode = this@TabulatorListContainer.contentHashCode
         }
-        apiListUpdate?.invoke(apiList)
         val data =
             Serialization.plain.encodeToString(
                 JsonRpcRequest(
@@ -126,7 +123,6 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
             if (r.result != undefined) {
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
 //                console.warn("result ->", result, "<-")
-                onResult?.let { it(result) }
                 if (result.contentHashCode != undefined) {
                     diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
                     contentHashCode = result.contentHashCode as? Int
@@ -192,9 +188,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
 inline fun <reified T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter> Container.tabulatorListContainer(
     viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, E, FILT>,
     noinline apiListBlock: (() -> ApiList<FILT>),
-    noinline apiListUpdate: (ApiList<FILT>.() -> Unit)? = null,
     noinline apiListSerialize: (ApiList<FILT>) -> String?,
-    noinline onResult: ((dynamic) -> Unit)? = null,
     options: TabulatorOptions<T>,
     types: Set<TableType> = setOf(),
     className: String? = null,
@@ -207,9 +201,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter> Conta
         TabulatorListContainer(
             viewList = viewList,
             apiListBlock = apiListBlock,
-            apiListUpdate = apiListUpdate,
             apiListSerialize = apiListSerialize,
-            onResult = onResult,
             options = options,
             types = types,
             className = className,

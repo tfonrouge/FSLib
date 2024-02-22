@@ -23,7 +23,7 @@ import io.kvision.utils.px
 abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     var urlParams: UrlParams? = null,
     open val configView: ConfigView<CV, *, FILT>,
-    var editable: Boolean = true,
+    var editable: (() -> Boolean) = { true },
     val icon: String? = null,
 ) {
     open val label: String get() = configView.label
