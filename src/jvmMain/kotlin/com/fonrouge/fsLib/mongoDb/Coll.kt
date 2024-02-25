@@ -93,7 +93,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     ): AggregatePublisher<T> {
         listFirstStage?.preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
         listFirstStage?.preLookupSort?.let { pipeline.add(sort(it)) }
-        finalPipeline(
+        buildPipeline(
             pipeline = pipeline,
             lookups = lookups,
             resultUnit = ResultUnit.List,
@@ -132,7 +132,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        finalPipeline(
+        buildPipeline(
             pipeline = pipeline,
             lookups = lookups,
             resultUnit = ResultUnit.One,
@@ -271,7 +271,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     /**
      * Builds the final pipeline to be used in the db engine including defined lookups in [lookupFun]
      */
-    suspend fun finalPipeline(
+    suspend fun buildPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: List<LookupWrapper<*, *>> = emptyList(),
         resultUnit: ResultUnit,
@@ -568,7 +568,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     }
 
     /**
-     * Allows to build a custom pipeline to be added to the [finalPipeline] in the db engine call
+     * Allows to build a custom pipeline to be added to the [buildPipeline] in the db engine call
      */
     open suspend fun refactorPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
