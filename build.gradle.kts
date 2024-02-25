@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "3.0.5"
+version = "3.0.6"
 
 repositories {
     google()
@@ -153,9 +153,9 @@ android {
         implementation("androidx.compose.ui:ui")
         implementation("androidx.compose.ui:ui-graphics")
         implementation("androidx.compose.ui:ui-tooling-preview")
-        implementation("androidx.compose.material3:material3:1.2.0-rc01")
+        implementation("androidx.compose.material3:material3:1.2.0")
         implementation("androidx.compose.material:material-icons-extended")
-        implementation("androidx.navigation:navigation-compose:2.7.6")
+        implementation("androidx.navigation:navigation-compose:2.7.7")
 
         implementation("androidx.paging:paging-compose:3.2.1")
         /* scanner service provided by Google Play */
@@ -176,14 +176,14 @@ android {
         /* multi-button floating action button */
         api("com.github.iamageo:MultiFab:1.0.6")
 
-        implementation("io.ktor:ktor-client-cio:2.3.7")
-        implementation("io.ktor:ktor-client-okhttp:2.3.7")
-        implementation("io.ktor:ktor-client-android:2.3.7")
-        implementation("io.ktor:ktor-client-auth:2.3.7")
-        implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
-        implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
-        implementation("io.ktor:ktor-client-serialization:2.3.7")
-        implementation("io.ktor:ktor-client-logging:2.3.7")
+        implementation("io.ktor:ktor-client-cio:2.3.8")
+        implementation("io.ktor:ktor-client-okhttp:2.3.8")
+        implementation("io.ktor:ktor-client-android:2.3.8")
+        implementation("io.ktor:ktor-client-auth:2.3.8")
+        implementation("io.ktor:ktor-client-content-negotiation:2.3.8")
+        implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.8")
+        implementation("io.ktor:ktor-client-serialization:2.3.8")
+        implementation("io.ktor:ktor-client-logging:2.3.8")
 
         testImplementation("junit:junit:4.13.2")
         androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -191,7 +191,7 @@ android {
         androidTestImplementation(platform("androidx.compose:compose-bom:2024.01.00"))
         androidTestImplementation("androidx.compose.ui:ui-test-junit4")
         debugImplementation("androidx.compose.ui:ui-tooling")
-        debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.0-alpha01")
+        debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.0-alpha03")
     }
     /*
         buildTypes {
