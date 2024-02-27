@@ -62,10 +62,11 @@ fun Container.buttonMenu(
             }
         }
         div().bind(menuOpen) {
-            if (it) show() else hide()
             table(
-                types = setOf(TableType.BORDERED, TableType.SMALL, TableType.HOVER)
+                types = setOf(TableType.BORDERED, TableType.SMALL, TableType.HOVER),
+                className = "buttonMenu"
             ) {
+                if (it) show() else hide()
                 options.forEach { pair ->
                     row {
                         cell(pair.first) {
