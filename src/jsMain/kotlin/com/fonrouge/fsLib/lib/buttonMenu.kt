@@ -74,7 +74,6 @@ fun Container.buttonMenu(
                             paddingRight = 1.rem
                             cursor = Cursor.POINTER
                             onClick {
-//                                menuOpen.value = false
                                 window.open(url = pair.second, target = "_blank")
                             }
                         }
