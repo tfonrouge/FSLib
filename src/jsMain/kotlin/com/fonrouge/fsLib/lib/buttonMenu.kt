@@ -64,7 +64,7 @@ fun Container.buttonMenu(
         div().bind(menuOpen) {
             table(
                 types = setOf(TableType.BORDERED, TableType.SMALL, TableType.HOVER),
-                className = "buttonMenu"
+                className = "buttonMenuList"
             ) {
                 if (it) show() else hide()
                 options.forEach { pair ->
