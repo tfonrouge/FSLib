@@ -15,13 +15,15 @@ import io.kvision.toast.Toast
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> confirmDeleteView(
     item: T,
     configViewItem: ConfigViewItem<CV, T, ID, out ViewItem<CV, T, ID, FILT>, *, FILT>,
+    apiFilter: FILT,
     onFail: ((ItemState<T>) -> Unit)? = null,
     onSuccess: (() -> Unit)? = null,
 ) {
     configViewItem.callItemService(
         crudTask = CrudTask.Delete,
         callType = ApiItem.CallType.Query,
-        id = item._id
+        id = item._id,
+        apiFilter = apiFilter,
     ) { itemState ->
         if (itemState.isOk) {
             val modal = Confirm(
@@ -41,6 +43,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
                         crudTask = CrudTask.Delete,
                         callType = ApiItem.CallType.Action,
                         id = item._id,
+                        apiFilter = apiFilter,
                     ) { itemState1 ->
                         if (itemState1.isOk) {
                             Toast.success(

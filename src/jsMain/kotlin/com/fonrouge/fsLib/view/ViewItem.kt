@@ -253,7 +253,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 urlParams?.crudTask?.let { crudAction ->
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
-                            confirmDeleteView(item, configView)
+                            confirmDeleteView(item, configView, apiFilter = apiFilter)
                         } ?: Toast.danger("${configView.commonView.labelItem} not valid ...")
                     } else {
                         configView.callItemService(
