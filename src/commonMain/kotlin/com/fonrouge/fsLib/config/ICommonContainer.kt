@@ -13,6 +13,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     val idSerializer: KSerializer<ID>,
     val labelIdFunc: ((T?) -> String) = { t: T? -> t?.let { "${it._id}" } ?: "<no-item>" },
     val labelItem: String = "${itemKClass.simpleName}",
+    val labelItemId: ((T?) -> String) = { t: T? -> "$labelItem: ${labelIdFunc(t)}" },
     val labelList: String = "List of ${itemKClass.simpleName}",
     apiFilterSerializer: KSerializer<FILT>
 ) : ICommon<FILT>(
