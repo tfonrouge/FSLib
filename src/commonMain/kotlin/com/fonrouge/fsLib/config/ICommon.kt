@@ -12,8 +12,7 @@ abstract class ICommon<FILT : IApiFilter>(
 ) {
     val name: String get() = this::class.simpleName?.removePrefix("Common") ?: "?"
 
-    @Suppress("unused")
-    fun apiFilterInstance(): FILT {
+    open fun apiFilterInstance(): FILT {
         return try {
             Json.decodeFromString(apiFilterSerializer, "{}")
         } catch (e: SerializationException) {
