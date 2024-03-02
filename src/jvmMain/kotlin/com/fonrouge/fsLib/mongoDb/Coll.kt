@@ -40,7 +40,7 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-    val commonContainer: ICommonContainer<T, ID, FILT>,
+    open val commonContainer: ICommonContainer<T, ID, FILT>,
     var debug: Boolean? = null
 ) {
     companion object {
