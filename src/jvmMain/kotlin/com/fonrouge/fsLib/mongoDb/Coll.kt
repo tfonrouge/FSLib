@@ -43,17 +43,15 @@ import kotlin.reflect.full.memberProperties
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> buildColl(
     commonContainer: CC,
     debug: Boolean = false
-): Coll<T, ID, FILT> {
-    return object : Coll<T, ID, FILT>(commonContainer = commonContainer, debug = debug) {}
-}
+): Coll<CC, T, ID, FILT> = object : Coll<CC, T, ID, FILT>(commonContainer = commonContainer, debug = debug) {}
 
-abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-    val commonContainer: ICommonContainer<T, ID, FILT>,
+abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+    val commonContainer: CC,
     var debug: Boolean? = null
 ) {
     companion object {
         var globalDebug = false
-        internal val collMap = mutableMapOf<KClass<*>, Coll<*, *, *>>()
+        internal val collMap = mutableMapOf<KClass<*>, Coll<*, *, *, *>>()
         fun collectionName(klass: KClass<out BaseDoc<*>>): String =
             klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
     }
@@ -70,7 +68,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     ): List<KProperty1<in T, *>>? = null
 
     open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
-    open fun childCollections(): List<KClass<out Coll<*, *, *>>> = listOf()
+    open fun childCollections(): List<KClass<out Coll<*, *, *, *>>> = listOf()
     val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, commonContainer.itemKClass.java)
 
     val coroutineColl: CoroutineCollection<T> = mongoColl.coroutine
@@ -649,7 +647,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
         var lastRow: Int? = null,
         val countType: CountType,
     ) {
-        suspend fun count(coll: Coll<*, *, *>, pageSize: Int) {
+        suspend fun count(coll: Coll<*, *, *, *>, pageSize: Int) {
             val count = when (countType) {
                 CountType.PreLookup ->
                     coll.mongoColl.coroutine.countDocuments(
@@ -660,7 +658,6 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                                 EMPTY_BSON
                         } ?: EMPTY_BSON
                     )
-
 
                 CountType.PostLookup -> pipeline?.let {
                     coll.mongoColl.coroutine.aggregate<Document>(it).first()?.getInteger("count")

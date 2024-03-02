@@ -10,7 +10,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 @Suppress("unused")
 abstract class IGroupRoleColl<GR : IGroupRole<T, GOU>, T : Any, GOU : IGroupOfUser<*>, FILT : IApiFilter>(
     commonContainer: ICommonContainer<GR, OId<T>, FILT>
-) : Coll<GR, OId<T>, FILT>(
+) : Coll<ICommonContainer<GR, OId<T>, FILT>, GR, OId<T>, FILT>(
     commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<GR>.ensureIndexes() {
