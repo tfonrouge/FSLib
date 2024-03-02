@@ -39,8 +39,16 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
+@Suppress("unused")
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> buildColl(
+    commonContainer: CC,
+    debug: Boolean = false
+): Coll<T, ID, FILT> {
+    return object : Coll<T, ID, FILT>(commonContainer = commonContainer, debug = debug) {}
+}
+
 abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-    open val commonContainer: ICommonContainer<T, ID, FILT>,
+    val commonContainer: ICommonContainer<T, ID, FILT>,
     var debug: Boolean? = null
 ) {
     companion object {
@@ -604,7 +612,7 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     suspend fun updateOne(apiItem: ApiItem<T, ID, FILT>): ItemState<T> =
         updateOneById(id = apiItem.id, apiItem = apiItem)
 
-    @Suppress("unused")
+    @Suppress("unused", "MemberVisibilityCanBePrivate")
     suspend fun updateOneById(
         id: ID?,
         apiItem: ApiItem<T, ID, FILT>,

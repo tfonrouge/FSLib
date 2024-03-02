@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "3.0.6"
+version = "3.0.7"
 
 repositories {
     google()
