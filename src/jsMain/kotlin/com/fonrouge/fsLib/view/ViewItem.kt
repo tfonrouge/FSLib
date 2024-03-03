@@ -341,6 +341,11 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         return id?.let { Json.encodeToString(configView.commonView.idSerializer, id) }
     }
 
+    /**
+     * Retrieves the data from the form panel.
+     *
+     * @return The data from the form panel, or null if the form panel is null.
+     */
     open fun formPanelGetData(): T? = formPanel?.getData()
 
     /**
