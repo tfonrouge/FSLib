@@ -48,6 +48,12 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     )
 }
 
+/**
+ * Navigates to the specified view item using the provided navigation controller.
+ *
+ * @param navHostController The navigation controller to use for navigating.
+ * @param apiItem The API item containing information about the item to navigate to.
+ */
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.navigateItem(
     navHostController: NavHostController,
     apiItem: ApiItem<T, ID, FILT>
@@ -61,6 +67,14 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     )
 }
 
+/**
+ * Navigate to the list view with the specified API filter.
+ *
+ * @param navHostController the Navigation Host Controller
+ * @param apiFilter the API filter (optional, default value is apiFilterInstance())
+ *
+ * @throws Exception if an error occurs while creating the API filter instance
+ */
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.navigateList(
     navHostController: NavHostController,
     apiFilter: FILT = apiFilterInstance(),
