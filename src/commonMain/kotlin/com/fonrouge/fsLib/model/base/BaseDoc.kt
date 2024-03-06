@@ -8,5 +8,5 @@ package com.fonrouge.fsLib.model.base
  */
 interface BaseDoc<T : Any> {
     @Suppress("PropertyName")
-    val _id: T?
+    val _id: T
 }
