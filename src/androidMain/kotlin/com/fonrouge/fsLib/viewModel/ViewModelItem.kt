@@ -83,15 +83,33 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         _screenItemAlertStatus.value = null
     }
 
-    fun pushScreenItemAlert(itemState: ItemState<T>, canRetry: Boolean = false, onDismiss: (() -> Unit)? = null) {
-        _screenItemAlertStatus.value = ItemAlert(itemState = itemState, canRetry = canRetry, onFinish = onDismiss)
+    fun pushScreenItemAlert(
+        itemState: ItemState<T>,
+        canRetry: Boolean = false,
+        onAccept: (() -> Unit) = {},
+        onCancel: (() -> Unit) = {},
+        onRetry: (() -> Unit) = {},
+        onDismissRequest: (() -> Unit) = {}
+    ) {
+        _screenItemAlertStatus.value =
+            ItemAlert(
+                itemState = itemState,
+                canRetry = canRetry,
+                onAccept = onAccept,
+                onCancel = onCancel,
+                onRetry = onRetry,
+                onDismissRequest = onDismissRequest
+            )
     }
 }
 
 data class ItemAlert<T : BaseDoc<*>>(
     val itemState: ItemState<T>,
     val canRetry: Boolean = false,
-    val onFinish: (() -> Unit)? = null,
+    val onAccept: (() -> Unit) = {},
+    val onCancel: (() -> Unit) = {},
+    val onRetry: (() -> Unit) = {},
+    val onDismissRequest: (() -> Unit) = { },
 )
 
 @Suppress("unused")

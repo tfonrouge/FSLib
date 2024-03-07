@@ -12,17 +12,26 @@ import com.fonrouge.fsLib.viewModel.ViewModelItem
 fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
     viewModelItem.screenItemAlertStatus.collectAsStateWithLifecycle().value?.let { itemAlert ->
         AlertDialog(
-            onDismissRequest = {
-                viewModelItem.clearScreenItemAlert()
-                itemAlert.onFinish?.invoke()
-            },
+            onDismissRequest = itemAlert.onDismissRequest,
             confirmButton = {
-                TextButton(onClick = {
-                    viewModelItem.clearScreenItemAlert()
-                    itemAlert.onFinish?.invoke()
-                }) {
-                    Text(text = "Dismiss")
+                TextButton(
+                    onClick = if (itemAlert.canRetry) {
+                        itemAlert.onRetry
+                    } else {
+                        itemAlert.onAccept
+                    }
+                ) {
+                    Text(text = if (itemAlert.canRetry) "Retry" else "Accept")
                 }
+            },
+            dismissButton = if (itemAlert.canRetry) {
+                {
+                    TextButton(onClick = { itemAlert.onCancel }) {
+                        Text(text = "Cancel")
+                    }
+                }
+            } else {
+                {}
             },
             title = {
                 Text(text = if (itemAlert.itemState.isOk) "Info" else "Error")
