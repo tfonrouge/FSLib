@@ -28,7 +28,7 @@ abstract class ViewModelPagingData<T : BaseDoc<*>, FILT : IApiFilter> : ViewMode
     val refreshingList: MutableState<Boolean> = mutableStateOf(false)
     var requestRefresh by mutableStateOf(false)
     val refreshByFilter = mutableStateOf(false)
-    abstract val apiFilter: MutableState<FILT>
+    abstract var apiFilter: FILT
     abstract val listStateFunc: KSuspendFunction1<ApiList<FILT>, ListState<T>>
     open val onBeforeListStateGet: (() -> Unit)? = null
 
@@ -41,11 +41,12 @@ abstract class ViewModelPagingData<T : BaseDoc<*>, FILT : IApiFilter> : ViewMode
             ApiList(
                 tabPage = pageNum,
                 tabSize = pageSize.intValue,
-                apiFilter = apiFilter.value
+                apiFilter = apiFilter
             )
         )
     }
 
+    @Suppress("unused")
     open suspend fun deleteItem(item: T): SimpleState =
         SimpleState(isOk = false, msgError = "Not implemented...")
 
@@ -67,15 +68,15 @@ abstract class ViewModelPagingData<T : BaseDoc<*>, FILT : IApiFilter> : ViewMode
             UIBaseEvent.UpdateList -> requestRefresh = true
             UIBaseEvent.EditingFilter -> {
                 if (!refreshByFilter.value) {
-                    filterSerialized = apiFilter.value
+                    filterSerialized = apiFilter
                     refreshByFilter.value = true
                 }
             }
 
             UIBaseEvent.RefreshByFilter -> {
                 refreshByFilter.value = false
-                if (filterSerialized?.equals(apiFilter.value) != true) {
-                    filterSerialized = apiFilter.value
+                if (filterSerialized?.equals(apiFilter) != true) {
+                    filterSerialized = apiFilter
                     onEvent(UIBaseEvent.UpdateList)
                 }
             }
