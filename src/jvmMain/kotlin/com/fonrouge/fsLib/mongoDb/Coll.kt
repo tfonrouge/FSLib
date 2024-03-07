@@ -376,9 +376,21 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
+    /**
+     * Inserts a single item into the database using the provided `ApiItem`.
+     *
+     * @param apiItem The `ApiItem` containing the item to be inserted.
+     * @param overrideValidation Specifies whether to override the item validation. Default is `false`.
+     * @return The state of the item after the insertion.
+     */
     @Suppress("unused")
-    suspend fun insertOne(apiItem: ApiItem<T, ID, FILT>): ItemState<T> {
+    suspend fun insertOne(apiItem: ApiItem<T, ID, FILT>, overrideValidation: Boolean = false): ItemState<T> {
         apiItem.item?.let {
+            if (!overrideValidation) {
+                commonContainer.validateItem(item = apiItem.item, apiItem.apiFilter).also { itemState ->
+                    if (!itemState.isOk) return itemState
+                }
+            }
             checkDontPersist(it)
             try {
                 val insertOneResult = mongoColl.insertOne(it).awaitSingle()
@@ -395,7 +407,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 return ItemState(isOk = false, msgError = e.message)
             }
         }
-        return ItemState(isOk = false, msgError = "insertOne(): apiItem.item contains null value...")
+        return ItemState(isOk = false, msgError = "${commonContainer.labelItem} contains null value")
     }
 
     /**
@@ -587,24 +599,29 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson,
         apiItem: ApiItem<T, ID, FILT>,
         updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemState<T> = apiItem.item?.let {
-        checkDontPersist(apiItem.item)
-        val result = try {
-            mongoColl.coroutine.updateOne(
-                filter = filter,
-                target = apiItem.item,
-                options = updateOptions
+    ): ItemState<T> {
+        return apiItem.item?.let {
+            commonContainer.validateItem(item = apiItem.item, apiFilter = apiItem.apiFilter).also { itemState ->
+                if (!itemState.isOk) return itemState
+            }
+            checkDontPersist(apiItem.item)
+            val result = try {
+                mongoColl.coroutine.updateOne(
+                    filter = filter,
+                    target = apiItem.item,
+                    options = updateOptions
+                )
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                null
+            }
+            ItemState(
+                isOk = result?.matchedCount == 1L,
+                noDataModified = result?.modifiedCount == 0L,
+                msgError = "No data was modified ..."
             )
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-            null
-        }
-        ItemState(
-            isOk = result?.matchedCount == 1L,
-            noDataModified = result?.modifiedCount == 0L,
-            msgError = "No data was modified ..."
-        )
-    } ?: ItemState(isOk = false, msgError = "Invalid data on StateItem ...")
+        } ?: ItemState(isOk = false, msgError = "${commonContainer.labelItem} contains null value")
+    }
 
     @Suppress("unused")
     suspend fun updateOne(apiItem: ApiItem<T, ID, FILT>): ItemState<T> =

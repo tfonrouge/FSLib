@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.ItemState
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
@@ -25,5 +26,10 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     @Suppress("unused")
     fun apiItem(id: ID?): ApiItem<T, ID, FILT> {
         return ApiItem(id = id, apiFilter = apiFilterInstance())
+    }
+
+    @Suppress("unused")
+    open fun validateItem(item: T, apiFilter: FILT = apiFilterInstance()): ItemState<T> {
+        return ItemState(isOk = true)
     }
 }
