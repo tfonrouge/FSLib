@@ -18,7 +18,7 @@ val ICommonContainer<*, *, *>.routeItem: String get() = "ViewItem$name?apiItem={
 val ICommonContainer<*, *, *>.routeList: String get() = "ViewList$name?apiFilter={apiFilter}"
 
 @Composable
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.DecodeRouteItemParams(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.DecodeRouteItemParams(
     navBackStackEntry: NavBackStackEntry,
     function: @Composable (apiItem: ApiItem<T, ID, FILT>) -> Unit
 ) {
@@ -32,7 +32,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 }
 
 @Composable
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.DecodeRouteListParams(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.DecodeRouteListParams(
     navBackStackEntry: NavBackStackEntry,
     function: @Composable (apiFilter: FILT) -> Unit
 ) {
@@ -54,7 +54,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @param navHostController The navigation controller to use for navigating.
  * @param apiItem The API item containing information about the item to navigate to.
  */
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.navigateItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateItem(
     navHostController: NavHostController,
     apiItem: ApiItem<T, ID, FILT>
 ) {
@@ -75,7 +75,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  *
  * @throws Exception if an error occurs while creating the API filter instance
  */
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CV.navigateList(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateList(
     navHostController: NavHostController,
     apiFilter: FILT = apiFilterInstance(),
 ) {
@@ -85,8 +85,8 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     )
 }
 
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableItem(
-    commonContainer: CV,
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableItem(
+    commonContainer: CC,
     function: @Composable AnimatedContentScope.(ApiItem<T, ID, FILT>) -> Unit,
 ) {
     composable(commonContainer.routeItem) { navBackStackEntry ->
@@ -98,8 +98,8 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     }
 }
 
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableList(
-    commonContainer: CV,
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableList(
+    commonContainer: CC,
     function: @Composable AnimatedContentScope.(FILT) -> Unit,
 ) {
     composable(commonContainer.routeList) { navBackStackEntry ->
