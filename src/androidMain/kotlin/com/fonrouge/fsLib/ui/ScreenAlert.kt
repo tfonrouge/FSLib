@@ -1,9 +1,14 @@
 package com.fonrouge.fsLib.ui
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fonrouge.fsLib.viewModel.ViewModelItem
 
@@ -16,7 +21,7 @@ fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
             confirmButton = {
                 TextButton(
                     onClick = if (itemAlert.canRetry) {
-                        itemAlert.onRetry
+                        itemAlert.onRetry ?: { viewModelItem.clearScreenItemAlert() }
                     } else {
                         itemAlert.onAccept
                     }
@@ -26,19 +31,34 @@ fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
             },
             dismissButton = if (itemAlert.canRetry) {
                 {
-                    TextButton(onClick = { itemAlert.onCancel }) {
+                    TextButton(
+                        onClick = {
+                            viewModelItem.clearScreenItemAlert()
+                            itemAlert.onCancel()
+                        }
+                    ) {
                         Text(text = "Cancel")
                     }
                 }
             } else {
                 {}
             },
+            icon = if (itemAlert.itemState.isOk) {
+                {
+                    Icon(imageVector = Icons.Default.Check, contentDescription = "info")
+                }
+            } else {
+                {
+                    Icon(imageVector = Icons.Default.Error, contentDescription = "error")
+                }
+            },
             title = {
                 Text(text = if (itemAlert.itemState.isOk) "Info" else "Error")
             },
             text = {
                 Text(text = if (itemAlert.itemState.isOk) "${itemAlert.itemState.msgOk}" else "${itemAlert.itemState.msgError}")
-            }
+            },
+            iconContentColor = if (itemAlert.itemState.isOk) Color.Green else Color.Red
         )
     }
 }

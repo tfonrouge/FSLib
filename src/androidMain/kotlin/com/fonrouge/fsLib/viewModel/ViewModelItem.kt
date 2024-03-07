@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
@@ -28,6 +29,20 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
 
     suspend fun makeQueryCall(
         apiItem: ApiItem<T, ID, FILT>,
+        navHostController: NavHostController
+    ) {
+        makeQueryCall(
+            apiItem = apiItem,
+            onFailure = {
+                pushScreenItemAlert(it) {
+                    navHostController.navigateUp()
+                }
+            }
+        )
+    }
+
+    suspend fun makeQueryCall(
+        apiItem: ApiItem<T, ID, FILT>,
         onFailure: ((ItemState<T>) -> Unit)? = null,
         onSuccess: ((ItemState<T>) -> Unit)? = null,
         onFinish: ((ItemState<T>) -> Unit)? = null,
@@ -48,6 +63,31 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         else
             onFailure?.invoke(itemState) ?: pushScreenItemAlert(itemState)
         onFinish?.invoke(itemState)
+    }
+
+    suspend fun makeActionCall(
+        apiItem: ApiItem<T, ID, FILT>,
+        navHostController: NavHostController
+    ) {
+        makeActionCall(
+            apiItem = apiItem,
+            onFailure = { itemState ->
+                pushScreenItemAlert(
+                    itemState = itemState,
+                    canRetry = true,
+                    onCancel = {
+                        navHostController.navigateUp()
+                    }
+                )
+            },
+            onSuccess = { itemState ->
+                pushScreenItemAlert(
+                    itemState = itemState
+                ) {
+                    navHostController.navigateUp()
+                }
+            }
+        )
     }
 
     suspend fun makeActionCall(
@@ -86,19 +126,19 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     fun pushScreenItemAlert(
         itemState: ItemState<T>,
         canRetry: Boolean = false,
-        onAccept: (() -> Unit) = {},
+        onDismissRequest: (() -> Unit) = {},
         onCancel: (() -> Unit) = {},
-        onRetry: (() -> Unit) = {},
-        onDismissRequest: (() -> Unit) = {}
+        onRetry: (() -> Unit)? = null,
+        onAccept: (() -> Unit) = {}
     ) {
         _screenItemAlertStatus.value =
             ItemAlert(
                 itemState = itemState,
                 canRetry = canRetry,
-                onAccept = onAccept,
+                onDismissRequest = onDismissRequest,
                 onCancel = onCancel,
                 onRetry = onRetry,
-                onDismissRequest = onDismissRequest
+                onAccept = onAccept
             )
     }
 }
@@ -106,10 +146,10 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
 data class ItemAlert<T : BaseDoc<*>>(
     val itemState: ItemState<T>,
     val canRetry: Boolean = false,
-    val onAccept: (() -> Unit) = {},
+    val onDismissRequest: (() -> Unit) = {},
     val onCancel: (() -> Unit) = {},
-    val onRetry: (() -> Unit) = {},
-    val onDismissRequest: (() -> Unit) = { },
+    val onRetry: (() -> Unit)? = null,
+    val onAccept: (() -> Unit) = {},
 )
 
 @Suppress("unused")
