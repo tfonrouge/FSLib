@@ -10,25 +10,25 @@ import com.fonrouge.fsLib.viewModel.ViewModelItem
 @Suppress("unused")
 @Composable
 fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
-    viewModelItem.screenItemAlertStatus.collectAsStateWithLifecycle().value?.let {
+    viewModelItem.screenItemAlertStatus.collectAsStateWithLifecycle().value?.let { itemAlert ->
         AlertDialog(
             onDismissRequest = {
                 viewModelItem.clearScreenItemAlert()
-                it.onFinish?.invoke()
+                itemAlert.onFinish?.invoke()
             },
             confirmButton = {
                 TextButton(onClick = {
                     viewModelItem.clearScreenItemAlert()
-                    it.onFinish?.invoke()
+                    itemAlert.onFinish?.invoke()
                 }) {
                     Text(text = "Dismiss")
                 }
             },
             title = {
-                Text(text = if (it.itemState.isOk) "Info" else "Error")
+                Text(text = if (itemAlert.itemState.isOk) "Info" else "Error")
             },
             text = {
-                Text(text = if (it.itemState.isOk) "${it.itemState.msgOk}" else "${it.itemState.msgError}")
+                Text(text = if (itemAlert.itemState.isOk) "${itemAlert.itemState.msgOk}" else "${itemAlert.itemState.msgError}")
             }
         )
     }

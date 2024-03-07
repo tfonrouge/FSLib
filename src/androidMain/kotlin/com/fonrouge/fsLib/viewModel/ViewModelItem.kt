@@ -83,13 +83,14 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         _screenItemAlertStatus.value = null
     }
 
-    fun pushScreenItemAlert(itemState: ItemState<T>, onDismiss: (() -> Unit)? = null) {
-        _screenItemAlertStatus.value = ItemAlert(itemState = itemState, onFinish = onDismiss)
+    fun pushScreenItemAlert(itemState: ItemState<T>, canRetry: Boolean = false, onDismiss: (() -> Unit)? = null) {
+        _screenItemAlertStatus.value = ItemAlert(itemState = itemState, canRetry = canRetry, onFinish = onDismiss)
     }
 }
 
 data class ItemAlert<T : BaseDoc<*>>(
     val itemState: ItemState<T>,
+    val canRetry: Boolean = false,
     val onFinish: (() -> Unit)? = null,
 )
 
