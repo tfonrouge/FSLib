@@ -12,13 +12,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.viewModel.ViewModelPagingData
+import com.fonrouge.fsLib.viewModel.ViewModelList
 
 @Suppress("unused")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-inline fun <reified VML : ViewModelPagingData<T, *>, T : BaseDoc<*>> ScreenList(
+inline fun <reified VML : ViewModelList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> ScreenList(
     navHostController: NavHostController = NavHostController(LocalContext.current),
     viewModel: VML = viewModel(),
     noinline topBarTitle: @Composable () -> Unit = {},

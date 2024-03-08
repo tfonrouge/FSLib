@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.serializeMasterItemId
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.json.Json
@@ -68,17 +69,36 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 }
 
 /**
+ * Navigates to a child list view with the specified API masterItem scope
+ *
+ * @param navHostController the Navigation Host Controller
+ * @param masterItem the master item whose id to be serialized and passed as the API filter
+ */
+inline fun <MT : BaseDoc<MID>, reified MID : Any, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateChildList(
+    navHostController: NavHostController,
+    masterItem: MT,
+) {
+    return navigateList(
+        navHostController = navHostController,
+        apiFilterBuilder = {
+            it.serializeMasterItemId(masterItem._id)
+        }
+    )
+}
+
+/**
  * Navigate to the list view with the specified API filter.
  *
  * @param navHostController the Navigation Host Controller
- * @param apiFilter the API filter (optional, default value is apiFilterInstance())
+ * @param apiFilterBuilder to allow to refactor the apiFilter instance
  *
  * @throws Exception if an error occurs while creating the API filter instance
  */
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateList(
     navHostController: NavHostController,
-    apiFilter: FILT = apiFilterInstance(),
+    apiFilterBuilder: ((FILT) -> FILT)? = null,
 ) {
+    val apiFilter: FILT = apiFilterBuilder?.let { it(apiFilterInstance()) } ?: apiFilterInstance()
     val serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     navHostController.navigate(
         "ViewList$name?apiFilter=\"${Uri.encode(serializedApiFilter)}\""

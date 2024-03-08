@@ -8,6 +8,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.fonrouge.fsLib.apiServices.AppApi
+import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.domain.BasePagingSource
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
@@ -18,7 +19,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KSuspendFunction1
 
-abstract class ViewModelPagingData<T : BaseDoc<*>, FILT : IApiFilter> : ViewModelBase() {
+abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
+    ViewModelContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
     }
@@ -47,8 +49,9 @@ abstract class ViewModelPagingData<T : BaseDoc<*>, FILT : IApiFilter> : ViewMode
     }
 
     @Suppress("unused")
-    open suspend fun deleteItem(item: T): SimpleState =
-        SimpleState(isOk = false, msgError = "Not implemented...")
+    open suspend fun deleteItem(item: T) {
+        pushAlert(SimpleState(isOk = false, msgError = "Not implemented..."))
+    }
 
     val flowPagingData: Flow<PagingData<T>> by lazy {
         Pager(

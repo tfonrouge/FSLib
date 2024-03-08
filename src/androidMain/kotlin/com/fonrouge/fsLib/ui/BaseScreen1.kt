@@ -26,9 +26,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.viewModel.ViewModelBase
-import com.fonrouge.fsLib.viewModel.ViewModelPagingData
+import com.fonrouge.fsLib.viewModel.ViewModelList
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshState
 import eu.bambooapps.material3.pullrefresh.pullRefresh
@@ -36,9 +38,9 @@ import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T : BaseDoc<*>> BodyList(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> BodyList(
     paddingValues: PaddingValues? = null,
-    viewModel: ViewModelPagingData<T, *>,
+    viewModel: ViewModelList<CC, T, ID, FILT>,
     pullRefreshState: PullRefreshState,
     content: @Composable (T?) -> Unit
 ) {
@@ -168,11 +170,11 @@ fun snackbarHostState(viewModel: ViewModelBase): SnackbarHostState {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T : BaseDoc<*>> pullRefreshState(viewModel: ViewModelPagingData<T, *>): PullRefreshState {
+fun <T : BaseDoc<*>> pullRefreshState(viewModel: ViewModelList<*, T, *, *>): PullRefreshState {
     return rememberPullRefreshState(
         refreshing = viewModel.refreshingList.value,
         onRefresh = {
-            viewModel.onEvent(uiBaseEvent = ViewModelPagingData.UIBaseEvent.UpdateList)
+            viewModel.onEvent(uiBaseEvent = ViewModelList.UIBaseEvent.UpdateList)
         }
     )
 }

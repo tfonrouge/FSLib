@@ -15,13 +15,13 @@ import com.fonrouge.fsLib.viewModel.ViewModelItem
 @Suppress("unused")
 @Composable
 fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
-    viewModelItem.screenItemAlertStatus.collectAsStateWithLifecycle().value?.let { itemAlert ->
+    viewModelItem.alertState.collectAsStateWithLifecycle().value?.let { itemAlert ->
         AlertDialog(
             onDismissRequest = itemAlert.onDismissRequest,
             confirmButton = {
                 TextButton(
                     onClick = if (itemAlert.canRetry) {
-                        itemAlert.onRetry ?: { viewModelItem.clearScreenItemAlert() }
+                        itemAlert.onRetry ?: { viewModelItem.clearAlert() }
                     } else {
                         itemAlert.onAccept
                     }
@@ -33,7 +33,7 @@ fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
                 {
                     TextButton(
                         onClick = {
-                            viewModelItem.clearScreenItemAlert()
+                            viewModelItem.clearAlert()
                             itemAlert.onCancel()
                         }
                     ) {
@@ -43,7 +43,7 @@ fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
             } else {
                 {}
             },
-            icon = if (itemAlert.itemState.isOk) {
+            icon = if (itemAlert.simpleState.isOk) {
                 {
                     Icon(imageVector = Icons.Default.Check, contentDescription = "info")
                 }
@@ -53,12 +53,12 @@ fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
                 }
             },
             title = {
-                Text(text = if (itemAlert.itemState.isOk) "Info" else "Error")
+                Text(text = if (itemAlert.simpleState.isOk) "Info" else "Error")
             },
             text = {
-                Text(text = if (itemAlert.itemState.isOk) "${itemAlert.itemState.msgOk}" else "${itemAlert.itemState.msgError}")
+                Text(text = if (itemAlert.simpleState.isOk) "${itemAlert.simpleState.msgOk}" else "${itemAlert.simpleState.msgError}")
             },
-            iconContentColor = if (itemAlert.itemState.isOk) Color.Green else Color.Red
+            iconContentColor = if (itemAlert.simpleState.isOk) Color.Green else Color.Red
         )
     }
 }

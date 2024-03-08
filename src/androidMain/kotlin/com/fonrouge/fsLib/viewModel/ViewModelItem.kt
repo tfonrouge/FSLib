@@ -11,16 +11,12 @@ import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
 abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
-    ViewModelBase() {
-    private val _screenItemAlertStatus = MutableStateFlow<ItemAlert<T>?>(null)
-    var screenItemAlertStatus = _screenItemAlertStatus.asStateFlow()
+    ViewModelContainer<CC, T, ID, FILT>() {
 
     var item: T? by mutableStateOf(null)
     var itemAlreadyOn by mutableStateOf<Boolean?>(null)
@@ -34,7 +30,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         makeQueryCall(
             apiItem = apiItem,
             onFailure = {
-                pushScreenItemAlert(it) {
+                pushAlert(it) {
                     navHostController.navigateUp()
                 }
             }
@@ -61,7 +57,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         if (itemState.isOk)
             onSuccess?.invoke(itemState)
         else
-            onFailure?.invoke(itemState) ?: pushScreenItemAlert(itemState)
+            onFailure?.invoke(itemState) ?: pushAlert(itemState)
         onFinish?.invoke(itemState)
     }
 
@@ -72,7 +68,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         makeActionCall(
             apiItem = apiItem,
             onFailure = { itemState ->
-                pushScreenItemAlert(
+                pushAlert(
                     itemState = itemState,
                     canRetry = true,
                     onCancel = {
@@ -81,7 +77,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                 )
             },
             onSuccess = { itemState ->
-                pushScreenItemAlert(
+                pushAlert(
                     itemState = itemState
                 ) {
                     navHostController.navigateUp()
@@ -115,42 +111,11 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         if (itemState.isOk)
             onSuccess?.invoke(itemState)
         else
-            onFailure?.invoke(itemState) ?: pushScreenItemAlert(itemState)
+            onFailure?.invoke(itemState) ?: pushAlert(itemState)
         onFinish?.invoke(itemState)
     }
 
-    fun clearScreenItemAlert() {
-        _screenItemAlertStatus.value = null
-    }
-
-    fun pushScreenItemAlert(
-        itemState: ItemState<T>,
-        canRetry: Boolean = false,
-        onDismissRequest: (() -> Unit) = {},
-        onCancel: (() -> Unit) = {},
-        onRetry: (() -> Unit)? = null,
-        onAccept: (() -> Unit) = {}
-    ) {
-        _screenItemAlertStatus.value =
-            ItemAlert(
-                itemState = itemState,
-                canRetry = canRetry,
-                onDismissRequest = onDismissRequest,
-                onCancel = onCancel,
-                onRetry = onRetry,
-                onAccept = onAccept
-            )
-    }
 }
-
-data class ItemAlert<T : BaseDoc<*>>(
-    val itemState: ItemState<T>,
-    val canRetry: Boolean = false,
-    val onDismissRequest: (() -> Unit) = {},
-    val onCancel: (() -> Unit) = {},
-    val onRetry: (() -> Unit)? = null,
-    val onAccept: (() -> Unit) = {},
-)
 
 @Suppress("unused")
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> ViewModelItem<*, *, *, *>.callItemApi(

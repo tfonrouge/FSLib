@@ -2,13 +2,15 @@ package com.fonrouge.fsLib.domain
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.viewModel.ViewModelPagingData
+import com.fonrouge.fsLib.viewModel.ViewModelList
 import java.io.IOException
 
-class BasePagingSource<T : BaseDoc<*>>(
-    val viewModel: ViewModelPagingData<T, *>,
+class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+    val viewModel: ViewModelList<CC, T, ID, FILT>,
 ) : PagingSource<Int, T>() {
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {
         return state.anchorPosition?.let {
