@@ -20,7 +20,7 @@ fun ScreenConfirmAlert(viewModelBase: ViewModelBase) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        confirmAlert.type.onConfirm?.invoke()
+                        confirmAlert.type.onConfirm.invoke()
                         viewModelBase.clearConfirmAlert()
                     }
                 ) {

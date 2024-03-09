@@ -54,7 +54,7 @@ fun ScreenStateAlert(viewModelBase: ViewModelBase) {
                 }
             },
             title = {
-                Text(text =  "${itemAlert.simpleState.state}")
+                Text(text = "${itemAlert.simpleState.state}")
             },
             text = {
                 Text(text = if (itemAlert.simpleState.isOk) "${itemAlert.simpleState.msgOk}" else "${itemAlert.simpleState.msgError}")
