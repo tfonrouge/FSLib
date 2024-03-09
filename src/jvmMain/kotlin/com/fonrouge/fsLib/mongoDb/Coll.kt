@@ -10,6 +10,7 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
+import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.LongId
 import com.fonrouge.fsLib.serializers.StringId
@@ -400,7 +401,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         apiItem.crudTask == CrudTask.Create
                 return ItemState(
                     item = it,
-                    isOk = result,
+                    state = if (result) State.Ok else State.Error,
                     itemAlreadyOn = itemAlreadyOn
                 )
             } catch (e: Exception) {
@@ -616,7 +617,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 null
             }
             ItemState(
-                isOk = result?.matchedCount == 1L,
+                state = if (result?.matchedCount == 1L) State.Ok else State.Error,
                 noDataModified = result?.modifiedCount == 0L,
                 msgError = "No data was modified ..."
             )

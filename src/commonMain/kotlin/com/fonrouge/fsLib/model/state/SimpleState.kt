@@ -7,19 +7,34 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SimpleState(
-    override var isOk: Boolean,
-    override val state: State = if (isOk) State.Ok else State.Warn,
+    override val state: State,
     override var msgOk: String? = null,
     override var msgError: String? = null,
     override val cargo: String? = null
 ) : ISimpleState {
     @Serializable(with = FSOffsetDateTimeSerializer::class)
     override val dateTime: OffsetDateTime = offsetDateTimeNow()
+    override val isOk: Boolean
+        get() = state == State.Ok
 
     @Suppress("unused")
     constructor(itemState: ItemState<*>) : this(
-        isOk = itemState.isOk,
+        state = itemState.state,
         msgOk = itemState.msgOk,
         msgError = itemState.msgError
+    )
+
+    constructor(
+        isOk: Boolean,
+        msgOk: String? = MSG_OK,
+        msgError: String? = MSG_ERROR
+    ) : this(
+        state = if (isOk) {
+            State.Ok
+        } else {
+            State.Error
+        },
+        msgOk = msgOk,
+        msgError = msgError
     )
 }

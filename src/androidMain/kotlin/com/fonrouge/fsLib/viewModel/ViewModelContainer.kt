@@ -29,7 +29,6 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         val apiItemFun = this.itemStateFun ?: run {
             pushAlert(
                 simpleState = SimpleState(
-                    isOk = false,
                     state = State.Error,
                     msgError = "apiItemFun not initialized"
                 ),
