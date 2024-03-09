@@ -51,11 +51,19 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 }
 
 /**
- * Navigates to the specified view item using the provided navigation controller.
+ * Navigates to a specific item view using the given [navHostController].
+ * The navigation is based on the provided [id] and [crudTask] parameters.
+ * If [id] is not provided, it defaults to null.
+ * If [crudTask] is not provided, it defaults to CrudTask.Read.
+ * The [apiItemFactory] is an optional lambda function that can be used to customize the [ApiItem] instance before serializing it.
+ * If not provided, the default [ApiItem] instance is used.
  *
- * @param navHostController The navigation controller to use for navigating.
- * @param apiItem The API item containing information about the item to navigate to.
+ * @param navHostController The navigation host controller.
+ * @param id The ID of the item being navigated to. Default value is null.
+ * @param crudTask The CRUD task of the operation being performed. Default value is CrudTask.Read.
+ * @param apiItemFactory An optional lambda function to customize the [ApiItem] instance before serializing it.
  */
+@Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateItem(
     navHostController: NavHostController,
     id: ID? = null,
@@ -74,19 +82,21 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 }
 
 /**
- * Navigates to a child list view with the specified API masterItem scope
+ * Navigates to a child list view with the specified API filter.
  *
  * @param navHostController the Navigation Host Controller
- * @param masterItem the master item whose id to be serialized and passed as the API filter
+ * @param masterItem the master item to serialize its ID for the API filter
+ * @throws Exception if an error occurs while creating the API filter instance
  */
-inline fun <MT : BaseDoc<MID>, reified MID : Any, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateChildList(
+@Suppress("unused")
+inline fun <MI : BaseDoc<MID>, reified MID : Any, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateChildList(
     navHostController: NavHostController,
-    masterItem: MT,
+    masterItem: MI?,
 ) {
     return navigateList(
         navHostController = navHostController,
         apiFilterFactory = {
-            it.serializeMasterItemId(masterItem._id)
+            it.serializeMasterItemId(masterItem?._id)
         }
     )
 }
@@ -110,6 +120,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     )
 }
 
+@Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableItem(
     commonContainer: CC,
     function: @Composable AnimatedContentScope.(ApiItem<T, ID, FILT>) -> Unit,
@@ -123,6 +134,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     }
 }
 
+@Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableList(
     commonContainer: CC,
     function: @Composable AnimatedContentScope.(FILT) -> Unit,
