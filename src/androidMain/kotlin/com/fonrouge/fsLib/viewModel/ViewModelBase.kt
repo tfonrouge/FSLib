@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.fonrouge.fsLib.model.state.ISimpleState
 import com.fonrouge.fsLib.model.state.SimpleState
+import com.fonrouge.fsLib.model.state.State
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -27,16 +28,16 @@ abstract class ViewModelBase : ViewModel() {
         onDismissRequest: () -> Unit = {},
     ) {
         val type: SimpleStateAlert.Type = when (simpleState.state) {
-            ISimpleState.State.Ok -> SimpleStateAlert.Type.Info(
+            State.Ok -> SimpleStateAlert.Type.Info(
                 onAccept = { navHostController?.navigateUp() }
             )
 
-            ISimpleState.State.Warn -> SimpleStateAlert.Type.Warn(
+            State.Warn -> SimpleStateAlert.Type.Warn(
                 canRetry = true,
                 onCancel = { navHostController?.navigateUp() }
             )
 
-            ISimpleState.State.Error -> SimpleStateAlert.Type.Error(
+            State.Error -> SimpleStateAlert.Type.Error(
                 canRetry = false,
                 onAccept = { navHostController?.navigateUp() }
             )

@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.model.state
 
 import io.kvision.types.OffsetDateTime
-import kotlinx.serialization.Serializable
 
 interface ISimpleState {
     val isOk: Boolean
@@ -10,11 +9,4 @@ interface ISimpleState {
     val state: State
     val cargo: String?
     val dateTime: OffsetDateTime
-
-    @Serializable
-    enum class State {
-        Ok,
-        Warn,
-        Error,
-    }
 }

@@ -9,9 +9,9 @@ import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.ISimpleState
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
+import com.fonrouge.fsLib.model.state.State
 import kotlin.reflect.KSuspendFunction1
 
 abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
@@ -30,7 +30,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             pushAlert(
                 simpleState = SimpleState(
                     isOk = false,
-                    state = ISimpleState.State.Error,
+                    state = State.Error,
                     msgError = "apiItemFun not initialized"
                 ),
                 navHostController = navHostController
