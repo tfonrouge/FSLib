@@ -10,11 +10,12 @@ import androidx.paging.cachedIn
 import com.fonrouge.fsLib.apiServices.AppApi
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.domain.BasePagingSource
+import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
-import com.fonrouge.fsLib.model.state.SimpleState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KSuspendFunction1
@@ -31,7 +32,8 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     var requestRefresh by mutableStateOf(false)
     val refreshByFilter = mutableStateOf(false)
     abstract var apiFilter: FILT
-    abstract val listStateFunc: KSuspendFunction1<ApiList<FILT>, ListState<T>>
+    abstract val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>
+    override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
     open val onBeforeListStateGet: (() -> Unit)? = null
 
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
@@ -39,18 +41,13 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         if (AppApi.delayBeforeRequest > 0) delay(AppApi.delayBeforeRequest.toLong())
         onBeforeListStateGet?.invoke()
         lastRequest = System.currentTimeMillis()
-        return listStateFunc(
+        return listStateFun(
             ApiList(
                 tabPage = pageNum,
                 tabSize = pageSize.intValue,
                 apiFilter = apiFilter
             )
         )
-    }
-
-    @Suppress("unused")
-    open suspend fun deleteItem(item: T) {
-        pushAlert(SimpleState(isOk = false, msgError = "Not implemented..."))
     }
 
     val flowPagingData: Flow<PagingData<T>> by lazy {
@@ -87,8 +84,8 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     }
 
     sealed class UIBaseEvent {
-        data object UpdateList : UIBaseEvent()
-        data object RefreshByFilter : UIBaseEvent()
         data object EditingFilter : UIBaseEvent()
+        data object RefreshByFilter : UIBaseEvent()
+        data object UpdateList : UIBaseEvent()
     }
 }

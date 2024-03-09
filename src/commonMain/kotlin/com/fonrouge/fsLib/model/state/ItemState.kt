@@ -11,9 +11,10 @@ data class ItemState<T>(
     val itemAlreadyOn: Boolean = false,
     val noDataModified: Boolean? = null,
     override val isOk: Boolean = item != null,
+    override val state: ISimpleState.State = if (isOk) ISimpleState.State.Ok else ISimpleState.State.Warn,
     override val msgOk: String? = "Operation successful ...",
     override val msgError: String? = "Operation Failed ...",
-    override val state: String? = null,
+    override val cargo: String? = null
 ) : ISimpleState {
     @Serializable(with = FSOffsetDateTimeSerializer::class)
     override val dateTime: OffsetDateTime = offsetDateTimeNow()

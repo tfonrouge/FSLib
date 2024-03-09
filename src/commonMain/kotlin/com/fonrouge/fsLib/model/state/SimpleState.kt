@@ -8,9 +8,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SimpleState(
     override var isOk: Boolean,
+    override val state: ISimpleState.State = if (isOk) ISimpleState.State.Ok else ISimpleState.State.Warn,
     override var msgOk: String? = null,
     override var msgError: String? = null,
-    override val state: String? = null,
+    override val cargo: String? = null
 ) : ISimpleState {
     @Serializable(with = FSOffsetDateTimeSerializer::class)
     override val dateTime: OffsetDateTime = offsetDateTimeNow()

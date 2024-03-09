@@ -8,6 +8,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.serializeMasterItemId
@@ -57,11 +58,15 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  */
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateItem(
     navHostController: NavHostController,
-    apiItem: ApiItem<T, ID, FILT>
+    id: ID? = null,
+    crudTask: CrudTask = CrudTask.Read,
+    apiItemFactory: ((ApiItem<T, ID, FILT>).(FILT) -> ApiItem<T, ID, FILT>)? = null
 ) {
+    val apiFilter = apiFilterInstance()
+    val apiItem = ApiItem<T, ID, FILT>(id = id, crudTask = crudTask, apiFilter = apiFilter)
     val serializedApiItem = Json.encodeToString(
         ApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-        apiItem
+        apiItemFactory?.let { it(apiItem, apiFilter) } ?: apiItem
     )
     navHostController.navigate(
         "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
@@ -80,7 +85,7 @@ inline fun <MT : BaseDoc<MID>, reified MID : Any, CC : ICommonContainer<T, ID, F
 ) {
     return navigateList(
         navHostController = navHostController,
-        apiFilterBuilder = {
+        apiFilterFactory = {
             it.serializeMasterItemId(masterItem._id)
         }
     )
@@ -90,15 +95,15 @@ inline fun <MT : BaseDoc<MID>, reified MID : Any, CC : ICommonContainer<T, ID, F
  * Navigate to the list view with the specified API filter.
  *
  * @param navHostController the Navigation Host Controller
- * @param apiFilterBuilder to allow to refactor the apiFilter instance
+ * @param apiFilterFactory to allow to refactor the apiFilter instance
  *
  * @throws Exception if an error occurs while creating the API filter instance
  */
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateList(
     navHostController: NavHostController,
-    apiFilterBuilder: ((FILT) -> FILT)? = null,
+    apiFilterFactory: ((FILT) -> FILT)? = null,
 ) {
-    val apiFilter: FILT = apiFilterBuilder?.let { it(apiFilterInstance()) } ?: apiFilterInstance()
+    val apiFilter: FILT = apiFilterFactory?.let { it(apiFilterInstance()) } ?: apiFilterInstance()
     val serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     navHostController.navigate(
         "ViewList$name?apiFilter=\"${Uri.encode(serializedApiFilter)}\""

@@ -18,32 +18,18 @@ import kotlin.reflect.KSuspendFunction1
 abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
     ViewModelContainer<CC, T, ID, FILT>() {
 
-    var item: T? by mutableStateOf(null)
     var itemAlreadyOn by mutableStateOf<Boolean?>(null)
     var controlsEnabled by mutableStateOf(false)
-    abstract val apiItemFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
-
+    abstract override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
     suspend fun makeQueryCall(
         apiItem: ApiItem<T, ID, FILT>,
-        navHostController: NavHostController
-    ) {
-        makeQueryCall(
-            apiItem = apiItem,
-            onFailure = {
-                pushAlert(it) {
-                    navHostController.navigateUp()
-                }
-            }
-        )
-    }
-
-    suspend fun makeQueryCall(
-        apiItem: ApiItem<T, ID, FILT>,
+        navHostController: NavHostController? = null,
         onFailure: ((ItemState<T>) -> Unit)? = null,
         onSuccess: ((ItemState<T>) -> Unit)? = null,
         onFinish: ((ItemState<T>) -> Unit)? = null,
     ) {
-        val itemState = apiItemFun(apiItem.copy(callType = ApiItem.CallType.Query))
+        itemAlreadyOn = null
+        val itemState = itemStateFun(apiItem.copy(callType = ApiItem.CallType.Query))
         if (apiItem.crudTask == CrudTask.Create) {
             itemAlreadyOn = itemState.itemAlreadyOn
         }
@@ -57,37 +43,16 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         if (itemState.isOk)
             onSuccess?.invoke(itemState)
         else
-            onFailure?.invoke(itemState) ?: pushAlert(itemState)
+            onFailure?.invoke(itemState) ?: pushAlert(
+                simpleState = itemState,
+                navHostController = navHostController
+            )
         onFinish?.invoke(itemState)
     }
 
     suspend fun makeActionCall(
         apiItem: ApiItem<T, ID, FILT>,
-        navHostController: NavHostController
-    ) {
-        makeActionCall(
-            apiItem = apiItem,
-            onFailure = { itemState ->
-                pushAlert(
-                    itemState = itemState,
-                    canRetry = true,
-                    onCancel = {
-                        navHostController.navigateUp()
-                    }
-                )
-            },
-            onSuccess = { itemState ->
-                pushAlert(
-                    itemState = itemState
-                ) {
-                    navHostController.navigateUp()
-                }
-            }
-        )
-    }
-
-    suspend fun makeActionCall(
-        apiItem: ApiItem<T, ID, FILT>,
+        navHostController: NavHostController? = null,
         onFailure: ((ItemState<T>) -> Unit)? = null,
         onSuccess: ((ItemState<T>) -> Unit)? = null,
         onFinish: ((ItemState<T>) -> Unit)? = null,
@@ -95,7 +60,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         val itemState = when (apiItem.crudTask) {
             CrudTask.Create,
             CrudTask.Update,
-            CrudTask.Delete -> apiItemFun(
+            CrudTask.Delete -> itemStateFun(
                 apiItem.copy(
                     id = item?._id,
                     item = item,
@@ -111,28 +76,40 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         if (itemState.isOk)
             onSuccess?.invoke(itemState)
         else
-            onFailure?.invoke(itemState) ?: pushAlert(itemState)
+            onFailure?.invoke(itemState) ?: pushAlert(
+                simpleState = itemState,
+                navHostController = navHostController
+            )
         onFinish?.invoke(itemState)
     }
 
 }
 
+/**
+ * Method to make an API call for an item.
+ *
+ * @param commonContainer The common container for the item.
+ * @param function The suspend function to be executed for the API call.
+ * @param onSuccess The callback function to be executed when the API call is successful. It takes the commonContainer and the resulting ItemState as parameters. (optional)
+ * @param onFailure The callback function to be executed when the API call fails. It takes the commonContainer and the resulting ItemState as parameters. (optional)
+ * @param apiItemBuilder An optional lambda function that can be used to modify the ApiItem object before making the API call.
+ */
 @Suppress("unused")
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> ViewModelItem<*, *, *, *>.callItemApi(
     commonContainer: ICommonContainer<T, ID, FILT>,
+    id: ID? = null,
     function: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>,
     onSuccess: (ICommonContainer<T, ID, FILT>.(ItemState<T>) -> Unit)? = null,
     onFailure: (ICommonContainer<T, ID, FILT>.(ItemState<T>) -> Unit)? = null,
-    apiItemBuilder: () -> ApiItem<T, ID, FILT>?
+    apiItemBuilder: (ApiItem<T, ID, FILT>.() -> ApiItem<T, ID, FILT>)? = null
 ) {
-    apiItemBuilder()?.let { apiItem ->
-        viewModelScope.launch {
-            val itemState = function(apiItem)
-            if (itemState.isOk) {
-                onSuccess?.invoke(commonContainer, itemState)
-            } else {
-                onFailure?.invoke(commonContainer, itemState)
-            }
+    val apiItem = commonContainer.apiItem(id = id)
+    viewModelScope.launch {
+        val itemState = function(apiItemBuilder?.let { it(apiItem) } ?: apiItem)
+        if (itemState.isOk) {
+            onSuccess?.invoke(commonContainer, itemState)
+        } else {
+            onFailure?.invoke(commonContainer, itemState)
         }
     }
 }

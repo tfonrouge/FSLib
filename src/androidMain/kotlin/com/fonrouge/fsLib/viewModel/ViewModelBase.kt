@@ -1,7 +1,8 @@
 package com.fonrouge.fsLib.viewModel
 
 import androidx.lifecycle.ViewModel
-import com.fonrouge.fsLib.model.state.ItemState
+import androidx.navigation.NavHostController
+import com.fonrouge.fsLib.model.state.ISimpleState
 import com.fonrouge.fsLib.model.state.SimpleState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,48 +22,63 @@ abstract class ViewModelBase : ViewModel() {
     }
 
     fun pushAlert(
-        simpleState: SimpleState,
-        canRetry: Boolean = false,
+        simpleState: ISimpleState,
+        navHostController: NavHostController?,
         onDismissRequest: () -> Unit = {},
-        onCancel: () -> Unit = {},
-        onRetry: (() -> Unit)? = null,
-        onAccept: () -> Unit = {}
     ) {
+        val type: SimpleStateAlert.Type = when (simpleState.state) {
+            ISimpleState.State.Ok -> SimpleStateAlert.Type.Info(
+                onAccept = { navHostController?.navigateUp() }
+            )
+
+            ISimpleState.State.Warn -> SimpleStateAlert.Type.Warn(
+                canRetry = true,
+                onCancel = { navHostController?.navigateUp() }
+            )
+
+            ISimpleState.State.Error -> SimpleStateAlert.Type.Error(
+                canRetry = false,
+                onAccept = { navHostController?.navigateUp() }
+            )
+        }
         _alertState.value =
             SimpleStateAlert(
                 simpleState = simpleState,
-                canRetry = canRetry,
+                type = type,
                 onDismissRequest = onDismissRequest,
-                onCancel = onCancel,
-                onRetry = onRetry,
-                onAccept = onAccept
             )
-    }
-
-    fun pushAlert(
-        itemState: ItemState<*>,
-        canRetry: Boolean = false,
-        onDismissRequest: () -> Unit = {},
-        onCancel: () -> Unit = {},
-        onRetry: (() -> Unit)? = null,
-        onAccept: () -> Unit = {}
-    ) {
-        pushAlert(
-            simpleState = itemState.asSimpleState,
-            canRetry = canRetry,
-            onDismissRequest = onDismissRequest,
-            onCancel = onCancel,
-            onRetry = onRetry,
-            onAccept = onAccept
-        )
     }
 }
 
 data class SimpleStateAlert(
-    val simpleState: SimpleState,
-    val canRetry: Boolean = false,
+    val simpleState: ISimpleState,
+    val type: Type = Type.Info(),
     val onDismissRequest: (() -> Unit) = {},
-    val onCancel: (() -> Unit) = {},
-    val onRetry: (() -> Unit)? = null,
-    val onAccept: (() -> Unit) = {},
-)
+) {
+    sealed class Type(
+        open val canRetry: Boolean = false,
+        open val onAccept: (() -> Unit)? = null,
+        open val onCancel: (() -> Unit)? = null,
+
+        ) {
+        data class Confirm(
+            override val onAccept: (() -> Unit)? = null
+        ) : Type()
+
+        data class Info(
+            override val onAccept: (() -> Unit)? = null
+        ) : Type()
+
+        data class Warn(
+            override val canRetry: Boolean,
+            override val onAccept: (() -> Unit)? = null,
+            override val onCancel: (() -> Unit)? = null,
+        ) : Type()
+
+        data class Error(
+            override val canRetry: Boolean,
+            override val onAccept: (() -> Unit)? = null,
+            override val onCancel: (() -> Unit)? = null,
+        ) : Type()
+    }
+}

@@ -36,7 +36,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         user: U?,
         kCallable: KCallable<*>? = null,
     ): SimpleState {
-        user ?: return SimpleState(isOk = false, "Empty user")
+        user ?: return SimpleState(isOk = false, msgError = "Empty user")
         if (rootUser(user = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val classOwner: String
         val funcName: String

@@ -10,38 +10,40 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.fonrouge.fsLib.viewModel.ViewModelItem
+import com.fonrouge.fsLib.viewModel.SimpleStateAlert
+import com.fonrouge.fsLib.viewModel.ViewModelBase
 
 @Suppress("unused")
 @Composable
-fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
-    viewModelItem.alertState.collectAsStateWithLifecycle().value?.let { itemAlert ->
+fun ScreenAlert(viewModelBase: ViewModelBase) {
+    viewModelBase.alertState.collectAsStateWithLifecycle().value?.let { itemAlert ->
         AlertDialog(
             onDismissRequest = itemAlert.onDismissRequest,
             confirmButton = {
                 TextButton(
-                    onClick = if (itemAlert.canRetry) {
-                        itemAlert.onRetry ?: { viewModelItem.clearAlert() }
-                    } else {
-                        itemAlert.onAccept
+                    onClick = {
+                        itemAlert.type.onAccept?.invoke()
+                        viewModelBase.clearAlert()
                     }
                 ) {
-                    Text(text = if (itemAlert.canRetry) "Retry" else "Accept")
+                    Text(
+                        text = if (itemAlert.type.canRetry) "Retry" else "Accept"
+                    )
                 }
             },
-            dismissButton = if (itemAlert.canRetry) {
+            dismissButton = if (itemAlert.type.canRetry) {
                 {
                     TextButton(
                         onClick = {
-                            viewModelItem.clearAlert()
-                            itemAlert.onCancel()
+                            itemAlert.type.onCancel?.invoke()
+                            viewModelBase.clearAlert()
                         }
                     ) {
                         Text(text = "Cancel")
                     }
                 }
             } else {
-                {}
+                null
             },
             icon = if (itemAlert.simpleState.isOk) {
                 {
@@ -53,7 +55,7 @@ fun ScreenAlert(viewModelItem: ViewModelItem<*, *, *, *>) {
                 }
             },
             title = {
-                Text(text = if (itemAlert.simpleState.isOk) "Info" else "Error")
+                Text(text =  "${itemAlert.simpleState.state}")
             },
             text = {
                 Text(text = if (itemAlert.simpleState.isOk) "${itemAlert.simpleState.msgOk}" else "${itemAlert.simpleState.msgError}")
