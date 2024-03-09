@@ -11,39 +11,77 @@ import kotlinx.coroutines.flow.asStateFlow
 abstract class ViewModelBase : ViewModel() {
     private val _snackBarStatus = MutableStateFlow<SimpleState?>(null)
     val snackBarStatus = _snackBarStatus.asStateFlow()
-    private val _alertState = MutableStateFlow<SimpleStateAlert?>(null)
-    var alertState = _alertState.asStateFlow()
+    private val _stateAlert = MutableStateFlow<StateAlert?>(null)
+    var stateAlert = _stateAlert.asStateFlow()
+    private val _confirmAlert = MutableStateFlow<ConfirmAlert?>(null)
+    var confirmAlert = _confirmAlert.asStateFlow()
 
     fun pushSimpleState(simpleState: SimpleState?) {
         _snackBarStatus.value = simpleState
     }
 
-    fun clearAlert() {
-        _alertState.value = null
+    fun clearStateAlert() {
+        _stateAlert.value = null
     }
 
-    fun pushAlert(
+    fun clearConfirmAlert() {
+        _confirmAlert.value = null
+    }
+
+    fun pushConfirmAlert(
+        confirmText: String,
+        onNo: (() -> Unit)? = null,
+        onDismissRequest: () -> Unit = {},
+        onConfirm: () -> Unit
+    ) {
+        _confirmAlert.value = ConfirmAlert(
+            type = ConfirmAlert.Type.YesNoConfirm(
+                onConfirm = onConfirm,
+                onNo = onNo
+            ),
+            confirmText = confirmText,
+            onDismissRequest = onDismissRequest
+        )
+    }
+
+    fun pushConfirmCancelAlert(
+        confirmText: String,
+        onCancel: (() -> Unit)? = null,
+        onDismissRequest: () -> Unit = {},
+        onConfirm: () -> Unit
+    ) {
+        _confirmAlert.value = ConfirmAlert(
+            type = ConfirmAlert.Type.YesCancelConfirm(
+                onConfirm = onConfirm,
+                onCancel = onCancel
+            ),
+            confirmText = confirmText,
+            onDismissRequest = onDismissRequest
+        )
+    }
+
+    fun pushStateAlert(
         simpleState: ISimpleState,
         navHostController: NavHostController?,
         onDismissRequest: () -> Unit = {},
     ) {
-        val type: SimpleStateAlert.Type = when (simpleState.state) {
-            State.Ok -> SimpleStateAlert.Type.Info(
+        val type: StateAlert.Type = when (simpleState.state) {
+            State.Ok -> StateAlert.Type.Info(
                 onAccept = { navHostController?.navigateUp() }
             )
 
-            State.Warn -> SimpleStateAlert.Type.Warn(
+            State.Warn -> StateAlert.Type.Warn(
                 canRetry = true,
                 onCancel = { navHostController?.navigateUp() }
             )
 
-            State.Error -> SimpleStateAlert.Type.Error(
+            State.Error -> StateAlert.Type.Error(
                 canRetry = false,
                 onAccept = { navHostController?.navigateUp() }
             )
         }
-        _alertState.value =
-            SimpleStateAlert(
+        _stateAlert.value =
+            StateAlert(
                 simpleState = simpleState,
                 type = type,
                 onDismissRequest = onDismissRequest,
@@ -51,7 +89,7 @@ abstract class ViewModelBase : ViewModel() {
     }
 }
 
-data class SimpleStateAlert(
+data class StateAlert(
     val simpleState: ISimpleState,
     val type: Type = Type.Info(),
     val onDismissRequest: (() -> Unit) = {},
@@ -60,12 +98,7 @@ data class SimpleStateAlert(
         open val canRetry: Boolean = false,
         open val onAccept: (() -> Unit)? = null,
         open val onCancel: (() -> Unit)? = null,
-
-        ) {
-        data class Confirm(
-            override val onAccept: (() -> Unit)? = null
-        ) : Type()
-
+    ) {
         data class Info(
             override val onAccept: (() -> Unit)? = null
         ) : Type()
@@ -81,5 +114,25 @@ data class SimpleStateAlert(
             override val onAccept: (() -> Unit)? = null,
             override val onCancel: (() -> Unit)? = null,
         ) : Type()
+    }
+}
+
+data class ConfirmAlert(
+    val type: Type,
+    val confirmText: String = "?",
+    val onDismissRequest: (() -> Unit) = {},
+) {
+    sealed class Type(
+        open val onConfirm: (() -> Unit),
+    ) {
+        data class YesNoConfirm(
+            override val onConfirm: (() -> Unit),
+            val onNo: (() -> Unit)? = null,
+        ) : Type(onConfirm)
+
+        class YesCancelConfirm(
+            override val onConfirm: (() -> Unit),
+            val onCancel: (() -> Unit)? = null,
+        ) : Type(onConfirm)
     }
 }

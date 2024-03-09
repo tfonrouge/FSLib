@@ -43,7 +43,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         if (itemState.isOk)
             onSuccess?.invoke(itemState)
         else
-            onFailure?.invoke(itemState) ?: pushAlert(
+            onFailure?.invoke(itemState) ?: pushStateAlert(
                 simpleState = itemState,
                 navHostController = navHostController
             )
@@ -76,7 +76,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         if (itemState.isOk)
             onSuccess?.invoke(itemState)
         else
-            onFailure?.invoke(itemState) ?: pushAlert(
+            onFailure?.invoke(itemState) ?: pushStateAlert(
                 simpleState = itemState,
                 navHostController = navHostController
             )

@@ -27,7 +27,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         apiItemRefactor: ((ApiItem<T, ID, FILT>) -> ApiItem<T, ID, FILT>)? = null
     ) {
         val apiItemFun = this.itemStateFun ?: run {
-            pushAlert(
+            pushStateAlert(
                 simpleState = SimpleState(
                     state = State.Error,
                     msgError = "apiItemFun not initialized"
@@ -44,7 +44,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         apiItem = apiItemRefactor?.invoke(apiItem) ?: apiItem
         apiItemFun.invoke(apiItem).also { itemState ->
             if (!itemState.isOk) {
-                pushAlert(
+                pushStateAlert(
                     simpleState = itemState,
                     navHostController = navHostController
                 )
@@ -54,7 +54,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
 
         apiItemFun.invoke(apiItem.copy(callType = ApiItem.CallType.Action)).also { itemState ->
             if (!itemState.isOk) {
-                pushAlert(
+                pushStateAlert(
                     simpleState = itemState,
                     navHostController = navHostController
                 )
