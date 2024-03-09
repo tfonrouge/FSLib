@@ -30,6 +30,9 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     open val pageSize: MutableIntState = mutableIntStateOf(20)
     val refreshingList: MutableState<Boolean> = mutableStateOf(false)
     var requestRefresh by mutableStateOf(false)
+    var periodicUpdate by mutableStateOf(false)
+    var periodicInterval by mutableIntStateOf(5000)
+    var refreshListCounter by mutableIntStateOf(0)
     val refreshByFilter = mutableStateOf(false)
     abstract var apiFilter: FILT
     abstract val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>
