@@ -86,6 +86,7 @@ fun <T : Any> ItemCard2(
     content(items[index])
 }
 
+@Suppress("unused")
 @Composable
 fun ItemCard(
     onClick: (() -> Unit)? = null,
@@ -102,6 +103,7 @@ fun ItemCard(
     )
 }
 
+@Suppress("unused")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DismissBackgroundDelete(
@@ -174,7 +176,7 @@ fun <T : BaseDoc<*>> pullRefreshState(viewModel: ViewModelList<*, T, *, *>): Pul
     return rememberPullRefreshState(
         refreshing = viewModel.refreshingList.value,
         onRefresh = {
-            viewModel.onEvent(uiBaseEvent = ViewModelList.UIBaseEvent.UpdateList)
+            viewModel.requestRefresh = true
         }
     )
 }

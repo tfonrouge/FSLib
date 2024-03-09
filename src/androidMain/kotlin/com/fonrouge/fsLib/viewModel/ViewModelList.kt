@@ -65,7 +65,6 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
 
     open fun onEvent(uiBaseEvent: UIBaseEvent) {
         when (uiBaseEvent) {
-            UIBaseEvent.UpdateList -> requestRefresh = true
             UIBaseEvent.EditingFilter -> {
                 if (!refreshByFilter.value) {
                     filterSerialized = apiFilter
@@ -77,7 +76,7 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                 refreshByFilter.value = false
                 if (filterSerialized?.equals(apiFilter) != true) {
                     filterSerialized = apiFilter
-                    onEvent(UIBaseEvent.UpdateList)
+                    requestRefresh = true
                 }
             }
         }
@@ -86,6 +85,5 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     sealed class UIBaseEvent {
         data object EditingFilter : UIBaseEvent()
         data object RefreshByFilter : UIBaseEvent()
-        data object UpdateList : UIBaseEvent()
     }
 }
