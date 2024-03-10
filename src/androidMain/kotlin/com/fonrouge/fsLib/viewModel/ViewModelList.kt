@@ -21,7 +21,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KSuspendFunction1
 
 open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-    final override val commonContainer: CC
+    final override val commonContainer: CC,
+    private val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
 ) : ViewModelContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
@@ -36,7 +37,8 @@ open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID
     var refreshListCounter by mutableIntStateOf(0)
     val refreshByFilter = mutableStateOf(false)
     var apiFilter: FILT by mutableStateOf(commonContainer.apiFilterInstance())
-    open val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>? = null
+
+    //    open val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>? = null
     override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
     open val onBeforeListStateGet: (() -> Unit)? = null
 
@@ -45,13 +47,13 @@ open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID
         if (AppApi.delayBeforeRequest > 0) delay(AppApi.delayBeforeRequest.toLong())
         onBeforeListStateGet?.invoke()
         lastRequest = System.currentTimeMillis()
-        return listStateFun?.invoke(
+        return listStateFun.invoke(
             ApiList(
                 tabPage = pageNum,
                 tabSize = pageSize.intValue,
                 apiFilter = apiFilter
             )
-        ) ?: ListState()
+        )
     }
 
     val flowPagingData: Flow<PagingData<T>> by lazy {
