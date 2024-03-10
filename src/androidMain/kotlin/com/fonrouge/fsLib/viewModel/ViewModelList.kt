@@ -34,7 +34,7 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     var periodicInterval by mutableIntStateOf(5000)
     var refreshListCounter by mutableIntStateOf(0)
     val refreshByFilter = mutableStateOf(false)
-    abstract var apiFilter: FILT
+    var apiFilter: FILT? by mutableStateOf(null)
     abstract val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>
     override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
     open val onBeforeListStateGet: (() -> Unit)? = null
@@ -42,6 +42,11 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     suspend fun listStateGetter(pageNum: Int): ListState<T> {
         if (AppApi.delayBeforeRequest > 0) delay(AppApi.delayBeforeRequest.toLong())
+        if (apiFilter == null) {
+            apiFilter = apiItem?.apiFilter ?: commonContainer.apiFilterInstance()
+        }
+        // TODO: cleanup this
+        val apiFilter = apiFilter ?: apiItem?.apiFilter ?: commonContainer.apiFilterInstance()
         onBeforeListStateGet?.invoke()
         lastRequest = System.currentTimeMillis()
         return listStateFun(

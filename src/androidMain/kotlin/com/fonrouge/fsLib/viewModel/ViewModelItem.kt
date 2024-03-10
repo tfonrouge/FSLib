@@ -1,18 +1,11 @@
 package com.fonrouge.fsLib.viewModel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
-import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.model.state.State
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction1
 
@@ -20,7 +13,6 @@ import kotlin.reflect.KSuspendFunction1
 abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
     ViewModelContainer<CC, T, ID, FILT>() {
     abstract override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
-
 }
 
 /**
