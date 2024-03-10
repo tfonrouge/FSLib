@@ -10,9 +10,11 @@ import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
-abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
-    ViewModelContainer<CC, T, ID, FILT>() {
-    abstract override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
+open class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+    final override val commonContainer: CC,
+    final override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
+) : ViewModelContainer<CC, T, ID, FILT>() {
+    override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
 }
 
 /**

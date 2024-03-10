@@ -40,6 +40,7 @@ open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID
 
     //    open val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>? = null
     override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
+    override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
     open val onBeforeListStateGet: (() -> Unit)? = null
 
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
