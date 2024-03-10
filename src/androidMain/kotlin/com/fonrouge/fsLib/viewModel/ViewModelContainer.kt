@@ -22,6 +22,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     var itemAlreadyOn by mutableStateOf<Boolean?>(null)
     var controlsEnabled by mutableStateOf(false)
     abstract var apiItem: ApiItem<T, ID, FILT>
+    abstract var apiFilter: FILT
     private val itemStateFunNotInitializedError by lazy {
         "${this::itemStateFun.name} not initialized"
     }
@@ -47,7 +48,8 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         var apiItem = commonContainer.apiItem(
             id = id,
             callType = ApiItem.CallType.Query,
-            crudTask = CrudTask.Delete
+            crudTask = CrudTask.Delete,
+            apiFilter = apiFilter
         )
         apiItem = apiItemRefactor?.invoke(apiItem) ?: apiItem
         apiItemFun.invoke(apiItem).also { itemState ->

@@ -1,12 +1,13 @@
 package com.fonrouge.fsLib.viewModel
 
-import androidx.lifecycle.viewModelScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
-import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
@@ -15,33 +16,27 @@ open class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID
     final override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
 ) : ViewModelContainer<CC, T, ID, FILT>() {
     override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
+    override var apiFilter: FILT by mutableStateOf(commonContainer.apiFilterInstance())
 }
 
 /**
- * Method to make an API call for an item.
+ * Calls the Item API with the specified parameters.
  *
- * @param commonContainer The common container for the item.
- * @param function The suspend function to be executed for the API call.
- * @param onSuccess The callback function to be executed when the API call is successful. It takes the commonContainer and the resulting ItemState as parameters. (optional)
- * @param onFailure The callback function to be executed when the API call fails. It takes the commonContainer and the resulting ItemState as parameters. (optional)
- * @param apiItemBuilder An optional lambda function that can be used to modify the ApiItem object before making the API call.
+ * @param id The ID of the item.
+ * @param function The suspend function to be executed on the API item.
+ * @param apiItemBuilder An optional lambda function to build the API item.
+ * @param onResponse An optional lambda function to handle the API response.
+ * @return The state of the item.
  */
 @Suppress("unused")
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> ViewModelItem<*, *, *, *>.callItemApi(
-    commonContainer: ICommonContainer<T, ID, FILT>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.callItemApi(
     id: ID? = null,
     function: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>,
-    onSuccess: (ICommonContainer<T, ID, FILT>.(ItemState<T>) -> Unit)? = null,
-    onFailure: (ICommonContainer<T, ID, FILT>.(ItemState<T>) -> Unit)? = null,
-    apiItemBuilder: (ApiItem<T, ID, FILT>.() -> ApiItem<T, ID, FILT>)? = null
-) {
-    val apiItem = commonContainer.apiItem(id = id)
-    viewModelScope.launch {
-        val itemState = function(apiItemBuilder?.let { it(apiItem) } ?: apiItem)
-        if (itemState.isOk) {
-            onSuccess?.invoke(commonContainer, itemState)
-        } else {
-            onFailure?.invoke(commonContainer, itemState)
-        }
-    }
+    apiItemBuilder: (ApiItem<T, ID, FILT>.() -> ApiItem<T, ID, FILT>)? = null,
+    onResponse: (CC.(ItemState<T>) -> Unit)? = null,
+): ItemState<T> {
+    val apiItem = apiItem(id = id)
+    val itemState = function(apiItemBuilder?.let { it(apiItem) } ?: apiItem)
+    onResponse?.let { it(itemState) }
+    return itemState
 }

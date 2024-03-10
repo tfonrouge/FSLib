@@ -37,8 +37,8 @@ open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID
     var periodicInterval by mutableIntStateOf(5000)
     var refreshListCounter by mutableIntStateOf(0)
     val refreshByFilter = mutableStateOf(false)
-    var apiFilter: FILT by mutableStateOf(commonContainer.apiFilterInstance())
     override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
+    override var apiFilter: FILT by mutableStateOf(commonContainer.apiFilterInstance())
     open val onBeforeListStateGet: (() -> Unit)? = null
 
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
