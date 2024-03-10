@@ -17,10 +17,10 @@ import kotlin.reflect.KSuspendFunction1
 @Suppress("unused")
 abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
     ViewModelContainer<CC, T, ID, FILT>() {
-
     var itemAlreadyOn by mutableStateOf<Boolean?>(null)
     var controlsEnabled by mutableStateOf(false)
     abstract override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
+    abstract var apiItem: ApiItem<T, ID, FILT>
     suspend fun makeQueryCall(
         apiItem: ApiItem<T, ID, FILT>,
         navHostController: NavHostController? = null,
@@ -28,13 +28,14 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         onSuccess: ((ItemState<T>) -> Unit)? = null,
         onFinish: ((ItemState<T>) -> Unit)? = null,
     ) {
+        this.apiItem = apiItem.copy(callType = ApiItem.CallType.Query)
         itemAlreadyOn = null
-        val itemState = itemStateFun(apiItem.copy(callType = ApiItem.CallType.Query))
-        if (apiItem.crudTask == CrudTask.Create) {
+        val itemState = itemStateFun(this.apiItem)
+        if (this.apiItem.crudTask == CrudTask.Create) {
             itemAlreadyOn = itemState.itemAlreadyOn
         }
         item = itemState.item
-        controlsEnabled = when (apiItem.crudTask) {
+        controlsEnabled = when (this.apiItem.crudTask) {
             CrudTask.Create -> true
             CrudTask.Read -> false
             CrudTask.Update -> true
@@ -51,30 +52,29 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     }
 
     suspend fun makeActionCall(
-        apiItem: ApiItem<T, ID, FILT>,
         navHostController: NavHostController? = null,
         onFailure: ((ItemState<T>) -> Unit)? = null,
         onSuccess: ((ItemState<T>) -> Unit)? = null,
         onFinish: ((ItemState<T>) -> Unit)? = null,
     ) {
+        apiItem = apiItem.copy(
+            id = item?._id,
+            item = item,
+            callType = ApiItem.CallType.Action,
+            crudTask = if (itemAlreadyOn == true) CrudTask.Update else apiItem.crudTask
+        )
         val itemState = when (apiItem.crudTask) {
             CrudTask.Create,
             CrudTask.Update,
-            CrudTask.Delete -> itemStateFun(
-                apiItem.copy(
-                    id = item?._id,
-                    item = item,
-                    callType = ApiItem.CallType.Action,
-                    crudTask = if (itemAlreadyOn == true) CrudTask.Update else apiItem.crudTask
-                )
-            )
+            CrudTask.Delete -> itemStateFun(apiItem)
 
-            CrudTask.Read -> ItemState<T>(isOk = true).also {
-                onSuccess?.invoke(it)
-            }
+            CrudTask.Read -> TODO()
         }
         if (itemState.isOk)
-            onSuccess?.invoke(itemState)
+            onSuccess?.invoke(itemState) ?: pushStateAlert(
+                simpleState = itemState,
+                navHostController = navHostController
+            )
         else
             onFailure?.invoke(itemState) ?: pushStateAlert(
                 simpleState = itemState,
