@@ -115,6 +115,68 @@ suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, r
 }
 
 /**
+ * Calls a remote API using the provided `IApiService` implementation and returns the result.
+ *
+ * @param p1 The first parameter to be serialized and sent to the remote API.
+ * @param p2 The second parameter to be serialized and sent to the remote API.
+ * @param p3 The third parameter to be serialized and sent to the remote API.
+ * @param p4 The fourth parameter to be serialized and sent to the remote API.
+ *
+ * @return The result of the API call, after deserialization.
+ *
+ * @throws ClientRequestException if there is an error with the client request.
+ * @throws ServerResponseException if there is an error with the server response.
+ * @throws TimeoutException if there is a timeout during the API call.
+ * @throws ConnectTimeoutException if there is a connect timeout during the API call.
+ * @throws Exception if there is any other error during the API call.
+ */
+@Suppress("unused")
+suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, reified PAR4, reified RET : Any> A.call(
+    p1: PAR1,
+    p2: PAR2,
+    p3: PAR3,
+    p4: PAR4,
+): RET {
+    val s1 = serialize(p1)
+    val s2 = serialize(p2)
+    val s3 = serialize(p3)
+    val s4 = serialize(p4)
+    return remoteCall(listOf(s1, s2, s3, s4))
+}
+
+/**
+ * Makes a remote API call using the provided `IApiService` implementation and returns the result.
+ *
+ * @param p1 The first parameter to be serialized and sent to the remote API.
+ * @param p2 The second parameter to be serialized and sent to the remote API.
+ * @param p3 The third parameter to be serialized and sent to the remote API.
+ * @param p4 The fourth parameter to be serialized and sent to the remote API.
+ * @param p5 The fifth parameter to be serialized and sent to the remote API.
+ * @return The result of the API call, after deserialization.
+ *
+ * @throws ClientRequestException if there is an error with the client request.
+ * @throws ServerResponseException if there is an error with the server response.
+ * @throws TimeoutException if there is a timeout during the API call.
+ * @throws ConnectTimeoutException if there is a connect timeout during the API call.
+ * @throws Exception if there is any other error during the API call.
+ */
+@Suppress("unused")
+suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, reified PAR4, reified PAR5, reified RET : Any> A.call(
+    p1: PAR1,
+    p2: PAR2,
+    p3: PAR3,
+    p4: PAR4,
+    p5: PAR5,
+): RET {
+    val s1 = serialize(p1)
+    val s2 = serialize(p2)
+    val s3 = serialize(p3)
+    val s4 = serialize(p4)
+    val s5 = serialize(p5)
+    return remoteCall(listOf(s1, s2, s3, s4, s5))
+}
+
+/**
  * Makes a remote API call using the provided `IApiService` implementation and returns the result.
  *
  * @param params The list of parameters to be serialized and sent to the remote API.
