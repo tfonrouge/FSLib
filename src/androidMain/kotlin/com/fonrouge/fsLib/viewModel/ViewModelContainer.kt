@@ -19,6 +19,13 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     abstract val commonContainer: CC
     abstract val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>?
     var item: T? by mutableStateOf(null)
+    var itemAlreadyOn by mutableStateOf<Boolean?>(null)
+    var controlsEnabled by mutableStateOf(false)
+    private var apiItem: ApiItem<T, ID, FILT>? = null
+
+    private val itemStateFunNotInitializedError by lazy {
+        "${this::itemStateFun.name} not initialized"
+    }
 
     @Suppress("unused")
     suspend fun deleteItem(
@@ -62,4 +69,97 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             }
         }
     }
+
+    suspend fun makeQueryCall(
+        apiItem: ApiItem<T, ID, FILT>,
+        navHostController: NavHostController? = null,
+        onFailure: ((ItemState<T>) -> Unit)? = null,
+        onSuccess: ((ItemState<T>) -> Unit)? = null,
+        onFinish: ((ItemState<T>) -> Unit)? = null,
+    ) {
+        this.apiItem = null
+        itemAlreadyOn = null
+        val itemState = itemStateFun?.let { it(apiItem) } ?: run {
+            pushStateAlert(
+                simpleState = SimpleState(
+                    state = State.Error,
+                    msgError = itemStateFunNotInitializedError
+                ),
+                navHostController = navHostController
+            )
+            return
+        }
+        if (apiItem.crudTask == CrudTask.Create) {
+            itemAlreadyOn = itemState.itemAlreadyOn
+        }
+        item = itemState.item
+        controlsEnabled = when (apiItem.crudTask) {
+            CrudTask.Create -> true
+            CrudTask.Read -> false
+            CrudTask.Update -> true
+            CrudTask.Delete -> false
+        }
+        if (itemState.isOk) {
+            onSuccess?.invoke(itemState)
+            this.apiItem = apiItem.copy(callType = ApiItem.CallType.Query)
+        } else
+            onFailure?.invoke(itemState) ?: pushStateAlert(
+                simpleState = itemState,
+                navHostController = navHostController
+            )
+        onFinish?.invoke(itemState)
+    }
+
+    suspend fun makeActionCall(
+        navHostController: NavHostController? = null,
+        onFailure: ((ItemState<T>) -> Unit)? = null,
+        onSuccess: ((ItemState<T>) -> Unit)? = null,
+        onFinish: ((ItemState<T>) -> Unit)? = null,
+    ) {
+        val apiItem = this.apiItem?.let {
+            it.copy(
+                id = item?._id,
+                item = item,
+                callType = ApiItem.CallType.Action,
+                crudTask = if (itemAlreadyOn == true) CrudTask.Update else it.crudTask
+            )
+        } ?: run {
+            pushStateAlert(
+                simpleState = SimpleState(
+                    state = State.Error,
+                    msgError = "apiItem is null"
+                ),
+                navHostController = navHostController
+            )
+            return
+        }
+        val itemState = when (apiItem.crudTask) {
+            CrudTask.Create,
+            CrudTask.Update,
+            CrudTask.Delete -> itemStateFun?.let { it(apiItem) } ?: run {
+                pushStateAlert(
+                    simpleState = SimpleState(
+                        state = State.Error,
+                        msgError = itemStateFunNotInitializedError
+                    ),
+                    navHostController = navHostController
+                )
+                return
+            }
+
+            CrudTask.Read -> TODO()
+        }
+        if (itemState.isOk)
+            onSuccess?.invoke(itemState) ?: pushStateAlert(
+                simpleState = itemState,
+                navHostController = navHostController
+            )
+        else
+            onFailure?.invoke(itemState) ?: pushStateAlert(
+                simpleState = itemState,
+                navHostController = navHostController
+            )
+        onFinish?.invoke(itemState)
+    }
 }
+

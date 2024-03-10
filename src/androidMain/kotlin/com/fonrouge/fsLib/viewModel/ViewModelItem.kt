@@ -11,77 +11,16 @@ import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
+import com.fonrouge.fsLib.model.state.SimpleState
+import com.fonrouge.fsLib.model.state.State
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
 abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
     ViewModelContainer<CC, T, ID, FILT>() {
-    var itemAlreadyOn by mutableStateOf<Boolean?>(null)
-    var controlsEnabled by mutableStateOf(false)
     abstract override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
-    abstract var apiItem: ApiItem<T, ID, FILT>
-    suspend fun makeQueryCall(
-        apiItem: ApiItem<T, ID, FILT>,
-        navHostController: NavHostController? = null,
-        onFailure: ((ItemState<T>) -> Unit)? = null,
-        onSuccess: ((ItemState<T>) -> Unit)? = null,
-        onFinish: ((ItemState<T>) -> Unit)? = null,
-    ) {
-        this.apiItem = apiItem.copy(callType = ApiItem.CallType.Query)
-        itemAlreadyOn = null
-        val itemState = itemStateFun(this.apiItem)
-        if (this.apiItem.crudTask == CrudTask.Create) {
-            itemAlreadyOn = itemState.itemAlreadyOn
-        }
-        item = itemState.item
-        controlsEnabled = when (this.apiItem.crudTask) {
-            CrudTask.Create -> true
-            CrudTask.Read -> false
-            CrudTask.Update -> true
-            CrudTask.Delete -> false
-        }
-        if (itemState.isOk)
-            onSuccess?.invoke(itemState)
-        else
-            onFailure?.invoke(itemState) ?: pushStateAlert(
-                simpleState = itemState,
-                navHostController = navHostController
-            )
-        onFinish?.invoke(itemState)
-    }
 
-    suspend fun makeActionCall(
-        navHostController: NavHostController? = null,
-        onFailure: ((ItemState<T>) -> Unit)? = null,
-        onSuccess: ((ItemState<T>) -> Unit)? = null,
-        onFinish: ((ItemState<T>) -> Unit)? = null,
-    ) {
-        apiItem = apiItem.copy(
-            id = item?._id,
-            item = item,
-            callType = ApiItem.CallType.Action,
-            crudTask = if (itemAlreadyOn == true) CrudTask.Update else apiItem.crudTask
-        )
-        val itemState = when (apiItem.crudTask) {
-            CrudTask.Create,
-            CrudTask.Update,
-            CrudTask.Delete -> itemStateFun(apiItem)
-
-            CrudTask.Read -> TODO()
-        }
-        if (itemState.isOk)
-            onSuccess?.invoke(itemState) ?: pushStateAlert(
-                simpleState = itemState,
-                navHostController = navHostController
-            )
-        else
-            onFailure?.invoke(itemState) ?: pushStateAlert(
-                simpleState = itemState,
-                navHostController = navHostController
-            )
-        onFinish?.invoke(itemState)
-    }
 }
 
 /**
