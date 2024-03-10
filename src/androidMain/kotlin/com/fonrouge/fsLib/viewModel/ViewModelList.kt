@@ -20,8 +20,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KSuspendFunction1
 
-abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> :
-    ViewModelContainer<CC, T, ID, FILT>() {
+open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+    final override val commonContainer: CC
+) : ViewModelContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
     }
@@ -34,28 +35,23 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     var periodicInterval by mutableIntStateOf(5000)
     var refreshListCounter by mutableIntStateOf(0)
     val refreshByFilter = mutableStateOf(false)
-    var apiFilter: FILT? by mutableStateOf(null)
-    abstract val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>
+    var apiFilter: FILT by mutableStateOf(commonContainer.apiFilterInstance())
+    open val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>? = null
     override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
     open val onBeforeListStateGet: (() -> Unit)? = null
 
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     suspend fun listStateGetter(pageNum: Int): ListState<T> {
         if (AppApi.delayBeforeRequest > 0) delay(AppApi.delayBeforeRequest.toLong())
-        if (apiFilter == null) {
-            apiFilter = apiItem?.apiFilter ?: commonContainer.apiFilterInstance()
-        }
-        // TODO: cleanup this
-        val apiFilter = apiFilter ?: apiItem?.apiFilter ?: commonContainer.apiFilterInstance()
         onBeforeListStateGet?.invoke()
         lastRequest = System.currentTimeMillis()
-        return listStateFun(
+        return listStateFun?.invoke(
             ApiList(
                 tabPage = pageNum,
                 tabSize = pageSize.intValue,
                 apiFilter = apiFilter
             )
-        )
+        ) ?: ListState()
     }
 
     val flowPagingData: Flow<PagingData<T>> by lazy {
