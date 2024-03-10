@@ -23,6 +23,7 @@ import kotlin.reflect.KSuspendFunction1
 open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     final override val commonContainer: CC,
     private val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
+    override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
 ) : ViewModelContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
@@ -37,9 +38,6 @@ open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID
     var refreshListCounter by mutableIntStateOf(0)
     val refreshByFilter = mutableStateOf(false)
     var apiFilter: FILT by mutableStateOf(commonContainer.apiFilterInstance())
-
-    //    open val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>? = null
-    override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
     override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
     open val onBeforeListStateGet: (() -> Unit)? = null
 

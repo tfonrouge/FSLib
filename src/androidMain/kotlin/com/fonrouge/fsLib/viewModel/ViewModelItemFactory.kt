@@ -11,10 +11,13 @@ import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
 class ViewModelItemFactory<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-    private val cc: CC,
+    private val commonContainer: CC,
     private val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
 ) : ViewModelProvider.NewInstanceFactory() {
     override fun <VM : ViewModel> create(modelClass: Class<VM>): VM {
-        return ViewModelItem<CC, T, ID, FILT>(cc, itemStateFun) as VM
+        return ViewModelItem(
+            commonContainer = commonContainer,
+            itemStateFun = itemStateFun
+        ) as VM
     }
 }
