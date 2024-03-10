@@ -82,7 +82,6 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
             )
         onFinish?.invoke(itemState)
     }
-
 }
 
 /**
