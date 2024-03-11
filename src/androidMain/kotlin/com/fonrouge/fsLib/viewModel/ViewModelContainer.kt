@@ -21,7 +21,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     var item: T? by mutableStateOf(null)
     var itemAlreadyOn by mutableStateOf<Boolean?>(null)
     var controlsEnabled by mutableStateOf(false)
-    abstract var apiItem: ApiItem<T, ID, FILT>
+    internal abstract var apiItem: ApiItem<T, ID, FILT>
     abstract var apiFilter: FILT
     private val itemStateFunNotInitializedError by lazy {
         "${this::itemStateFun.name} not initialized"
