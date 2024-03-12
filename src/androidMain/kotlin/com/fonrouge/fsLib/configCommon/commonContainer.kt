@@ -51,30 +51,33 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 }
 
 /**
- * Navigates to a specific item view using the given [navHostController].
- * The navigation is based on the provided [id] and [crudTask] parameters.
- * If [id] is not provided, it defaults to null.
- * If [crudTask] is not provided, it defaults to CrudTask.Read.
- * The [apiItemFactory] is an optional lambda function that can be used to customize the [ApiItem] instance before serializing it.
- * If not provided, the default [ApiItem] instance is used.
+ * Navigates to the specified item in the navigation host controller using the provided parameters.
  *
- * @param navHostController The navigation host controller.
- * @param id The ID of the item being navigated to. Default value is null.
- * @param crudTask The CRUD task of the operation being performed. Default value is CrudTask.Read.
- * @param apiItemFactory An optional lambda function to customize the [ApiItem] instance before serializing it.
+ * @param navHostController The navigation host controller to navigate.
+ * @param id The optional ID of the item to navigate to.
+ * @param item The optional item to navigate to.
+ * @param callType The API call type. Defaults to [ApiItem.CallType.Query].
+ * @param crudTask The CRUD task. Defaults to [CrudTask.Read].
+ * @param apiFilter The API filter. Defaults to an instance returned by [apiFilterInstance].
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateItem(
     navHostController: NavHostController,
     id: ID? = null,
+    item: T? = null,
+    callType: ApiItem.CallType = ApiItem.CallType.Query,
     crudTask: CrudTask = CrudTask.Read,
-    apiItemFactory: ((ApiItem<T, ID, FILT>).(FILT) -> ApiItem<T, ID, FILT>)? = null
+    apiFilter: FILT = apiFilterInstance()
 ) {
-    val apiFilter = apiFilterInstance()
-    val apiItem = ApiItem<T, ID, FILT>(id = id, crudTask = crudTask, apiFilter = apiFilter)
     val serializedApiItem = Json.encodeToString(
         ApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-        apiItemFactory?.let { it(apiItem, apiFilter) } ?: apiItem
+        ApiItem(
+            id = id,
+            item = item,
+            callType = callType,
+            crudTask = crudTask,
+            apiFilter = apiFilter
+        )
     )
     navHostController.navigate(
         "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
