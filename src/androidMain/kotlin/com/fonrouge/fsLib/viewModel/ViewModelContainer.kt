@@ -36,13 +36,12 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         apiItemRefactor: ((ApiItem<T, ID, FILT>) -> ApiItem<T, ID, FILT>)? = null
     ) {
         val apiItemFun = this.itemStateFun ?: run {
-            pushStateAlert(
-                simpleState = SimpleState(
-                    state = State.Error,
-                    msgError = "apiItemFun not initialized"
-                ),
-                navHostController = navHostController
-            )
+            SimpleState(
+                isOk = false,
+                msgError = "apiItemFun not initialized"
+            ).pushStateAlert {
+                navHostController.navigateUp()
+            }
             return
         }
         var apiItem = commonContainer.apiItem(
@@ -54,20 +53,18 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         apiItem = apiItemRefactor?.invoke(apiItem) ?: apiItem
         apiItemFun.invoke(apiItem).also { itemState ->
             if (!itemState.isOk) {
-                pushStateAlert(
-                    simpleState = itemState,
-                    navHostController = navHostController
-                )
+                itemState.pushStateAlert {
+                    navHostController.navigateUp()
+                }
                 return
             }
         }
 
         apiItemFun.invoke(apiItem.copy(callType = ApiItem.CallType.Action)).also { itemState ->
             if (!itemState.isOk) {
-                pushStateAlert(
-                    simpleState = itemState,
-                    navHostController = navHostController
-                )
+                itemState.pushStateAlert {
+                    navHostController.navigateUp()
+                }
                 return
             }
         }
@@ -84,13 +81,12 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         this.apiItem = apiItem
         itemAlreadyOn = null
         val itemState = itemStateFun?.let { it(apiItem) } ?: run {
-            pushStateAlert(
-                simpleState = SimpleState(
-                    state = State.Error,
-                    msgError = itemStateFunNotInitializedError
-                ),
-                navHostController = navHostController
-            )
+            SimpleState(
+                state = State.Error,
+                msgError = itemStateFunNotInitializedError
+            ).pushStateAlert {
+                navHostController?.navigateUp()
+            }
             return
         }
         if (apiItem.crudTask == CrudTask.Create) {
@@ -107,10 +103,9 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             onSuccess?.invoke(itemState)
             this.apiItem = apiItem.copy(callType = ApiItem.CallType.Query)
         } else
-            onFailure?.invoke(itemState) ?: pushStateAlert(
-                simpleState = itemState,
-                navHostController = navHostController
-            )
+            onFailure?.invoke(itemState) ?: itemState.pushStateAlert {
+                navHostController?.navigateUp()
+            }
         onFinish?.invoke(itemState)
     }
 
@@ -131,28 +126,25 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             CrudTask.Create,
             CrudTask.Update,
             CrudTask.Delete -> itemStateFun?.let { it(apiItem) } ?: run {
-                pushStateAlert(
-                    simpleState = SimpleState(
-                        state = State.Error,
-                        msgError = itemStateFunNotInitializedError
-                    ),
-                    navHostController = navHostController
-                )
+                SimpleState(
+                    state = State.Error,
+                    msgError = itemStateFunNotInitializedError
+                ).pushStateAlert {
+                    navHostController?.navigateUp()
+                }
                 return
             }
 
             CrudTask.Read -> TODO()
         }
         if (itemState.isOk)
-            onSuccess?.invoke(itemState) ?: pushStateAlert(
-                simpleState = itemState,
-                navHostController = navHostController
-            )
+            onSuccess?.invoke(itemState) ?: itemState.pushStateAlert {
+                navHostController?.navigateUp()
+            }
         else
-            onFailure?.invoke(itemState) ?: pushStateAlert(
-                simpleState = itemState,
-                navHostController = navHostController
-            )
+            onFailure?.invoke(itemState) ?: itemState.pushStateAlert {
+                navHostController?.navigateUp()
+            }
         onFinish?.invoke(itemState)
     }
 }

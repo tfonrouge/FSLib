@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.viewModel
 
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavHostController
 import com.fonrouge.fsLib.model.state.ISimpleState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
@@ -60,32 +59,39 @@ abstract class ViewModelBase : ViewModel() {
         )
     }
 
-    fun pushStateAlert(
-        simpleState: ISimpleState,
-        navHostController: NavHostController?,
+    fun ISimpleState.pushStateAlert(
+        onCancel: (() -> Unit)? = null,
+        canRetry: Boolean? = null,
         onDismissRequest: () -> Unit = {},
+        onAccept: (() -> Unit)? = null,
     ) {
-        val type: StateAlert.Type = when (simpleState.state) {
-            State.Ok -> StateAlert.Type.Info(
-                onAccept = { navHostController?.navigateUp() }
+        _stateAlert.value = when (state) {
+            State.Ok -> StateAlert(
+                simpleState = this,
+                type = StateAlert.Type.Info(
+                    onAccept = onAccept
+                ),
+                onDismissRequest = onDismissRequest
             )
 
-            State.Warn -> StateAlert.Type.Warn(
-                canRetry = true,
-                onCancel = { navHostController?.navigateUp() }
+            State.Warn -> StateAlert(
+                simpleState = this,
+                type = StateAlert.Type.Warn(
+                    canRetry = canRetry ?: true,
+                    onAccept = onAccept,
+                    onCancel = onCancel,
+                )
             )
 
-            State.Error -> StateAlert.Type.Error(
-                canRetry = false,
-                onAccept = { navHostController?.navigateUp() }
+            State.Error -> StateAlert(
+                simpleState = this,
+                type = StateAlert.Type.Error(
+                    canRetry = canRetry ?: false,
+                    onAccept = onAccept,
+                    onCancel = onCancel
+                )
             )
         }
-        _stateAlert.value =
-            StateAlert(
-                simpleState = simpleState,
-                type = type,
-                onDismissRequest = onDismissRequest,
-            )
     }
 }
 

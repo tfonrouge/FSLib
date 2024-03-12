@@ -1,8 +1,5 @@
 package com.fonrouge.fsLib.viewModel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
@@ -11,12 +8,12 @@ import com.fonrouge.fsLib.model.state.ItemState
 import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
-open class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     final override val commonContainer: CC,
     final override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
 ) : ViewModelContainer<CC, T, ID, FILT>() {
     override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
-    override var apiFilter: FILT by mutableStateOf(commonContainer.apiFilterInstance())
+    override var apiFilter: FILT = commonContainer.apiFilterInstance()
 }
 
 /**

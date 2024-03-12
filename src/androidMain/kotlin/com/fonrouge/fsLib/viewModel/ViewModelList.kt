@@ -18,18 +18,25 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.Json
 import kotlin.reflect.KSuspendFunction1
 
-open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+    apiFilter: FILT,
     final override val commonContainer: CC,
-    private val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
+    val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
     override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
 ) : ViewModelContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
     }
 
-    private var filterSerialized: FILT? = null
+    override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
+    override var apiFilter: FILT = Json.decodeFromString(
+        commonContainer.apiFilterSerializer,
+        Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
+    )
+    private var filterBacking: FILT? = null
     open val pageSize: MutableIntState = mutableIntStateOf(20)
     val refreshingList: MutableState<Boolean> = mutableStateOf(false)
     var requestRefresh by mutableStateOf(false)
@@ -37,8 +44,6 @@ open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID
     var periodicInterval by mutableIntStateOf(5000)
     var refreshListCounter by mutableIntStateOf(0)
     val refreshByFilter = mutableStateOf(false)
-    override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
-    override var apiFilter: FILT by mutableStateOf(commonContainer.apiFilterInstance())
     open val onBeforeListStateGet: (() -> Unit)? = null
 
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
@@ -72,15 +77,15 @@ open class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID
         when (uiBaseEvent) {
             UIBaseEvent.EditingFilter -> {
                 if (!refreshByFilter.value) {
-                    filterSerialized = apiFilter
+                    filterBacking = apiFilter
                     refreshByFilter.value = true
                 }
             }
 
             UIBaseEvent.RefreshByFilter -> {
                 refreshByFilter.value = false
-                if (filterSerialized?.equals(apiFilter) != true) {
-                    filterSerialized = apiFilter
+                if (filterBacking?.equals(apiFilter) != true) {
+                    filterBacking = apiFilter
                     requestRefresh = true
                 }
             }
