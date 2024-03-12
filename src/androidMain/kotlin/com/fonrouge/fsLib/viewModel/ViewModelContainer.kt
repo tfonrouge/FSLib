@@ -73,20 +73,17 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     @Suppress("unused")
     suspend fun makeQueryCall(
         apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem(),
-        navHostController: NavHostController? = null,
-        onFailure: ((ItemState<T>) -> Unit)? = null,
-        onSuccess: ((ItemState<T>) -> Unit)? = null,
-        onFinish: ((ItemState<T>) -> Unit)? = null,
+        onDone: ViewModelContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
         this.apiItem = apiItem
         itemAlreadyOn = null
         val itemState = itemStateFun?.let { it(apiItem) } ?: run {
-            SimpleState(
-                state = State.Error,
-                msgError = itemStateFunNotInitializedError
-            ).pushStateAlert {
-                navHostController?.navigateUp()
-            }
+            onDone(
+                ItemState(
+                    state = State.Error,
+                    msgError = itemStateFunNotInitializedError
+                )
+            )
             return
         }
         if (apiItem.crudTask == CrudTask.Create) {
@@ -99,22 +96,12 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             CrudTask.Update -> true
             CrudTask.Delete -> false
         }
-        if (itemState.isOk) {
-            onSuccess?.invoke(itemState)
-            this.apiItem = apiItem.copy(callType = ApiItem.CallType.Query)
-        } else
-            onFailure?.invoke(itemState) ?: itemState.pushStateAlert {
-                navHostController?.navigateUp()
-            }
-        onFinish?.invoke(itemState)
+        onDone(itemState)
     }
 
     @Suppress("unused")
     suspend fun makeActionCall(
-        navHostController: NavHostController? = null,
-        onFailure: ((ItemState<T>) -> Unit)? = null,
-        onSuccess: ((ItemState<T>) -> Unit)? = null,
-        onFinish: ((ItemState<T>) -> Unit)? = null,
+        onDone: ViewModelContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
         apiItem = apiItem.copy(
             id = item?._id,
@@ -126,26 +113,18 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             CrudTask.Create,
             CrudTask.Update,
             CrudTask.Delete -> itemStateFun?.let { it(apiItem) } ?: run {
-                SimpleState(
-                    state = State.Error,
-                    msgError = itemStateFunNotInitializedError
-                ).pushStateAlert {
-                    navHostController?.navigateUp()
-                }
+                onDone(
+                    ItemState(
+                        state = State.Error,
+                        msgError = itemStateFunNotInitializedError
+                    )
+                )
                 return
             }
 
             CrudTask.Read -> TODO()
         }
-        if (itemState.isOk)
-            onSuccess?.invoke(itemState) ?: itemState.pushStateAlert {
-                navHostController?.navigateUp()
-            }
-        else
-            onFailure?.invoke(itemState) ?: itemState.pushStateAlert {
-                navHostController?.navigateUp()
-            }
-        onFinish?.invoke(itemState)
+        onDone(itemState)
     }
 }
 
