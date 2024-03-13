@@ -13,8 +13,10 @@ import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.serializeMasterItemId
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.ItemState
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.json.Json
+import kotlin.reflect.KSuspendFunction1
 
 val ICommonContainer<*, *, *>.routeItem: String get() = "ViewItem$name?apiItem={apiItem}"
 val ICommonContainer<*, *, *>.routeList: String get() = "ViewList$name?apiFilter={apiFilter}"
@@ -121,6 +123,41 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     navHostController.navigate(
         "ViewList$name?apiFilter=\"${Uri.encode(serializedApiFilter)}\""
     )
+}
+
+/**
+ * Calls the item API using the provided function.
+ *
+ * @param function the suspend function that takes an [ApiItem] and returns an [ItemState]
+ * @param id the ID of the item
+ * @param item the item object
+ * @param callType the type of API call, default is [ApiItem.CallType.Query]
+ * @param crudTask the CRUD task, default is [CrudTask.Read]
+ * @param apiFilter the API filter object, default is the instance created by [apiFilterInstance]
+ * @param onResponse optional callback function to handle the [ItemState] response
+ * @return the [ItemState] result of the function call
+ */
+@Suppress("unused")
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.callItemApi(
+    function: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>,
+    id: ID? = null,
+    item: T? = null,
+    callType: ApiItem.CallType = ApiItem.CallType.Query,
+    crudTask: CrudTask = CrudTask.Read,
+    apiFilter: FILT = apiFilterInstance(),
+    onResponse: (CC.(ItemState<T>) -> Unit)? = null,
+): ItemState<T> {
+    val itemState = function(
+        ApiItem(
+            id = id,
+            item = item,
+            callType = callType,
+            crudTask = crudTask,
+            apiFilter = apiFilter
+        )
+    )
+    onResponse?.let { it(itemState) }
+    return itemState
 }
 
 @Suppress("unused")

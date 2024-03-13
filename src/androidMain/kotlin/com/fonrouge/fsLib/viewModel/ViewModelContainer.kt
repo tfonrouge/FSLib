@@ -39,7 +39,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             SimpleState(
                 isOk = false,
                 msgError = "apiItemFun not initialized"
-            ).pushStateAlert {
+            ).pushAlert {
                 navHostController.navigateUp()
             }
             return
@@ -53,7 +53,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         apiItem = apiItemRefactor?.invoke(apiItem) ?: apiItem
         apiItemFun.invoke(apiItem).also { itemState ->
             if (!itemState.isOk) {
-                itemState.pushStateAlert {
+                itemState.pushAlert {
                     navHostController.navigateUp()
                 }
                 return
@@ -62,7 +62,7 @@ abstract class ViewModelContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDo
 
         apiItemFun.invoke(apiItem.copy(callType = ApiItem.CallType.Action)).also { itemState ->
             if (!itemState.isOk) {
-                itemState.pushStateAlert {
+                itemState.pushAlert {
                     navHostController.navigateUp()
                 }
                 return

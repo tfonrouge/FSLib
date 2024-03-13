@@ -59,15 +59,31 @@ abstract class ViewModelBase : ViewModel() {
         )
     }
 
-    fun ISimpleState.pushStateAlert(
+    fun ISimpleState.pushAlert(
         onCancel: (() -> Unit)? = null,
         canRetry: Boolean? = null,
         onDismissRequest: () -> Unit = {},
         onAccept: (() -> Unit)? = null,
     ) {
-        _stateAlert.value = when (state) {
+        pushStateAlert(
+            itemState = this,
+            onCancel = onCancel,
+            canRetry = canRetry,
+            onDismissRequest = onDismissRequest,
+            onAccept = onAccept
+        )
+    }
+
+    fun pushStateAlert(
+        itemState: ISimpleState,
+        onCancel: (() -> Unit)? = null,
+        canRetry: Boolean? = null,
+        onDismissRequest: () -> Unit = {},
+        onAccept: (() -> Unit)? = null,
+    ) {
+        _stateAlert.value = when (itemState.state) {
             State.Ok -> StateAlert(
-                simpleState = this,
+                simpleState = itemState,
                 type = StateAlert.Type.Info(
                     onAccept = onAccept
                 ),
@@ -75,7 +91,7 @@ abstract class ViewModelBase : ViewModel() {
             )
 
             State.Warn -> StateAlert(
-                simpleState = this,
+                simpleState = itemState,
                 type = StateAlert.Type.Warn(
                     canRetry = canRetry ?: true,
                     onAccept = onAccept,
@@ -84,7 +100,7 @@ abstract class ViewModelBase : ViewModel() {
             )
 
             State.Error -> StateAlert(
-                simpleState = this,
+                simpleState = itemState,
                 type = StateAlert.Type.Error(
                     canRetry = canRetry ?: false,
                     onAccept = onAccept,
