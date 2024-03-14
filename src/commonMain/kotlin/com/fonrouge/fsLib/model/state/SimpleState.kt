@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SimpleState(
     override val state: State,
-    override var msgOk: String? = null,
-    override var msgError: String? = null,
+    override val msgOk: String? = null,
+    override val msgError: String? = null,
     override val cargo: String? = null
 ) : ISimpleState {
     @Serializable(with = FSOffsetDateTimeSerializer::class)
