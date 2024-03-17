@@ -23,6 +23,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
         crudTask = CrudTask.Delete,
         callType = ApiItem.CallType.Query,
         id = item._id,
+        item = item,
         apiFilter = apiFilter,
     ) { itemState ->
         if (itemState.isOk) {
@@ -43,6 +44,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
                         crudTask = CrudTask.Delete,
                         callType = ApiItem.CallType.Action,
                         id = item._id,
+                        item = item,
                         apiFilter = apiFilter,
                     ) { itemState1 ->
                         if (itemState1.isOk) {

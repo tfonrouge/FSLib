@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "3.0.8"
+version = "3.0.9"
 
 repositories {
     google()
@@ -175,14 +175,14 @@ android {
         /* multi-button floating action button */
         api("com.github.iamageo:MultiFab:1.0.6")
 
-        implementation("io.ktor:ktor-client-cio:2.3.8")
-        implementation("io.ktor:ktor-client-okhttp:2.3.8")
-        implementation("io.ktor:ktor-client-android:2.3.8")
-        implementation("io.ktor:ktor-client-auth:2.3.8")
-        implementation("io.ktor:ktor-client-content-negotiation:2.3.8")
-        implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.8")
-        implementation("io.ktor:ktor-client-serialization:2.3.8")
-        implementation("io.ktor:ktor-client-logging:2.3.8")
+        implementation("io.ktor:ktor-client-cio:$ktor_version")
+        implementation("io.ktor:ktor-client-okhttp:$ktor_version")
+        implementation("io.ktor:ktor-client-android:$ktor_version")
+        implementation("io.ktor:ktor-client-auth:$ktor_version")
+        implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+        implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+        implementation("io.ktor:ktor-client-serialization:$ktor_version")
+        implementation("io.ktor:ktor-client-logging:$ktor_version")
 
         testImplementation("junit:junit:4.13.2")
         androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -206,6 +206,6 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
+        kotlinCompilerExtensionVersion = "1.5.10"
     }
 }

@@ -10,6 +10,7 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
+import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.LongId
@@ -17,6 +18,7 @@ import com.fonrouge.fsLib.serializers.StringId
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
+import com.mongodb.client.result.InsertOneResult
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.http.*
@@ -243,23 +245,23 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return bson
     }
 
-    suspend fun deleteOne(filter: Bson): ItemState<T> {
-        return try {
-            ItemState(
-                isOk = coroutineColl.deleteOne(filter = filter).deletedCount == 1L,
-                msgOk = "Delete operation ok"
-            )
-        } catch (e: Exception) {
-            ItemState(isOk = false, msgError = e.message)
-        }
-    }
-
+    /**
+     * Deletes one item from the API
+     *
+     * @param apiItem The API item to be deleted
+     * @return The state of the delete operation
+     */
     @Suppress("unused")
-    suspend fun deleteOneById(id: ID?): ItemState<T> {
-        if (id != null) {
+    suspend fun deleteOne(apiItem: ApiItem<T, ID, FILT>): ItemState<T> {
+        if (apiItem.id != null) {
             return try {
+                onBeforeDelete(apiItem).also {
+                    if (!it.isOk) return ItemState(it)
+                }
+                val result = coroutineColl.deleteOne(BaseDoc<*>::_id eq apiItem.id).deletedCount == 1L
+                if (result) onAfterDelete(apiItem)
                 ItemState(
-                    isOk = mongoColl.deleteOne(BaseDoc<*>::_id eq id).awaitSingle().deletedCount == 1L,
+                    isOk = result,
                     msgOk = "Delete operation ok"
                 )
             } catch (e: Exception) {
@@ -386,7 +388,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("unused")
     suspend fun insertOne(apiItem: ApiItem<T, ID, FILT>, overrideValidation: Boolean = false): ItemState<T> {
-        apiItem.item?.let {
+        apiItem.item?.let { it ->
             if (!overrideValidation) {
                 commonContainer.validateItem(item = apiItem.item, apiItem.apiFilter).also { itemState ->
                     if (!itemState.isOk) return itemState
@@ -394,8 +396,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
             checkDontPersist(it)
             try {
-                val insertOneResult = mongoColl.insertOne(it).awaitSingle()
+                onBeforeUpsert(apiItem).also {
+                    if (!it.isOk) return ItemState(it)
+                }
+                val insertOneResult: InsertOneResult = mongoColl.insertOne(it).awaitSingle()
                 val result = insertOneResult.insertedId != null
+                if (result) onAfterUpsert(apiItem)
                 val itemAlreadyOn = result &&
                         apiItem.callType == ApiItem.CallType.Query &&
                         apiItem.crudTask == CrudTask.Create
@@ -587,6 +593,36 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
+     * Method to be called after deleting an item from the API.
+     *
+     * @param apiItem The `ApiItem` containing the item that was deleted.
+     */
+    open suspend fun onAfterDelete(apiItem: ApiItem<T, ID, FILT>) = Unit
+
+    /**
+     * Method to be called after upserting an item into the API.
+     *
+     * @param apiItem The `ApiItem` containing the item that was upserted.
+     */
+    open suspend fun onAfterUpsert(apiItem: ApiItem<T, ID, FILT>) = Unit
+
+    /**
+     * Executes before deleting an [ApiItem], and vetoes if [SimpleState] response [State] is not [State.Ok]
+     *
+     * @param apiItem The [ApiItem] to be deleted.
+     * @return A [SimpleState] indicating the result of the operation.
+     */
+    open suspend fun onBeforeDelete(apiItem: ApiItem<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
+
+    /**
+     * Executes before upserting an [ApiItem], and vetoes if [SimpleState] response [State] is not [State.Ok]
+     *
+     * @param apiItem the API item being upserted.
+     * @return a SimpleState object indicating the success or failure of the operation.
+     */
+    open suspend fun onBeforeUpsert(apiItem: ApiItem<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
+
+    /**
      * Allows to build a custom pipeline to be added to the [buildPipeline] in the db engine call
      */
     open suspend fun refactorPipeline(
@@ -595,50 +631,57 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> = pipeline
 
-    @Suppress("MemberVisibilityCanBePrivate")
+    /**
+     * Updates a single item in the database based on the provided filter.
+     *
+     * @param apiItem The API item containing the item id [ApiItem.id] to update and other relevant information.
+     * @param filter The filter to apply when updating the item. If null, no filter will be applied.
+     * @param updateOptions The options to use when updating the item.
+     *
+     * @return The state of the item after the update operation.
+     */
+    @Suppress("MemberVisibilityCanBePrivate", "unused")
     suspend fun updateOne(
-        filter: Bson,
         apiItem: ApiItem<T, ID, FILT>,
+        filter: Bson? = null,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
         return apiItem.item?.let {
+            onBeforeUpsert(apiItem).also {
+                if (!it.isOk) return ItemState(it)
+            }
             commonContainer.validateItem(item = apiItem.item, apiFilter = apiItem.apiFilter).also { itemState ->
                 if (!itemState.isOk) return itemState
             }
             checkDontPersist(apiItem.item)
-            val result = try {
+            val filter1 = and(BaseDoc<ID>::_id eq apiItem.id, filter ?: EMPTY_BSON)
+            val updateResult = try {
                 mongoColl.coroutine.updateOne(
-                    filter = filter,
+                    filter = filter1,
                     target = apiItem.item,
                     options = updateOptions
                 )
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
-                null
+                return ItemState(
+                    isOk = false,
+                    msgError = e.message
+                )
             }
-            ItemState(
-                state = if (result?.matchedCount == 1L) State.Ok else State.Error,
-                noDataModified = result?.modifiedCount == 0L,
-                msgError = "No data was modified ..."
-            )
+            if (updateResult.matchedCount > 0) {
+                onAfterUpsert(apiItem)
+                ItemState(
+                    state = if (updateResult.matchedCount == 1L) State.Ok else State.Warn,
+                    noDataModified = updateResult.modifiedCount == 0L,
+                    msgError = "No data was modified ..."
+                )
+            } else {
+                ItemState(
+                    isOk = false,
+                    msgError = "${commonContainer.labelItemId(apiItem.item)} not found with [ ${filter1.json} ]"
+                )
+            }
         } ?: ItemState(isOk = false, msgError = "${commonContainer.labelItem} contains null value")
-    }
-
-    @Suppress("unused")
-    suspend fun updateOne(apiItem: ApiItem<T, ID, FILT>): ItemState<T> =
-        updateOneById(id = apiItem.id, apiItem = apiItem)
-
-    @Suppress("unused", "MemberVisibilityCanBePrivate")
-    suspend fun updateOneById(
-        id: ID?,
-        apiItem: ApiItem<T, ID, FILT>,
-        updateOptions: UpdateOptions = UpdateOptions()
-    ): ItemState<T> {
-        return updateOne(
-            filter = BaseDoc<ID>::_id eq id,
-            apiItem = apiItem,
-            updateOptions = updateOptions
-        )
     }
 
     init {
