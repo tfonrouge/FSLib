@@ -42,16 +42,19 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         apiItem: ApiItem<T, ID, FILT>,
         onDone: ViewModelContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
+        item = apiItem.item
+        crudTask = apiItem.crudTask
+        apiFilter = apiItem.apiFilter
         itemAlreadyOn = null
         val itemState = itemStateFun(apiItem)
-        if (apiItem.crudTask == CrudTask.Create) {
+        if (crudTask == CrudTask.Create) {
             itemAlreadyOn = itemState.itemAlreadyOn
             if (itemAlreadyOn == true)
                 crudTask = CrudTask.Update
             itemAlreadyOn = null
         }
         item = itemState.item
-        controlsEnabled = when (apiItem.crudTask) {
+        controlsEnabled = when (crudTask) {
             CrudTask.Create -> true
             CrudTask.Read -> false
             CrudTask.Update -> true
@@ -72,7 +75,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                     id = item?._id,
                     item = item,
                     callType = ApiItem.CallType.Action,
-                    crudTask = if (itemAlreadyOn == true) CrudTask.Update else crudTask,
+                    crudTask = crudTask,
                     apiFilter = apiFilter
                 )
             )

@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.viewModel
 import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -96,7 +95,6 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
 
     @Suppress("unused")
     suspend fun deleteItem(
-        navHostController: NavHostController,
         item: T
     ) {
         itemStateFun?.let { itemStateFun ->
@@ -120,11 +118,9 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
             pushStateAlert(
                 itemState = SimpleState(
                     isOk = false,
-                    msgError = "${listStateFun.name} not defined"
+                    msgError = "[itemStateFun] not defined in viewModel"
                 )
-            ) {
-                navHostController.navigateUp()
-            }
+            )
         }
     }
 
