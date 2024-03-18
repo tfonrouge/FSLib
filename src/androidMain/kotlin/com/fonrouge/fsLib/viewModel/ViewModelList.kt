@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.viewModel
 import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -10,12 +11,14 @@ import androidx.paging.cachedIn
 import com.fonrouge.fsLib.apiServices.AppApi
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.domain.BasePagingSource
+import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
+import com.fonrouge.fsLib.model.state.SimpleState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
@@ -25,13 +28,12 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     apiFilter: FILT,
     final override val commonContainer: CC,
     val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
-    override val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
+    val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
 ) : ViewModelContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
     }
 
-    override var apiItem: ApiItem<T, ID, FILT> = commonContainer.apiItem()
     override var apiFilter: FILT = Json.decodeFromString(
         commonContainer.apiFilterSerializer,
         Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
@@ -88,6 +90,40 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                     filterBacking = apiFilter
                     requestRefresh = true
                 }
+            }
+        }
+    }
+
+    @Suppress("unused")
+    suspend fun deleteItem(
+        navHostController: NavHostController,
+        item: T
+    ) {
+        itemStateFun?.let { itemStateFun ->
+            val apiItem = ApiItem(
+                id = item._id,
+                item = item,
+                callType = ApiItem.CallType.Query,
+                crudTask = CrudTask.Delete,
+                apiFilter = apiFilter
+            )
+            var itemState: ItemState<T> = itemStateFun(apiItem)
+            if (itemState.isOk) {
+                itemState = itemStateFun(apiItem.copy(callType = ApiItem.CallType.Action))
+                if (!itemState.isOk) {
+                    itemState.pushAlert()
+                }
+            } else {
+                itemState.pushAlert()
+            }
+        } ?: run {
+            pushStateAlert(
+                itemState = SimpleState(
+                    isOk = false,
+                    msgError = "${listStateFun.name} not defined"
+                )
+            ) {
+                navHostController.navigateUp()
             }
         }
     }
