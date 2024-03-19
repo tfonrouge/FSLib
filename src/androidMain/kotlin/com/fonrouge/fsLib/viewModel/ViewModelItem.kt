@@ -22,12 +22,14 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     var controlsEnabled by mutableStateOf(false)
     override var apiFilter: FILT = commonContainer.apiFilterInstance()
     suspend fun makeQueryCall(
-        item: T,
-        crudTask: CrudTask,
+        id: ID? = null,
+        item: T? = null,
+        crudTask: CrudTask = CrudTask.Read,
         onDone: ViewModelContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
         return makeQueryCall(
             apiItem = commonContainer.apiItem(
+                id = id,
                 item = item,
                 callType = ApiItem.CallType.Query,
                 crudTask = crudTask,
