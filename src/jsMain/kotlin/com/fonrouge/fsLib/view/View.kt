@@ -4,10 +4,8 @@ import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.config.ICommon
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
-import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.*
 import io.kvision.html.*
 import io.kvision.navbar.Navbar
@@ -104,22 +102,24 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     /**
      * Helper to build an [ApiItem] instance
      */
-    @Suppress("unused")
-    fun <T : BaseDoc<ID>, ID : Any> apiItem(
-        id: ID? = null,
-        item: T? = null,
-        callType: ApiItem.CallType = ApiItem.CallType.Query,
-        crudTask: CrudTask = CrudTask.Read,
-        apiFilter: FILT = configView.commonView.apiFilterInstance(),
-    ): ApiItem<T, ID, FILT> {
-        return ApiItem(
-            id = id,
-            item = item,
-            callType = callType,
-            crudTask = crudTask,
-            apiFilter = apiFilter
-        )
-    }
+    /*
+        @Suppress("unused")
+        fun <T : BaseDoc<ID>, ID : Any> apiItem(
+            id: ID? = null,
+            item: T? = null,
+            callType: ApiItem.CallType = ApiItem.CallType.Query,
+            crudTask: CrudTask = CrudTask.Read,
+            apiFilter: FILT = configView.commonView.apiFilterInstance(),
+        ): ApiItem<T, ID, FILT> {
+            return ApiItem(
+                id = id,
+                item = item,
+                callType = callType,
+                crudTask = crudTask,
+                apiFilter = apiFilter
+            )
+        }
+    */
 
     /**
      * Sets the current browser url with an [apiFilterObservableValue] url parameter

@@ -95,7 +95,11 @@ fun <T : BaseDoc<ID>, ID : Any> SelectRemoteItem(
                                                     itemSet = itemSet
                                                         .filter { it._id != item._id }
                                                         .toSet()
-                                                    onValueChange?.invoke(itemSet.map { it._id }.toSet())
+                                                    onValueChange?.invoke(
+                                                        itemSet
+                                                            .map { it._id }
+                                                            .toSet()
+                                                    )
                                                 }
                                         )
                                     }

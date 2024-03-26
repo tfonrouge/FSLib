@@ -4,9 +4,7 @@ import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.*
-import com.fonrouge.fsLib.model.apiData.ApiItem
-import com.fonrouge.fsLib.model.apiData.ApiList
-import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
@@ -27,6 +25,7 @@ import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.json.Json
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -252,23 +251,21 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the delete operation
      */
     @Suppress("unused")
-    suspend fun deleteOne(apiItem: ApiItem<T, ID, FILT>): ItemState<T> {
-        if (apiItem.id != null) {
-            return try {
-                onBeforeDelete(apiItem).also {
-                    if (!it.isOk) return ItemState(it)
-                }
-                val result = coroutineColl.deleteOne(BaseDoc<*>::_id eq apiItem.id).deletedCount == 1L
-                if (result) onAfterDelete(apiItem)
-                ItemState(
-                    isOk = result,
-                    msgOk = "Delete operation ok"
-                )
-            } catch (e: Exception) {
-                ItemState(isOk = false, msgError = e.message)
+    suspend fun deleteOne(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> {
+        val id = apiItem.id(commonContainer)
+        return try {
+            onBeforeDelete(apiItem).also {
+                if (!it.isOk) return ItemState(it)
             }
+            val result = coroutineColl.deleteOne(BaseDoc<*>::_id eq id).deletedCount == 1L
+            if (result) onAfterDelete(apiItem)
+            ItemState(
+                isOk = result,
+                msgOk = "Delete operation ok"
+            )
+        } catch (e: Exception) {
+            ItemState(isOk = false, msgError = e.message)
         }
-        return ItemState(isOk = false, msgError = "_id not valid ...")
     }
 
     /**
@@ -379,6 +376,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
+    @Suppress("unused")
+    suspend fun insertOne(apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>, item: T): ItemState<T> {
+        return insertOne(
+            ApiItem.Action.Upsert.Create(
+                serializedItem = Json.encodeToString(commonContainer.itemSerializer, item),
+                apiFilter = apiItem.apiFilter
+            )
+        ).copy(itemAlreadyOn = true)
+    }
+
     /**
      * Inserts a single item into the database using the provided `ApiItem`.
      *
@@ -387,34 +394,31 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the item after the insertion.
      */
     @Suppress("unused")
-    suspend fun insertOne(apiItem: ApiItem<T, ID, FILT>, overrideValidation: Boolean = false): ItemState<T> {
-        apiItem.item?.let { it ->
-            if (!overrideValidation) {
-                commonContainer.validateItem(item = apiItem.item, apiItem.apiFilter).also { itemState ->
-                    if (!itemState.isOk) return itemState
-                }
-            }
-            checkDontPersist(it)
-            try {
-                onBeforeUpsert(apiItem).also {
-                    if (!it.isOk) return ItemState(it)
-                }
-                val insertOneResult: InsertOneResult = mongoColl.insertOne(it).awaitSingle()
-                val result = insertOneResult.insertedId != null
-                if (result) onAfterUpsert(apiItem)
-                val itemAlreadyOn = result &&
-                        apiItem.callType == ApiItem.CallType.Query &&
-                        apiItem.crudTask == CrudTask.Create
-                return ItemState(
-                    item = it,
-                    state = if (result) State.Ok else State.Error,
-                    itemAlreadyOn = itemAlreadyOn
-                )
-            } catch (e: Exception) {
-                return ItemState(isOk = false, msgError = e.message)
+    suspend fun insertOne(
+        apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
+        overrideValidation: Boolean = false
+    ): ItemState<T> {
+        val item = apiItem.item(commonContainer)
+        if (!overrideValidation) {
+            commonContainer.validateItem(item = item, apiItem.apiFilter).also { itemState ->
+                if (!itemState.isOk) return itemState
             }
         }
-        return ItemState(isOk = false, msgError = "${commonContainer.labelItem} contains null value")
+        checkDontPersist(item)
+        return try {
+            onBeforeUpsert(apiItem).also {
+                if (!it.isOk) return ItemState(it)
+            }
+            val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
+            val result = insertOneResult.insertedId != null
+            if (result) onAfterUpsert(apiItem)
+            ItemState(
+                item = item,
+                state = if (result) State.Ok else State.Error,
+            )
+        } catch (e: Exception) {
+            ItemState(isOk = false, msgError = e.message)
+        }
     }
 
     /**
@@ -612,7 +616,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The [ApiItem] to be deleted.
      * @return A [SimpleState] indicating the result of the operation.
      */
-    open suspend fun onBeforeDelete(apiItem: ApiItem<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
+    open suspend fun onBeforeDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
 
     /**
      * Executes before upserting an [ApiItem], and vetoes if [SimpleState] response [State] is not [State.Ok]
@@ -620,7 +624,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem the API item being upserted.
      * @return a SimpleState object indicating the success or failure of the operation.
      */
-    open suspend fun onBeforeUpsert(apiItem: ApiItem<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
+    open suspend fun onBeforeUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
 
     /**
      * Allows to build a custom pipeline to be added to the [buildPipeline] in the db engine call
@@ -642,46 +646,45 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate", "unused")
     suspend fun updateOne(
-        apiItem: ApiItem<T, ID, FILT>,
+        apiItem: ApiItem.Action.Upsert.Update<T, ID, FILT>,
         filter: Bson? = null,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
-        return apiItem.item?.let {
-            onBeforeUpsert(apiItem).also {
-                if (!it.isOk) return ItemState(it)
-            }
-            commonContainer.validateItem(item = apiItem.item, apiFilter = apiItem.apiFilter).also { itemState ->
-                if (!itemState.isOk) return itemState
-            }
-            checkDontPersist(apiItem.item)
-            val filter1 = and(BaseDoc<ID>::_id eq apiItem.id, filter ?: EMPTY_BSON)
-            val updateResult = try {
-                mongoColl.coroutine.updateOne(
-                    filter = filter1,
-                    target = apiItem.item,
-                    options = updateOptions
-                )
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-                return ItemState(
-                    isOk = false,
-                    msgError = e.message
-                )
-            }
-            if (updateResult.matchedCount > 0) {
-                onAfterUpsert(apiItem)
-                ItemState(
-                    state = if (updateResult.matchedCount == 1L) State.Ok else State.Warn,
-                    noDataModified = updateResult.modifiedCount == 0L,
-                    msgError = "No data was modified ..."
-                )
-            } else {
-                ItemState(
-                    isOk = false,
-                    msgError = "${commonContainer.labelItemId(apiItem.item)} not found with [ ${filter1.json} ]"
-                )
-            }
-        } ?: ItemState(isOk = false, msgError = "${commonContainer.labelItem} contains null value")
+        val item = apiItem.item(commonContainer)
+        onBeforeUpsert(apiItem).also {
+            if (!it.isOk) return ItemState(it)
+        }
+        commonContainer.validateItem(item = item, apiFilter = apiItem.apiFilter).also { itemState ->
+            if (!itemState.isOk) return itemState
+        }
+        checkDontPersist(item)
+        val filter1 = and(BaseDoc<ID>::_id eq item._id, filter ?: EMPTY_BSON)
+        val updateResult = try {
+            mongoColl.coroutine.updateOne(
+                filter = filter1,
+                target = item,
+                options = updateOptions
+            )
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+            return ItemState(
+                isOk = false,
+                msgError = e.message
+            )
+        }
+        return if (updateResult.matchedCount > 0) {
+            onAfterUpsert(apiItem)
+            ItemState(
+                state = if (updateResult.matchedCount == 1L) State.Ok else State.Warn,
+                noDataModified = updateResult.modifiedCount == 0L,
+                msgError = "No data was modified ..."
+            )
+        } else {
+            ItemState(
+                isOk = false,
+                msgError = "${commonContainer.labelItemId(item)} not found with [ ${filter1.json} ]"
+            )
+        }
     }
 
     init {

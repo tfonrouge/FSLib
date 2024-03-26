@@ -4,8 +4,8 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState

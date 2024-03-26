@@ -11,8 +11,8 @@ import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.lib.urlFromApiItem
-import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Container
@@ -121,14 +121,15 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = this.configViewItem,
     ) {
         configViewItem ?: return
+        val apiItem = ApiItem.Query.build(
+            commonContainer = configViewItem.commonView,
+            id = item?._id,
+            crudTask = crudTask,
+            apiFilter = apiFilter
+        ) ?: return
         val url = urlFromApiItem(
             configViewItem = configViewItem,
-            apiItem = ApiItem(
-                id = item?._id,
-                item = item,
-                crudTask = crudTask,
-                apiFilter = apiFilter
-            )
+            apiItem = apiItem
         )
         val callBlock = {
             if (crudTask == CrudTask.Delete) {

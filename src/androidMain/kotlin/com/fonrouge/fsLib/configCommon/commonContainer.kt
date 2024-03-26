@@ -8,8 +8,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.serializeMasterItemId
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -65,21 +65,11 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateItem(
     navHostController: NavHostController,
-    id: ID? = null,
-    item: T? = null,
-    callType: ApiItem.CallType = ApiItem.CallType.Query,
-    crudTask: CrudTask = CrudTask.Read,
-    apiFilter: FILT = apiFilterInstance()
+    apiItem: ApiItem.Query<T, ID, FILT>,
 ) {
     val serializedApiItem = Json.encodeToString(
         ApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-        ApiItem(
-            id = id,
-            item = item,
-            callType = callType,
-            crudTask = crudTask,
-            apiFilter = apiFilter
-        )
+        apiItem
     )
     navHostController.navigate(
         "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
@@ -140,22 +130,10 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 @Suppress("unused")
 suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.callItemApi(
     function: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>,
-    id: ID? = null,
-    item: T? = null,
-    callType: ApiItem.CallType = ApiItem.CallType.Query,
-    crudTask: CrudTask = CrudTask.Read,
-    apiFilter: FILT = apiFilterInstance(),
+    apiItem: ApiItem<T, ID, FILT>,
     onResponse: (CC.(ItemState<T>) -> Unit)? = null,
 ): ItemState<T> {
-    val itemState = function(
-        ApiItem(
-            id = id,
-            item = item,
-            callType = callType,
-            crudTask = crudTask,
-            apiFilter = apiFilter
-        )
-    )
+    val itemState = function(apiItem)
     onResponse?.let { it(itemState) }
     return itemState
 }

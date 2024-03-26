@@ -12,7 +12,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 @Suppress("unused")
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> MutableList<TabulatorMenuItem>.menuItem(
     configViewItem: ConfigViewItem<CV, T, ID, *, *, FILT>,
-    apiItem: ApiItem<T, ID, FILT>,
+    apiItem: ApiItem.Query<T, ID, FILT>,
 ) {
     menuItem(
         label = configViewItem.label,

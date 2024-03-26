@@ -4,11 +4,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
+import com.fonrouge.fsLib.model.state.SimpleState
+import kotlinx.serialization.json.Json
 import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
@@ -23,28 +25,49 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     override var apiFilter: FILT = commonContainer.apiFilterInstance()
     suspend fun makeQueryCall(
         id: ID? = null,
-        item: T? = null,
         crudTask: CrudTask = CrudTask.Read,
         onDone: ViewModelContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
-        return makeQueryCall(
-            apiItem = commonContainer.apiItem(
-                id = id,
-                item = item,
-                callType = ApiItem.CallType.Query,
-                crudTask = crudTask,
+        val serializedId = id?.let { Json.encodeToString(commonContainer.idSerializer, id) }
+        val apiItem: ApiItem.Query<T, ID, FILT>? = when (crudTask) {
+            CrudTask.Create -> ApiItem.Query.Upsert.Create(
                 apiFilter = apiFilter
-            ),
+            )
+
+            CrudTask.Read -> serializedId?.let {
+                ApiItem.Query.Read(
+                    serializedId = serializedId,
+                    apiFilter = apiFilter
+                )
+            }
+
+            CrudTask.Update -> serializedId?.let {
+                ApiItem.Query.Upsert.Update(
+                    serializedId = serializedId,
+                    apiFilter = apiFilter
+                )
+            }
+
+            CrudTask.Delete -> TODO()
+        }
+        apiItem ?: run {
+            SimpleState(
+                isOk = false,
+                msgError = "${commonContainer.labelItem} id null"
+            ).pushAlert()
+            return
+        }
+        return makeQueryCall(
+            apiItem = apiItem,
             onDone = onDone
         )
     }
 
     @Suppress("unused")
     suspend fun makeQueryCall(
-        apiItem: ApiItem<T, ID, FILT>,
+        apiItem: ApiItem.Query<T, ID, FILT>,
         onDone: ViewModelContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
-        item = apiItem.item
         crudTask = apiItem.crudTask
         apiFilter = apiItem.apiFilter
         itemAlreadyOn = null
@@ -69,21 +92,36 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     suspend fun makeActionCall(
         onDone: ViewModelContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
-        val itemState = when (crudTask) {
-            CrudTask.Create,
-            CrudTask.Update,
-            CrudTask.Delete -> itemStateFun(
-                ApiItem(
-                    id = item?._id,
-                    item = item,
-                    callType = ApiItem.CallType.Action,
-                    crudTask = crudTask,
-                    apiFilter = apiFilter
-                )
+        val item = this.item ?: run {
+            SimpleState(
+                isOk = false,
+                msgError = "${commonContainer.labelItem} item null"
+            )
+            return
+        }
+        val apiItem: ApiItem.Action<T, ID, FILT> = when (crudTask) {
+            CrudTask.Create -> ApiItem.Action.Upsert.Create(
+                serializedItem = Json.encodeToString(
+                    commonContainer.itemSerializer,
+                    item
+                ), apiFilter = apiFilter
             )
 
-            CrudTask.Read -> TODO()
+            CrudTask.Read -> return
+            CrudTask.Update -> ApiItem.Action.Upsert.Update(
+                serializedItem = Json.encodeToString(
+                    commonContainer.itemSerializer,
+                    item
+                ), apiFilter = apiFilter
+            )
+
+            CrudTask.Delete -> ApiItem.Action.Delete(
+                serializedId = Json.encodeToString(
+                    commonContainer.idSerializer,
+                    item._id
+                ), apiFilter = apiFilter
+            )
         }
-        onDone(itemState)
+        onDone(itemStateFun(apiItem))
     }
 }

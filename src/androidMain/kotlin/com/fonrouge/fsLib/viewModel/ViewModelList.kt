@@ -10,7 +10,6 @@ import androidx.paging.cachedIn
 import com.fonrouge.fsLib.apiServices.AppApi
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.domain.BasePagingSource
-import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
@@ -98,16 +97,21 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         item: T
     ) {
         itemStateFun?.let { itemStateFun ->
-            val apiItem = ApiItem(
-                id = item._id,
-                item = item,
-                callType = ApiItem.CallType.Query,
-                crudTask = CrudTask.Delete,
+            val apiItem = ApiItem.Query.Delete<T, ID, FILT>(
+                serializedId = Json.encodeToString(
+                    commonContainer.idSerializer,
+                    item._id
+                ),
                 apiFilter = apiFilter
             )
             var itemState: ItemState<T> = itemStateFun(apiItem)
             if (itemState.isOk) {
-                itemState = itemStateFun(apiItem.copy(callType = ApiItem.CallType.Action))
+                itemState = itemStateFun(
+                    ApiItem.Action.Delete(
+                        serializedId = Json.encodeToString(commonContainer.idSerializer, item._id),
+                        apiFilter = apiFilter
+                    ),
+                )
                 if (!itemState.isOk) {
                     itemState.pushAlert()
                 }

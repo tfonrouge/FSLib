@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.layout
 
 import com.fonrouge.fsLib.lib.iconCrud
-import com.fonrouge.fsLib.model.CrudTask
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList

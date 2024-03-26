@@ -1,8 +1,8 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.CrudTask
 import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
@@ -96,6 +96,14 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     ) {
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
+        val apiItem = ApiItem.build(
+            commonContainer = commonView,
+            id = id,
+            item = item,
+            callType = callType,
+            crudTask = crudTask,
+            apiFilter = apiFilter
+        ) ?: return
         val paramList = listOf(
             Json.encodeToString(
                 serializer = ApiItem.serializer(
@@ -103,13 +111,7 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                     commonView.idSerializer,
                     commonView.apiFilterSerializer
                 ),
-                value = ApiItem(
-                    id = id,
-                    item = item,
-                    callType = callType,
-                    crudTask = crudTask,
-                    apiFilter = apiFilter,
-                )
+                value = apiItem
             ),
         )
         val data = Serialization.plain.encodeToString(

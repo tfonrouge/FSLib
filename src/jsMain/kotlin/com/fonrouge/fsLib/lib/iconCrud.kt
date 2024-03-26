@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.lib
 
-import com.fonrouge.fsLib.model.CrudTask
+import com.fonrouge.fsLib.model.apiData.CrudTask
 
 fun iconCrud(crudTask: CrudTask? = null): String? {
     return when (crudTask) {

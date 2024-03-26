@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.model
+package com.fonrouge.fsLib.model.apiData
 
 import kotlinx.serialization.Serializable
 
