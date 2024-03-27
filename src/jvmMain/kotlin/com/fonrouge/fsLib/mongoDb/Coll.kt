@@ -628,14 +628,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * @param apiItem The `ApiItem` containing the item that was deleted.
      */
-    open suspend fun onAfterDelete(apiItem: ApiItem<T, ID, FILT>) = Unit
+    open suspend fun onAfterDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>) = Unit
 
     /**
      * Method to be called after upserting an item into the API.
      *
      * @param apiItem The `ApiItem` containing the item that was upserted.
      */
-    open suspend fun onAfterUpsert(apiItem: ApiItem<T, ID, FILT>) = Unit
+    open suspend fun onAfterUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>) = Unit
 
     /**
      * Executes before deleting an [ApiItem], and vetoes if [SimpleState] response [State] is not [State.Ok]
