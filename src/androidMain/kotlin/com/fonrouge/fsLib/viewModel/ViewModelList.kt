@@ -13,6 +13,7 @@ import com.fonrouge.fsLib.domain.BasePagingSource
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
@@ -26,7 +27,7 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     apiFilter: FILT,
     final override val commonContainer: CC,
     val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
-    val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null
+    val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>? = null
 ) : ViewModelContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
@@ -101,13 +102,13 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                 id = item._id,
                 apiFilter = apiFilter
             )
-            var itemState: ItemState<T> = itemStateFun(apiItem)
+            var itemState: ItemState<T> = itemStateFun(apiItem.asIApiItem(commonContainer))
             if (itemState.isOk) {
                 itemState = itemStateFun(
                     ApiItem.Action.Delete(
                         item = item,
                         apiFilter = apiFilter
-                    ),
+                    ).asIApiItem(commonContainer),
                 )
                 if (!itemState.isOk) {
                     itemState.pushAlert()

@@ -21,15 +21,16 @@ val ICommonContainer<*, *, *>.routeList: String get() = "ViewList$name?apiFilter
 @Composable
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.DecodeRouteItemParams(
     navBackStackEntry: NavBackStackEntry,
-    function: @Composable (apiItem: ApiItem<T, ID, FILT>) -> Unit
+    function: @Composable (apiItem: ApiItem.Query<T, ID, FILT>) -> Unit
 ) {
-    val apiItem = navBackStackEntry.arguments?.getString("apiItem")?.let {
+    val iApiItem = navBackStackEntry.arguments?.getString("apiItem")?.let {
         if (it != "\"null\"") Json.decodeFromString(
-            IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
+            IApiItem.Query.serializer(itemSerializer, idSerializer, apiFilterSerializer),
             it.removePrefix("\"").removeSuffix("\"")
         ) else null
     }
-    apiItem?.let { function(it.asApiItem(this)) }
+    val apiItem = iApiItem?.asApiItem(this) as? ApiItem.Query<T, ID, FILT>
+    apiItem?.let { function(apiItem) }
 }
 
 @Composable
@@ -50,14 +51,14 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 }
 
 /**
- * Navigates to the specified item in the navigation host controller using the provided parameters.
+ * Navigates to the detailed view of the given API item using the provided NavHostController.
  *
- * @param navHostController The navigation host controller to navigate.
- * @param id The optional ID of the item to navigate to.
- * @param item The optional item to navigate to.
- * @param callType The API call type. Defaults to [ApiItem.CallType.Query].
- * @param crudTask The CRUD task. Defaults to [CrudTask.Read].
- * @param apiFilter The API filter. Defaults to an instance returned by [apiFilterInstance].
+ * @param navHostController The NavHostController to perform the navigation.
+ * @param apiItem The API item to be navigated to.
+ * @param CC The common container type.
+ * @param T The base document type.
+ * @param ID The ID type of the base document.
+ * @param FILT The API filter type.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateItem(
@@ -126,11 +127,11 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  */
 @Suppress("unused")
 suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.callItemApi(
-    function: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>,
+    function: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>,
     apiItem: ApiItem<T, ID, FILT>,
     onResponse: (CC.(ItemState<T>) -> Unit)? = null,
 ): ItemState<T> {
-    val itemState = function(apiItem)
+    val itemState = function(apiItem.asIApiItem(this))
     onResponse?.let { it(itemState) }
     return itemState
 }
@@ -138,7 +139,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableItem(
     commonContainer: CC,
-    function: @Composable AnimatedContentScope.(ApiItem<T, ID, FILT>) -> Unit,
+    function: @Composable AnimatedContentScope.(ApiItem.Query<T, ID, FILT>) -> Unit,
 ) {
     composable(commonContainer.routeItem) { navBackStackEntry ->
         commonContainer.DecodeRouteItemParams(

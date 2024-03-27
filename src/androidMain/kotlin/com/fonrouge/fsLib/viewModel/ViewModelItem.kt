@@ -7,6 +7,7 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
@@ -16,7 +17,7 @@ import kotlin.reflect.KSuspendFunction1
 @Suppress("unused")
 abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     final override val commonContainer: CC,
-    val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>
+    val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>
 ) : ViewModelContainer<CC, T, ID, FILT>() {
     var item: T? by mutableStateOf(null)
     var crudTask: CrudTask by mutableStateOf(CrudTask.Read)
@@ -71,7 +72,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         crudTask = apiItem.crudTask
         apiFilter = apiItem.apiFilter
         itemAlreadyOn = null
-        val itemState = itemStateFun(apiItem)
+        val itemState = itemStateFun(apiItem.asIApiItem(commonContainer))
         if (crudTask == CrudTask.Create) {
             itemAlreadyOn = itemState.itemAlreadyOn
             if (itemAlreadyOn == true)
@@ -116,6 +117,6 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                 apiFilter = apiFilter
             )
         }
-        onDone(itemStateFun(apiItem))
+        onDone(itemStateFun(apiItem.asIApiItem(commonContainer)))
     }
 }
