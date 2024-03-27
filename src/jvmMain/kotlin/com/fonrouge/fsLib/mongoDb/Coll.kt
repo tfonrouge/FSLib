@@ -394,12 +394,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     @Suppress("unused")
-    suspend fun insertOne(apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>, item: T): ItemState<T> {
+    suspend fun insertOne(
+        apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>,
+        item: T,
+        overrideValidation: Boolean = false
+    ): ItemState<T> {
         return insertOne(
-            ApiItem.Action.Upsert.Create(
+            apiItem = ApiItem.Action.Upsert.Create(
                 item = item,
                 apiFilter = apiItem.apiFilter
-            )
+            ),
+            overrideValidation = overrideValidation
         ).copy(itemAlreadyOn = true)
     }
 
