@@ -98,17 +98,14 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
     ) {
         itemStateFun?.let { itemStateFun ->
             val apiItem = ApiItem.Query.Delete<T, ID, FILT>(
-                serializedId = Json.encodeToString(
-                    commonContainer.idSerializer,
-                    item._id
-                ),
+                id = item._id,
                 apiFilter = apiFilter
             )
             var itemState: ItemState<T> = itemStateFun(apiItem)
             if (itemState.isOk) {
                 itemState = itemStateFun(
                     ApiItem.Action.Delete(
-                        serializedId = Json.encodeToString(commonContainer.idSerializer, item._id),
+                        id = item._id,
                         apiFilter = apiFilter
                     ),
                 )

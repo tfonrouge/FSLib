@@ -36,14 +36,14 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
 
             CrudTask.Read -> serializedId?.let {
                 ApiItem.Query.Read(
-                    serializedId = serializedId,
+                    id = id,
                     apiFilter = apiFilter
                 )
             }
 
             CrudTask.Update -> serializedId?.let {
                 ApiItem.Query.Upsert.Update(
-                    serializedId = serializedId,
+                    id = id,
                     apiFilter = apiFilter
                 )
             }
@@ -101,25 +101,19 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         }
         val apiItem: ApiItem.Action<T, ID, FILT> = when (crudTask) {
             CrudTask.Create -> ApiItem.Action.Upsert.Create(
-                serializedItem = Json.encodeToString(
-                    commonContainer.itemSerializer,
-                    item
-                ), apiFilter = apiFilter
+                item = item,
+                apiFilter = apiFilter
             )
 
             CrudTask.Read -> return
             CrudTask.Update -> ApiItem.Action.Upsert.Update(
-                serializedItem = Json.encodeToString(
-                    commonContainer.itemSerializer,
-                    item
-                ), apiFilter = apiFilter
+                item = item,
+                apiFilter = apiFilter
             )
 
             CrudTask.Delete -> ApiItem.Action.Delete(
-                serializedId = Json.encodeToString(
-                    commonContainer.idSerializer,
-                    item._id
-                ), apiFilter = apiFilter
+                id = item._id,
+                apiFilter = apiFilter
             )
         }
         onDone(itemStateFun(apiItem))

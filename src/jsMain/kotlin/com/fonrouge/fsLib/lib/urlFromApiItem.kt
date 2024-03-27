@@ -5,7 +5,6 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.apiData.id
 import com.fonrouge.fsLib.model.base.BaseDoc
 import js.uri.encodeURIComponent
 import kotlinx.serialization.json.Json
@@ -21,7 +20,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
     val url: String? = when (apiItem) {
         is ApiItem.Query.Upsert.Create -> listOf("action" to CrudTask.Create.name)
         else -> {
-            apiItem.id(commonContainer = configViewItem.commonView)?.let { it: ID ->
+            apiItem.id?.let { it: ID ->
                 listOf(
                     "action" to apiItem.crudTask.name,
                     "id" to Json.encodeToString(configViewItem.commonView.idSerializer, it)

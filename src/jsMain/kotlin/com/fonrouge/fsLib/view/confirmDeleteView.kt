@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.lib.toast
-import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CallType
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -21,7 +21,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 ) {
     configViewItem.callItemService(
         crudTask = CrudTask.Delete,
-        callType = ApiItem.CallType.Query,
+        callType = CallType.Query,
         id = item._id,
         item = item,
         apiFilter = apiFilter,
@@ -42,7 +42,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
                 yesCallback = {
                     configViewItem.callItemService(
                         crudTask = CrudTask.Delete,
-                        callType = ApiItem.CallType.Action,
+                        callType = CallType.Action,
                         id = item._id,
                         item = item,
                         apiFilter = apiFilter,

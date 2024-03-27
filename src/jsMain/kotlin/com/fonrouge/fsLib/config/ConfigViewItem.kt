@@ -1,9 +1,7 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.apiData.ApiItem
-import com.fonrouge.fsLib.model.apiData.CrudTask
-import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
@@ -23,7 +21,7 @@ import kotlin.reflect.KClass
 
 abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter>(
     private val serviceManager: KVServiceManager<E>,
-    private val function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
+    private val function: suspend E.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonView: CV,
     viewFunc: KClass<out V>,
     baseUrl: String? = null
@@ -88,12 +86,13 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     @OptIn(ExperimentalSerializationApi::class)
     fun callItemService(
         crudTask: CrudTask,
-        callType: ApiItem.CallType,
+        callType: CallType,
         id: ID? = null,
         item: T? = null,
         apiFilter: FILT = commonView.apiFilterInstance(),
         block: (ItemState<T>) -> ItemState<T>,
     ) {
+        console.warn("calling item service")
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
         val apiItem = ApiItem.build(
@@ -104,16 +103,20 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             crudTask = crudTask,
             apiFilter = apiFilter
         ) ?: return
+        console.warn("apiItem", apiItem)
+        val iApiItem = apiItem.asIApiItem(commonView)
+        console.warn("iApiItem", iApiItem)
         val paramList = listOf(
             Json.encodeToString(
-                serializer = ApiItem.serializer(
+                serializer = IApiItem.serializer(
                     commonView.itemSerializer,
                     commonView.idSerializer,
                     commonView.apiFilterSerializer
                 ),
-                value = apiItem
+                value = iApiItem
             ),
         )
+        console.warn("paramList", paramList)
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
                 id = 0,
@@ -166,7 +169,7 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<E>,
-    function: suspend E.(ApiItem<T, ID, FILT>) -> ItemState<T>,
+    function: suspend E.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     commonView: CV,
     baseUrl: String? = null
 ): ConfigViewItem<CV, T, ID, V, E, FILT> = object : ConfigViewItem<CV, T, ID, V, E, FILT>(

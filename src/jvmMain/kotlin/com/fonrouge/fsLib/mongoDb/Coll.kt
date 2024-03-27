@@ -25,7 +25,6 @@ import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.serialization.json.Json
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -244,6 +243,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return bson
     }
 
+    @Suppress("unused")
+    suspend fun deleteOne(
+        id: ID,
+        filter: Bson? = null
+    ): ItemState<T> {
+        return deleteOne(
+            apiItem = ApiItem.Action.Delete(
+                id = id,
+                apiFilter = commonContainer.apiFilterInstance()
+            ),
+            filter = filter
+        )
+    }
+
     /**
      * Deletes one item from the API
      *
@@ -251,13 +264,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the delete operation
      */
     @Suppress("unused")
-    suspend fun deleteOne(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> {
-        val id = apiItem.id(commonContainer)
+    suspend fun deleteOne(
+        apiItem: ApiItem.Action.Delete<T, ID, FILT>,
+        filter: Bson? = null,
+    ): ItemState<T> {
+        val id = apiItem.id
         return try {
             onBeforeDelete(apiItem).also {
                 if (!it.isOk) return ItemState(it)
             }
-            val result = coroutineColl.deleteOne(BaseDoc<*>::_id eq id).deletedCount == 1L
+            val result = coroutineColl.deleteOne(and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON)).deletedCount == 1L
             if (result) onAfterDelete(apiItem)
             ItemState(
                 isOk = result,
@@ -362,6 +378,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     @Suppress("unused")
+    suspend fun findItemState(
+        apiItem: ApiItem.Query.Read<T, ID, FILT>,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
+    ): ItemState<T> {
+        return findItemStateById(
+            id = apiItem.id,
+            lookupWrappers = lookupWrappers
+        )
+    }
+
+    @Suppress("unused")
     suspend fun findItemStateById(
         id: ID?,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
@@ -380,7 +407,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     suspend fun insertOne(apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>, item: T): ItemState<T> {
         return insertOne(
             ApiItem.Action.Upsert.Create(
-                serializedItem = Json.encodeToString(commonContainer.itemSerializer, item),
+                item = item,
                 apiFilter = apiItem.apiFilter
             )
         ).copy(itemAlreadyOn = true)
@@ -398,7 +425,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
         overrideValidation: Boolean = false
     ): ItemState<T> {
-        val item = apiItem.item(commonContainer)
+        val item = apiItem.item
         if (!overrideValidation) {
             commonContainer.validateItem(item = item, apiItem.apiFilter).also { itemState ->
                 if (!itemState.isOk) return itemState
@@ -650,7 +677,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
-        val item = apiItem.item(commonContainer)
+        val item = apiItem.item
         onBeforeUpsert(apiItem).also {
             if (!it.isOk) return ItemState(it)
         }

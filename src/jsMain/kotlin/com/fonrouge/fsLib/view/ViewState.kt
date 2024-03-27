@@ -13,7 +13,9 @@ class ViewState(
 
 @Suppress("unused")
 fun Container.showView(viewState: ViewState) {
+    console.warn("1111111111111111")
     val view = viewState.configView.newViewInstance(viewState.urlParams)
+    console.warn("2222222222222222")
     view.apply {
         div {
             addBeforeDisposeHook {

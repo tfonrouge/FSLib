@@ -4,7 +4,7 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CallType
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -118,7 +118,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     val data = formPanelGetData()
                     configView.callItemService(
                         crudTask = crudAction,
-                        callType = ApiItem.CallType.Action,
+                        callType = CallType.Action,
                         id = item?._id,
                         item = data?.let { transformData(it) },
                         apiFilter = apiFilter,
@@ -250,6 +250,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 if (!noPageBanner) {
                     pageBanner()
                 }
+                console.warn("****************")
                 urlParams?.crudTask?.let { crudAction ->
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
@@ -258,7 +259,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     } else {
                         configView.callItemService(
                             crudTask = crudAction,
-                            callType = ApiItem.CallType.Query,
+                            callType = CallType.Query,
                             id = urlParams?.id?.let { Json.decodeFromString(configView.commonView.idSerializer, it) },
                             apiFilter = apiFilter
                         ) { itemResponse ->
