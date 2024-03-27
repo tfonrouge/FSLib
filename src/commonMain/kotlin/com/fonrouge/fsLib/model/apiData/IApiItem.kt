@@ -50,7 +50,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                 )
 
                 is Action.Delete -> ApiItem.Action.Delete(
-                    id = Json.decodeFromString(cc.idSerializer, serializedId),
+                    item = Json.decodeFromString(cc.itemSerializer, serializedItem),
                     apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
                 )
             }
@@ -106,10 +106,10 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
     @Serializable
     sealed class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : IApiItem<T, ID, FILT>() {
         override val callType: CallType = CallType.Action
+        abstract val serializedItem: String
 
         @Serializable
         sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : Action<T, ID, FILT>() {
-            abstract val serializedItem: String
 
             @Serializable
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
@@ -130,7 +130,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
 
         @Serializable
         data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-            val serializedId: String,
+            override val serializedItem: String,
             override val serializedApiFilter: String
         ) : Action<T, ID, FILT>() {
             override val crudTask: CrudTask = CrudTask.Delete

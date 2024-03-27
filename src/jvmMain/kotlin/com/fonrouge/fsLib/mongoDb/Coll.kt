@@ -243,20 +243,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return bson
     }
 
-    @Suppress("unused")
-    suspend fun deleteOne(
-        id: ID,
-        filter: Bson? = null
-    ): ItemState<T> {
-        return deleteOne(
-            apiItem = ApiItem.Action.Delete(
-                id = id,
-                apiFilter = commonContainer.apiFilterInstance()
-            ),
-            filter = filter
-        )
-    }
-
     /**
      * Deletes one item from the API
      *
@@ -268,12 +254,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
         filter: Bson? = null,
     ): ItemState<T> {
-        val id = apiItem.id
         return try {
             onBeforeDelete(apiItem).also {
                 if (!it.isOk) return ItemState(it)
             }
-            val result = coroutineColl.deleteOne(and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON)).deletedCount == 1L
+            val result = coroutineColl.deleteOne(
+                and(
+                    BaseDoc<*>::_id eq apiItem.item._id,
+                    filter ?: EMPTY_BSON
+                )
+            ).deletedCount == 1L
             if (result) onAfterDelete(apiItem)
             ItemState(
                 isOk = result,

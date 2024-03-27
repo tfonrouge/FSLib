@@ -63,9 +63,9 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                         )
                     }
 
-                    CrudTask.Delete -> id?.let {
+                    CrudTask.Delete -> item?.let {
                         Action.Delete(
-                            id = it,
+                            item = it,
                             apiFilter = apiFilter
                         )
                     }
@@ -170,12 +170,12 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
 
     sealed class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : ApiItem<T, ID, FILT>() {
         override val callType: CallType = CallType.Action
+        abstract val item: T
 
         companion object {
             fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> build(
                 commonContainer: ICommonContainer<T, ID, FILT>,
                 crudTask: CrudTask,
-                id: ID? = null,
                 item: T? = null,
                 apiFilter: FILT = commonContainer.apiFilterInstance()
             ): Action<T, ID, FILT>? {
@@ -195,9 +195,9 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                         )
                     }
 
-                    CrudTask.Delete -> id?.let {
+                    CrudTask.Delete -> item?.let {
                         Delete(
-                            id = id,
+                            item = item,
                             apiFilter = apiFilter
                         )
                     }
@@ -206,7 +206,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
         }
 
         sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : Action<T, ID, FILT>() {
-            abstract val item: T
 
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                 override val item: T,
@@ -236,13 +235,13 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
         }
 
         data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-            val id: ID,
+            override val item: T,
             override val apiFilter: FILT
         ) : Action<T, ID, FILT>() {
             override val crudTask: CrudTask = CrudTask.Delete
             override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
                 return IApiItem.Action.Delete(
-                    serializedId = Json.encodeToString(commonContainer.idSerializer, id),
+                    serializedItem = Json.encodeToString(commonContainer.itemSerializer, item),
                     serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
                 )
             }

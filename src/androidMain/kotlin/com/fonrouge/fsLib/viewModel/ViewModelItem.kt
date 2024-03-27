@@ -112,7 +112,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
             )
 
             CrudTask.Delete -> ApiItem.Action.Delete(
-                id = item._id,
+                item = item,
                 apiFilter = apiFilter
             )
         }

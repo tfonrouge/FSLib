@@ -105,7 +105,7 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
             if (itemState.isOk) {
                 itemState = itemStateFun(
                     ApiItem.Action.Delete(
-                        id = item._id,
+                        item = item,
                         apiFilter = apiFilter
                     ),
                 )
