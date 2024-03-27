@@ -22,6 +22,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             return when (callType) {
                 CallType.Query -> when (crudTask) {
                     CrudTask.Create -> Query.Upsert.Create(
+                        id = id,
                         apiFilter = apiFilter
                     )
 
@@ -87,6 +88,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             ): Query<T, ID, FILT>? {
                 return when (crudTask) {
                     CrudTask.Create -> Upsert.Create(
+                        id = id,
                         apiFilter = apiFilter
                     )
 
@@ -116,12 +118,13 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
 
         sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : Query<T, ID, FILT>() {
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+                override val id: ID? = null,
                 override val apiFilter: FILT
             ) : Upsert<T, ID, FILT>() {
                 override val crudTask: CrudTask = CrudTask.Create
-                override val id: ID? = null
                 override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
                     return IApiItem.Query.Upsert.Create(
+                        serializedId = id?.let { Json.encodeToString(commonContainer.idSerializer, id) },
                         serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
                     )
                 }
