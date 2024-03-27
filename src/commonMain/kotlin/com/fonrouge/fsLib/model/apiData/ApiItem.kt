@@ -2,10 +2,8 @@ package com.fonrouge.fsLib.model.apiData
 
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.base.BaseDoc
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-@Serializable
 sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
     abstract val callType: CallType
     abstract val crudTask: CrudTask
@@ -76,7 +74,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
         }
     }
 
-    @Serializable
     sealed class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : ApiItem<T, ID, FILT>() {
         override val callType: CallType = CallType.Query
         abstract val id: ID?
@@ -117,9 +114,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             }
         }
 
-        @Serializable
         sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : Query<T, ID, FILT>() {
-            @Serializable
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                 override val apiFilter: FILT
             ) : Upsert<T, ID, FILT>() {
@@ -132,7 +127,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                 }
             }
 
-            @Serializable
             data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                 override val id: ID,
                 override val apiFilter: FILT
@@ -147,7 +141,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             }
         }
 
-        @Serializable
         data class Read<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
             override val id: ID,
             override val apiFilter: FILT
@@ -161,7 +154,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             }
         }
 
-        @Serializable
         data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
             override val id: ID,
             override val apiFilter: FILT
@@ -176,7 +168,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
         }
     }
 
-    @Serializable
     sealed class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : ApiItem<T, ID, FILT>() {
         override val callType: CallType = CallType.Action
 
@@ -214,11 +205,9 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             }
         }
 
-        @Serializable
         sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : Action<T, ID, FILT>() {
             abstract val item: T
 
-            @Serializable
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                 override val item: T,
                 override val apiFilter: FILT
@@ -232,7 +221,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                 }
             }
 
-            @Serializable
             data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
                 override val item: T,
                 override val apiFilter: FILT
@@ -247,7 +235,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             }
         }
 
-        @Serializable
         data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
             val id: ID,
             override val apiFilter: FILT

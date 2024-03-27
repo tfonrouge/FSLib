@@ -8,10 +8,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.model.apiData.ApiItem
-import com.fonrouge.fsLib.model.apiData.CrudTask
-import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.apiData.serializeMasterItemId
+import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import kotlinx.serialization.builtins.nullable
@@ -28,11 +25,11 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 ) {
     val apiItem = navBackStackEntry.arguments?.getString("apiItem")?.let {
         if (it != "\"null\"") Json.decodeFromString(
-            ApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
+            IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
             it.removePrefix("\"").removeSuffix("\"")
         ) else null
     }
-    apiItem?.let { function(it) }
+    apiItem?.let { function(it.asApiItem(this)) }
 }
 
 @Composable
@@ -68,8 +65,8 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     apiItem: ApiItem.Query<T, ID, FILT>,
 ) {
     val serializedApiItem = Json.encodeToString(
-        ApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-        apiItem
+        IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
+        apiItem.asIApiItem(this)
     )
     navHostController.navigate(
         "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
