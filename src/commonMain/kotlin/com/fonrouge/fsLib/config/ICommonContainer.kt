@@ -11,6 +11,7 @@ import kotlin.reflect.KClass
 abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     val itemKClass: KClass<T>,
     val idSerializer: KSerializer<ID>,
+    // TODO: add here reference to ApiItem function and remove it from ConfigViewItem
     open val labelIdFunc: ((T?) -> String) = { t: T? -> t?.let { "${it._id}" } ?: "<no-item>" },
     open val labelItem: String = "${itemKClass.simpleName}",
     open val labelItemId: ((T?) -> String) = { t: T? -> "$labelItem: ${labelIdFunc(t)}" },
