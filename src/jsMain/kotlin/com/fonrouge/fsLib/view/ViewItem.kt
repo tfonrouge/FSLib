@@ -28,13 +28,13 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 @Suppress("unused")
-abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
-    final override val configView: ConfigViewItem<CV, T, ID, out ViewItem<CV, T, ID, FILT>, *, FILT>,
+    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, *, FILT>,
     periodicUpdateDataView: Boolean? = null,
     editable: (() -> Boolean) = { true },
     icon: String? = null,
-) : ViewDataContainer<CV, T, ID, FILT>(
+) : ViewDataContainer<CC, T, ID, FILT>(
     urlParams = urlParams,
     configViewContainer = configView,
     editable = editable,
@@ -66,7 +66,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
 
-    val labelId get() = configView.commonView.labelIdFunc(item)
+    val labelId get() = configView.commonContainer.labelIdFunc(item)
 
     //    var itemId: U? = null
     var noBackButton = false
@@ -144,9 +144,9 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         if (confirmCancel && formPanel != null) {
             try {
                 val s1 = formPanelGetData()?.let {
-                    Json.encodeToString(configView.commonView.itemSerializer, transformData(it))
+                    Json.encodeToString(configView.commonContainer.itemSerializer, transformData(it))
                 }
-                val s2 = item?.let { Json.encodeToString(configView.commonView.itemSerializer, it) }
+                val s2 = item?.let { Json.encodeToString(configView.commonContainer.itemSerializer, it) }
                 if (s1 != s2) {
                     proceedClose = confirm("Cancel and forget current changes ?")
                 }
@@ -255,12 +255,12 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
                             confirmDeleteView(item, configView, apiFilter = apiFilter)
-                        } ?: Toast.danger("${configView.commonView.labelItem} not valid ...")
+                        } ?: Toast.danger("${configView.commonContainer.labelItem} not valid ...")
                     } else {
                         configView.callItemService(
                             crudTask = crudAction,
                             callType = CallType.Query,
-                            id = urlParams?.id?.let { Json.decodeFromString(configView.commonView.idSerializer, it) },
+                            id = urlParams?.id?.let { Json.decodeFromString(configView.commonContainer.idSerializer, it) },
                             apiFilter = apiFilter
                         ) { itemResponse ->
                             if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
@@ -268,7 +268,7 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                 itemResponse.item?._id?.let {
                                     urlParams?.params?.set(
                                         "id",
-                                        Json.encodeToString(configView.commonView.idSerializer, it)
+                                        Json.encodeToString(configView.commonContainer.idSerializer, it)
                                     )
                                 }
                                 @Suppress("UNUSED_VARIABLE")
@@ -336,10 +336,10 @@ abstract class ViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     override val label: String
-        get() = "${configView.label}: ${configView.commonView.labelIdFunc(item)}"
+        get() = "${configView.label}: ${configView.commonContainer.labelIdFunc(item)}"
 
     fun encodeId(id: ID? = item?._id): String? {
-        return id?.let { Json.encodeToString(configView.commonView.idSerializer, id) }
+        return id?.let { Json.encodeToString(configView.commonContainer.idSerializer, id) }
     }
 
     /**

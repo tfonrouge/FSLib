@@ -12,9 +12,9 @@ import io.kvision.modal.Confirm
 import io.kvision.modal.ModalSize
 import io.kvision.toast.Toast
 
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> confirmDeleteView(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> confirmDeleteView(
     item: T,
-    configViewItem: ConfigViewItem<CV, T, ID, out ViewItem<CV, T, ID, FILT>, *, FILT>,
+    configViewItem: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, *, FILT>,
     apiFilter: FILT,
     onFail: ((ItemState<T>) -> Unit)? = null,
     onSuccess: (() -> Unit)? = null,
@@ -30,7 +30,7 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
             val modal = Confirm(
                 caption = "Please Confirm",
                 text = "<b>Delete</b> '<i>${configViewItem.label}</i>', id: <b>${
-                    configViewItem.commonView.labelIdFunc(item)
+                    configViewItem.commonContainer.labelIdFunc(item)
                 }</b> ?",
                 rich = true,
                 size = ModalSize.XLARGE,

@@ -9,12 +9,12 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlin.js.Date
 
-abstract class ViewDataContainer<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     urlParams: UrlParams?,
-    val configViewContainer: ConfigViewContainer<CV, T, ID, *, FILT>,
+    val configViewContainer: ConfigViewContainer<CC, T, ID, *, FILT>,
     editable: (() -> Boolean) = { true },
     icon: String? = null,
-) : View<CV, FILT>(
+) : View<CC, FILT>(
     urlParams = urlParams,
     configView = configViewContainer,
     editable = editable,

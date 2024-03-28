@@ -8,22 +8,22 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CV, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
+abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
-    override val commonView: CV,
+    override val commonContainer: CC,
     viewFunc: KClass<out V>,
     baseUrl: String? = null
-) : ConfigViewContainer<CV, T, ID, V, FILT>(
+) : ConfigViewContainer<CC, T, ID, V, FILT>(
     viewFunc = viewFunc,
-    commonView = commonView,
+    commonContainer = commonContainer,
     baseUrl = baseUrl
 ) {
     override val baseUrl: String
         get() {
             val result =
                 _baseUrl
-                    ?: if (commonView == undefined) "error: commonView undefined" else ("ViewList" + commonView.name)
+                    ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("ViewList" + commonContainer.name)
             return result
         }
 
@@ -31,14 +31,14 @@ abstract class ConfigViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *>>()
     }
 
-    override val label: String get() = commonView.labelList
-    override val labelUrl: Pair<String, String> by lazy { commonView.labelList to url }
+    override val label: String get() = commonContainer.labelList
+    override val labelUrl: Pair<String, String> by lazy { commonContainer.labelList to url }
 
     /**
      * builds an url string with optional [IApiFilter] parameter
      */
     fun url(apiFilter: FILT? = null): String {
-        return baseUrl + (apiFilter?.let { "?" + pairParam("apiFilter", commonView.apiFilterSerializer, apiFilter) }
+        return baseUrl + (apiFilter?.let { "?" + pairParam("apiFilter", commonContainer.apiFilterSerializer, apiFilter) }
             ?: "")
     }
 
@@ -48,16 +48,16 @@ abstract class ConfigViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 @Suppress("unused")
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CV, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CC, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<E>,
     function: suspend E.(ApiList<FILT>) -> ListState<T>,
-    commonView: CV,
+    commonContainer: CC,
     baseUrl: String? = null,
-): ConfigViewList<CV, T, ID, V, E, FILT> = object : ConfigViewList<CV, T, ID, V, E, FILT>(
+): ConfigViewList<CC, T, ID, V, E, FILT> = object : ConfigViewList<CC, T, ID, V, E, FILT>(
     viewFunc = viewFunc,
     serviceManager = serviceManager,
     function = function,
-    commonView = commonView,
+    commonContainer = commonContainer,
     baseUrl = baseUrl
 ) {}

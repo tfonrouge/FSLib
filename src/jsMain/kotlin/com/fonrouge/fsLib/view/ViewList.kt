@@ -26,14 +26,14 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 
 @Suppress("unused")
-abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
+abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
-    final override val configView: ConfigViewList<CV, T, ID, out ViewList<CV, T, ID, E, FILT>, E, FILT>,
+    final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, E, FILT>, E, FILT>,
     configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: (() -> Boolean) = { true },
     icon: String? = null,
-) : ViewDataContainer<CV, T, ID, FILT>(
+) : ViewDataContainer<CC, T, ID, FILT>(
     urlParams = urlParams,
     configViewContainer = configView,
     editable = editable,
@@ -52,7 +52,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             val name = if (viewClassName.contains("ViewList")) {
                 viewClassName.replace("ViewList", "ViewItem")
             } else {
-                "ViewItem${configView.commonView.itemKClass.js.name}"
+                "ViewItem${configView.commonContainer.itemKClass.js.name}"
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>>()
         }
@@ -122,7 +122,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     ) {
         configViewItem ?: return
         val apiItem = ApiItem.Query.build(
-            commonContainer = configViewItem.commonView,
+            commonContainer = configViewItem.commonContainer,
             id = item?._id,
             crudTask = crudTask,
             apiFilter = apiFilter
@@ -170,7 +170,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         val configViewItem = configViewItem
         val menu = mutableListOf<TabulatorMenuItem>()
         with(menu) {
-            val labelId = configViewItem?.commonView?.labelIdFunc?.invoke(item) ?: ""
+            val labelId = configViewItem?.commonContainer?.labelIdFunc?.invoke(item) ?: ""
             menuItem(
                 label = " <font size=\"+1\">${configViewItem?.label ?: ""}</font>: <b>$labelId</b>",
                 disabled = false,
@@ -237,7 +237,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         tabulator?.let { tabulator ->
             tabulator.jsTabulator?.setColumns(
                 columnDefinitionList().map {
-                    it.toJs(tabulator, tabulator::translate, configView.commonView.itemKClass)
+                    it.toJs(tabulator, tabulator::translate, configView.commonContainer.itemKClass)
                 }.toTypedArray()
             )
             //columnDefinitionList()
@@ -264,7 +264,7 @@ abstract class ViewList<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         return tabulator?.toKotlinObj(cell.getData())
     }
 
-    override val label: String get() = configView.commonView.labelList
+    override val label: String get() = configView.commonContainer.labelList
 
     /**
      * allows to process javascript array arrived from backend

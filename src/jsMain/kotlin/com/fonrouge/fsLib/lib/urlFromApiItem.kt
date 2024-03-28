@@ -23,7 +23,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
             apiItem.id?.let { it: ID ->
                 listOf(
                     "action" to apiItem.crudTask.name,
-                    "id" to Json.encodeToString(configViewItem.commonView.idSerializer, it)
+                    "id" to Json.encodeToString(configViewItem.commonContainer.idSerializer, it)
                 )
             }
         }
@@ -32,7 +32,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
         urlParams.pushParam(
             "apiFilter" to encodeURIComponent(
                 Json.encodeToString(
-                    configViewItem.commonView.apiFilterSerializer,
+                    configViewItem.commonContainer.apiFilterSerializer,
                     apiItem.apiFilter
                 )
             )

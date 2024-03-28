@@ -43,7 +43,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
             "page" to json("page" to true),
         )
     */
-    val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.commonView.itemKClass.simpleName
+    val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.commonContainer.itemKClass.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
     val selectableRows = tabulatorOptions.selectableRows ?: 1
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
@@ -69,16 +69,16 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     )
 }
 
-inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
-    configViewList: ConfigViewList<CV, T, ID, out ViewList<CV, T, ID, E, FILT>, E, FILT>,
+inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
+    configViewList: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, E, FILT>, E, FILT>,
     masterViewItem: ViewItem<*, *, *, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
     minToolbarSize: Boolean = true,
     noinline editable: (() -> Boolean)? = null,
     noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
-): ViewList<CV, T, ID, E, FILT> {
-    val viewList: ViewList<CV, T, ID, E, FILT> = configViewList.newViewInstance(null)
+): ViewList<CC, T, ID, E, FILT> {
+    val viewList: ViewList<CC, T, ID, E, FILT> = configViewList.newViewInstance(null)
     viewList.masterViewItem = masterViewItem
     editable?.let { viewList.editable = it }
     return fsTabulator(
@@ -91,13 +91,13 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
-    viewList: ViewList<CV, T, ID, E, FILT>,
+inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
+    viewList: ViewList<CC, T, ID, E, FILT>,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
     minToolbarSize: Boolean = true,
     noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
-): ViewList<CV, T, ID, E, FILT> {
+): ViewList<CC, T, ID, E, FILT> {
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
@@ -108,7 +108,7 @@ inline fun <CV : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
 
     val apiListSerialize: (ApiList<FILT>) -> String = { apiList: ApiList<FILT> ->
         Json.encodeToString(
-            serializer = ApiList.serializer(viewList.configView.commonView.apiFilterSerializer),
+            serializer = ApiList.serializer(viewList.configView.commonContainer.apiFilterSerializer),
             value = apiList
         )
     }

@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.config
 
+import com.fonrouge.fsLib.apiServices.IApiItemService
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -19,22 +20,22 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter>(
-    private val serviceManager: KVServiceManager<E>,
-    private val function: suspend E.(IApiItem<T, ID, FILT>) -> ItemState<T>,
-    override val commonView: CV,
+abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiItemService, FILT : IApiFilter>(
+    private val serviceManager: KVServiceManager<AIS>,
+    private val function: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+    override val commonContainer: CC,
     viewFunc: KClass<out V>,
     baseUrl: String? = null
-) : ConfigViewContainer<CV, T, ID, V, FILT>(
+) : ConfigViewContainer<CC, T, ID, V, FILT>(
     viewFunc = viewFunc,
-    commonView = commonView,
+    commonContainer = commonContainer,
     baseUrl = baseUrl,
 ) {
     override val baseUrl: String
         get() {
             val result =
                 _baseUrl
-                    ?: if (commonView == undefined) "error: commonView undefined" else ("ViewItem" + commonView.name)
+                    ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("ViewItem" + commonContainer.name)
             return result
         }
 
@@ -42,19 +43,19 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
     }
 
-    override val label: String get() = commonView.labelItem
-    val labelDelete by lazy { "Delete ${commonView.labelItem}" }
-    val labelDetail by lazy { "Detail of ${commonView.labelIdFunc}" }
-    val labelCreate by lazy { "Create ${commonView.labelItem}" }
-    val labelUpdate by lazy { "Update ${commonView.labelItem}" }
+    override val label: String get() = commonContainer.labelItem
+    val labelDelete by lazy { "Delete ${commonContainer.labelItem}" }
+    val labelDetail by lazy { "Detail of ${commonContainer.labelIdFunc}" }
+    val labelCreate by lazy { "Create ${commonContainer.labelItem}" }
+    val labelUpdate by lazy { "Update ${commonContainer.labelItem}" }
 
-    override val labelUrl: Pair<String, String> by lazy { commonView.labelItem to url }
-
-    @Suppress("unused")
-    fun labelUrlRead(id: ID) = commonView.labelItem to urlRead(id)
+    override val labelUrl: Pair<String, String> by lazy { commonContainer.labelItem to url }
 
     @Suppress("unused")
-    fun labelUrlUpdate(id: ID) = commonView.labelItem to urlUpdate(id)
+    fun labelUrlRead(id: ID) = commonContainer.labelItem to urlRead(id)
+
+    @Suppress("unused")
+    fun labelUrlUpdate(id: ID) = commonContainer.labelItem to urlUpdate(id)
 
     @Suppress("unused")
     val urlCreate: String
@@ -65,20 +66,20 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 
     fun urlRead(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(commonView.idSerializer, id), "action" to CrudTask.Read.name)
+            UrlParams("id" to Json.encodeToString(commonContainer.idSerializer, id), "action" to CrudTask.Read.name)
         return url + urlParams.toString()
     }
 
     @Suppress("unused")
     fun urlDelete(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(commonView.idSerializer, id), "action" to CrudTask.Delete.name)
+            UrlParams("id" to Json.encodeToString(commonContainer.idSerializer, id), "action" to CrudTask.Delete.name)
         return url + urlParams.toString()
     }
 
     fun urlUpdate(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(commonView.idSerializer, id), "action" to CrudTask.Update.name)
+            UrlParams("id" to Json.encodeToString(commonContainer.idSerializer, id), "action" to CrudTask.Update.name)
         return url + urlParams.toString()
     }
 
@@ -89,14 +90,14 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         callType: CallType,
         id: ID? = null,
         item: T? = null,
-        apiFilter: FILT = commonView.apiFilterInstance(),
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
         block: (ItemState<T>) -> ItemState<T>,
     ) {
         console.warn("calling item service")
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
         val apiItem = ApiItem.build(
-            commonContainer = commonView,
+            commonContainer = commonContainer,
             id = id,
             item = item,
             callType = callType,
@@ -104,14 +105,14 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             apiFilter = apiFilter
         ) ?: return
         console.warn("apiItem", apiItem)
-        val iApiItem = apiItem.asIApiItem(commonView)
+        val iApiItem = apiItem.asIApiItem(commonContainer)
         console.warn("iApiItem", iApiItem)
         val paramList = listOf(
             Json.encodeToString(
                 serializer = IApiItem.serializer(
-                    commonView.itemSerializer,
-                    commonView.idSerializer,
-                    commonView.apiFilterSerializer
+                    commonContainer.itemSerializer,
+                    commonContainer.idSerializer,
+                    commonContainer.apiFilterSerializer
                 ),
                 value = iApiItem
             ),
@@ -142,14 +143,14 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             try {
                 val itemResponse: ItemState<T> =
                     Json.decodeFromDynamic(
-                        ItemState.serializer(commonView.itemSerializer),
+                        ItemState.serializer(commonContainer.itemSerializer),
                         result
                     )
                 block(itemResponse)
             } catch (e: Exception) {
                 console.error(
                     "Error decoding KClass",
-                    commonView.itemSerializer,
+                    commonContainer.itemSerializer,
                     "with serialized value",
                     result,
                     "exception:",
@@ -166,16 +167,16 @@ abstract class ConfigViewItem<CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 @Suppress("unused")
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CV, T, ID, FILT>, E : Any, FILT : IApiFilter> configViewItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiItemService, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
-    serviceManager: KVServiceManager<E>,
-    function: suspend E.(IApiItem<T, ID, FILT>) -> ItemState<T>,
-    commonView: CV,
+    serviceManager: KVServiceManager<AIS>,
+    function: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+    commonContainer: CC,
     baseUrl: String? = null
-): ConfigViewItem<CV, T, ID, V, E, FILT> = object : ConfigViewItem<CV, T, ID, V, E, FILT>(
+): ConfigViewItem<CC, T, ID, V, AIS, FILT> = object : ConfigViewItem<CC, T, ID, V, AIS, FILT>(
     viewFunc = viewFunc,
     serviceManager = serviceManager,
     function = function,
-    commonView = commonView,
+    commonContainer = commonContainer,
     baseUrl = baseUrl
 ) {}

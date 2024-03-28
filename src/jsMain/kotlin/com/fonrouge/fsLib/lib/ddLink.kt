@@ -10,8 +10,8 @@ import io.kvision.dropdown.DropDown
 import io.kvision.dropdown.ddLink
 
 @Suppress("unused")
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> DropDown.ddLink(
-    configViewItem: ConfigViewItem<CV, T, ID, *, *, FILT>,
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> DropDown.ddLink(
+    configViewItem: ConfigViewItem<CC, T, ID, *, *, FILT>,
     apiItem: ApiItem.Query<T, ID, FILT>,
 ) {
     ddLink(
@@ -24,9 +24,9 @@ fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 }
 
 @Suppress("unused")
-fun <CV : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> DropDown.ddLink(
-    configViewList: ConfigViewList<CV, T, ID, *, *, FILT>,
-    apiFilter: FILT = configViewList.commonView.apiFilterInstance(),
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> DropDown.ddLink(
+    configViewList: ConfigViewList<CC, T, ID, *, *, FILT>,
+    apiFilter: FILT = configViewList.commonContainer.apiFilterInstance(),
 ) {
     ddLink(
         label = configViewList.label,

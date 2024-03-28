@@ -16,15 +16,15 @@ private const val navigoPrefix = "#/"
 /*
     TODO: encode/decode baseUrl to be url compliant
  */
-abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFilter>(
+abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter>(
     val viewFunc: KClass<out V>,
-    open val commonView: CV,
+    open val commonContainer: CC,
     internal val _baseUrl: String? = null,
 ) {
     open val baseUrl: String
         get() {
             val result =
-                _baseUrl ?: if (commonView == undefined) "error: commonView undefined" else ("View" + commonView.name)
+                _baseUrl ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("View" + commonContainer.name)
             return result
         }
 
@@ -33,8 +33,8 @@ abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFil
     }
 
     val url: String get() = navigoPrefix + this.baseUrl
-    open val label: String get() = commonView.label
-    open val labelUrl: Pair<String, String> by lazy { commonView.label to url }
+    open val label: String get() = commonContainer.label
+    open val labelUrl: Pair<String, String> by lazy { commonContainer.label to url }
 
     /**
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservableValue] from the [UrlParams]
@@ -75,7 +75,7 @@ abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFil
      */
     @Suppress("unused")
     fun apiFilterParam(obj: FILT): Pair<String, String> =
-        pairParam(key = "apiFilter", serializer = commonView.apiFilterSerializer, obj = obj)
+        pairParam(key = "apiFilter", serializer = commonContainer.apiFilterSerializer, obj = obj)
 
     init {
         if (this !is ConfigViewContainer<*, *, *, *, *>) {
@@ -88,12 +88,12 @@ abstract class ConfigView<CV : ICommon<FILT>, V : View<CV, FILT>, FILT : IApiFil
 fun String.rh() = this.removePrefix("#/")
 
 @Suppress("unused")
-inline fun <CV : ICommon<FILT>, V : View<CV, FILT>, reified FILT : IApiFilter> configView(
+inline fun <CC : ICommon<FILT>, V : View<CC, FILT>, reified FILT : IApiFilter> configView(
     viewFunc: KClass<out V>,
-    commonView: CV,
+    commonContainer: CC,
     baseUrl: String? = null,
-): ConfigView<CV, V, FILT> = object : ConfigView<CV, V, FILT>(
+): ConfigView<CC, V, FILT> = object : ConfigView<CC, V, FILT>(
     viewFunc = viewFunc,
-    commonView = commonView,
+    commonContainer = commonContainer,
     _baseUrl = baseUrl,
 ) {}

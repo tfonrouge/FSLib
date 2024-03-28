@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.config.ICommon
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
-import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import io.kvision.core.*
 import io.kvision.html.*
@@ -18,9 +17,9 @@ import io.kvision.state.bind
 import io.kvision.utils.em
 import io.kvision.utils.px
 
-abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
+abstract class View<CC : ICommon<FILT>, FILT : IApiFilter>(
     var urlParams: UrlParams? = null,
-    open val configView: ConfigView<CV, *, FILT>,
+    open val configView: ConfigView<CC, *, FILT>,
     var editable: (() -> Boolean) = { true },
     val icon: String? = null,
 ) {
@@ -62,7 +61,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
      * or programmatically, and it's delivered to the backend
      */
     val apiFilterObservableValue: ObservableValue<FILT> by lazy {
-        ObservableValue(apiFilterInstance(apiFilterFromUrl) ?: configView.commonView.apiFilterInstance())
+        ObservableValue(apiFilterInstance(apiFilterFromUrl) ?: configView.commonContainer.apiFilterInstance())
     }
     var apiFilter: FILT
         get() {
@@ -74,7 +73,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
 
     protected val apiFilterFromUrl: FILT?
         get() = urlParams?.pullUrlParam(
-            serializer = configView.commonView.apiFilterSerializer,
+            serializer = configView.commonContainer.apiFilterSerializer,
             key = "apiFilter"
         )
 
@@ -100,32 +99,10 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     }
 
     /**
-     * Helper to build an [ApiItem] instance
-     */
-    /*
-        @Suppress("unused")
-        fun <T : BaseDoc<ID>, ID : Any> apiItem(
-            id: ID? = null,
-            item: T? = null,
-            callType: ApiItem.CallType = ApiItem.CallType.Query,
-            crudTask: CrudTask = CrudTask.Read,
-            apiFilter: FILT = configView.commonView.apiFilterInstance(),
-        ): ApiItem<T, ID, FILT> {
-            return ApiItem(
-                id = id,
-                item = item,
-                callType = callType,
-                crudTask = crudTask,
-                apiFilter = apiFilter
-            )
-        }
-    */
-
-    /**
      * Sets the current browser url with an [apiFilterObservableValue] url parameter
      */
     fun apiFilterToUrl() {
-        configView.pairParam("apiFilter", configView.commonView.apiFilterSerializer, apiFilter)
+        configView.pairParam("apiFilter", configView.commonContainer.apiFilterSerializer, apiFilter)
             .let { pair ->
                 urlParams?.params?.set(pair.first, pair.second)
             }
@@ -229,7 +206,7 @@ abstract class View<CV : ICommon<FILT>, FILT : IApiFilter>(
     }
 
     fun updateMainBannerLink(text: String, url: String) {
-        pageBannerLink?.label = "${configView.commonView.label}: $text"
+        pageBannerLink?.label = "${configView.commonContainer.label}: $text"
         pageBannerLink?.url = "${configView.url}/$url"
     }
 
