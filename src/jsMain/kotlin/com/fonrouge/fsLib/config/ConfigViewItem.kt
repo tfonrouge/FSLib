@@ -93,7 +93,6 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         block: (ItemState<T>) -> ItemState<T>,
     ) {
-        console.warn("calling item service")
         val (url, method) = serviceManager.requireCall(function)
         val callAgent = CallAgent()
         val apiItem = ApiItem.build(
@@ -104,9 +103,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             crudTask = crudTask,
             apiFilter = apiFilter
         ) ?: return
-        console.warn("apiItem", apiItem)
         val iApiItem = apiItem.asIApiItem(commonContainer)
-        console.warn("iApiItem", iApiItem)
         val paramList = listOf(
             Json.encodeToString(
                 serializer = IApiItem.serializer(
@@ -117,7 +114,6 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                 value = iApiItem
             ),
         )
-        console.warn("paramList", paramList)
         val data = Serialization.plain.encodeToString(
             JsonRpcRequest(
                 id = 0,

@@ -250,7 +250,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 if (!noPageBanner) {
                     pageBanner()
                 }
-                console.warn("****************")
                 urlParams?.crudTask?.let { crudAction ->
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
