@@ -1,4 +1,3 @@
 package com.fonrouge.fsLib.apiServices
 
-interface IApiItemService {
-}
+interface IApiItemService : IApiService
