@@ -38,8 +38,13 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc
      * builds an url string with optional [IApiFilter] parameter
      */
     fun url(apiFilter: FILT? = null): String {
-        return baseUrl + (apiFilter?.let { "?" + pairParam("apiFilter", commonContainer.apiFilterSerializer, apiFilter) }
-            ?: "")
+        return baseUrl + (apiFilter?.let {
+            "?" + pairParam(
+                key = "apiFilter",
+                serializer = commonContainer.apiFilterSerializer,
+                obj = apiFilter
+            )
+        } ?: "")
     }
 
     init {

@@ -24,7 +24,8 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
     open val baseUrl: String
         get() {
             val result =
-                _baseUrl ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("View" + commonContainer.name)
+                _baseUrl
+                    ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("View" + commonContainer.name)
             return result
         }
 

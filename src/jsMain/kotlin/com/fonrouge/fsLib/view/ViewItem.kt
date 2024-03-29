@@ -259,7 +259,12 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, 
                         configView.callItemService(
                             crudTask = crudAction,
                             callType = CallType.Query,
-                            id = urlParams?.id?.let { Json.decodeFromString(configView.commonContainer.idSerializer, it) },
+                            id = urlParams?.id?.let {
+                                Json.decodeFromString(
+                                    configView.commonContainer.idSerializer,
+                                    it
+                                )
+                            },
                             apiFilter = apiFilter
                         ) { itemResponse ->
                             if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
