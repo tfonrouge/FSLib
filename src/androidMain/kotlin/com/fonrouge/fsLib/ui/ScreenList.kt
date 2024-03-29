@@ -20,7 +20,7 @@ import com.fonrouge.fsLib.viewModel.ViewModelList
 @Suppress("unused")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-inline fun <reified VML : ViewModelList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> ScreenList(
+inline fun <reified VML : ViewModelList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> ScreenList(
     navHostController: NavHostController = NavHostController(LocalContext.current),
     viewModel: VML = viewModel(),
     noinline topBarTitle: @Composable () -> Unit = {},

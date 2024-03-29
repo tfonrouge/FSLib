@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.apiServices.IApiItemService
+import com.fonrouge.fsLib.apiServices.IApiService
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -20,9 +20,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiItemService, FILT : IApiFilter>(
+abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter>(
     private val serviceManager: KVServiceManager<AIS>,
-    private val function: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+//    private val function: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonContainer: CC,
     viewFunc: KClass<out V>,
     baseUrl: String? = null
@@ -93,7 +93,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         block: (ItemState<T>) -> ItemState<T>,
     ) {
-        val (url, method) = serviceManager.requireCall(function)
+        val (url, method) = commonContainer.apiItemFun?.let { serviceManager.requireCall(it) } ?: return
         val callAgent = CallAgent()
         val apiItem = ApiItem.build(
             commonContainer = commonContainer,
@@ -163,16 +163,14 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiItemService, FILT : IApiFilter> configViewItem(
+fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<AIS>,
-    function: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     commonContainer: CC,
     baseUrl: String? = null
 ): ConfigViewItem<CC, T, ID, V, AIS, FILT> = object : ConfigViewItem<CC, T, ID, V, AIS, FILT>(
     viewFunc = viewFunc,
     serviceManager = serviceManager,
-    function = function,
     commonContainer = commonContainer,
     baseUrl = baseUrl
 ) {}

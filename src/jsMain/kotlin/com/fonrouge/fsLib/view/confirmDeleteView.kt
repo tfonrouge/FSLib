@@ -12,7 +12,7 @@ import io.kvision.modal.Confirm
 import io.kvision.modal.ModalSize
 import io.kvision.toast.Toast
 
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> confirmDeleteView(
+fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> confirmDeleteView(
     item: T,
     configViewItem: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, *, FILT>,
     apiFilter: FILT,

@@ -14,7 +14,7 @@ import kotlin.reflect.KProperty1
 
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
-    collKClass: KClass<out Coll<out ICommonContainer<U, ID, *>, U, ID, *>>,
+    collKClass: KClass<out Coll<out ICommonContainer<U, ID, *, *>, U, ID, *>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     let: List<Variable<out Any>>? = null,
@@ -38,7 +38,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
 
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
-    collKClass: KClass<out Coll<out ICommonContainer<U, ID, *>, out U, ID, *>>,
+    collKClass: KClass<out Coll<out ICommonContainer<U, ID, *, *>, out U, ID, *>>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     let: List<Variable<out Any>>? = null,
@@ -61,7 +61,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
 }
 
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
-    private val collKClass: KClass<out Coll<out ICommonContainer<U, ID, *>, out U, ID, *>>,
+    private val collKClass: KClass<out Coll<out ICommonContainer<U, ID, *, *>, out U, ID, *>>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,
     private val let: List<Variable<out Any>>? = null,

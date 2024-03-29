@@ -9,7 +9,7 @@ import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.viewModel.ViewModelList
 import java.io.IOException
 
-class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+class BasePagingSource<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     val viewModel: ViewModelList<CC, T, ID, FILT>,
 ) : PagingSource<Int, T>() {
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {

@@ -8,11 +8,11 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
     abstract val callType: CallType
     abstract val crudTask: CrudTask
     abstract val apiFilter: FILT
-    abstract fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT>
+    abstract fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT, *>): IApiItem<T, ID, FILT>
 
     companion object {
         fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> build(
-            commonContainer: ICommonContainer<T, ID, FILT>,
+            commonContainer: ICommonContainer<T, ID, FILT, *>,
             id: ID?,
             item: T?,
             callType: CallType = CallType.Query,
@@ -81,7 +81,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
 
         companion object {
             fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> build(
-                commonContainer: ICommonContainer<T, ID, FILT>,
+                commonContainer: ICommonContainer<T, ID, FILT, *>,
                 crudTask: CrudTask,
                 id: ID?,
                 apiFilter: FILT = commonContainer.apiFilterInstance()
@@ -122,7 +122,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                 override val apiFilter: FILT
             ) : Upsert<T, ID, FILT>() {
                 override val crudTask: CrudTask = CrudTask.Create
-                override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
+                override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT, *>): IApiItem<T, ID, FILT> {
                     return IApiItem.Query.Upsert.Create(
                         serializedId = id?.let { Json.encodeToString(commonContainer.idSerializer, id) },
                         serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
@@ -135,7 +135,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                 override val apiFilter: FILT
             ) : Upsert<T, ID, FILT>() {
                 override val crudTask: CrudTask = CrudTask.Update
-                override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
+                override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT, *>): IApiItem<T, ID, FILT> {
                     return IApiItem.Query.Upsert.Update(
                         serializedId = Json.encodeToString(commonContainer.idSerializer, id),
                         serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
@@ -149,7 +149,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             override val apiFilter: FILT
         ) : Query<T, ID, FILT>() {
             override val crudTask: CrudTask = CrudTask.Read
-            override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
+            override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT, *>): IApiItem<T, ID, FILT> {
                 return IApiItem.Query.Read(
                     serializedId = Json.encodeToString(commonContainer.idSerializer, id),
                     serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
@@ -162,7 +162,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             override val apiFilter: FILT
         ) : Query<T, ID, FILT>() {
             override val crudTask: CrudTask = CrudTask.Delete
-            override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
+            override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT, *>): IApiItem<T, ID, FILT> {
                 return IApiItem.Query.Delete(
                     serializedId = Json.encodeToString(commonContainer.idSerializer, id),
                     serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
@@ -177,7 +177,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
 
         companion object {
             fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> build(
-                commonContainer: ICommonContainer<T, ID, FILT>,
+                commonContainer: ICommonContainer<T, ID, FILT, *>,
                 crudTask: CrudTask,
                 item: T? = null,
                 apiFilter: FILT = commonContainer.apiFilterInstance()
@@ -215,7 +215,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                 override val apiFilter: FILT
             ) : Upsert<T, ID, FILT>() {
                 override val crudTask: CrudTask = CrudTask.Create
-                override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
+                override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT, *>): IApiItem<T, ID, FILT> {
                     return IApiItem.Action.Upsert.Create(
                         serializedItem = Json.encodeToString(commonContainer.itemSerializer, item),
                         serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
@@ -228,7 +228,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
                 override val apiFilter: FILT
             ) : Upsert<T, ID, FILT>() {
                 override val crudTask: CrudTask = CrudTask.Update
-                override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
+                override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT, *>): IApiItem<T, ID, FILT> {
                     return IApiItem.Action.Upsert.Update(
                         serializedItem = Json.encodeToString(commonContainer.itemSerializer, item),
                         serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
@@ -242,7 +242,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             override val apiFilter: FILT
         ) : Action<T, ID, FILT>() {
             override val crudTask: CrudTask = CrudTask.Delete
-            override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT>): IApiItem<T, ID, FILT> {
+            override fun asIApiItem(commonContainer: ICommonContainer<T, ID, FILT, *>): IApiItem<T, ID, FILT> {
                 return IApiItem.Action.Delete(
                     serializedItem = Json.encodeToString(commonContainer.itemSerializer, item),
                     serializedApiFilter = Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)

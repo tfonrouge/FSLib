@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.viewModel
 
 /*
 @Suppress("unused")
-class ViewModelListFactory<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+class ViewModelListFactory<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     private val commonContainer: CC,
     private val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
     private val itemStateFun: KSuspendFunction1<ApiItem<T, ID, FILT>, ItemState<T>>? = null

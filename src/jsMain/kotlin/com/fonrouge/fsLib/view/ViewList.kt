@@ -26,10 +26,10 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 
 @Suppress("unused")
-abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
+abstract class ViewList<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
     urlParams: UrlParams? = null,
     final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, E, FILT>, E, FILT>,
-    configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
+    configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT, *>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: (() -> Boolean) = { true },
     icon: String? = null,
@@ -45,7 +45,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
      * matching by name
      */
-    var configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = configViewItem
+    var configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT, *>, T, ID, *, *, FILT>? = configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewFunc.simpleName!!
@@ -54,7 +54,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             } else {
                 "ViewItem${configView.commonContainer.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonContainer<T, ID, FILT, *>, T, ID, *, *, FILT>>()
         }
 
     open val columnDefaults: ColumnDefinition<T>? = null
@@ -118,7 +118,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItem,
-        configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = this.configViewItem,
+        configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT, *>, T, ID, *, *, FILT>? = this.configViewItem,
     ) {
         configViewItem ?: return
         val apiItem = ApiItem.Query.build(

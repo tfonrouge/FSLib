@@ -9,7 +9,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlin.js.Date
 
-abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     urlParams: UrlParams?,
     val configViewContainer: ConfigViewContainer<CC, T, ID, *, FILT>,
     editable: (() -> Boolean) = { true },

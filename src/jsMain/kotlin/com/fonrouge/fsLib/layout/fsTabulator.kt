@@ -69,7 +69,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     )
 }
 
-inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
+inline fun <CC : ICommonContainer<T, ID, FILT, *>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
     configViewList: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, E, FILT>, E, FILT>,
     masterViewItem: ViewItem<*, *, *, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
@@ -91,7 +91,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
+inline fun <CC : ICommonContainer<T, ID, FILT, *>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
     viewList: ViewList<CC, T, ID, E, FILT>,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),

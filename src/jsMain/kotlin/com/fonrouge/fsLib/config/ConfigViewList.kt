@@ -8,7 +8,7 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
+abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
     val serviceManager: KVServiceManager<E>,
     val function: suspend E.(ApiList<FILT>) -> ListState<T>,
     override val commonContainer: CC,
@@ -48,7 +48,7 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CC, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
+fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, V : ViewList<CC, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<E>,
     function: suspend E.(ApiList<FILT>) -> ListState<T>,
