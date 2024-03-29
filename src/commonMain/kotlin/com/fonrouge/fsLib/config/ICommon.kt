@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 // TODO: integrate with IApiService
 abstract class ICommon<FILT : IApiFilter>(
     var label: String = "",
-    val apiFilterSerializer: KSerializer<FILT>,
+    open val apiFilterSerializer: KSerializer<FILT>,
 ) {
     val name: String get() = this::class.simpleName?.removePrefix("Common") ?: "?"
 
