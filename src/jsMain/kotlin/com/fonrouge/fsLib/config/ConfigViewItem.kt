@@ -93,7 +93,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         block: (ItemState<T>) -> ItemState<T>,
     ) {
-        val (url, method) = commonContainer.apiItemFun?.let { serviceManager.requireCall(it) } ?: return
+        val (url, method) = serviceManager.requireCall(commonContainer.apiItemFun)
         val callAgent = CallAgent()
         val apiItem = ApiItem.build(
             commonContainer = commonContainer,

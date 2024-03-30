@@ -14,7 +14,12 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter, AI
     val itemKClass: KClass<T>,
     val idSerializer: KSerializer<ID>,
     override val apiFilterSerializer: KSerializer<FILT>,
-    val apiItemFun: (suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>)? = null,
+    val apiItemFun: (suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>) = {
+        ItemState(
+            isOk = false,
+            msgError = "apiItemFun not defined for CommonContainer of ${this::class.simpleName}"
+        )
+    },
     // TODO: add here reference to ApiItem call function and remove it from ConfigViewItem
     open val labelIdFunc: ((T?) -> String) = { t: T? -> t?.let { "${it._id}" } ?: "<no-item>" },
     open val labelItem: String = "${itemKClass.simpleName}",
