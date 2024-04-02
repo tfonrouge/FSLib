@@ -22,7 +22,6 @@ import kotlin.reflect.KClass
 
 abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter>(
     private val serviceManager: KVServiceManager<AIS>,
-//    private val function: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     override val commonContainer: CC,
     viewFunc: KClass<out V>,
     baseUrl: String? = null
@@ -103,7 +102,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc
             crudTask = crudTask,
             apiFilter = apiFilter
         ) ?: return
-        val iApiItem = apiItem.asIApiItem(commonContainer)
+        val iApiItem = commonContainer.asIApiItem(apiItem)
         val paramList = listOf(
             Json.encodeToString(
                 serializer = IApiItem.serializer(

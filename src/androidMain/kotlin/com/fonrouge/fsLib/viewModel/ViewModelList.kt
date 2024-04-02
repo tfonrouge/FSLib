@@ -9,6 +9,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.fonrouge.fsLib.apiServices.AppApi
 import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.config.asIApiItem
 import com.fonrouge.fsLib.domain.BasePagingSource
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.ApiList
@@ -102,13 +103,15 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<
                 id = item._id,
                 apiFilter = apiFilter
             )
-            var itemState: ItemState<T> = itemStateFun(apiItem.asIApiItem(commonContainer))
+            var itemState: ItemState<T> = itemStateFun(commonContainer.asIApiItem(apiItem))
             if (itemState.isOk) {
                 itemState = itemStateFun(
-                    ApiItem.Action.Delete(
-                        item = item,
-                        apiFilter = apiFilter
-                    ).asIApiItem(commonContainer),
+                    commonContainer.asIApiItem(
+                        ApiItem.Action.Delete(
+                            item = item,
+                            apiFilter = apiFilter
+                        )
+                    ),
                 )
                 if (!itemState.isOk) {
                     itemState.pushAlert()

@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.config.asIApiItem
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
@@ -72,7 +73,7 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<
         crudTask = apiItem.crudTask
         apiFilter = apiItem.apiFilter
         itemAlreadyOn = null
-        val itemState = itemStateFun(apiItem.asIApiItem(commonContainer))
+        val itemState = itemStateFun(commonContainer.asIApiItem(apiItem))
         if (crudTask == CrudTask.Create) {
             itemAlreadyOn = itemState.itemAlreadyOn
             if (itemAlreadyOn == true)
@@ -117,6 +118,6 @@ abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<
                 apiFilter = apiFilter
             )
         }
-        onDone(itemStateFun(apiItem.asIApiItem(commonContainer)))
+        onDone(itemStateFun(commonContainer.asIApiItem(apiItem)))
     }
 }
