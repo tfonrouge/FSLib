@@ -8,7 +8,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.config.asIApiItem
+import com.fonrouge.fsLib.config.toIApiItem
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
@@ -68,7 +68,7 @@ fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IA
 ) {
     val serializedApiItem = Json.encodeToString(
         IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-        asIApiItem(apiItem)
+        toIApiItem(apiItem)
     )
     navHostController.navigate(
         "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
@@ -81,7 +81,7 @@ fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IA
 ) {
     val serializedApiItem = Json.encodeToString(
         IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-        asIApiItem(ApiItem.Query.Upsert.Create(apiFilter = apiFilter))
+        toIApiItem(ApiItem.Query.Upsert.Create(apiFilter = apiFilter))
     )
     navHostController.navigate(
         "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
@@ -145,7 +145,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, F
     apiItem: ApiItem<T, ID, FILT>,
     onResponse: (CC.(ItemState<T>) -> Unit)? = null,
 ): ItemState<T> {
-    val itemState = function(asIApiItem(apiItem))
+    val itemState = function(toIApiItem(apiItem))
     onResponse?.let { it(itemState) }
     return itemState
 }

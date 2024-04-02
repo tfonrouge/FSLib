@@ -2,7 +2,10 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.apiServices.IApiService
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.apiData.*
+import com.fonrouge.fsLib.model.apiData.CallType
+import com.fonrouge.fsLib.model.apiData.CrudTask
+import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
@@ -94,15 +97,21 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc
     ) {
         val (url, method) = serviceManager.requireCall(commonContainer.apiItemFun)
         val callAgent = CallAgent()
-        val apiItem = ApiItem.build(
-            commonContainer = commonContainer,
-            id = id,
-            item = item,
-            callType = callType,
-            crudTask = crudTask,
-            apiFilter = apiFilter
-        ) ?: return
-        val iApiItem = commonContainer.asIApiItem(apiItem)
+        val iApiItem = when (callType) {
+            CallType.Query -> when (crudTask) {
+                CrudTask.Create -> commonContainer.iApiItemQueryCreate(id, apiFilter)
+                CrudTask.Read -> id?.let { commonContainer.iApiItemQueryRead(id, apiFilter) }
+                CrudTask.Update -> id?.let { commonContainer.iApiItemQueryUpdate(id, apiFilter) }
+                CrudTask.Delete -> id?.let { commonContainer.iApiItemQueryDelete(id, apiFilter) }
+            }
+
+            CallType.Action -> when (crudTask) {
+                CrudTask.Create -> item?.let { commonContainer.iApiItemActionCreate(item, apiFilter) }
+                CrudTask.Read -> null
+                CrudTask.Update -> item?.let { commonContainer.iApiItemActionUpdate(item, apiFilter) }
+                CrudTask.Delete -> item?.let { commonContainer.iApiItemActionDelete(item, apiFilter) }
+            }
+        } ?: return
         val paramList = listOf(
             Json.encodeToString(
                 serializer = IApiItem.serializer(
