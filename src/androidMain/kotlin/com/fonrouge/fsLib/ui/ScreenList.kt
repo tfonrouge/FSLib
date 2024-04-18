@@ -31,12 +31,13 @@ inline fun <reified VML : ViewModelList<CC, T, ID, FILT>, CC : ICommonContainer<
     },
     noinline topBarActions: @Composable RowScope.() -> Unit = {},
     noinline bottomBar: @Composable () -> Unit = {},
+    noinline floatingActionButton: @Composable () -> Unit = {},
+    floatingActionButtonPosition: FabPosition = FabPosition.End,
     noinline modalNavigationDrawerContent: @Composable ColumnScope.(DrawerState) -> Unit = {},
     drawerState: DrawerState,
     noinline bodyListContent: @Composable (T?) -> Unit
 ) {
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState(viewModel)) },
         topBar = {
             TopAppBar(
                 title = topBarTitle,
@@ -44,8 +45,13 @@ inline fun <reified VML : ViewModelList<CC, T, ID, FILT>, CC : ICommonContainer<
                 actions = topBarActions
             )
         },
-        bottomBar = bottomBar
+        bottomBar = bottomBar,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState(viewModel)) },
+        floatingActionButton = floatingActionButton,
+        floatingActionButtonPosition = floatingActionButtonPosition,
     ) { paddingValues ->
+        ScreenStateAlert(viewModelBase = viewModel)
+        ScreenConfirmAlert(viewModelBase = viewModel)
         ModalNavigationDrawer(
             modifier = Modifier.padding(paddingValues),
             drawerState = drawerState,

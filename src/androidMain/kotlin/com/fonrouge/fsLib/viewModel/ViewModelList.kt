@@ -34,9 +34,11 @@ abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<
         var lastRequest: Long = 0L
     }
 
-    override var apiFilter: FILT = Json.decodeFromString(
-        commonContainer.apiFilterSerializer,
-        Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
+    override var apiFilter: FILT by mutableStateOf(
+        Json.decodeFromString(
+            commonContainer.apiFilterSerializer,
+            Json.encodeToString(commonContainer.apiFilterSerializer, apiFilter)
+        )
     )
     private var filterBacking: FILT? = null
     open val pageSize: MutableIntState = mutableIntStateOf(20)
