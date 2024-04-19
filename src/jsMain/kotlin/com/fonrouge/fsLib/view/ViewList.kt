@@ -57,7 +57,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, 
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonContainer<T, ID, FILT, *>, T, ID, *, *, FILT>>()
         }
 
-    open val columnDefaults: ColumnDefinition<T>? = null
+    open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(title = "", headerSort = false)
 
     /**
      * contains an object of [T] type for the selected row in the [tabulator]
