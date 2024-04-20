@@ -21,10 +21,7 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc
 ) {
     override val baseUrl: String
         get() {
-            val result =
-                _baseUrl
-                    ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("ViewList" + commonContainer.name)
-            return result
+            return _baseUrl ?: viewFunc.simpleName!!
         }
 
     companion object {
