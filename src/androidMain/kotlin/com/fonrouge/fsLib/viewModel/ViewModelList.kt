@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KSuspendFunction1
 
-abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewModelList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     apiFilter: FILT,
     final override val commonContainer: CC,
     val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,

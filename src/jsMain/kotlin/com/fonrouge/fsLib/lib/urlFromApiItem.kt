@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
  * @return Url string
  */
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> urlFromApiItem(
-    configViewItem: ConfigViewItem<out ICommonContainer<T, ID, FILT, *>, *, ID, *, *, FILT>,
+    configViewItem: ConfigViewItem<out ICommonContainer<T, ID, FILT>, *, ID, *, *, FILT>,
     apiItem: ApiItem.Query<T, ID, FILT>
 ): String? {
     val url: String? = when (apiItem) {

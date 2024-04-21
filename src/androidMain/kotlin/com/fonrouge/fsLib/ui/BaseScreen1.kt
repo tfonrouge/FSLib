@@ -38,7 +38,7 @@ import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> BodyList(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> BodyList(
     paddingValues: PaddingValues? = null,
     viewModel: ViewModelList<CC, T, ID, FILT>,
     pullRefreshState: PullRefreshState,

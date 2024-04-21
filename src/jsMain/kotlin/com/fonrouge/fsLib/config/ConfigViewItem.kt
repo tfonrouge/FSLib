@@ -23,9 +23,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter>(
+abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter>(
     private val serviceManager: KVServiceManager<AIS>,
     override val commonContainer: CC,
+    private val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     viewFunc: KClass<out V>,
     baseUrl: String? = null
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
@@ -35,10 +36,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc
 ) {
     override val baseUrl: String
         get() {
-            val result =
-                _baseUrl
-                    ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("ViewItem" + commonContainer.name)
-            return result
+            return _baseUrl ?: viewFunc.simpleName!!
         }
 
     companion object {
@@ -95,7 +93,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         block: (ItemState<T>) -> ItemState<T>,
     ) {
-        val (url, method) = serviceManager.requireCall(commonContainer.apiItemFun)
+        val (url, method) = serviceManager.requireCall(apiItemFun)
         val callAgent = CallAgent()
         val iApiItem = when (callType) {
             CallType.Query -> when (crudTask) {
@@ -171,14 +169,16 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc
 }
 
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter> configViewItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter> configViewItem(
     viewFunc: KClass<out V>,
     serviceManager: KVServiceManager<AIS>,
     commonContainer: CC,
+    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     baseUrl: String? = null
 ): ConfigViewItem<CC, T, ID, V, AIS, FILT> = object : ConfigViewItem<CC, T, ID, V, AIS, FILT>(
     viewFunc = viewFunc,
     serviceManager = serviceManager,
     commonContainer = commonContainer,
+    apiItemFun = apiItemFun,
     baseUrl = baseUrl
 ) {}

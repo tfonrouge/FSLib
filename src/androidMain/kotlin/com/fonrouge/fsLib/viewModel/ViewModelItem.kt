@@ -16,7 +16,7 @@ import kotlinx.serialization.json.Json
 import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
-abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+abstract class ViewModelItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     final override val commonContainer: CC,
     val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>
 ) : ViewModelContainer<CC, T, ID, FILT>() {

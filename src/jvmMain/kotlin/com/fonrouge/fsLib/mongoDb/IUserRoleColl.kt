@@ -16,8 +16,8 @@ import kotlin.reflect.KClass
 
 @Suppress("unused")
 abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter>(
-    commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT, *>
-) : Coll<ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT, *>, UR, OId<IUserRole<U, UID>>, FILT>(
+    commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>
+) : Coll<ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>, UR, OId<IUserRole<U, UID>>, FILT>(
     commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<UR>.ensureIndexes() {
@@ -26,7 +26,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         )
     }
 
-    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter, *>, out IAppRole, OId<IAppRole>, out IApiFilter>
+    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter>, out IAppRole, OId<IAppRole>, out IApiFilter>
     abstract val groupRoleColl: IGroupRoleColl<GR, *, GOU, *>
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter>
     open fun rootUser(user: U?): Boolean? = null

@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.config
 
-import com.fonrouge.fsLib.apiServices.IApiService
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
@@ -12,17 +11,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter, AIS : IApiService>(
+abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
     val itemKClass: KClass<T>,
     val idSerializer: KSerializer<ID>,
     override val apiFilterSerializer: KSerializer<FILT>,
-    val apiItemFun: (suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>) = {
-        ItemState(
-            isOk = false,
-            msgError = "apiItemFun not defined for CommonContainer of ${this::class.simpleName}"
-        )
-    },
-    // TODO: add here reference to ApiItem call function and remove it from ConfigViewItem
     open val labelIdFunc: ((T?) -> String) = { t: T? -> t?.let { "${it._id}" } ?: "<no-item>" },
     open val labelItem: String = "${itemKClass.simpleName}",
     open val labelItemId: ((T?) -> String) = { t: T? -> "$labelItem: ${labelIdFunc(t)}" },
@@ -168,7 +160,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter, AI
     }
 }
 
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> ICommonContainer<T, ID, FILT, *>.toIApiItem(apiItem: ApiItem<T, ID, FILT>): IApiItem<T, ID, FILT> =
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> ICommonContainer<T, ID, FILT>.toIApiItem(apiItem: ApiItem<T, ID, FILT>): IApiItem<T, ID, FILT> =
     when (apiItem) {
         is ApiItem.Query.Upsert.Create -> IApiItem.Query.Upsert.Create(
             serializedId = apiItem.id?.let { Json.encodeToString(idSerializer, it) },

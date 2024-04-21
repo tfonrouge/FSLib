@@ -16,11 +16,11 @@ import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KSuspendFunction1
 
-val ICommonContainer<*, *, *, *>.routeItem: String get() = "ViewItem$name?apiItem={apiItem}"
-val ICommonContainer<*, *, *, *>.routeList: String get() = "ViewList$name?apiFilter={apiFilter}"
+val ICommonContainer<*, *, *>.routeItem: String get() = "ViewItem$name?apiItem={apiItem}"
+val ICommonContainer<*, *, *>.routeList: String get() = "ViewList$name?apiFilter={apiFilter}"
 
 @Composable
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.DecodeRouteItemParams(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.DecodeRouteItemParams(
     navBackStackEntry: NavBackStackEntry,
     function: @Composable (apiItem: ApiItem.Query<T, ID, FILT>) -> Unit
 ) {
@@ -35,7 +35,7 @@ fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IA
 }
 
 @Composable
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.DecodeRouteListParams(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.DecodeRouteListParams(
     navBackStackEntry: NavBackStackEntry,
     function: @Composable (apiFilter: FILT) -> Unit
 ) {
@@ -62,7 +62,7 @@ fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IA
  * @param FILT The API filter type.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateItem(
     navHostController: NavHostController,
     apiItem: ApiItem.Query<T, ID, FILT>,
 ) {
@@ -75,7 +75,7 @@ fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IA
     )
 }
 
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateCreateItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateCreateItem(
     navHostController: NavHostController,
     apiFilter: FILT = apiFilterInstance()
 ) {
@@ -96,7 +96,7 @@ fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IA
  * @throws Exception if an error occurs while creating the API filter instance
  */
 @Suppress("unused")
-inline fun <MI : BaseDoc<MID>, reified MID : Any, CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateChildList(
+inline fun <MI : BaseDoc<MID>, reified MID : Any, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateChildList(
     navHostController: NavHostController,
     masterItem: MI?,
 ) {
@@ -116,7 +116,7 @@ inline fun <MI : BaseDoc<MID>, reified MID : Any, CC : ICommonContainer<T, ID, F
  *
  * @throws Exception if an error occurs while creating the API filter instance
  */
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateList(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.navigateList(
     navHostController: NavHostController,
     apiFilterFactory: ((FILT) -> FILT)? = null,
 ) {
@@ -140,7 +140,7 @@ fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IA
  * @return the [ItemState] result of the function call
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.callItemApi(
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> CC.callItemApi(
     function: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>,
     apiItem: ApiItem<T, ID, FILT>,
     onResponse: (CC.(ItemState<T>) -> Unit)? = null,
@@ -151,7 +151,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, F
 }
 
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableItem(
     commonContainer: CC,
     function: @Composable AnimatedContentScope.(ApiItem.Query<T, ID, FILT>) -> Unit,
 ) {
@@ -165,7 +165,7 @@ fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IA
 }
 
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT, *>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableList(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> NavGraphBuilder.composableList(
     commonContainer: CC,
     function: @Composable AnimatedContentScope.(FILT) -> Unit,
 ) {

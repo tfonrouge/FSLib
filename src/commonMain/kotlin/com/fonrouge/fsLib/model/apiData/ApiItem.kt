@@ -10,7 +10,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
 
     companion object {
         fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> build(
-            commonContainer: ICommonContainer<T, ID, FILT, *>,
+            commonContainer: ICommonContainer<T, ID, FILT>,
             id: ID?,
             item: T?,
             callType: CallType = CallType.Query,
@@ -79,7 +79,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
 
         companion object {
             fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> build(
-                commonContainer: ICommonContainer<T, ID, FILT, *>,
+                commonContainer: ICommonContainer<T, ID, FILT>,
                 crudTask: CrudTask,
                 id: ID?,
                 apiFilter: FILT = commonContainer.apiFilterInstance()
@@ -151,7 +151,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
 
         companion object {
             fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> build(
-                commonContainer: ICommonContainer<T, ID, FILT, *>,
+                commonContainer: ICommonContainer<T, ID, FILT>,
                 crudTask: CrudTask,
                 item: T? = null,
                 apiFilter: FILT = commonContainer.apiFilterInstance()
