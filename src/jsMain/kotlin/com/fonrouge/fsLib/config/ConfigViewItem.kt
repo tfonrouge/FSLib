@@ -2,10 +2,7 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.apiServices.IApiService
 import com.fonrouge.fsLib.lib.UrlParams
-import com.fonrouge.fsLib.model.apiData.CallType
-import com.fonrouge.fsLib.model.apiData.CrudTask
-import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.apiData.IApiItem
+import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
@@ -17,6 +14,7 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
+import js.uri.encodeURIComponent
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -81,6 +79,33 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         val urlParams =
             UrlParams("id" to Json.encodeToString(commonContainer.idSerializer, id), "action" to CrudTask.Update.name)
         return url + urlParams.toString()
+    }
+
+    fun viewItemUrl(apiItem: ApiItem.Query<T, ID, FILT>): String? {
+        val url: String? = when (apiItem) {
+            is ApiItem.Query.Upsert.Create -> listOf("action" to CrudTask.Create.name)
+            else -> {
+                apiItem.id?.let { it: ID ->
+                    listOf(
+                        "action" to apiItem.crudTask.name,
+                        "id" to Json.encodeToString(commonContainer.idSerializer, it)
+                    )
+                }
+            }
+        }?.let { params ->
+            val urlParams = UrlParams(*params.toTypedArray())
+            urlParams.pushParam(
+                "apiFilter" to encodeURIComponent(
+                    Json.encodeToString(
+                        commonContainer.apiFilterSerializer,
+                        apiItem.apiFilter
+                    )
+                )
+            )
+            url + urlParams.toString()
+        }
+        return url
+
     }
 
     @Suppress("unused")

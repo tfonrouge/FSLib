@@ -16,8 +16,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 ) {
     menuItem(
         label = configViewItem.label,
-        url = urlFromApiItem(
-            configViewItem = configViewItem,
+        url = configViewItem.viewItemUrl(
             apiItem = apiItem
         )
     )
@@ -30,8 +29,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 ) {
     menuItem(
         label = configViewList.label,
-        url = urlApiFilter(
-            configView = configViewList,
+        url = configViewList.viewListUrl(
             apiFilter = apiFilter
         )
     )

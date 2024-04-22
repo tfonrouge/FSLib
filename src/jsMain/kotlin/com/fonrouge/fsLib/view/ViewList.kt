@@ -10,7 +10,6 @@ import com.fonrouge.fsLib.layout.TabulatorMenuItem
 import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
-import com.fonrouge.fsLib.lib.urlFromApiItem
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
@@ -127,8 +126,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             crudTask = crudTask,
             apiFilter = apiFilter
         ) ?: return
-        val url = urlFromApiItem(
-            configViewItem = configViewItem,
+        val url = configViewItem.viewItemUrl(
             apiItem = apiItem
         )
         val callBlock = {

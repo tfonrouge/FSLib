@@ -6,6 +6,8 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
+import kotlinx.browser.window
+import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
 abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
@@ -42,6 +44,21 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                 obj = apiFilter
             )
         } ?: "")
+    }
+
+    @Suppress("unused")
+    fun viewListUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String {
+        val params = mutableListOf<Pair<String, String>>()
+        apiFilterParam(apiFilter).let { params.add(it) }
+        return urlWithParams(*params.toTypedArray())
+    }
+
+    @Suppress("unused")
+    fun navigateTo(apiFilter: FILT = commonContainer.apiFilterInstance(), target: String = "_blank"): Window? {
+        return window.open(
+            url = viewListUrl(apiFilter),
+            target = target
+        )
     }
 
     init {
