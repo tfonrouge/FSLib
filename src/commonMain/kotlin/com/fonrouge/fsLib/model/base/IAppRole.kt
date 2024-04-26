@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.model.base
 
+import com.fonrouge.fsLib.enums.XEnum
 import com.fonrouge.fsLib.serializers.OId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -14,13 +15,11 @@ interface IAppRole : BaseDoc<OId<IAppRole>> {
     val defaultPermission: PermissionType
 
     @Serializable
-    enum class RoleType(
-        val label: String
-    ) {
+    enum class RoleType(override val encoded: String) : XEnum {
         @SerialName("S")
-        Simple("Simple"),
+        Simple("S"),
 
         @SerialName("DA")
-        DataAction("Data Action"),
+        DataAction("DA"),
     }
 }
