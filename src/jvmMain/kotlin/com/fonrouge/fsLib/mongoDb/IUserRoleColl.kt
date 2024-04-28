@@ -31,13 +31,10 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter>
     open fun rootUser(user: U?): Boolean? = null
 
-    @Suppress("unused")
     suspend fun getUserPermission(
         user: U?,
         kCallable: KCallable<*>? = null,
     ): SimpleState {
-        user ?: return SimpleState(isOk = false, msgError = "Empty user")
-        if (rootUser(user = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val classOwner: String
         val funcName: String
         if (kCallable != null) {
@@ -48,6 +45,17 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
             classOwner = st.className.substringAfterLast('.')
             funcName = st.methodName
         }
+        return getUserPermission(user = user, classOwner = classOwner, funcName = funcName)
+    }
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun getUserPermission(
+        user: U?,
+        classOwner: String,
+        funcName: String,
+    ): SimpleState {
+        user ?: return SimpleState(isOk = false, msgError = "Empty user")
+        if (rootUser(user = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val appRole = appRoleColl.coroutineColl.findOne(
             IAppRole::classOwner eq classOwner,
             IAppRole::funcName eq funcName
