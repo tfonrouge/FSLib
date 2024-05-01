@@ -15,10 +15,12 @@ import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
 import js.uri.encodeURIComponent
+import kotlinx.browser.window
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
+import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
 abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter>(
@@ -61,6 +63,16 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             val urlParams = UrlParams("action" to CrudTask.Create.name)
             return url + urlParams.toString()
         }
+
+    @Suppress("unused")
+    fun navigateTo(apiItem: ApiItem.Query<T, ID, FILT>, target: String = "_blank"): Window? {
+        return viewItemUrl(apiItem)?.let { url ->
+            window.open(
+                url = url,
+                target = target
+            )
+        }
+    }
 
     fun urlRead(id: ID): String {
         val urlParams =
