@@ -25,6 +25,8 @@ import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -493,15 +495,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             println("Class: ${commonContainer.itemKClass.simpleName} ('$collectionName'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
         }
         postProcessList?.let { it(list) }
+        val encodedList = Json.encodeToString(ListSerializer(commonContainer.itemSerializer), list)
         val contentHashCode = if (!noContentHashCode) {
-            (list as List<Any>).toTypedArray().contentDeepHashCode()
+            encodedList.hashCode()
         } else null
-        return ListState(
-            data = list,
+        return ListState<T>(
+//            data = list,
+            encodedList = encodedList,
             last_page = pageCountInfo?.lastPage,
             last_row = pageCountInfo?.lastRow,
             contentHashCode = contentHashCode,
-        )
+        ).also { it.data = list }
     }
 
     /**

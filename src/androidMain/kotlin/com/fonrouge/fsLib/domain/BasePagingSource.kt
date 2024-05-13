@@ -7,6 +7,8 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.viewModel.ViewModelList
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import java.io.IOException
 
 class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
@@ -26,7 +28,10 @@ class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID :
             val list = viewModel.listStateGetter(nextPage)
             viewModel.refreshingList.value = false
             LoadResult.Page(
-                data = list.data,
+                data = Json.decodeFromString(
+                    ListSerializer(viewModel.commonContainer.itemSerializer),
+                    list.encodedList
+                ),
                 prevKey = if (nextPage == 1) null else nextPage - 1,
                 nextKey = list.last_page?.let { if (nextPage < it) nextPage + 1 else null }
             )
