@@ -495,17 +495,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             println("Class: ${commonContainer.itemKClass.simpleName} ('$collectionName'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
         }
         postProcessList?.let { it(list) }
-        val encodedList = Json.encodeToString(ListSerializer(commonContainer.itemSerializer), list)
+        val data = Json.encodeToString(ListSerializer(commonContainer.itemSerializer), list)
         val contentHashCode = if (!noContentHashCode) {
-            encodedList.hashCode()
+            data.hashCode()
         } else null
         return ListState<T>(
 //            data = list,
-            encodedList = encodedList,
+            data = data,
             last_page = pageCountInfo?.lastPage,
             last_row = pageCountInfo?.lastRow,
             contentHashCode = contentHashCode,
-        ).also { it.data = list }
+        ).also { it.list = list }
     }
 
     /**
@@ -664,7 +664,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     /**
      * Updates a single item in the database based on the provided filter.
      *
-     * @param apiItem The API item containing the item id [ApiItem.id] to update and other relevant information.
+     * @param apiItem The API item containing the item id [ApiItem] to update and other relevant information.
      * @param filter The filter to apply when updating the item. If null, no filter will be applied.
      * @param updateOptions The options to use when updating the item.
      *

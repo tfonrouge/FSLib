@@ -86,9 +86,9 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
 //            console.warn("RESULT ->", result, "CONTENT_HASHCODE ->", contentHashCode, "diffContentHashCode", diffContentHashCode)
             if (diffContentHashCode) {
                 replaceData(
-                    Json.decodeFromString(
+                    Json.decodeFromDynamic(
                         ListSerializer(viewList.configView.commonContainer.itemSerializer),
-                        result.encodedList as String
+                        result.data
                     ).toTypedArray()
                 )
 //                jsTabulator?.replaceData(result.data, null, null)
@@ -133,16 +133,17 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
                     diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
                     contentHashCode = result.contentHashCode as? Int
                 }
-                if (result.encodedList == undefined) {
-                    result.encodedList = js("[]")
+                if (result.data == undefined) {
+                    result.data = "[]"
                 }
-//                console.warn("result received", result)
-//                val list = Json.decodeFromString(
+                result.data = js("eval(result.data)")
+//                console.warn("result received", result, "data", result.data)
+//                val list = Json.decodeFromDynamic(
 //                    ListSerializer(viewList.configView.commonContainer.itemSerializer),
-//                    result.encodedList as String
+//                    result.data
 //                )
 //                console.warn("decoded list", list)
-                viewList.onReceivingData(result.encodedList)
+                viewList.onReceivingData(result.data)
                 result
             } else {
                 console.error("Server response error:", r)
