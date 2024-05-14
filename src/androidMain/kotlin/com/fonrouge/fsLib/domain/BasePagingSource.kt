@@ -25,15 +25,15 @@ class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID :
         return try {
             val nextPage = params.key ?: 1
             viewModel.refreshingList.value = true
-            val list = viewModel.listStateGetter(nextPage)
+            val listState = viewModel.listStateGetter(nextPage)
             viewModel.refreshingList.value = false
             LoadResult.Page(
                 data = Json.decodeFromString(
                     ListSerializer(viewModel.commonContainer.itemSerializer),
-                    list.data
+                    listState.data
                 ),
                 prevKey = if (nextPage == 1) null else nextPage - 1,
-                nextKey = list.last_page?.let { if (nextPage < it) nextPage + 1 else null }
+                nextKey = listState.last_page?.let { if (nextPage < it) nextPage + 1 else null }
             )
         } catch (e: IOException) {
             viewModel.pushSimpleState(SimpleState(isOk = false, msgError = e.localizedMessage))
