@@ -456,7 +456,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        noContentHashCode: Boolean = false,
         countType: CountType = CountType.PreLookup,
         debug: Boolean? = this.debug,
         postProcessList: ((List<T>) -> Unit)? = null,
@@ -496,16 +495,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         postProcessList?.let { it(list) }
         val data = Json.encodeToString(ListSerializer(commonContainer.itemSerializer), list)
-        val contentHashCode = if (!noContentHashCode) {
-            data.hashCode()
-        } else null
-        return ListState<T>(
-//            data = list,
+        return ListState(
             data = data,
             last_page = pageCountInfo?.lastPage,
             last_row = pageCountInfo?.lastRow,
-            contentHashCode = contentHashCode,
-        ).also { it.list = list }
+        )
     }
 
     /**
@@ -522,7 +516,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean? = this.debug,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        noContentHashCode: Boolean = false,
         postProcessList: ((List<T>) -> Unit)? = null
     ): ListState<T> {
         return listContainer(
@@ -539,7 +532,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             lookupWrappers = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
             apiFilter = apiList.apiFilter,
-            noContentHashCode = noContentHashCode,
             countType = countType,
             debug = debug,
             postProcessList = postProcessList

@@ -1,20 +1,32 @@
 package com.fonrouge.fsLib.model.state
 
-import kotlinx.serialization.EncodeDefault
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Serializable
-data class ListState<T : Any>(
+data class ListState<@Suppress("unused") T : Any>(
     val data: String = "[]",
     val last_page: Int? = null,
     val last_row: Int? = null,
-    var contentHashCode: Int? = null,
     val state: String? = null,
-) {
-    @OptIn(ExperimentalSerializationApi::class)
-    @EncodeDefault(mode = EncodeDefault.Mode.NEVER)
-    @Transient
-    var list: List<T> = emptyList()
+)
+
+@Suppress("unused")
+inline fun <reified T : Any> listState(
+    data: List<T>,
+    last_page: Int? = null,
+    last_row: Int? = null,
+    state: String? = null,
+): ListState<T> {
+    return ListState(
+        data = Json.encodeToString(data),
+        last_page = last_page,
+        last_row = last_row,
+        state = state
+    )
+}
+
+inline fun <reified T : Any> ListState<T>.list(): List<T> {
+    return Json.decodeFromString(data)
 }

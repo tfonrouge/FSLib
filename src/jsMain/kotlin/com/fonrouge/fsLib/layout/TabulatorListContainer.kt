@@ -125,24 +125,25 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
             method = HttpMethod.valueOf(method.name),
             requestFilter = requestFilter
         ).then { r: dynamic ->
-//            console.warn("r ->", r, "<-")
             if (r.result != undefined) {
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-//                console.warn("result ->", result, "<-")
+                if (result.data == undefined) {
+                    result.data = "[]"
+                }
+                result.contentHashCode = (result.data as String).hashCode()
                 if (result.contentHashCode != undefined) {
                     diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
                     contentHashCode = result.contentHashCode as? Int
                 }
-                if (result.data == undefined) {
-                    result.data = "[]"
-                }
                 result.data = js("eval(result.data)")
-//                console.warn("result received", result, "data", result.data)
+
+//                console.warn("result received", result)
 //                val list = Json.decodeFromDynamic(
 //                    ListSerializer(viewList.configView.commonContainer.itemSerializer),
 //                    result.data
 //                )
 //                console.warn("decoded list", list)
+
                 viewList.onReceivingData(result.data)
                 result
             } else {
