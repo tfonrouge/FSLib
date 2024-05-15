@@ -411,11 +411,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Inserts a single item into the database using the provided `ApiItem`.
+     * Inserts a single item into the database.
      *
-     * @param apiItem The `ApiItem` containing the item to be inserted.
-     * @param overrideValidation Specifies whether to override the item validation. Default is `false`.
-     * @return The state of the item after the insertion.
+     * @param apiItem The API item containing the item to be inserted.
+     * @param overrideValidation Flag indicating whether to override the item validation. (Default: false)
+     * @return The state of the item after insertion.
      */
     @Suppress("unused")
     suspend fun insertOne(
@@ -446,9 +446,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Builds a [ListState] back to frontend
+     * Retrieves a list of container items based on the provided parameters.
      *
-     * @param postProcessList Allows to post-process the List<[T]> before send it to the frontend
+     * @param listFirstStage The first stage of the pipeline for aggregating the items.
+     * @param lookupWrappers The list of lookup wrappers to perform lookups on the items.
+     * @param postProcessPipeline The pipeline to post-process the MongoDB aggregation pipeline.
+     * @param apiFilter The API filter for filtering the items.
+     * @param countType The type of count to perform on the items.
+     * @param debug Indicates whether debugging should be enabled.
+     * @param postProcessList The function to post-process the retrieved list of items.
+     * @return The resulting list state containing the serialized items and pagination information.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun listContainer(
