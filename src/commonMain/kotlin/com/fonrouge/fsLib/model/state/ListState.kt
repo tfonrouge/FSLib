@@ -27,6 +27,12 @@ inline fun <reified T : Any> listState(
     )
 }
 
-inline fun <reified T : Any> ListState<T>.list(): List<T> {
+@Suppress("unused")
+inline fun <reified T : Any> ListState<T>.getList(): List<T> {
     return Json.decodeFromString(data)
+}
+
+@Suppress("unused")
+inline fun <reified T : Any> ListState<T>.setList(list: List<T>): ListState<T> {
+    return this.copy(data = Json.encodeToString(list))
 }
