@@ -7,10 +7,10 @@ import kotlin.reflect.KClass
 
 abstract class ConfigViewContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewDataContainer<CC, T, ID, FILT>, FILT : IApiFilter>(
     override val commonContainer: CC,
-    viewFunc: KClass<out V>,
+    viewKClass: KClass<out V>,
     baseUrl: String? = null,
 ) : ConfigView<CC, V, FILT>(
-    viewFunc = viewFunc,
+    viewKClass = viewKClass,
     commonContainer = commonContainer,
     _baseUrl = baseUrl,
 )

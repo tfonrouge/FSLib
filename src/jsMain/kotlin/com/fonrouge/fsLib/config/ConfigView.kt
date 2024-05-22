@@ -17,7 +17,7 @@ private const val navigoPrefix = "#/"
     TODO: encode/decode baseUrl to be url compliant
  */
 abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter>(
-    val viewFunc: KClass<out V>,
+    val viewKClass: KClass<out V>,
     open val commonContainer: CC,
     internal val _baseUrl: String? = null,
 ) {
@@ -41,7 +41,7 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservableValue] from the [UrlParams]
      */
     fun newViewInstance(urlParams: UrlParams?): V {
-        val view = viewFunc.js.createInstance<V>()
+        val view = viewKClass.js.createInstance<V>()
         view.urlParams = urlParams
         return view
     }
@@ -90,11 +90,11 @@ fun String.rh() = this.removePrefix("#/")
 
 @Suppress("unused")
 inline fun <CC : ICommon<FILT>, V : View<CC, FILT>, reified FILT : IApiFilter> configView(
-    viewFunc: KClass<out V>,
+    viewKClass: KClass<out V>,
     commonContainer: CC,
     baseUrl: String? = null,
 ): ConfigView<CC, V, FILT> = object : ConfigView<CC, V, FILT>(
-    viewFunc = viewFunc,
+    viewKClass = viewKClass,
     commonContainer = commonContainer,
     _baseUrl = baseUrl,
 ) {}

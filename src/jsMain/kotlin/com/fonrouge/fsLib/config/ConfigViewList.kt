@@ -14,16 +14,16 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     val serviceManager: KVServiceManager<E>,
     val apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,
     override val commonContainer: CC,
-    viewFunc: KClass<out V>,
+    viewKClass: KClass<out V>,
     baseUrl: String? = null
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
-    viewFunc = viewFunc,
+    viewKClass = viewKClass,
     commonContainer = commonContainer,
     baseUrl = baseUrl
 ) {
     override val baseUrl: String
         get() {
-            return _baseUrl ?: viewFunc.simpleName!!
+            return _baseUrl ?: viewKClass.simpleName!!
         }
 
     companion object {
@@ -68,13 +68,13 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CC, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
-    viewFunc: KClass<out V>,
+    viewKClass: KClass<out V>,
     serviceManager: KVServiceManager<E>,
     apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,
     commonContainer: CC,
     baseUrl: String? = null,
 ): ConfigViewList<CC, T, ID, V, E, FILT> = object : ConfigViewList<CC, T, ID, V, E, FILT>(
-    viewFunc = viewFunc,
+    viewKClass = viewKClass,
     serviceManager = serviceManager,
     apiListFun = apiListFun,
     commonContainer = commonContainer,

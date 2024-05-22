@@ -27,16 +27,16 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     private val serviceManager: KVServiceManager<AIS>,
     override val commonContainer: CC,
     private val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
-    viewFunc: KClass<out V>,
+    viewKClass: KClass<out V>,
     baseUrl: String? = null
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
-    viewFunc = viewFunc,
+    viewKClass = viewKClass,
     commonContainer = commonContainer,
     baseUrl = baseUrl,
 ) {
     override val baseUrl: String
         get() {
-            return _baseUrl ?: viewFunc.simpleName!!
+            return _baseUrl ?: viewKClass.simpleName!!
         }
 
     companion object {
@@ -207,13 +207,13 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter> configViewItem(
-    viewFunc: KClass<out V>,
+    viewKClass: KClass<out V>,
     serviceManager: KVServiceManager<AIS>,
     commonContainer: CC,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     baseUrl: String? = null
 ): ConfigViewItem<CC, T, ID, V, AIS, FILT> = object : ConfigViewItem<CC, T, ID, V, AIS, FILT>(
-    viewFunc = viewFunc,
+    viewKClass = viewKClass,
     serviceManager = serviceManager,
     commonContainer = commonContainer,
     apiItemFun = apiItemFun,

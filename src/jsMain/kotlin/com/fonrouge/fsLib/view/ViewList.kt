@@ -47,7 +47,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = configViewItem
         get() {
             if (field != null) return field
-            val viewClassName = configView.viewFunc.simpleName!!
+            val viewClassName = configView.viewKClass.simpleName!!
             val name = if (viewClassName.contains("ViewList")) {
                 viewClassName.replace("ViewList", "ViewItem")
             } else {
