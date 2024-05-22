@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.browser.window
@@ -10,12 +9,10 @@ import kotlinx.coroutines.launch
 import kotlin.js.Date
 
 abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
-    urlParams: UrlParams?,
     val configViewContainer: ConfigViewContainer<CC, T, ID, *, FILT>,
     editable: (() -> Boolean) = { true },
     icon: String? = null,
 ) : View<CC, FILT>(
-    urlParams = urlParams,
     configView = configViewContainer,
     editable = editable,
     icon = icon,

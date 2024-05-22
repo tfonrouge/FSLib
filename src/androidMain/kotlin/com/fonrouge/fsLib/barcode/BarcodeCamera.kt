@@ -13,7 +13,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -41,7 +40,7 @@ class BarcodeCamera {
         onReadBarcode: (CodeEntry) -> Unit,
         onFilter: ((Barcode) -> Boolean)? = null,
     ) {
-        val lifecycleOwner = LocalLifecycleOwner.current
+        val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
         val imageCapture = remember {
             ImageCapture
                 .Builder()

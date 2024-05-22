@@ -8,7 +8,6 @@ import com.fonrouge.fsLib.layout.NavbarTabulator
 import com.fonrouge.fsLib.layout.TabulatorListContainer
 import com.fonrouge.fsLib.layout.TabulatorMenuItem
 import com.fonrouge.fsLib.layout.menuItem
-import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
@@ -26,14 +25,12 @@ import kotlinx.coroutines.launch
 
 @Suppress("unused")
 abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
-    urlParams: UrlParams? = null,
     final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, E, FILT>, E, FILT>,
     configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: (() -> Boolean) = { true },
     icon: String? = null,
 ) : ViewDataContainer<CC, T, ID, FILT>(
-    urlParams = urlParams,
     configViewContainer = configView,
     editable = editable,
     icon = icon,

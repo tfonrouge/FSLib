@@ -18,11 +18,11 @@ import io.kvision.utils.em
 import io.kvision.utils.px
 
 abstract class View<CC : ICommon<FILT>, FILT : IApiFilter>(
-    var urlParams: UrlParams? = null,
     open val configView: ConfigView<CC, *, FILT>,
     var editable: (() -> Boolean) = { true },
     val icon: String? = null,
 ) {
+    abstract var urlParams: UrlParams?
     open val label: String get() = configView.label
     open var labelBanner: String?
         get() {
