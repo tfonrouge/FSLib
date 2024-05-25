@@ -9,3 +9,6 @@ enum class CrudTask {
     Update,
     Delete
 }
+
+@Suppress("unused")
+val CrudTask.isUpsertDelete: Boolean get() = this in listOf(CrudTask.Create, CrudTask.Update, CrudTask.Delete)

@@ -4,11 +4,13 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.lib.toast
 import com.fonrouge.fsLib.model.apiData.CallType
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
+import com.fonrouge.fsLib.model.state.SimpleState
 import io.kvision.core.*
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
@@ -114,15 +116,20 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
                 if (formPanel.validate()) {
                     val data = formPanelGetData()
-                    configView.callItemService(
-                        crudTask = crudAction,
-                        callType = CallType.Action,
-                        id = item?._id,
-                        item = data?.let { transformData(it) },
-                        apiFilter = apiFilter,
-                    ) { itemResponse ->
-                        block?.let { it(itemResponse) }
-                        itemResponse
+                    val simpleState = formPanelValidate(data)
+                    if (simpleState.isOk) {
+                        configView.callItemService(
+                            crudTask = crudAction,
+                            callType = CallType.Action,
+                            id = item?._id,
+                            item = data?.let { transformData(it) },
+                            apiFilter = apiFilter,
+                        ) { itemResponse ->
+                            block?.let { it(itemResponse) }
+                            itemResponse
+                        }
+                    } else {
+                        simpleState.toast()
                     }
                 } else {
                     Toast.warning(
@@ -350,6 +357,15 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * @return The data from the form panel, or null if the form panel is null.
      */
     open fun formPanelGetData(): T? = formPanel?.getData()
+
+    /**
+     * Validates the form panel data.
+     *
+     * @param data The data to be validated.
+     * @return A SimpleState object indicating the validation result.
+     */
+    open fun formPanelValidate(data: T?): SimpleState =
+        SimpleState(isOk = data != null, msgError = "${configView.commonContainer.labelItem} is null")
 
     /**
      * Called when the [ItemState] value changes
