@@ -348,8 +348,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOne(
         filter: Bson? = null,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         debug: Boolean = false,
     ): T? {
         return findPublisher(
@@ -363,31 +363,33 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOneById(
         id: ID?,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     ): T? {
-        return findOne(BaseDoc<*>::_id eq id, lookupWrappers, apiFilter)
+        return findOne(BaseDoc<*>::_id eq id, apiFilter, lookupWrappers)
     }
 
     @Suppress("unused")
     suspend fun findItemState(
-        apiItem: ApiItem.Query.Read<T, ID, FILT>,
+        apiItem: ApiItem.Query<T, ID, FILT>,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
     ): ItemState<T> {
         return findItemStateById(
             id = apiItem.id,
-            lookupWrappers = lookupWrappers
+            apiFilter = apiItem.apiFilter,
+            lookupWrappers = lookupWrappers,
         )
     }
 
     @Suppress("unused")
     suspend fun findItemStateById(
         id: ID?,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
     ): ItemState<T> {
         return try {
             ItemState(
-                item = findOneById(id = id, lookupWrappers = lookupWrappers),
+                item = findOneById(id = id, apiFilter = apiFilter, lookupWrappers = lookupWrappers),
                 msgError = "_id '$id' (${commonContainer.itemKClass.simpleName}) not found..."
             )
         } catch (e: Exception) {

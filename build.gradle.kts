@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "3.2.1"
+version = "3.2.2"
 
 repositories {
     google()
@@ -162,9 +162,9 @@ android {
         implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
         api("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
 
-        implementation("androidx.camera:camera-camera2:1.4.0-alpha05")
-        implementation("androidx.camera:camera-lifecycle:1.4.0-alpha05")
-        implementation("androidx.camera:camera-view:1.4.0-alpha05")
+        implementation("androidx.camera:camera-camera2:1.4.0-beta01")
+        implementation("androidx.camera:camera-lifecycle:1.4.0-beta01")
+        implementation("androidx.camera:camera-view:1.4.0-beta01")
 
         api("com.google.mlkit:barcode-scanning:17.2.0")
 
