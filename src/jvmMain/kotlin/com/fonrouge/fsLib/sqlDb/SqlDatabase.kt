@@ -306,7 +306,7 @@ abstract class SqlDatabase(
     }
 
     @Suppress("SqlNoDataSourceInspection")
-    suspend inline fun <reified T : Any> insertValue(item: T, @Language("SQL") tableName: String): SimpleState {
+    suspend inline fun <reified T : Any> insertValue(item: T, tableName: String): SimpleState {
         lateinit var simpleState: SimpleState
         newSuspendedTransaction(context = Dispatchers.IO, db = database) {
             val names = mutableListOf<String>()
