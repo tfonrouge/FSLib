@@ -305,7 +305,6 @@ abstract class SqlDatabase(
         }
     }
 
-    @Suppress("SqlNoDataSourceInspection")
     suspend inline fun <reified T : Any> insertValue(item: T, tableName: String): SimpleState {
         lateinit var simpleState: SimpleState
         newSuspendedTransaction(context = Dispatchers.IO, db = database) {
@@ -328,7 +327,10 @@ abstract class SqlDatabase(
             val namesAsString = names.joinToString()
             val valuesAsString = values.joinToString()
             simpleState = try {
-                exec("INSERT INTO $tableName ($namesAsString) VALUES ($valuesAsString)")
+                exec(
+                    @Suppress("SqlNoDataSourceInspection")
+                    "INSERT INTO $tableName ($namesAsString) VALUES ($valuesAsString)"
+                )
                 SimpleState(isOk = true)
             } catch (e: Exception) {
                 SimpleState(isOk = false, msgError = e.message)
