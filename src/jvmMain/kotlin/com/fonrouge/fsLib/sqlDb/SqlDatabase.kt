@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.annotations.SqlField
 import com.fonrouge.fsLib.annotations.SqlIgnoreField
 import com.fonrouge.fsLib.annotations.SqlOneToOne
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.KV_DEFAULT_DATETIME_FORMAT
 import com.fonrouge.fsLib.serializers.LongId
@@ -26,10 +27,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.*
 
 @OptIn(ExperimentalSerializationApi::class)
 @Suppress("unused")
@@ -62,6 +60,55 @@ abstract class SqlDatabase(
     }
 
     private val mutableMap = mutableMapOf<KClass<*>, DecodeMap>()
+
+    fun buildJsonFromResultSet(klass: KClass<*>, resultSet: ResultSet): JsonObject {
+        val metaData = resultSet.metaData
+        val decodeMap: DecodeMap = getDecodeMap(klass, metaData)
+        var addedBaseDocPrimaryKeyField = false
+        return buildJsonObject {
+            for (index in 1..metaData.columnCount) {
+                decodeMap.stringIntMap[metaData.getColumnName(index).uppercase()]?.let { indexMap ->
+                    val field = decodeMap.fields[indexMap]
+                    try {
+                        getElementFromClassifier(
+                            field = field,
+                            resultSet = resultSet,
+                            index = index,
+                            jsonObjectBuilder = this@buildJsonObject
+                        )
+                    } catch (e: Exception) {
+                        System.err.println("Error on fieldName '${field.name}': ${e.message}")
+                        e.printStackTrace()
+                    }
+                    if (field.name == BaseDoc<*>::_id.name) {
+                        addedBaseDocPrimaryKeyField = true
+                    }
+                }
+            }
+            decodeMap.oneToOneFields.forEach { field ->
+                field.findAnnotation<SqlOneToOne>()?.let {
+                    (field.returnType.classifier as? KClass<*>)?.let {
+                        put(field.name, buildJsonFromResultSet(it, resultSet))
+                    }
+                }
+            }
+            decodeMap.compoundFields.forEach { field ->
+                (field.returnType.classifier as? KClass<*>)?.let {
+                    put(field.name, buildJsonFromResultSet(it, resultSet))
+                }
+            }
+            if (klass.isSubclassOf(BaseDoc::class) && !addedBaseDocPrimaryKeyField) {
+                val kProperty1 = klass.memberProperties.find {
+                    it.name == BaseDoc<*>::_id.name && (it.hasAnnotation<SqlIgnoreField>().not())
+                }
+                (kProperty1?.returnType?.classifier as? KClass<*>)?.let {
+                    if (!it.isSubclassOf(Comparable::class)) {
+                        put(BaseDoc<*>::_id.name, buildJsonFromResultSet(it, resultSet))
+                    }
+                }
+            }
+        }
+    }
 
     suspend inline fun <reified T : Any> findItem(
         @Language("SQL") sql: String,
@@ -258,53 +305,36 @@ abstract class SqlDatabase(
         }
     }
 
-    fun buildJsonFromResultSet(klass: KClass<*>, resultSet: ResultSet): JsonObject {
-        val metaData = resultSet.metaData
-        val decodeMap: DecodeMap = getDecodeMap(klass, metaData)
-        var addedBaseDocPrimaryKeyField = false
-        return buildJsonObject {
-            for (index in 1..metaData.columnCount) {
-                decodeMap.stringIntMap[metaData.getColumnName(index).uppercase()]?.let { indexMap ->
-                    val field = decodeMap.fields[indexMap]
-                    try {
-                        getElementFromClassifier(
-                            field = field,
-                            resultSet = resultSet,
-                            index = index,
-                            jsonObjectBuilder = this@buildJsonObject
-                        )
-                    } catch (e: Exception) {
-                        System.err.println("Error on fieldName '${field.name}': ${e.message}")
-                        e.printStackTrace()
-                    }
-                    if (field.name == BaseDoc<*>::_id.name) {
-                        addedBaseDocPrimaryKeyField = true
+    @Suppress("SqlNoDataSourceInspection")
+    suspend inline fun <reified T : Any> insertValue(item: T, @Language("SQL") tableName: String): SimpleState {
+        lateinit var simpleState: SimpleState
+        newSuspendedTransaction(context = Dispatchers.IO, db = database) {
+            val names = mutableListOf<String>()
+            val values = mutableListOf<Any>()
+            item::class.memberProperties.forEach { kCallable ->
+                kCallable.call(item)?.let {
+                    val name = kCallable.findAnnotation<SqlField>()?.name
+                    names += name ?: kCallable.name
+                    values += when (it) {
+                        is String -> "'$it'"
+                        is OffsetDateTime -> "'${
+                            it.toLocalDateTime().format(DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT))
+                        }'"
+
+                        else -> it.toString()
                     }
                 }
             }
-            decodeMap.oneToOneFields.forEach { field ->
-                field.findAnnotation<SqlOneToOne>()?.let {
-                    (field.returnType.classifier as? KClass<*>)?.let {
-                        put(field.name, buildJsonFromResultSet(it, resultSet))
-                    }
-                }
-            }
-            decodeMap.compoundFields.forEach { field ->
-                (field.returnType.classifier as? KClass<*>)?.let {
-                    put(field.name, buildJsonFromResultSet(it, resultSet))
-                }
-            }
-            if (klass.isSubclassOf(BaseDoc::class) && !addedBaseDocPrimaryKeyField) {
-                val kProperty1 = klass.memberProperties.find {
-                    it.name == BaseDoc<*>::_id.name && (it.hasAnnotation<SqlIgnoreField>().not())
-                }
-                (kProperty1?.returnType?.classifier as? KClass<*>)?.let {
-                    if (!it.isSubclassOf(Comparable::class)) {
-                        put(BaseDoc<*>::_id.name, buildJsonFromResultSet(it, resultSet))
-                    }
-                }
+            val namesAsString = names.joinToString()
+            val valuesAsString = values.joinToString()
+            simpleState = try {
+                exec("INSERT INTO $tableName ($namesAsString) VALUES ($valuesAsString)")
+                SimpleState(isOk = true)
+            } catch (e: Exception) {
+                SimpleState(isOk = false, msgError = e.message)
             }
         }
+        return simpleState
     }
 
     inline fun <reified T> sqlEntityToJson(resultSet: ResultSet): JsonObject {
