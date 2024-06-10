@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.apiServices.IApiService
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
@@ -14,7 +15,6 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
-import js.uri.encodeURIComponent
 import kotlinx.browser.window
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
@@ -61,7 +61,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     val urlCreate: String
         get() {
             val urlParams = UrlParams("action" to CrudTask.Create.name)
-            return url + urlParams.toString()
+            return url + urlParams.toEncodedUrlString()
         }
 
     @Suppress("unused")
@@ -77,29 +77,29 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     fun urlRead(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to encodeURIComponent(Json.encodeToString(commonContainer.idSerializer, id)),
+                "id" to Json.encodeToString(commonContainer.idSerializer, id),
                 "action" to CrudTask.Read.name
             )
-        return url + urlParams.toString()
+        return url + urlParams.toEncodedUrlString()
     }
 
     @Suppress("unused")
     fun urlDelete(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to encodeURIComponent(Json.encodeToString(commonContainer.idSerializer, id)),
+                "id" to Json.encodeToString(commonContainer.idSerializer, id),
                 "action" to CrudTask.Delete.name
             )
-        return url + urlParams.toString()
+        return url + urlParams.toEncodedUrlString()
     }
 
     fun urlUpdate(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to encodeURIComponent(Json.encodeToString(commonContainer.idSerializer, id)),
+                "id" to Json.encodeToString(commonContainer.idSerializer, id),
                 "action" to CrudTask.Update.name
             )
-        return url + urlParams.toString()
+        return url + urlParams.toEncodedUrlString()
     }
 
     fun viewItemUrl(apiItem: ApiItem.Query<T, ID, FILT>): String? {
@@ -109,7 +109,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                 apiItem.id?.let { it: ID ->
                     listOf(
                         "action" to apiItem.crudTask.name,
-                        "id" to encodeURIComponent(Json.encodeToString(commonContainer.idSerializer, it))
+                        "id" to Json.encodeToString(commonContainer.idSerializer, it)
                     )
                 }
             }
@@ -121,10 +121,9 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                     apiItem.apiFilter
                 )
             )
-            url + urlParams.toString()
+            url + urlParams.toEncodedUrlString()
         }
         return url
-
     }
 
     @Suppress("unused")

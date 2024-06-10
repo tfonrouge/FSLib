@@ -5,7 +5,6 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewDataContainer
 import io.kvision.utils.createInstance
-import js.uri.encodeURIComponent
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -48,10 +47,10 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
      * builds a single pair of key=value url parameter
      */
     inline fun <reified T> pairParam(key: String, obj: T): Pair<String, String> =
-        key to encodeURIComponent(Json.encodeToString(obj))
+        key to Json.encodeToString(obj)
 
     fun <T> pairParam(key: String, serializer: KSerializer<T>, obj: T): Pair<String, String> =
-        key to encodeURIComponent(Json.encodeToString(serializer, obj))
+        key to Json.encodeToString(serializer, obj)
 
     /**
      * builds an url with a list of pair values of key=value url parameters

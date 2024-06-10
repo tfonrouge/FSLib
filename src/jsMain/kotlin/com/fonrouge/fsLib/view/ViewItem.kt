@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.lib.toast
 import com.fonrouge.fsLib.model.apiData.CallType
 import com.fonrouge.fsLib.model.apiData.CrudTask
@@ -24,7 +25,6 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
-import js.uri.encodeURIComponent
 import kotlinx.browser.window
 import kotlinx.serialization.json.Json
 import org.w3c.dom.events.MouseEvent
@@ -277,17 +277,15 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                 urlParams?.params?.set("action", CrudTask.Update.name)
                                 itemResponse.item?._id?.let {
                                     urlParams?.params?.set(
-                                        "id",
-                                        encodeURIComponent(
-                                            Json.encodeToString(
-                                                configView.commonContainer.idSerializer,
-                                                it
-                                            )
+                                        propertyName = "id",
+                                        value = Json.encodeToString(
+                                            configView.commonContainer.idSerializer,
+                                            it
                                         )
                                     )
                                 }
                                 @Suppress("UNUSED_VARIABLE")
-                                val url = (configView.url + urlParams.toString()).asDynamic()
+                                val url = (configView.url + urlParams.toEncodedUrlString()).asDynamic()
 
                                 @Suppress("UNUSED_VARIABLE")
                                 val stateObj =

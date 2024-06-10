@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.lib
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import io.kvision.navigo.Match
 import js.uri.decodeURIComponent
-import js.uri.encodeURIComponent
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
@@ -58,16 +57,18 @@ data class UrlParams(
      * set a para on the params url resulting string
      */
     fun pushParam(param: Pair<String, String>) {
-        params[param.first] = encodeURIComponent(param.second)
+        params[param.first] = param.second
     }
+}
 
-    override fun toString(): String {
-        var result = ""
-        var size = 0
-        for (entry in js("Object").entries(params)) {
-            ++size
-            result += "${if (result == "") "" else "&"}${entry[0]}=${entry[1]}"
-        }
-        return if (size > 0) "?$result" else ""
+fun UrlParams?.toEncodedUrlString(): String {
+    this ?: return "null"
+    var result = ""
+    var size = 0
+    for (entry in js("Object").entries(params)) {
+        ++size
+        result += (if (result == "") "" else "&") + entry[0] + "="
+        result += js("encodeURIComponent(entry[1])")
     }
+    return if (size > 0) "?$result" else ""
 }

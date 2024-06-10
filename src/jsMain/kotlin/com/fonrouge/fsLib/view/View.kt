@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.config.ICommon
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
+import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import io.kvision.core.*
 import io.kvision.html.*
@@ -107,7 +108,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter>(
                 urlParams?.params?.set(pair.first, pair.second)
             }
         @Suppress("UNUSED_VARIABLE")
-        val url = (configView.url + urlParams.toString()).asDynamic()
+        val url = (configView.url + urlParams.toEncodedUrlString()).asDynamic()
 
         @Suppress("UNUSED_VARIABLE")
         val stateObj =
