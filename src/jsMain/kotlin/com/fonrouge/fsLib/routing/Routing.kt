@@ -20,17 +20,20 @@ fun Navigo.initialize(): Navigo {
 }
 
 private fun Navigo.onViewPage(): Navigo {
-    on(":viewClass", { match ->
-        val route = match.data.viewClass
-        configViewMap[route as? String]?.let { configView ->
-            viewStateObservableValue.value = ViewState(configView, UrlParams(match))
+    on(
+        path = ":viewClass",
+        f = { match ->
+            val route = match.data.viewClass
+            configViewMap[route as? String]?.let { configView ->
+                viewStateObservableValue.value = ViewState(configView, UrlParams(match))
+            }
+            configViewItemMap[route as? String]?.let { configViewItem ->
+                viewStateObservableValue.value = ViewState(configViewItem, UrlParams(match = match))
+            }
+            configViewListMap[match.data.viewClass as String]?.let { configViewList ->
+                viewStateObservableValue.value = ViewState(configViewList, UrlParams(match = match))
+            }
         }
-        configViewItemMap[route as? String]?.let { configViewItem ->
-            viewStateObservableValue.value = ViewState(configViewItem, UrlParams(match = match))
-        }
-        configViewListMap[match.data.viewClass as String]?.let { configViewList ->
-            viewStateObservableValue.value = ViewState(configViewList, UrlParams(match = match))
-        }
-    })
+    )
     return this
 }

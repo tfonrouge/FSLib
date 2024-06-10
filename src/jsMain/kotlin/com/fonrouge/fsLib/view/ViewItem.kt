@@ -24,6 +24,7 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
+import js.uri.encodeURIComponent
 import kotlinx.browser.window
 import kotlinx.serialization.json.Json
 import org.w3c.dom.events.MouseEvent
@@ -277,7 +278,12 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                 itemResponse.item?._id?.let {
                                     urlParams?.params?.set(
                                         "id",
-                                        Json.encodeToString(configView.commonContainer.idSerializer, it)
+                                        encodeURIComponent(
+                                            Json.encodeToString(
+                                                configView.commonContainer.idSerializer,
+                                                it
+                                            )
+                                        )
                                     )
                                 }
                                 @Suppress("UNUSED_VARIABLE")

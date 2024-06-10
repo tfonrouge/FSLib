@@ -73,12 +73,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             editable = { value?.urlParams?.actionUpsert == true }
             field = value
         }
-    val parentContextUrlParams: String
-        get() {
-            return masterViewItem?.itemStateObservableValue?.value?.let {
-                "&contextClass=${it::class.simpleName}&contextId=${it.item?._id}"
-            } ?: ""
-        }
 
     /**
      * Set to true if periodic update of table data is allowed

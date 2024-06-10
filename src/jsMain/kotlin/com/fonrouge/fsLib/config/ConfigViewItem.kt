@@ -76,20 +76,29 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 
     fun urlRead(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(commonContainer.idSerializer, id), "action" to CrudTask.Read.name)
+            UrlParams(
+                "id" to encodeURIComponent(Json.encodeToString(commonContainer.idSerializer, id)),
+                "action" to CrudTask.Read.name
+            )
         return url + urlParams.toString()
     }
 
     @Suppress("unused")
     fun urlDelete(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(commonContainer.idSerializer, id), "action" to CrudTask.Delete.name)
+            UrlParams(
+                "id" to encodeURIComponent(Json.encodeToString(commonContainer.idSerializer, id)),
+                "action" to CrudTask.Delete.name
+            )
         return url + urlParams.toString()
     }
 
     fun urlUpdate(id: ID): String {
         val urlParams =
-            UrlParams("id" to Json.encodeToString(commonContainer.idSerializer, id), "action" to CrudTask.Update.name)
+            UrlParams(
+                "id" to encodeURIComponent(Json.encodeToString(commonContainer.idSerializer, id)),
+                "action" to CrudTask.Update.name
+            )
         return url + urlParams.toString()
     }
 
@@ -100,18 +109,16 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                 apiItem.id?.let { it: ID ->
                     listOf(
                         "action" to apiItem.crudTask.name,
-                        "id" to Json.encodeToString(commonContainer.idSerializer, it)
+                        "id" to encodeURIComponent(Json.encodeToString(commonContainer.idSerializer, it))
                     )
                 }
             }
         }?.let { params ->
             val urlParams = UrlParams(*params.toTypedArray())
             urlParams.pushParam(
-                "apiFilter" to encodeURIComponent(
-                    Json.encodeToString(
-                        commonContainer.apiFilterSerializer,
-                        apiItem.apiFilter
-                    )
+                "apiFilter" to Json.encodeToString(
+                    commonContainer.apiFilterSerializer,
+                    apiItem.apiFilter
                 )
             )
             url + urlParams.toString()
