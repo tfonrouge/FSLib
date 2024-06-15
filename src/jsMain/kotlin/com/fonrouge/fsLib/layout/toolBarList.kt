@@ -52,7 +52,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
         nav {
             viewList.configViewItem?.let { configViewItem ->
                 if (viewList.editable()) {
-                    dropDown(text = "Edit", forNavbar = true, arrowVisible = false) {
+                    dropDown(text = "Edit", icon = "fas fa-ellipsis-vertical", forNavbar = true, arrowVisible = false) {
                         ddLink(
                             label = "Create",
                             icon = iconCrud(CrudTask.Create),
