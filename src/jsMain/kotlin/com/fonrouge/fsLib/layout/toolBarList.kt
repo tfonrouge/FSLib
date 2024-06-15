@@ -8,6 +8,8 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.enableTooltip
+import io.kvision.dropdown.ddLink
+import io.kvision.dropdown.dropDown
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
@@ -17,13 +19,10 @@ import kotlinx.coroutines.launch
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
     viewList: ViewList<*, T, ID, *, *>,
     minToolbarSize: Boolean = true,
-): NavbarTabulator<ID> {
+): NavbarTabulator {
     val delay = 300
     return navbarTabulator(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
-        nav().bind(
-            observableState = viewList.toolBarListUpdateObservable,
-            removeChildren = true
-        ) {
+        nav().bind(viewList.toolBarListUpdateObservable) {
             if (viewList.hasOffCanvasFilterView) {
                 navLink(
                     label = if (minToolbarSize) "" else "Filter",
@@ -35,7 +34,6 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     }
                     enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
                 }
-                navLink(label = "|")
             }
             viewList.configViewItem?.let { configViewItem ->
                 linkRead = navLink(
@@ -49,42 +47,52 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     }
                     enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
                 }
+            }
+        }
+        nav {
+            viewList.configViewItem?.let { configViewItem ->
                 if (viewList.editable()) {
-                    navLink(
-                        label = if (minToolbarSize) "" else "Create",
-                        icon = iconCrud(CrudTask.Create),
-                    ) {
-                        onClick {
-                            it.preventDefault()
-                            viewList.goActionUrl(CrudTask.Create)
+                    dropDown(text = "Edit", forNavbar = true, arrowVisible = false) {
+                        ddLink(
+                            label = "Create",
+                            icon = iconCrud(CrudTask.Create),
+                        ) {
+                            onClick {
+                                it.preventDefault()
+                                viewList.goActionUrl(CrudTask.Create)
+                            }
+                            enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                         }
-                        enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
-                    }
-                    linkUpdate = navLink(
-                        label = if (minToolbarSize) "" else "Update",
-                        icon = iconCrud(CrudTask.Update)
-                    ) {
-                        hide()
-                        onClick {
-                            it.preventDefault()
-                            viewList.goActionUrl(CrudTask.Update)
+                        linkUpdate = ddLink(
+                            label = "Update",
+                            icon = iconCrud(CrudTask.Update)
+                        ) {
+                            hide()
+                            onClick {
+                                it.preventDefault()
+                                viewList.goActionUrl(CrudTask.Update)
+                            }
+                            enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                         }
-                        enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
-                    }
-                    linkDelete = navLink(
-                        label = if (minToolbarSize) "" else "Delete",
-                        icon = iconCrud(CrudTask.Delete)
-                    ) {
-                        hide()
-                        onClick {
-                            it.preventDefault()
-                            viewList.goActionUrl(CrudTask.Delete)
+                        linkDelete = ddLink(
+                            label = "Delete",
+                            icon = iconCrud(CrudTask.Delete)
+                        ) {
+                            hide()
+                            onClick {
+                                it.preventDefault()
+                                viewList.goActionUrl(CrudTask.Delete)
+                            }
+                            enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                         }
-                        enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                     }
                 }
-                navLink(label = "|")
             }
+        }
+        with(viewList) {
+            navBarOptions()
+        }
+        nav(rightAlign = true) {
             navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
                 AppScope.launch {
                     viewList.dataUpdate()

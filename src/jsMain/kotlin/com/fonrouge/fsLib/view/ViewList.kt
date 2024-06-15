@@ -58,10 +58,10 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * contains an object of [T] type for the selected row in the [tabulator]
      */
-    var selectedItem: T? = null
+    var selectedItem: ObservableValue<T?> = ObservableValue(null)
     var jsTabulatorBuilt: Boolean = false
     var menuOpenedState: Boolean? = null
-    var navbarTabulator: NavbarTabulator<ID>? = null
+    var navbarTabulator: NavbarTabulator? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
 
     /* dynamic content only used to get _id */
@@ -107,7 +107,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      */
     open fun goActionUrl(
         crudTask: CrudTask,
-        item: T? = selectedItem,
+        item: T? = selectedItem.value,
         configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = this.configViewItem,
     ) {
         configViewItem ?: return
@@ -254,6 +254,8 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     override val label: String get() = configView.commonContainer.labelList
+
+    open fun NavbarTabulator.navBarOptions() {}
 
     /**
      * allows to process javascript array arrived from backend
