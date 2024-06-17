@@ -45,7 +45,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         it.preventDefault()
                         viewList.goActionUrl(CrudTask.Read)
                     }
-                    enableTooltip(TooltipOptions(configViewItem.labelDetail, animation = true, delay = delay))
+//                    enableTooltip(TooltipOptions(configViewItem.commonContainer.labelItem, animation = true, delay = delay))
                 }
             }
         }
@@ -61,7 +61,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                 it.preventDefault()
                                 viewList.goActionUrl(CrudTask.Create)
                             }
-                            enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
+//                            enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
                         }
                         linkUpdate = ddLink(
                             label = "Update",
@@ -72,7 +72,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                 it.preventDefault()
                                 viewList.goActionUrl(CrudTask.Update)
                             }
-                            enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
+//                            enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
                         }
                         linkDelete = ddLink(
                             label = "Delete",
@@ -83,7 +83,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                 it.preventDefault()
                                 viewList.goActionUrl(CrudTask.Delete)
                             }
-                            enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
+//                            enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
                         }
                     }
                 }

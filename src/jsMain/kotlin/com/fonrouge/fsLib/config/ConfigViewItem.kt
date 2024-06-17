@@ -44,10 +44,6 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     }
 
     override val label: String get() = commonContainer.labelItem
-    val labelDelete by lazy { "Delete ${commonContainer.labelItem}" }
-    val labelDetail by lazy { "Detail of ${commonContainer.labelIdFunc}" }
-    val labelCreate by lazy { "Create ${commonContainer.labelItem}" }
-    val labelUpdate by lazy { "Update ${commonContainer.labelItem}" }
 
     override val labelUrl: Pair<String, String> by lazy { commonContainer.labelItem to url }
 
