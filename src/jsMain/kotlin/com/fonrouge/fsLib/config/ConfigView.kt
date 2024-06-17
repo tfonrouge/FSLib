@@ -37,7 +37,7 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
     open val labelUrl: Pair<String, String> by lazy { commonContainer.label to url }
 
     /**
-     * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservableValue] from the [UrlParams]
+     * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservable] from the [UrlParams]
      */
     fun newViewInstance(urlParams: UrlParams?): V {
         return viewKClass.js.createInstance(urlParams)

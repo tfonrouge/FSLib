@@ -21,7 +21,7 @@ fun Container.showView(viewState: ViewState) {
             }
             onBeforeDisplayPage(this@showView)
             this@showView.displayPage()
-            bind(view.apiFilterObservableValue) {
+            bind(view.apiFilterObservable) {
                 view.onApiFilterUpdate()
                 view.apiFilterToUrl()
             }

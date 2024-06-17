@@ -61,15 +61,15 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter>(
      * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
      * or programmatically, and it's delivered to the backend
      */
-    val apiFilterObservableValue: ObservableValue<FILT> by lazy {
+    val apiFilterObservable: ObservableValue<FILT> by lazy {
         ObservableValue(apiFilterInstance(apiFilterFromUrl) ?: configView.commonContainer.apiFilterInstance())
     }
     var apiFilter: FILT
         get() {
-            return apiFilterObservableValue.value
+            return apiFilterObservable.value
         }
         set(value) {
-            apiFilterObservableValue.value = value
+            apiFilterObservable.value = value
         }
 
     protected val apiFilterFromUrl: FILT?
@@ -100,7 +100,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter>(
     }
 
     /**
-     * Sets the current browser url with an [apiFilterObservableValue] url parameter
+     * Sets the current browser url with an [apiFilterObservable] url parameter
      */
     fun apiFilterToUrl() {
         configView.pairParam("apiFilter", configView.commonContainer.apiFilterSerializer, apiFilter)
@@ -119,7 +119,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter>(
     /**
      * Allows to describe a display that will be showed next to the view link banner
      * it can be triggered with [updateBanner] function.
-     * Note: don't try to update [apiFilterObservableValue] inside this, or you'll get a recursive infinite loop
+     * Note: don't try to update [apiFilterObservable] inside this, or you'll get a recursive infinite loop
      */
     open fun Container.bannerLegend() {}
     abstract fun Container.displayPage()
@@ -217,7 +217,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter>(
     open fun Container.buildOffCanvasFilterView(): Offcanvas? = null
 
     /**
-     * open function that fires when toolbar's filter button is clicked. If [apiFilterObservableValue] contains a null value then
+     * open function that fires when toolbar's filter button is clicked. If [apiFilterObservable] contains a null value then
      * a new [FILT] object is created (with no constructor parameters) and assign it to the apiFilter value.
      */
     open fun onClickFilter() {
