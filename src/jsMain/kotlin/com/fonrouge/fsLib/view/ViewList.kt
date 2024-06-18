@@ -58,7 +58,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * contains an object of [T] type for the selected row in the [tabulator]
      */
-    var selectedItem: ObservableValue<T?> = ObservableValue(null)
+    var selectedItemObs: ObservableValue<T?> = ObservableValue(null)
     var jsTabulatorBuilt: Boolean = false
     var menuOpenedState: Boolean? = null
     var navbarTabulator: NavbarTabulator? = null
@@ -96,18 +96,13 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var tabulator: TabulatorListContainer<T, ID, E, FILT>? = null
 
     /**
-     * observable that triggers an update on the list's toolbar
-     */
-    val toolBarListUpdateObservable = ObservableValue(0)
-
-    /**
      * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem
      * which is currently on Update action, if so, then performs an update call to back end before
      * calling the list crud action required
      */
     open fun goActionUrl(
         crudTask: CrudTask,
-        item: T? = selectedItem.value,
+        item: T? = selectedItemObs.value,
         configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = this.configViewItem,
     ) {
         configViewItem ?: return
@@ -289,17 +284,4 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * the main display for the viewList tabulator area
      */
     abstract fun Container.pageListBody()
-
-    fun updateLinks(item: T?, size: Int) {
-        val id = item?._id
-        if (id != null && size == 1) {
-            navbarTabulator?.linkRead?.show()
-            navbarTabulator?.linkUpdate?.show()
-            navbarTabulator?.linkDelete?.show()
-        } else {
-            navbarTabulator?.linkRead?.hide()
-            navbarTabulator?.linkUpdate?.hide()
-            navbarTabulator?.linkDelete?.hide()
-        }
-    }
 }

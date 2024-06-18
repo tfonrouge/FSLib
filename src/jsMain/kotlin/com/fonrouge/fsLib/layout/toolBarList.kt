@@ -7,6 +7,7 @@ import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
+import io.kvision.core.disableTooltip
 import io.kvision.core.enableTooltip
 import io.kvision.dropdown.ddLink
 import io.kvision.dropdown.dropDown
@@ -22,7 +23,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
 ): NavbarTabulator {
     val delay = 300
     return navbarTabulator(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
-        nav().bind(viewList.toolBarListUpdateObservable) {
+        nav {
             if (viewList.hasOffCanvasFilterView) {
                 navLink(
                     label = if (minToolbarSize) "" else "Filter",
@@ -36,16 +37,29 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                 }
             }
             viewList.configViewItem?.let { configViewItem ->
-                linkRead = navLink(
+                navLink(
                     label = if (minToolbarSize) "" else "Detail",
                     icon = iconCrud(CrudTask.Read),
                 ) {
-                    hide()
                     onClick {
                         it.preventDefault()
                         viewList.goActionUrl(CrudTask.Read)
                     }
-//                    enableTooltip(TooltipOptions(configViewItem.commonContainer.labelItem, animation = true, delay = delay))
+                    bind(viewList.selectedItemObs) { item ->
+                        if (item == null) {
+                            hide()
+                            disableTooltip()
+                        } else {
+                            show()
+                            enableTooltip(
+                                TooltipOptions(
+                                    title = "Detail of " + configViewItem.commonContainer.labelIdFunc(item),
+                                    animation = true,
+                                    delay = delay
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -61,20 +75,39 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                 it.preventDefault()
                                 viewList.goActionUrl(CrudTask.Create)
                             }
-//                            enableTooltip(TooltipOptions(configViewItem.labelCreate, animation = true, delay = delay))
+                            enableTooltip(
+                                TooltipOptions(
+                                    title = "Create " + configViewItem.commonContainer.labelItem,
+                                    animation = true,
+                                    delay = delay
+                                )
+                            )
                         }
-                        linkUpdate = ddLink(
+                        ddLink(
                             label = "Update",
                             icon = iconCrud(CrudTask.Update)
                         ) {
-                            hide()
                             onClick {
                                 it.preventDefault()
                                 viewList.goActionUrl(CrudTask.Update)
                             }
-//                            enableTooltip(TooltipOptions(configViewItem.labelUpdate, animation = true, delay = delay))
+                            bind(viewList.selectedItemObs) { item ->
+                                if (item == null) {
+                                    hide()
+                                    disableTooltip()
+                                } else {
+                                    show()
+                                    enableTooltip(
+                                        TooltipOptions(
+                                            title = "Update " + configViewItem.commonContainer.labelIdFunc(item),
+                                            animation = true,
+                                            delay = delay
+                                        )
+                                    )
+                                }
+                            }
                         }
-                        linkDelete = ddLink(
+                        ddLink(
                             label = "Delete",
                             icon = iconCrud(CrudTask.Delete)
                         ) {
@@ -83,7 +116,21 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                 it.preventDefault()
                                 viewList.goActionUrl(CrudTask.Delete)
                             }
-//                            enableTooltip(TooltipOptions(configViewItem.labelDelete, animation = true, delay = delay))
+                            bind(viewList.selectedItemObs) { item ->
+                                if (item == null) {
+                                    hide()
+                                    disableTooltip()
+                                } else {
+                                    show()
+                                    enableTooltip(
+                                        TooltipOptions(
+                                            title = "Delete " + configViewItem.commonContainer.labelIdFunc(item),
+                                            animation = true,
+                                            delay = delay
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
                 }
