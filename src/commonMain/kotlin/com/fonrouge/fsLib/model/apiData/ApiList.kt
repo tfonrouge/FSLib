@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  * @param FILT [IApiFilter] type param
  */
 @Serializable
-data class ApiList<FILT : IApiFilter>(
+data class ApiList<FILT : IApiFilter<*>>(
     var tabPage: Int? = null,
     var tabSize: Int? = null,
     var tabFilter: List<RemoteFilter>? = null,

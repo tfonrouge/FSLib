@@ -95,7 +95,7 @@ class BarcodeCamera {
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
+                    it.surfaceProvider = previewView.surfaceProvider
                 }
 
             val executor = Executors.newSingleThreadExecutor()

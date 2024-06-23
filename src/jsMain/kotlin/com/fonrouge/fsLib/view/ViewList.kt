@@ -24,8 +24,8 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 
 @Suppress("unused")
-abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
-    final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, E, FILT>, E, FILT>,
+abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
+    final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, *, FILT, MID>,
     configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     editable: (() -> Boolean) = { true },
@@ -67,9 +67,9 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /* dynamic content only used to get _id */
     var overItem: Any? = null
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
-    var masterViewItem: ViewItem<*, *, *, *>? = null
+    var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
         set(value) {
-            apiFilter.masterItemIdSerialized = value?.encodeId()
+            apiFilter.masterItemId = value?.item?._id
             editable = { value?.urlParams?.actionUpsert == true }
             field = value
         }
@@ -93,7 +93,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * the tabulator list
      */
-    var tabulator: TabulatorListContainer<T, ID, E, FILT>? = null
+    var tabulator: TabulatorListContainer<T, ID, FILT, MID>? = null
 
     /**
      * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem

@@ -10,7 +10,7 @@ import com.fonrouge.fsLib.serializers.OId
 import org.litote.kmongo.coroutine.CoroutineCollection
 
 @Suppress("unused")
-abstract class IUserGroupColl<UG : IUserGroup<U, UID, GOU, GR>, U : IUser<UID>, UID : Any, GOU : IGroupOfUser<*>, GR : IGroupRole<*, GOU>, FILT : IApiFilter>(
+abstract class IUserGroupColl<UG : IUserGroup<U, UID, GOU, GR>, U : IUser<UID>, UID : Any, GOU : IGroupOfUser<*>, GR : IGroupRole<*, GOU>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>
 ) : Coll<ICommonContainer<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>, UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>(
     commonContainer = commonContainer

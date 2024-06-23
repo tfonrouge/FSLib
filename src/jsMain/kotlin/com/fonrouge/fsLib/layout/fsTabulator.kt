@@ -38,11 +38,6 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
     val paginationSize = tabulatorOptions.paginationSize ?: 50
     val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100)
-    /*
-        val persistence = tabulatorOptions.persistence ?: json(
-            "page" to json("page" to true),
-        )
-    */
     val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.commonContainer.itemKClass.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
     val selectableRows = tabulatorOptions.selectableRows ?: 1
@@ -61,7 +56,6 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
         paginationMode = paginationMode,
         paginationSize = paginationSize,
         paginationSizeSelector = paginationSizeSelector,
-//        persistence = persistence,
         persistenceID = persistenceID,
         rowContextMenu = rowContextMenu,
         selectableRows = selectableRows,
@@ -69,16 +63,16 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     )
 }
 
-inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
-    configViewList: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, E, FILT>, E, FILT>,
-    masterViewItem: ViewItem<*, *, *, *>? = null,
+inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
+    configViewList: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, E, FILT, MID>,
+    masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),
     minToolbarSize: Boolean = true,
     noinline editable: (() -> Boolean)? = null,
-    noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
-): ViewList<CC, T, ID, E, FILT> {
-    val viewList: ViewList<CC, T, ID, E, FILT> = configViewList.newViewInstance(null)
+    noinline init: (TabulatorListContainer<T, ID, FILT, MID>.() -> Unit)? = null
+): ViewList<CC, T, ID, FILT, MID> {
+    val viewList: ViewList<CC, T, ID, FILT, MID> = configViewList.newViewInstance(null)
     viewList.masterViewItem = masterViewItem
     editable?.let { viewList.editable = it }
     return fsTabulator(
@@ -91,13 +85,13 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
 }
 
 @OptIn(InternalSerializationApi::class)
-inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter> Container.fsTabulator(
-    viewList: ViewList<CC, T, ID, E, FILT>,
+inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
+    viewList: ViewList<CC, T, ID, FILT, MID>,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
     minToolbarSize: Boolean = true,
-    noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
-): ViewList<CC, T, ID, E, FILT> {
+    noinline init: (TabulatorListContainer<T, ID, FILT, MID>.() -> Unit)? = null
+): ViewList<CC, T, ID, FILT, MID> {
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
@@ -138,9 +132,6 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                 }
             }
             addAfterInsertHook {
-                /*
-                TODO: implement this in KVision
-                 */
                 jsTabulator?.on("rowMouseOver") { event: Event, row: RowComponent ->
                     if (!event.defaultPrevented) {
                         viewList.overItem = row.getData()

@@ -10,7 +10,7 @@ import kotlinx.browser.window
 import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
-abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, E, FILT>, E : Any, FILT : IApiFilter>(
+abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, E : Any, FILT : IApiFilter<MID>, MID : Any>(
     val serviceManager: KVServiceManager<E>,
     val apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,
     override val commonContainer: CC,
@@ -27,7 +27,7 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         }
 
     companion object {
-        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *>>()
+        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
     }
 
     override val label: String get() = commonContainer.labelList
@@ -67,13 +67,13 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CC, T, ID, E, FILT>, E : Any, ID : Any, FILT : IApiFilter> configViewList(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CC, T, ID, FILT, MID>, E : Any, ID : Any, FILT : IApiFilter<MID>, MID : Any> configViewList(
     viewKClass: KClass<out V>,
     serviceManager: KVServiceManager<E>,
     apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,
     commonContainer: CC,
     baseUrl: String? = null,
-): ConfigViewList<CC, T, ID, V, E, FILT> = object : ConfigViewList<CC, T, ID, V, E, FILT>(
+): ConfigViewList<CC, T, ID, V, E, FILT, MID> = object : ConfigViewList<CC, T, ID, V, E, FILT, MID>(
     viewKClass = viewKClass,
     serviceManager = serviceManager,
     apiListFun = apiListFun,

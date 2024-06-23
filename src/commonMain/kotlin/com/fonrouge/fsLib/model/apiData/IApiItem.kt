@@ -10,21 +10,21 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonClassDiscriminator("#type")
-sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
+sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract val callType: CallType
     abstract val crudTask: CrudTask
     abstract val serializedApiFilter: String
     abstract fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT>
 
     @Serializable
-    sealed class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : IApiItem<T, ID, FILT>() {
+    sealed class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : IApiItem<T, ID, FILT>() {
         override val callType: CallType = CallType.Query
         abstract val serializedId: String?
 
         @Serializable
-        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : Query<T, ID, FILT>() {
+        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Query<T, ID, FILT>() {
             @Serializable
-            data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+            data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val serializedId: String? = null,
                 override val serializedApiFilter: String
             ) : Upsert<T, ID, FILT>() {
@@ -38,7 +38,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             }
 
             @Serializable
-            data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+            data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val serializedId: String,
                 override val serializedApiFilter: String
             ) : Upsert<T, ID, FILT>() {
@@ -53,7 +53,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
         }
 
         @Serializable
-        data class Read<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+        data class Read<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             override val serializedId: String,
             override val serializedApiFilter: String
         ) : Query<T, ID, FILT>() {
@@ -67,7 +67,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
         }
 
         @Serializable
-        data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+        data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             override val serializedId: String,
             override val serializedApiFilter: String
         ) : Query<T, ID, FILT>() {
@@ -82,15 +82,15 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
     }
 
     @Serializable
-    sealed class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : IApiItem<T, ID, FILT>() {
+    sealed class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : IApiItem<T, ID, FILT>() {
         override val callType: CallType = CallType.Action
         abstract val serializedItem: String
 
         @Serializable
-        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> : Action<T, ID, FILT>() {
+        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Action<T, ID, FILT>() {
 
             @Serializable
-            data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+            data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val serializedItem: String,
                 override val serializedApiFilter: String
             ) : Upsert<T, ID, FILT>() {
@@ -104,7 +104,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
             }
 
             @Serializable
-            data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+            data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val serializedItem: String,
                 override val serializedApiFilter: String
             ) : Upsert<T, ID, FILT>() {
@@ -119,7 +119,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter> {
         }
 
         @Serializable
-        data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter>(
+        data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             override val serializedItem: String,
             override val serializedApiFilter: String
         ) : Action<T, ID, FILT>() {

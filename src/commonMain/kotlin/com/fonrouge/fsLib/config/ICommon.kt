@@ -6,7 +6,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 // TODO: integrate with IApiService
-abstract class ICommon<FILT : IApiFilter>(
+abstract class ICommon<FILT : IApiFilter<*>>(
     var label: String = "",
     open val apiFilterSerializer: KSerializer<FILT>,
 ) {

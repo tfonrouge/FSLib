@@ -26,8 +26,8 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter>(
-    val viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, E, FILT>,
+class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
+    val viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListSerialize: (ApiList<FILT>) -> String?,
     options: TabulatorOptions<T>,
@@ -49,8 +49,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
 ) {
     private var contentHashCode: Int? = null
     private var diffContentHashCode: Boolean = false
-    private var url: String
-    private var method: HttpMethod
+    private var url: String = ""
+    private var method: HttpMethod = HttpMethod.GET
     private val callAgent: CallAgent
 
     override val jsonHelper = if (serializer != null) Json(
@@ -199,8 +199,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilt
     }
 }
 
-inline fun <reified T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter> Container.tabulatorListContainer(
-    viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, E, FILT>,
+inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorListContainer(
+    viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     noinline apiListBlock: (() -> ApiList<FILT>),
     noinline apiListSerialize: (ApiList<FILT>) -> String?,
     options: TabulatorOptions<T>,
@@ -209,9 +209,9 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, E : Any, FILT : IApiFilter> Conta
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
     noinline requestFilter: (suspend RequestInit.() -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, ID, E, FILT>.() -> Unit)? = null
-): TabulatorListContainer<T, ID, E, FILT> {
-    val tabulatorListContainer =
+    noinline init: (TabulatorListContainer<T, ID, FILT, MID>.() -> Unit)? = null
+): TabulatorListContainer<T, ID, FILT, MID> {
+    val tabulatorListContainer: TabulatorListContainer<T, ID, FILT, MID> =
         TabulatorListContainer(
             viewList = viewList,
             apiListBlock = apiListBlock,

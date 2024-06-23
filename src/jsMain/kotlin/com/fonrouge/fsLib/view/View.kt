@@ -18,7 +18,7 @@ import io.kvision.state.bind
 import io.kvision.utils.em
 import io.kvision.utils.px
 
-abstract class View<CC : ICommon<FILT>, FILT : IApiFilter>(
+abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open val configView: ConfigView<CC, *, FILT>,
     var editable: (() -> Boolean) = { true },
     val icon: String? = null,

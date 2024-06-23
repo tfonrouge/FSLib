@@ -23,7 +23,7 @@ import kotlinx.serialization.json.decodeFromDynamic
 import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
-abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter>(
+abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter<*>>(
     private val serviceManager: KVServiceManager<AIS>,
     override val commonContainer: CC,
     private val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
@@ -208,7 +208,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter> configViewItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiService, FILT : IApiFilter<*>> configViewItem(
     viewKClass: KClass<out V>,
     serviceManager: KVServiceManager<AIS>,
     commonContainer: CC,
