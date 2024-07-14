@@ -10,19 +10,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.fonrouge.fsLib.viewModel.ViewModelBase
+import com.fonrouge.fsLib.viewModel.ViewBase
 
 @Suppress("unused")
 @Composable
-fun ScreenStateAlert(viewModelBase: ViewModelBase) {
-    viewModelBase.stateAlert.collectAsStateWithLifecycle().value?.let { itemAlert ->
+fun ScreenStateAlert(viewBase: ViewBase) {
+    viewBase.stateAlert.collectAsStateWithLifecycle().value?.let { itemAlert ->
         AlertDialog(
             onDismissRequest = itemAlert.onDismissRequest,
             confirmButton = {
                 TextButton(
                     onClick = {
                         itemAlert.type.onAccept?.invoke()
-                        viewModelBase.clearStateAlert()
+                        viewBase.clearStateAlert()
                     }
                 ) {
                     Text(
@@ -35,7 +35,7 @@ fun ScreenStateAlert(viewModelBase: ViewModelBase) {
                     TextButton(
                         onClick = {
                             itemAlert.type.onCancel?.invoke()
-                            viewModelBase.clearStateAlert()
+                            viewBase.clearStateAlert()
                         }
                     ) {
                         Text(text = "Cancel")

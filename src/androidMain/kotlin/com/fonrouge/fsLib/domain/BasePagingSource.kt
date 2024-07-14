@@ -6,13 +6,13 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.viewModel.ViewModelList
+import com.fonrouge.fsLib.viewModel.ViewList
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.IOException
 
 class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-    val viewModel: ViewModelList<CC, T, ID, FILT>,
+    val viewModel: ViewList<CC, T, ID, FILT>,
 ) : PagingSource<Int, T>() {
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {
         return state.anchorPosition?.let {

@@ -2,13 +2,13 @@ package com.fonrouge.fsLib.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.fonrouge.fsLib.viewModel.ViewModelList
+import com.fonrouge.fsLib.viewModel.ViewList
 import kotlinx.coroutines.delay
 
 @Suppress("unused")
 @Composable
 fun PeriodicUpdateList(
-    viewModel: ViewModelList<*, *, *, *>,
+    viewModel: ViewList<*, *, *, *>,
     periodicUpdate: Boolean? = null,
     periodicInterval: Int? = null,
 ) {

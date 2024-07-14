@@ -15,12 +15,12 @@ import androidx.navigation.NavHostController
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.viewModel.ViewModelList
+import com.fonrouge.fsLib.viewModel.ViewList
 
 @Suppress("unused")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-inline fun <reified VML : ViewModelList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ScreenList(
+inline fun <reified VML : ViewList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ScreenList(
     navHostController: NavHostController = NavHostController(LocalContext.current),
     viewModel: VML = viewModel(),
     noinline topBarTitle: @Composable () -> Unit = {},
@@ -50,8 +50,8 @@ inline fun <reified VML : ViewModelList<CC, T, ID, FILT>, CC : ICommonContainer<
         floatingActionButton = floatingActionButton,
         floatingActionButtonPosition = floatingActionButtonPosition,
     ) { paddingValues ->
-        ScreenStateAlert(viewModelBase = viewModel)
-        ScreenConfirmAlert(viewModelBase = viewModel)
+        ScreenStateAlert(viewBase = viewModel)
+        ScreenConfirmAlert(viewBase = viewModel)
         ModalNavigationDrawer(
             modifier = Modifier.padding(paddingValues),
             drawerState = drawerState,
