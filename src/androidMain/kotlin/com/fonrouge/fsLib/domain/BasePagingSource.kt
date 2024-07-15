@@ -6,13 +6,13 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.viewModel.ViewList
+import com.fonrouge.fsLib.viewModel.VMList
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.IOException
 
 class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-    val viewModel: ViewList<CC, T, ID, FILT>,
+    val vmList: VMList<CC, T, ID, FILT>,
 ) : PagingSource<Int, T>() {
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {
         return state.anchorPosition?.let {
@@ -24,19 +24,19 @@ class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID :
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, T> {
         return try {
             val nextPage = params.key ?: 1
-            viewModel.refreshingList.value = true
-            val listState = viewModel.listStateGetter(nextPage)
-            viewModel.refreshingList.value = false
+            vmList.refreshingList.value = true
+            val listState = vmList.listStateGetter(nextPage)
+            vmList.refreshingList.value = false
             LoadResult.Page(
                 data = Json.decodeFromString(
-                    ListSerializer(viewModel.commonContainer.itemSerializer),
+                    ListSerializer(vmList.commonContainer.itemSerializer),
                     listState.data
                 ),
                 prevKey = if (nextPage == 1) null else nextPage - 1,
                 nextKey = listState.last_page?.let { if (nextPage < it) nextPage + 1 else null }
             )
         } catch (e: IOException) {
-            viewModel.pushSimpleState(SimpleState(isOk = false, msgError = e.localizedMessage))
+            vmList.pushSimpleState(SimpleState(isOk = false, msgError = e.localizedMessage))
 //            return LoadResult.Error(e)
             return LoadResult.Page(
                 data = listOf(),
@@ -44,7 +44,7 @@ class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID :
                 nextKey = null,
             )
         } finally {
-            viewModel.refreshingList.value = false
+            vmList.refreshingList.value = false
         }
     }
 }

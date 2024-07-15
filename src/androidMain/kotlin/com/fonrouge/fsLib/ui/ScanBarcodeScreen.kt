@@ -3,29 +3,29 @@ package com.fonrouge.fsLib.ui
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.runtime.Composable
-import com.fonrouge.fsLib.viewModel.ViewModelCamera
+import com.fonrouge.fsLib.viewModel.VMCamera
 import com.google.mlkit.vision.barcode.common.Barcode
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun ScanBarcodeScreen(
-    viewModelCamera: ViewModelCamera,
+    vmCamera: VMCamera,
     onReadBarcode: (CodeEntry) -> Unit = {},
     onFilter: ((Barcode) -> Boolean)? = null,
     content: @Composable () -> Unit,
 ) {
-    when (viewModelCamera.selectedCameraType.value) {
-        ViewModelCamera.CameraType.GooglePlay -> {
+    when (vmCamera.selectedCameraType.value) {
+        VMCamera.CameraType.GooglePlay -> {
             GmsScanScreen(
-                viewModelCamera = viewModelCamera,
+                vmCamera = vmCamera,
                 onReadBarcode = onReadBarcode,
                 content = content
             )
         }
 
-        ViewModelCamera.CameraType.CameraX -> {
+        VMCamera.CameraType.CameraX -> {
             CameraXCoreReaderScreen1(
-                viewModelCamera = viewModelCamera,
+                vmCamera = vmCamera,
                 onReadBarcode = onReadBarcode,
                 onFilter = onFilter,
                 content = content

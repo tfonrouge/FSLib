@@ -16,10 +16,10 @@ import kotlinx.serialization.json.Json
 import kotlin.reflect.KSuspendFunction1
 
 @Suppress("unused")
-abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+abstract class VMItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     final override val commonContainer: CC,
     val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>
-) : ViewContainer<CC, T, ID, FILT>() {
+) : VMContainer<CC, T, ID, FILT>() {
     var item: T? by mutableStateOf(null)
     var crudTask: CrudTask by mutableStateOf(CrudTask.Read)
     var itemAlreadyOn by mutableStateOf<Boolean?>(null)
@@ -28,7 +28,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     suspend fun makeQueryCall(
         id: ID? = null,
         crudTask: CrudTask = CrudTask.Read,
-        onDone: ViewContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
+        onDone: VMContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
         val serializedId = id?.let { Json.encodeToString(commonContainer.idSerializer, id) }
         val apiItem: ApiItem.Query<T, ID, FILT>? = when (crudTask) {
@@ -68,7 +68,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     @Suppress("unused")
     suspend fun makeQueryCall(
         apiItem: ApiItem.Query<T, ID, FILT>,
-        onDone: ViewContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
+        onDone: VMContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
         crudTask = apiItem.crudTask
         apiFilter = apiItem.apiFilter
@@ -92,7 +92,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     @Suppress("unused")
     suspend fun makeActionCall(
-        onDone: ViewContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
+        onDone: VMContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
         val item = this.item ?: run {
             SimpleState(

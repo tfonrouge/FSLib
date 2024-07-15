@@ -7,7 +7,7 @@ import com.fonrouge.fsLib.model.state.State
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-abstract class ViewBase : ViewModel() {
+abstract class VMBase : ViewModel() {
     private val _snackBarStatus = MutableStateFlow<SimpleState?>(null)
     val snackBarStatus = _snackBarStatus.asStateFlow()
     private val _stateAlert = MutableStateFlow<StateAlert?>(null)

@@ -15,14 +15,14 @@ import androidx.navigation.NavHostController
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.viewModel.ViewList
+import com.fonrouge.fsLib.viewModel.VMList
 
 @Suppress("unused")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-inline fun <reified VML : ViewList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ScreenList(
+inline fun <reified VML : VMList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ScreenList(
     navHostController: NavHostController = NavHostController(LocalContext.current),
-    viewModel: VML = viewModel(),
+    vmList: VML = viewModel(),
     noinline topBarTitle: @Composable () -> Unit = {},
     noinline topBarNavigationIcon: @Composable () -> Unit = {
         IconButton(onClick = { navHostController.popBackStack() }) {
@@ -46,12 +46,12 @@ inline fun <reified VML : ViewList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID
             )
         },
         bottomBar = bottomBar,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState(viewModel)) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState(vmList)) },
         floatingActionButton = floatingActionButton,
         floatingActionButtonPosition = floatingActionButtonPosition,
     ) { paddingValues ->
-        ScreenStateAlert(viewBase = viewModel)
-        ScreenConfirmAlert(viewBase = viewModel)
+        ScreenStateAlert(vmBase = vmList)
+        ScreenConfirmAlert(viewBase = vmList)
         ModalNavigationDrawer(
             modifier = Modifier.padding(paddingValues),
             drawerState = drawerState,
@@ -63,8 +63,8 @@ inline fun <reified VML : ViewList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID
             }
         ) {
             BodyList(
-                viewModel = viewModel,
-                pullRefreshState = pullRefreshState(viewModel = viewModel),
+                vmList = vmList,
+                pullRefreshState = pullRefreshState(vmList = vmList),
                 content = bodyListContent
             )
         }

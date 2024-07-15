@@ -24,12 +24,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KSuspendFunction1
 
-abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+abstract class VMList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     apiFilter: FILT,
     final override val commonContainer: CC,
     val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
     val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>? = null
-) : ViewContainer<CC, T, ID, FILT>() {
+) : VMContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
     }
@@ -71,7 +71,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             ),
             pagingSourceFactory = {
                 BasePagingSource(
-                    viewModel = this,
+                    vmList = this,
                 )
             }
         ).flow.cachedIn(viewModelScope)

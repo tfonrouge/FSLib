@@ -29,8 +29,8 @@ import androidx.paging.compose.itemKey
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.viewModel.ViewBase
-import com.fonrouge.fsLib.viewModel.ViewList
+import com.fonrouge.fsLib.viewModel.VMBase
+import com.fonrouge.fsLib.viewModel.VMList
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.PullRefreshState
 import eu.bambooapps.material3.pullrefresh.pullRefresh
@@ -40,7 +40,7 @@ import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 @Composable
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> BodyList(
     paddingValues: PaddingValues? = null,
-    viewModel: ViewList<CC, T, ID, FILT>,
+    vmList: VMList<CC, T, ID, FILT>,
     pullRefreshState: PullRefreshState,
     content: @Composable (T?) -> Unit
 ) {
@@ -49,9 +49,9 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
             .pullRefresh(state = pullRefreshState)
             .let { modifier -> paddingValues?.let { modifier.padding(it) } ?: modifier }
     ) {
-        val items: LazyPagingItems<T> = viewModel.flowPagingData.collectAsLazyPagingItems()
+        val items: LazyPagingItems<T> = vmList.flowPagingData.collectAsLazyPagingItems()
         PullRefreshIndicator(
-            refreshing = viewModel.refreshingList.value,
+            refreshing = vmList.refreshingList.value,
             state = pullRefreshState,
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -62,8 +62,8 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
                 .fillMaxHeight()
                 .fillMaxWidth()
         ) {
-            if (viewModel.requestRefresh) {
-                viewModel.requestRefresh = false
+            if (vmList.requestRefresh) {
+                vmList.requestRefresh = false
                 items.refresh()
             }
             items(
@@ -141,9 +141,9 @@ fun DismissBackgroundDelete(
 }
 
 @Composable
-fun snackbarHostState(viewModel: ViewBase): SnackbarHostState {
+fun snackbarHostState(vmBase: VMBase): SnackbarHostState {
     val snackbarHostState = remember { SnackbarHostState() }
-    val simpleState by viewModel.snackBarStatus.collectAsState()
+    val simpleState by vmBase.snackBarStatus.collectAsState()
 //    LaunchedEffect(key1 = simpleState?.dateTime) {
     LaunchedEffect(key1 = simpleState) {
         simpleState?.let {
@@ -165,18 +165,18 @@ fun snackbarHostState(viewModel: ViewBase): SnackbarHostState {
                 }
             }
         }
-        viewModel.pushSimpleState(null)
+        vmBase.pushSimpleState(null)
     }
     return snackbarHostState
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T : BaseDoc<*>> pullRefreshState(viewModel: ViewList<*, T, *, *>): PullRefreshState {
+fun <T : BaseDoc<*>> pullRefreshState(vmList: VMList<*, T, *, *>): PullRefreshState {
     return rememberPullRefreshState(
-        refreshing = viewModel.refreshingList.value,
+        refreshing = vmList.refreshingList.value,
         onRefresh = {
-            viewModel.requestRefresh = true
+            vmList.requestRefresh = true
         }
     )
 }

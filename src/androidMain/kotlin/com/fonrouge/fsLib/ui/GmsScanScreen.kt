@@ -7,23 +7,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.fonrouge.fsLib.viewModel.ViewModelCamera
+import com.fonrouge.fsLib.viewModel.VMCamera
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun GmsScanScreen(
-    viewModelCamera: ViewModelCamera = viewModel(),
+    vmCamera: VMCamera = viewModel(),
     context: Context = LocalContext.current,
     onFailure: (Exception) -> Unit = {},
     onCanceled: () -> Unit = {},
     onReadBarcode: (CodeEntry) -> Unit = {},
     content: @Composable () -> Unit = {},
 ) {
-    if (viewModelCamera.uiState.collectAsState().value.scannerOpen) {
+    if (vmCamera.uiState.collectAsState().value.scannerOpen) {
         val scanner = GmsBarcodeScanning
-            .getClient(context, viewModelCamera.gmsBarcodeScannerOptions)
+            .getClient(context, vmCamera.gmsBarcodeScannerOptions)
         scanner.startScan()
             .addOnSuccessListener { barcode: Barcode ->
                 onReadBarcode(
@@ -33,7 +33,7 @@ fun GmsScanScreen(
                         code = barcode.rawValue
                     )
                 )
-                viewModelCamera.onEvent(ViewModelCamera.UIEvent.CodeRead(barcode.rawValue))
+                vmCamera.onEvent(VMCamera.UIEvent.CodeRead(barcode.rawValue))
             }
             .addOnCanceledListener {
                 onCanceled()
@@ -42,7 +42,7 @@ fun GmsScanScreen(
                 onFailure(exception)
             }
             .addOnCompleteListener {
-                viewModelCamera.onEvent(ViewModelCamera.UIEvent.Close)
+                vmCamera.onEvent(VMCamera.UIEvent.Close)
             }
     } else {
         content()

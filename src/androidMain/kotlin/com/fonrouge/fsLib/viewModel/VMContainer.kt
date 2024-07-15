@@ -4,8 +4,8 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 
-abstract class ViewContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
-    ViewBase() {
+abstract class VMContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
+    VMBase() {
     abstract val commonContainer: CC
     abstract var apiFilter: FILT
     fun apiFilterBuilder(): FILT = commonContainer.apiFilterInstance()

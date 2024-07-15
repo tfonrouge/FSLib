@@ -9,11 +9,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fonrouge.fsLib.viewModel.ConfirmAlert
-import com.fonrouge.fsLib.viewModel.ViewBase
+import com.fonrouge.fsLib.viewModel.VMBase
 
 @Suppress("unused")
 @Composable
-fun ScreenConfirmAlert(viewBase: ViewBase) {
+fun ScreenConfirmAlert(viewBase: VMBase) {
     viewBase.confirmAlert.collectAsStateWithLifecycle().value?.let { confirmAlert: ConfirmAlert ->
         AlertDialog(
             onDismissRequest = confirmAlert.onDismissRequest,

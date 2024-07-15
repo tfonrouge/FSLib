@@ -2,24 +2,24 @@ package com.fonrouge.fsLib.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.fonrouge.fsLib.viewModel.ViewList
+import com.fonrouge.fsLib.viewModel.VMList
 import kotlinx.coroutines.delay
 
 @Suppress("unused")
 @Composable
 fun PeriodicUpdateList(
-    viewModel: ViewList<*, *, *, *>,
+    vmList: VMList<*, *, *, *>,
     periodicUpdate: Boolean? = null,
     periodicInterval: Int? = null,
 ) {
-    periodicUpdate?.let { viewModel.periodicUpdate = it }
-    periodicInterval?.let { viewModel.periodicInterval = it }
-    LaunchedEffect(key1 = viewModel.refreshListCounter) {
-        delay(viewModel.periodicInterval.toLong())
-        if (viewModel.periodicUpdate) {
-            ++viewModel.refreshListCounter
+    periodicUpdate?.let { vmList.periodicUpdate = it }
+    periodicInterval?.let { vmList.periodicInterval = it }
+    LaunchedEffect(key1 = vmList.refreshListCounter) {
+        delay(vmList.periodicInterval.toLong())
+        if (vmList.periodicUpdate) {
+            ++vmList.refreshListCounter
         }
 //        Log.d("LaunchedEffect", "${viewModel.refreshListCounter}")
-        viewModel.requestRefresh = true
+        vmList.requestRefresh = true
     }
 }

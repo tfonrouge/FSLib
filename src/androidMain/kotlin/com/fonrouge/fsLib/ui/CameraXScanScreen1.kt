@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fonrouge.fsLib.R
-import com.fonrouge.fsLib.viewModel.ViewModelCamera
+import com.fonrouge.fsLib.viewModel.VMCamera
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -47,21 +47,21 @@ import com.google.mlkit.vision.barcode.common.Barcode
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraXCoreReaderScreen1(
-    viewModelCamera: ViewModelCamera = viewModel(),
+    vmCamera: VMCamera = viewModel(),
     onReadBarcode: (CodeEntry) -> Unit = {},
     onFilter: ((Barcode) -> Boolean)? = null,
     content: @Composable () -> Unit
 ) {
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     if (cameraPermissionState.status.isGranted) {
-        if (viewModelCamera.uiState.collectAsState().value.scannerOpen) {
+        if (vmCamera.uiState.collectAsState().value.scannerOpen) {
             MainContent(
-                viewModelCamera = viewModelCamera,
+                vmCamera = vmCamera,
                 onReadBarcode = onReadBarcode,
                 onFilter = onFilter,
             )
         } else {
-            viewModelCamera.barcodeCamera.value.toggleFlash(false)
+            vmCamera.barcodeCamera.value.toggleFlash(false)
             content()
         }
     } else {
@@ -72,7 +72,7 @@ fun CameraXCoreReaderScreen1(
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
 @Composable
 private fun MainContent(
-    viewModelCamera: ViewModelCamera,
+    vmCamera: VMCamera,
     onReadBarcode: (CodeEntry) -> Unit = {},
 
     onFilter: ((Barcode) -> Boolean)? = null,
@@ -124,8 +124,8 @@ private fun MainContent(
                         )
                     }
             ) {
-                viewModelCamera.barcodeCamera.value.CameraPreview(
-                    viewModelCamera,
+                vmCamera.barcodeCamera.value.CameraPreview(
+                    vmCamera,
                     onReadBarcode,
                     onFilter
                 )
@@ -161,15 +161,15 @@ private fun MainContent(
             }
         }
     }
-    CameraScreen1(viewModelCamera = viewModelCamera, onReadBarcode = onReadBarcode)
-    viewModelCamera.barcodeCamera.value.toggleFlash(viewModelCamera.torchState.value)
+    CameraScreen1(vmCamera = vmCamera, onReadBarcode = onReadBarcode)
+    vmCamera.barcodeCamera.value.toggleFlash(vmCamera.torchState.value)
 }
 
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
 @Preview
 @Composable
 fun CameraScreen1(
-    viewModelCamera: ViewModelCamera = viewModel(),
+    vmCamera: VMCamera = viewModel(),
     onReadBarcode: (CodeEntry) -> Unit = {}
 ) {
     val focusManager = LocalFocusManager.current
@@ -178,11 +178,11 @@ fun CameraScreen1(
         onReadBarcode(
             CodeEntry(
                 source = CodeEntry.Type.Keyboard,
-                code = viewModelCamera.manualEntry.value
+                code = vmCamera.manualEntry.value
             )
         )
-        viewModelCamera.onEvent(ViewModelCamera.UIEvent.ManualEntry)
-        viewModelCamera.onEvent(ViewModelCamera.UIEvent.Close)
+        vmCamera.onEvent(VMCamera.UIEvent.ManualEntry)
+        vmCamera.onEvent(VMCamera.UIEvent.Close)
         focusManager.clearFocus()
     }
     Column(
@@ -202,10 +202,10 @@ fun CameraScreen1(
             ) {
                 IconButton(
                     onClick = {
-                        viewModelCamera.torchState.value = false
-                        viewModelCamera.barcodeCamera.value.toggleFlash(false)
-                        Log.d("TORCH 2", viewModelCamera.barcodeCamera.value.torchState.toString())
-                        viewModelCamera.onEvent(ViewModelCamera.UIEvent.Close)
+                        vmCamera.torchState.value = false
+                        vmCamera.barcodeCamera.value.toggleFlash(false)
+                        Log.d("TORCH 2", vmCamera.barcodeCamera.value.torchState.toString())
+                        vmCamera.onEvent(VMCamera.UIEvent.Close)
                     }
                 ) {
                     Icon(
@@ -221,15 +221,15 @@ fun CameraScreen1(
                 )
                 IconButton(
                     onClick = {
-                        viewModelCamera.torchState.value = !viewModelCamera.torchState.value
-                        viewModelCamera.barcodeCamera.value.toggleFlash(viewModelCamera.torchState.value)
-                        Log.d("TORCH", viewModelCamera.barcodeCamera.value.torchState.toString())
+                        vmCamera.torchState.value = !vmCamera.torchState.value
+                        vmCamera.barcodeCamera.value.toggleFlash(vmCamera.torchState.value)
+                        Log.d("TORCH", vmCamera.barcodeCamera.value.torchState.toString())
                     }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_torch),
                         contentDescription = null,
-                        tint = if (viewModelCamera.torchState.value) Color.Yellow else Color.White
+                        tint = if (vmCamera.torchState.value) Color.Yellow else Color.White
                     )
                 }
             }
@@ -240,9 +240,9 @@ fun CameraScreen1(
             var showTextField by remember { mutableStateOf(false) }
             if (showTextField) {
                 TextField(
-                    value = viewModelCamera.manualEntry.value,
+                    value = vmCamera.manualEntry.value,
                     onValueChange = {
-                        viewModelCamera.manualEntry.value = it
+                        vmCamera.manualEntry.value = it
                     },
                     modifier = Modifier
                         .focusRequester(focusRequester),
@@ -257,13 +257,13 @@ fun CameraScreen1(
                         }
                     ),
                     trailingIcon = {
-                        if (viewModelCamera.manualEntry.value.isNotEmpty()) {
+                        if (vmCamera.manualEntry.value.isNotEmpty()) {
                             Row {
                                 Icon(
                                     imageVector = Icons.Default.Clear,
                                     contentDescription = null,
                                     modifier = Modifier.clickable {
-                                        viewModelCamera.manualEntry.value = ""
+                                        vmCamera.manualEntry.value = ""
                                     }
                                 )
                                 Icon(
