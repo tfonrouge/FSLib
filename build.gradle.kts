@@ -23,7 +23,7 @@ repositories {
 val kvisionVersion: String by System.getProperties()
 val serializationVersion: String by project
 val exposedVersion: String by project
-val ktor_version: String by project
+val ktorAndroidVersion: String by project
 val kmongoVersion: String by project
 val kotlinxDatetimeVersion: String by project
 val commonsCodecVersion: String by project
@@ -67,26 +67,26 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(kotlin("reflect"))
-                api("io.ktor:ktor-client-core:${ktor_version}")
-                api("io.ktor:ktor-client-cio:${ktor_version}")
-                api("io.ktor:ktor-client-auth:${ktor_version}")
-                api("io.ktor:ktor-client-content-negotiation:${ktor_version}")
-                api("io.ktor:ktor-client-encoding:$ktor_version")
-                api("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-                api("io.ktor:ktor-client-serialization:${ktor_version}")
-                api("io.ktor:ktor-server-auth:$ktor_version")
-                api("io.ktor:ktor-server-auth-jwt:$ktor_version")
-                api("io.ktor:ktor-server-call-logging:$ktor_version")
-                api("io.ktor:ktor-server-compression:$ktor_version")
-                api("io.ktor:ktor-server-core:$ktor_version")
-                api("io.ktor:ktor-server-default-headers:$ktor_version")
-                api("io.ktor:ktor-server-netty:$ktor_version")
-                api("io.ktor:ktor-server-sessions:$ktor_version")
-                api("io.ktor:ktor-network-tls-certificates:$ktor_version")
-                api("io.ktor:ktor-server-auto-head-response:$ktor_version")
-                api("io.ktor:ktor-server-http-redirect:$ktor_version")
-                api("io.ktor:ktor-server-partial-content:$ktor_version")
-                api("io.ktor:ktor-server-content-negotiation:$ktor_version")
+                api("io.ktor:ktor-client-core:${ktorAndroidVersion}")
+                api("io.ktor:ktor-client-cio:${ktorAndroidVersion}")
+                api("io.ktor:ktor-client-auth:${ktorAndroidVersion}")
+                api("io.ktor:ktor-client-content-negotiation:${ktorAndroidVersion}")
+                api("io.ktor:ktor-client-encoding:$ktorAndroidVersion")
+                api("io.ktor:ktor-serialization-kotlinx-json:$ktorAndroidVersion")
+                api("io.ktor:ktor-client-serialization:${ktorAndroidVersion}")
+                api("io.ktor:ktor-server-auth:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-auth-jwt:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-call-logging:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-compression:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-core:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-default-headers:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-netty:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-sessions:$ktorAndroidVersion")
+                api("io.ktor:ktor-network-tls-certificates:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-auto-head-response:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-http-redirect:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-partial-content:$ktorAndroidVersion")
+                api("io.ktor:ktor-server-content-negotiation:$ktorAndroidVersion")
                 api("ch.qos.logback:logback-classic:$logbackVersion")
                 api("org.litote.kmongo:kmongo-coroutine-serialization:$kmongoVersion")
                 api("org.litote.kmongo:kmongo-id-serialization:$kmongoVersion")
@@ -175,14 +175,14 @@ android {
         /* multi-button floating action button */
         api("com.github.iamageo:MultiFab:1.0.6")
 
-        implementation("io.ktor:ktor-client-cio:$ktor_version")
-        implementation("io.ktor:ktor-client-okhttp:$ktor_version")
-        implementation("io.ktor:ktor-client-android:$ktor_version")
-        implementation("io.ktor:ktor-client-auth:$ktor_version")
-        implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
-        implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-        implementation("io.ktor:ktor-client-serialization:$ktor_version")
-        implementation("io.ktor:ktor-client-logging:$ktor_version")
+        implementation("io.ktor:ktor-client-cio:$ktorAndroidVersion")
+        implementation("io.ktor:ktor-client-okhttp:$ktorAndroidVersion")
+        implementation("io.ktor:ktor-client-android:$ktorAndroidVersion")
+        implementation("io.ktor:ktor-client-auth:$ktorAndroidVersion")
+        implementation("io.ktor:ktor-client-content-negotiation:$ktorAndroidVersion")
+        implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorAndroidVersion")
+        implementation("io.ktor:ktor-client-serialization:$ktorAndroidVersion")
+        implementation("io.ktor:ktor-client-logging:$ktorAndroidVersion")
 
         testImplementation("junit:junit:4.13.2")
         androidTestImplementation("androidx.test.ext:junit:1.2.1")
