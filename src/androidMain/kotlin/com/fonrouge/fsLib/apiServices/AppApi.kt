@@ -5,20 +5,27 @@ import androidx.camera.core.ExperimentalGetImage
 import com.fonrouge.fsLib.model.base.IUser
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.cookies.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.call.body
+import io.ktor.client.engine.android.Android
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.get
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.http.parameters
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -29,7 +36,7 @@ object AppApi {
     var appRoute: String = "appRoute"
     var userAgent: String = "AppAndroid"
     var serializedIUser: String? = null
-    var engine: Engine? = Engine.Android
+    var engine: Engine? = null  // uses engine default
     var delayBeforeRequest: Int = 0
     private var _httpClient: HttpClient? = null
 
