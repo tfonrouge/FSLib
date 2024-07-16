@@ -10,7 +10,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
-import java.util.*
+import java.util.Base64
 import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -41,7 +41,9 @@ suspend fun <T : BaseDoc<*>> fixToObjectId(
 
                             else -> {
                                 try {
-                                    ObjectId(Base64.getUrlDecoder().decode(document.getString(fieldName)))
+                                    ObjectId(
+                                        Base64.getUrlDecoder().decode(document.getString(fieldName))
+                                    )
                                 } catch (e: Exception) {
                                     e.printStackTrace()
                                     null

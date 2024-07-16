@@ -12,7 +12,11 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
-import io.kvision.core.*
+import io.kvision.core.AlignContent
+import io.kvision.core.AlignItems
+import io.kvision.core.Container
+import io.kvision.core.FlexDirection
+import io.kvision.core.JustifyContent
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
 import io.kvision.html.ButtonStyle
@@ -101,7 +105,8 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             )
             if (it.isOk) {
                 Toast.info(
-                    message = if (it.noDataModified == true) "No data was modified ..." else it.msgOk ?: "info...",
+                    message = if (it.noDataModified == true) "No data was modified ..." else it.msgOk
+                        ?: "info...",
                     options = toastOptions
                 )
             } else {
@@ -150,9 +155,13 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         if (confirmCancel && formPanel != null) {
             try {
                 val s1 = formPanelGetData()?.let {
-                    Json.encodeToString(configView.commonContainer.itemSerializer, transformData(it))
+                    Json.encodeToString(
+                        configView.commonContainer.itemSerializer,
+                        transformData(it)
+                    )
                 }
-                val s2 = item?.let { Json.encodeToString(configView.commonContainer.itemSerializer, it) }
+                val s2 =
+                    item?.let { Json.encodeToString(configView.commonContainer.itemSerializer, it) }
                 if (s1 != s2) {
                     proceedClose = confirm("Cancel and forget current changes ?")
                 }
@@ -192,20 +201,32 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             marginTop = 1.em
             if (urlParams?.actionUpsert == true) {
                 buttonBack =
-                    button(text = "Back", icon = "fas fa-reply", style = ButtonStyle.OUTLINEPRIMARY) {
+                    button(
+                        text = "Back",
+                        icon = "fas fa-reply",
+                        style = ButtonStyle.OUTLINEPRIMARY
+                    ) {
                         hide()
                         onClick {
                             backCloseAction()
                         }
                     }
                 buttonCancel =
-                    button(text = "Cancel", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
+                    button(
+                        text = "Cancel",
+                        icon = "fas fa-xmark",
+                        style = ButtonStyle.OUTLINEDANGER
+                    ) {
                         onClick {
                             backCloseAction(confirmCancel = true)
                         }
                     }
                 buttonAccept =
-                    button(text = "Accept", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
+                    button(
+                        text = "Accept",
+                        icon = "fas fa-check",
+                        style = ButtonStyle.OUTLINESUCCESS
+                    ) {
                         onClick {
                             acceptUpsertAction()
                         }
@@ -285,7 +306,8 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                     )
                                 }
                                 @Suppress("UNUSED_VARIABLE")
-                                val url = (configView.url + urlParams.toEncodedUrlString()).asDynamic()
+                                val url =
+                                    (configView.url + urlParams.toEncodedUrlString()).asDynamic()
 
                                 @Suppress("UNUSED_VARIABLE")
                                 val stateObj =
@@ -336,7 +358,8 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                     }
                                 }
                                 Toast.warning(
-                                    message = itemResponse.msgError ?: "$crudAction1 action denied ...",
+                                    message = itemResponse.msgError
+                                        ?: "$crudAction1 action denied ...",
                                     options = toastOptions
                                 )
                             }
@@ -369,7 +392,10 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * @return A SimpleState object indicating the validation result.
      */
     open fun formPanelValidate(data: T?): SimpleState =
-        SimpleState(isOk = data != null, msgError = "${configView.commonContainer.labelItem} is null")
+        SimpleState(
+            isOk = data != null,
+            msgError = "${configView.commonContainer.labelItem} is null"
+        )
 
     /**
      * Called when the [ItemState] value changes

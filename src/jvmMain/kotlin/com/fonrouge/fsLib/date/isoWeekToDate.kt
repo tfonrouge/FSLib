@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.date
 
 import java.time.LocalDate
 import java.time.temporal.WeekFields
-import java.util.*
+import java.util.Date
 
 /**
  * builds an [Date] object from ISO8601 week pattern YYYY-Www, resulting date will be start on monday

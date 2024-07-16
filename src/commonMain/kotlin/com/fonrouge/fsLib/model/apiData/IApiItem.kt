@@ -22,7 +22,8 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
         abstract val serializedId: String?
 
         @Serializable
-        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Query<T, ID, FILT>() {
+        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
+            Query<T, ID, FILT>() {
             @Serializable
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val serializedId: String? = null,
@@ -32,7 +33,10 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
                     return ApiItem.Query.Upsert.Create(
                         id = serializedId?.let { Json.decodeFromString(cc.idSerializer, it) },
-                        apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
+                        apiFilter = Json.decodeFromString(
+                            cc.apiFilterSerializer,
+                            serializedApiFilter
+                        )
                     )
                 }
             }
@@ -46,7 +50,10 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
                     return ApiItem.Query.Upsert.Update(
                         id = Json.decodeFromString(cc.idSerializer, serializedId),
-                        apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
+                        apiFilter = Json.decodeFromString(
+                            cc.apiFilterSerializer,
+                            serializedApiFilter
+                        )
                     )
                 }
             }
@@ -87,7 +94,8 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
         abstract val serializedItem: String
 
         @Serializable
-        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Action<T, ID, FILT>() {
+        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
+            Action<T, ID, FILT>() {
 
             @Serializable
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
@@ -98,7 +106,10 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
                     return ApiItem.Action.Upsert.Create(
                         item = Json.decodeFromString(cc.itemSerializer, serializedItem),
-                        apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
+                        apiFilter = Json.decodeFromString(
+                            cc.apiFilterSerializer,
+                            serializedApiFilter
+                        )
                     )
                 }
             }
@@ -112,7 +123,10 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
                     return ApiItem.Action.Upsert.Update(
                         item = Json.decodeFromString(cc.itemSerializer, serializedItem),
-                        apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
+                        apiFilter = Json.decodeFromString(
+                            cc.apiFilterSerializer,
+                            serializedApiFilter
+                        )
                     )
                 }
             }

@@ -10,5 +10,7 @@ actual val LocalDate.toISOWeek: String
             month = getMonth() + 1,
             dayOfMonth = getDate()
         )
-        return "${localDateJsJ.year()}-W${localDateJsJ.isoWeekOfWeekyear().toString().padStart(2, '0')}"
+        return "${localDateJsJ.year()}-W${
+            localDateJsJ.isoWeekOfWeekyear().toString().padStart(2, '0')
+        }"
     }

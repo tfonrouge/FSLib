@@ -59,7 +59,10 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         val appRole = appRoleColl.coroutineColl.findOne(
             IAppRole::classOwner eq classOwner,
             IAppRole::funcName eq funcName
-        ) ?: return SimpleState(isOk = false, msgError = "App role doesn't exist '$classOwner::$funcName' ... ")
+        ) ?: return SimpleState(
+            isOk = false,
+            msgError = "App role doesn't exist '$classOwner::$funcName' ... "
+        )
         val groupPermissionType: PermissionType? = getGroupPermission(user, appRole)
         val userPermissionType: PermissionType? = coroutineColl.find(
             filter = and(
@@ -97,7 +100,11 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
                 match(IGroupRole<*, GOU>::appRoleId eq appRole._id)
             )
         )
-        pipeline += IUserGroup<U, UID, *, *>::groupRoles.unwind(UnwindOptions().preserveNullAndEmptyArrays(false))
+        pipeline += IUserGroup<U, UID, *, *>::groupRoles.unwind(
+            UnwindOptions().preserveNullAndEmptyArrays(
+                false
+            )
+        )
         pipeline += replaceRoot(IUserGroup<U, UID, *, *>::groupRoles)
         val groupRoleList = userGroupColl.coroutineColl.aggregate<GroupRole>(
             pipeline = pipeline

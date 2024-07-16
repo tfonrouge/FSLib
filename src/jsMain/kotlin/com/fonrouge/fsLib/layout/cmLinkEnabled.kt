@@ -14,7 +14,14 @@ fun ContextMenu.cmLinkEnabled(
     init: (Link.() -> Unit)? = null,
 ): Link {
     return if (enabled) {
-        cmLink(label = label, url = url, icon = icon, image = image, className = className, init = init)
+        cmLink(
+            label = label,
+            url = url,
+            icon = icon,
+            image = image,
+            className = className,
+            init = init
+        )
     } else {
         cmLinkDisabled(label, icon, image, className, init)
     }

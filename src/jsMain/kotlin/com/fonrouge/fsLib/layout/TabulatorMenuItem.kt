@@ -16,7 +16,8 @@ class TabulatorMenuItem(
     var url: String? = null,
     var action: ((e: Event, c: dynamic) -> Unit),
 ) {
-    var label = if (!header) "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>" else label
+    var label =
+        if (!header) "<li>&ensp;${icon?.let { "<i class ='$it'></i>" } ?: ""}&ensp;$label</li>" else label
 }
 
 fun MutableList<TabulatorMenuItem>.menuItem(

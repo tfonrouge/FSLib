@@ -57,7 +57,10 @@ inline fun <reified T : IPeriodicTaskService> Application.installPeriodicTaskSer
                         funcsForTimeUnit
                     )
 
-                    TimeUnit.Hour -> if (previousTime.hour != now.hour) funcsToCall.addAll(funcsForTimeUnit)
+                    TimeUnit.Hour -> if (previousTime.hour != now.hour) funcsToCall.addAll(
+                        funcsForTimeUnit
+                    )
+
                     TimeUnit.Day -> if (previousTime.dayOfYear != now.dayOfYear) funcsToCall.addAll(
                         funcsForTimeUnit
                     )
@@ -66,7 +69,9 @@ inline fun <reified T : IPeriodicTaskService> Application.installPeriodicTaskSer
                         funcsForTimeUnit
                     )
 
-                    TimeUnit.Year -> if (previousTime.year != now.year) funcsToCall.addAll(funcsForTimeUnit)
+                    TimeUnit.Year -> if (previousTime.year != now.year) funcsToCall.addAll(
+                        funcsForTimeUnit
+                    )
                 }
             }
             previousTime = now

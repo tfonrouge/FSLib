@@ -54,7 +54,10 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     }
 
     @Suppress("unused")
-    fun navigateTo(apiFilter: FILT = commonContainer.apiFilterInstance(), target: String = "_blank"): Window? {
+    fun navigateTo(
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        target: String = "_blank"
+    ): Window? {
         return window.open(
             url = viewListUrl(apiFilter),
             target = target

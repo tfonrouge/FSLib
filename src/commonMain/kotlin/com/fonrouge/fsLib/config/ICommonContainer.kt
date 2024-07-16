@@ -160,7 +160,9 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     }
 }
 
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FILT>.toIApiItem(apiItem: ApiItem<T, ID, FILT>): IApiItem<T, ID, FILT> =
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FILT>.toIApiItem(
+    apiItem: ApiItem<T, ID, FILT>
+): IApiItem<T, ID, FILT> =
     when (apiItem) {
         is ApiItem.Query.Upsert.Create -> IApiItem.Query.Upsert.Create(
             serializedId = apiItem.id?.let { Json.encodeToString(idSerializer, it) },

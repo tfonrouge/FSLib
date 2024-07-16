@@ -210,10 +210,11 @@ abstract class SqlDatabase(
     }
 
     private fun getDecodeMap(klass: KClass<*>, metaData: ResultSetMetaData): DecodeMap {
-        val decodeMap = mutableMap[klass] ?: DecodeMap(klass.memberProperties.toList(), mutableMapOf()).also {
-            mutableMap[klass] = it
-            it.setFieldListAttributes()
-        }
+        val decodeMap =
+            mutableMap[klass] ?: DecodeMap(klass.memberProperties.toList(), mutableMapOf()).also {
+                mutableMap[klass] = it
+                it.setFieldListAttributes()
+            }
         for (i in 1..metaData.columnCount) {
             val sqlName = metaData.getColumnName(i).uppercase()
             if (!decodeMap.stringIntMap.containsKey(sqlName)) {
@@ -317,7 +318,8 @@ abstract class SqlDatabase(
                     values += when (it) {
                         is String -> "'$it'"
                         is OffsetDateTime -> "'${
-                            it.toLocalDateTime().format(DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT))
+                            it.toLocalDateTime()
+                                .format(DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT))
                         }'"
 
                         else -> it.toString()

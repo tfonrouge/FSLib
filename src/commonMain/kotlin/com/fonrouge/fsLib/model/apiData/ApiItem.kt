@@ -49,7 +49,8 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             }
         }
 
-        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Query<T, ID, FILT>() {
+        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
+            Query<T, ID, FILT>() {
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val id: ID? = null,
                 override val apiFilter: FILT
@@ -84,7 +85,8 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
         override val callType: CallType = CallType.Action
         abstract val item: T
 
-        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Action<T, ID, FILT>() {
+        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
+            Action<T, ID, FILT>() {
 
             data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val item: T,

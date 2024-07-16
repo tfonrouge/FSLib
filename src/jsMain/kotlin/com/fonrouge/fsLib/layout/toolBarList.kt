@@ -53,7 +53,9 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                             show()
                             enableTooltip(
                                 TooltipOptions(
-                                    title = "Detail of " + configViewItem.commonContainer.labelIdFunc(item),
+                                    title = "Detail of " + configViewItem.commonContainer.labelIdFunc(
+                                        item
+                                    ),
                                     animation = true,
                                     delay = delay
                                 )
@@ -66,7 +68,12 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
         nav {
             viewList.configViewItem?.let { configViewItem ->
                 if (viewList.editable()) {
-                    dropDown(text = "Edit", icon = "far fa-file", forNavbar = true, arrowVisible = false) {
+                    dropDown(
+                        text = "Edit",
+                        icon = "far fa-file",
+                        forNavbar = true,
+                        arrowVisible = false
+                    ) {
                         ddLink(
                             label = "Create",
                             icon = iconCrud(CrudTask.Create),
@@ -99,7 +106,9 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                     show()
                                     enableTooltip(
                                         TooltipOptions(
-                                            title = "Update " + configViewItem.commonContainer.labelIdFunc(item),
+                                            title = "Update " + configViewItem.commonContainer.labelIdFunc(
+                                                item
+                                            ),
                                             animation = true,
                                             delay = delay
                                         )
@@ -124,7 +133,9 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                     show()
                                     enableTooltip(
                                         TooltipOptions(
-                                            title = "Delete " + configViewItem.commonContainer.labelIdFunc(item),
+                                            title = "Delete " + configViewItem.commonContainer.labelIdFunc(
+                                                item
+                                            ),
                                             animation = true,
                                             delay = delay
                                         )
@@ -148,7 +159,10 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print").onClick {
                 viewList.outPrint()
             }
-            navLink(label = if (minToolbarSize) "" else "Export", icon = "fas fa-file-export").onClick {
+            navLink(
+                label = if (minToolbarSize) "" else "Export",
+                icon = "fas fa-file-export"
+            ).onClick {
                 viewList.outToFile()
             }
         }

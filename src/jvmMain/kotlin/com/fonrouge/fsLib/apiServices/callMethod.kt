@@ -1,11 +1,17 @@
 package com.fonrouge.fsLib.apiServices
 
-import io.ktor.http.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.request.receive
+import io.ktor.server.response.respondText
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import kotlin.reflect.*
+import kotlin.reflect.KSuspendFunction1
+import kotlin.reflect.KSuspendFunction2
+import kotlin.reflect.KSuspendFunction3
+import kotlin.reflect.KSuspendFunction4
+import kotlin.reflect.KSuspendFunction5
+import kotlin.reflect.KSuspendFunction6
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.functions
 
@@ -31,7 +37,11 @@ suspend inline fun <API : IApiService> respond1(
 
     val serRet = Json.serializersModule.serializer(func.returnType)
     val ser = Json.encodeToString(serRet, ret)
-    api.call.respondText(text = ser, contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
+    api.call.respondText(
+        text = ser,
+        contentType = ContentType.Application.Json,
+        status = HttpStatusCode.OK
+    )
 }
 
 suspend inline fun <API : IApiService> respond2(
@@ -47,7 +57,11 @@ suspend inline fun <API : IApiService> respond2(
 
     val serRet = Json.serializersModule.serializer(func.returnType)
     val ser = Json.encodeToString(serRet, ret)
-    api.call.respondText(text = ser, contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
+    api.call.respondText(
+        text = ser,
+        contentType = ContentType.Application.Json,
+        status = HttpStatusCode.OK
+    )
 }
 
 suspend inline fun <API : IApiService> respond3(
@@ -66,7 +80,11 @@ suspend inline fun <API : IApiService> respond3(
 
     val serRet = Json.serializersModule.serializer(func.returnType)
     val ser = Json.encodeToString(serRet, ret)
-    api.call.respondText(text = ser, contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
+    api.call.respondText(
+        text = ser,
+        contentType = ContentType.Application.Json,
+        status = HttpStatusCode.OK
+    )
 }
 
 suspend inline fun <API : IApiService> respond4(
@@ -88,7 +106,11 @@ suspend inline fun <API : IApiService> respond4(
 
     val serRet = Json.serializersModule.serializer(func.returnType)
     val ser = Json.encodeToString(serRet, ret)
-    api.call.respondText(text = ser, contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
+    api.call.respondText(
+        text = ser,
+        contentType = ContentType.Application.Json,
+        status = HttpStatusCode.OK
+    )
 }
 
 suspend inline fun <API : IApiService> respond5(
@@ -113,7 +135,11 @@ suspend inline fun <API : IApiService> respond5(
 
     val serRet = Json.serializersModule.serializer(func.returnType)
     val ser = Json.encodeToString(serRet, ret)
-    api.call.respondText(text = ser, contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
+    api.call.respondText(
+        text = ser,
+        contentType = ContentType.Application.Json,
+        status = HttpStatusCode.OK
+    )
 }
 
 suspend inline fun <API : IApiService> respond6(
@@ -141,5 +167,9 @@ suspend inline fun <API : IApiService> respond6(
 
     val serRet = Json.serializersModule.serializer(func.returnType)
     val ser = Json.encodeToString(serRet, ret)
-    api.call.respondText(text = ser, contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
+    api.call.respondText(
+        text = ser,
+        contentType = ContentType.Application.Json,
+        status = HttpStatusCode.OK
+    )
 }

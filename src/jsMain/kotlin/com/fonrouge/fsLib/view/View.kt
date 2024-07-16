@@ -6,8 +6,17 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.IApiFilter
-import io.kvision.core.*
-import io.kvision.html.*
+import io.kvision.core.AlignItems
+import io.kvision.core.BsBgColor
+import io.kvision.core.Container
+import io.kvision.core.Cursor
+import io.kvision.core.Widget
+import io.kvision.core.onClick
+import io.kvision.html.Button
+import io.kvision.html.ButtonStyle
+import io.kvision.html.Link
+import io.kvision.html.button
+import io.kvision.html.link
 import io.kvision.navbar.Navbar
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
@@ -62,7 +71,9 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * or programmatically, and it's delivered to the backend
      */
     val apiFilterObservable: ObservableValue<FILT> by lazy {
-        ObservableValue(apiFilterInstance(apiFilterFromUrl) ?: configView.commonContainer.apiFilterInstance())
+        ObservableValue(
+            apiFilterInstance(apiFilterFromUrl) ?: configView.commonContainer.apiFilterInstance()
+        )
     }
     var apiFilter: FILT
         get() {
@@ -164,20 +175,32 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *, *, *>) {
                     if (urlParams?.actionUpsert == true) {
-                        navButtonBack = button(text = " ", icon = "fas fa-reply", style = ButtonStyle.OUTLINEPRIMARY) {
+                        navButtonBack = button(
+                            text = " ",
+                            icon = "fas fa-reply",
+                            style = ButtonStyle.OUTLINEPRIMARY
+                        ) {
                             hide()
                             onClick {
                                 this@View.backCloseAction()
                             }
                         }
-                        navButtonCancel = button(text = " ", icon = "fas fa-xmark", style = ButtonStyle.OUTLINEDANGER) {
+                        navButtonCancel = button(
+                            text = " ",
+                            icon = "fas fa-xmark",
+                            style = ButtonStyle.OUTLINEDANGER
+                        ) {
                             fontSize = 0.5.em
                             onClick {
                                 this@View.backCloseAction(confirmCancel = true)
                             }
                         }
                         navButtonAccept =
-                            button(text = " ", icon = "fas fa-check", style = ButtonStyle.OUTLINESUCCESS) {
+                            button(
+                                text = " ",
+                                icon = "fas fa-check",
+                                style = ButtonStyle.OUTLINESUCCESS
+                            ) {
                                 fontSize = 0.5.em
                                 marginLeft = 5.px
                                 onClick {

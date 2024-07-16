@@ -46,7 +46,8 @@ import kotlin.reflect.full.memberProperties
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> buildColl(
     commonContainer: CC,
     debug: Boolean = false
-): Coll<CC, T, ID, FILT> = object : Coll<CC, T, ID, FILT>(commonContainer = commonContainer, debug = debug) {}
+): Coll<CC, T, ID, FILT> =
+    object : Coll<CC, T, ID, FILT>(commonContainer = commonContainer, debug = debug) {}
 
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
@@ -72,7 +73,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
     open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
     open fun childCollections(): List<KClass<out Coll<*, *, *, *>>> = listOf()
-    val mongoColl: MongoCollection<T> = mongoDatabase.getCollection(collectionName, commonContainer.itemKClass.java)
+    val mongoColl: MongoCollection<T> =
+        mongoDatabase.getCollection(collectionName, commonContainer.itemKClass.java)
 
     val coroutineColl: CoroutineCollection<T> = mongoColl.coroutine
 
@@ -100,7 +102,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        listFirstStage?.preLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
+        listFirstStage?.preLookupMatch?.let {
+            if (Document.parse(it.json).size > 0) pipeline.add(
+                match(it)
+            )
+        }
         listFirstStage?.preLookupSort?.let { pipeline.add(sort(it)) }
         buildPipeline(
             pipeline = pipeline,
@@ -109,12 +115,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             apiFilter = apiFilter
         )
         postProcessPipeline?.let { it(pipeline) }
-        listFirstStage?.postLookupMatch?.let { if (Document.parse(it.json).size > 0) pipeline.add(match(it)) }
+        listFirstStage?.postLookupMatch?.let {
+            if (Document.parse(it.json).size > 0) pipeline.add(
+                match(it)
+            )
+        }
         listFirstStage?.postLookupSort?.let { pipeline.add(sort(it)) }
         listFirstStage?.let {
             val pageCountInfo: PageCountInfo = when (countType) {
-                CountType.PreLookup -> PageCountInfo(match = listFirstStage.preLookupMatch, countType = countType)
-                CountType.PostLookup -> PageCountInfo(pipeline = pipeline + Aggregates.count(), countType = countType)
+                CountType.PreLookup -> PageCountInfo(
+                    match = listFirstStage.preLookupMatch,
+                    countType = countType
+                )
+
+                CountType.PostLookup -> PageCountInfo(
+                    pipeline = pipeline + Aggregates.count(),
+                    countType = countType
+                )
+
                 CountType.Estimated -> PageCountInfo(countType = countType)
                 CountType.Unknown -> PageCountInfo(countType = countType)
             }
@@ -572,23 +590,30 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter?.let {
             val result = mutableListOf<Bson>()
             filter.forEach { remoteFilter ->
-                val value: BsonValue? = when (findFieldType(commonContainer.itemKClass, remoteFilter.field)) {
-                    Array<String>::class, String::class, StringId::class, null -> {
-                        when (remoteFilter.type) {
-                            "like" -> BsonDocument(
-                                "\$regex",
-                                BsonString(remoteFilter.value)
-                            ).append("\$options", BsonString("i"))
+                val value: BsonValue? =
+                    when (findFieldType(commonContainer.itemKClass, remoteFilter.field)) {
+                        Array<String>::class, String::class, StringId::class, null -> {
+                            when (remoteFilter.type) {
+                                "like" -> BsonDocument(
+                                    "\$regex",
+                                    BsonString(remoteFilter.value)
+                                ).append("\$options", BsonString("i"))
 
-                            else -> BsonString(remoteFilter.value)
+                                else -> BsonString(remoteFilter.value)
+                            }
                         }
-                    }
 
-                    Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()?.let { BsonInt32(it) }
-                    Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()?.let { BsonInt64(it) }
-                    Double::class -> remoteFilter.value?.toDoubleOrNull()?.let { BsonDouble(it) }
-                    else -> null
-                }
+                        Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()
+                            ?.let { BsonInt32(it) }
+
+                        Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()
+                            ?.let { BsonInt64(it) }
+
+                        Double::class -> remoteFilter.value?.toDoubleOrNull()
+                            ?.let { BsonDouble(it) }
+
+                        else -> null
+                    }
                 value?.let {
                     result.add(BsonDocument(remoteFilter.field, value))
                 }
@@ -641,7 +666,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The [ApiItem] to be deleted.
      * @return A [SimpleState] indicating the result of the operation.
      */
-    open suspend fun onBeforeDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
+    open suspend fun onBeforeDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>): SimpleState =
+        SimpleState(isOk = true)
 
     /**
      * Executes before upserting an [ApiItem], and vetoes if [SimpleState] response [State] is not [State.Ok]
@@ -649,7 +675,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem the API item being upserted.
      * @return a SimpleState object indicating the success or failure of the operation.
      */
-    open suspend fun onBeforeUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
+    open suspend fun onBeforeUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>): SimpleState =
+        SimpleState(isOk = true)
 
     /**
      * Allows to build a custom pipeline to be added to the [buildPipeline] in the db engine call

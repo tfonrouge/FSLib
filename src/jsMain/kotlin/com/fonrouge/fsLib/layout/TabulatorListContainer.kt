@@ -6,7 +6,12 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
-import io.kvision.remote.*
+import io.kvision.remote.CallAgent
+import io.kvision.remote.HttpMethod
+import io.kvision.remote.JsonRpcRequest
+import io.kvision.remote.RemoteFilter
+import io.kvision.remote.RemoteSerialization
+import io.kvision.remote.RemoteSorter
 import io.kvision.tabulator.TableType
 import io.kvision.tabulator.Tabulator
 import io.kvision.tabulator.TabulatorOptions
@@ -14,12 +19,16 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.utils.Serialization
 import kotlinx.browser.window
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
+import kotlinx.serialization.serializer
 import org.w3c.dom.get
 import org.w3c.fetch.RequestInit
 import kotlin.js.Promise
@@ -54,7 +63,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
     private val callAgent: CallAgent
 
     override val jsonHelper = if (serializer != null) Json(
-        from = (RemoteSerialization.customConfiguration ?: Serialization.customConfiguration ?: Json {
+        from = (RemoteSerialization.customConfiguration ?: Serialization.customConfiguration
+        ?: Json {
             ignoreUnknownKeys = true
             isLenient = true
         })
@@ -170,7 +180,10 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
             val page: Int = params.page as? Int ?: 1
             val size: Int = params.size as? Int ?: 50
             val filters = if (params.filter != null) {
-                Json.decodeFromString(ListSerializer(RemoteFilter::class.serializer()), JSON.stringify(params.filter))
+                Json.decodeFromString(
+                    ListSerializer(RemoteFilter::class.serializer()),
+                    JSON.stringify(params.filter)
+                )
             } else {
                 null
             }

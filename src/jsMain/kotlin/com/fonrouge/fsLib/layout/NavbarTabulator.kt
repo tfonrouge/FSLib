@@ -43,7 +43,17 @@ fun Container.navbarTabulator(
     className: String? = null,
     init: (NavbarTabulator.() -> Unit)? = null,
 ): NavbarTabulator {
-    val navbar = NavbarTabulator(label, link, type, expand, nColor, bgColor, collapseOnClick, className, init)
+    val navbar = NavbarTabulator(
+        label,
+        link,
+        type,
+        expand,
+        nColor,
+        bgColor,
+        collapseOnClick,
+        className,
+        init
+    )
     this.add(navbar)
     return navbar
 }

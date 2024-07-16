@@ -93,14 +93,16 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
         val pipeline = mutableListOf<Bson>()
         if (pip2.isEmpty()) {
             pipeline += lookup(
-                from = collMap[collKClass]?.mongoColl?.namespace?.collectionName ?: throw Exception(),
+                from = collMap[collKClass]?.mongoColl?.namespace?.collectionName
+                    ?: throw Exception(),
                 localField = localField,
                 foreignField = foreignField,
                 resultField = resultProperty,
             )
         } else {
             pipeline += lookup5(
-                from = collMap[collKClass]?.mongoColl?.namespace?.collectionName ?: throw Exception(),
+                from = collMap[collKClass]?.mongoColl?.namespace?.collectionName
+                    ?: throw Exception(),
                 localField = localField,
                 foreignField = foreignField,
                 let = let,

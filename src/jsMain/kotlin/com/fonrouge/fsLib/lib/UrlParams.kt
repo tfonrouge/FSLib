@@ -43,7 +43,8 @@ data class UrlParams(
      */
     @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
-    inline fun <reified T : Any> pullUrlParam(key: String): T? = pullUrlParam(T::class.serializer(), key)
+    inline fun <reified T : Any> pullUrlParam(key: String): T? =
+        pullUrlParam(T::class.serializer(), key)
 
     /**
      * Gets an object [T] from the url parameters with the [key] value

@@ -13,7 +13,12 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
 import io.kvision.panel.vPanel
-import io.kvision.tabulator.*
+import io.kvision.tabulator.FilterMode
+import io.kvision.tabulator.Layout
+import io.kvision.tabulator.PaginationMode
+import io.kvision.tabulator.SortMode
+import io.kvision.tabulator.TableType
+import io.kvision.tabulator.TabulatorOptions
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
@@ -38,7 +43,8 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
     val paginationSize = tabulatorOptions.paginationSize ?: 50
     val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100)
-    val persistenceID = tabulatorOptions.persistenceID ?: viewList.configView.commonContainer.itemKClass.simpleName
+    val persistenceID =
+        tabulatorOptions.persistenceID ?: viewList.configView.commonContainer.itemKClass.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
     val selectableRows = tabulatorOptions.selectableRows ?: 1
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
@@ -88,13 +94,19 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
 inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
     viewList: ViewList<CC, T, ID, FILT, MID>,
     options: TabulatorOptions<T> = TabulatorOptions(),
-    types: Set<TableType> = setOf(TableType.STRIPED, TableType.BORDERED, TableType.HOVER, TableType.SMALL),
+    types: Set<TableType> = setOf(
+        TableType.STRIPED,
+        TableType.BORDERED,
+        TableType.HOVER,
+        TableType.SMALL
+    ),
     minToolbarSize: Boolean = true,
     noinline init: (TabulatorListContainer<T, ID, FILT, MID>.() -> Unit)? = null
 ): ViewList<CC, T, ID, FILT, MID> {
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
-        val urlParams = if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
+        val urlParams =
+            if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
         val apiList: ApiList<FILT> = ApiList(apiFilter = viewList.apiFilter)
         apiList.params = JSON.stringify(urlParams?.params)
         apiList

@@ -3,7 +3,11 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.apiServices.IApiService
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.toEncodedUrlString
-import com.fonrouge.fsLib.model.apiData.*
+import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CallType
+import com.fonrouge.fsLib.model.apiData.CrudTask
+import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
@@ -143,10 +147,27 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             }
 
             CallType.Action -> when (crudTask) {
-                CrudTask.Create -> item?.let { commonContainer.iApiItemActionCreate(item, apiFilter) }
+                CrudTask.Create -> item?.let {
+                    commonContainer.iApiItemActionCreate(
+                        item,
+                        apiFilter
+                    )
+                }
+
                 CrudTask.Read -> null
-                CrudTask.Update -> item?.let { commonContainer.iApiItemActionUpdate(item, apiFilter) }
-                CrudTask.Delete -> item?.let { commonContainer.iApiItemActionDelete(item, apiFilter) }
+                CrudTask.Update -> item?.let {
+                    commonContainer.iApiItemActionUpdate(
+                        item,
+                        apiFilter
+                    )
+                }
+
+                CrudTask.Delete -> item?.let {
+                    commonContainer.iApiItemActionDelete(
+                        item,
+                        apiFilter
+                    )
+                }
             }
         } ?: return
         val paramList = listOf(
@@ -166,40 +187,41 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                 params = paramList
             )
         )
-        callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
-            val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-            if (r.error != null) {
-                console.error("Server error:", r.error)
-                Toast.danger(
-                    message = "Server error ${r.error}",
-                    options = ToastOptions(
-                        position = ToastPosition.BOTTOMRIGHT,
-                        escapeHtml = true,
-                        duration = 10000,
-                        stopOnFocus = true,
-                        newWindow = true
+        callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
+            .then { r: dynamic ->
+                val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+                if (r.error != null) {
+                    console.error("Server error:", r.error)
+                    Toast.danger(
+                        message = "Server error ${r.error}",
+                        options = ToastOptions(
+                            position = ToastPosition.BOTTOMRIGHT,
+                            escapeHtml = true,
+                            duration = 10000,
+                            stopOnFocus = true,
+                            newWindow = true
+                        )
                     )
-                )
-            }
-            try {
-                val itemResponse: ItemState<T> =
-                    Json.decodeFromDynamic(
-                        ItemState.serializer(commonContainer.itemSerializer),
-                        result
+                }
+                try {
+                    val itemResponse: ItemState<T> =
+                        Json.decodeFromDynamic(
+                            ItemState.serializer(commonContainer.itemSerializer),
+                            result
+                        )
+                    block(itemResponse)
+                } catch (e: Exception) {
+                    console.error(
+                        "Error decoding KClass",
+                        commonContainer.itemSerializer,
+                        "with serialized value",
+                        result,
+                        "exception:",
+                        e
                     )
-                block(itemResponse)
-            } catch (e: Exception) {
-                console.error(
-                    "Error decoding KClass",
-                    commonContainer.itemSerializer,
-                    "with serialized value",
-                    result,
-                    "exception:",
-                    e
-                )
-                e.printStackTrace()
+                    e.printStackTrace()
+                }
             }
-        }
     }
 
     init {

@@ -41,7 +41,8 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
      * matching by name
      */
-    var configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = configViewItem
+    var configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? =
+        configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewKClass.simpleName!!
@@ -67,7 +68,8 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /* dynamic content only used to get _id */
     var overItem: Any? = null
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
-    var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
+    var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? =
+        null
         set(value) {
             apiFilter.masterItemId = value?.item?._id
             editable = { value?.urlParams?.actionUpsert == true }

@@ -13,7 +13,10 @@ import kotlin.js.Date
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor
-        get() = PrimitiveSerialDescriptor("OffsetDateTime frontEnd Serializer", PrimitiveKind.STRING)
+        get() = PrimitiveSerialDescriptor(
+            "OffsetDateTime frontEnd Serializer",
+            PrimitiveKind.STRING
+        )
 
     override fun deserialize(decoder: Decoder): OffsetDateTime {
         return Date(decoder.decodeString())
