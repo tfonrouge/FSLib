@@ -2,11 +2,16 @@ package com.fonrouge.fsLib.apiServices
 
 import android.util.Log
 import androidx.camera.core.ExperimentalGetImage
-import io.ktor.client.call.*
-import io.ktor.client.network.sockets.*
-import io.ktor.client.plugins.*
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.call.body
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ConnectTimeoutException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.concurrent.TimeoutException
