@@ -429,6 +429,27 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     )
 
     /**
+     * Inserts a single item into the database on a Query state
+     *
+     * @param apiItem the API item representing the request to upsert the item
+     * @param item the item to be inserted
+     * @param overrideValidation flag indicating whether to override validation rules
+     * @return the [ItemState] representing the state of the operation
+     */
+    @Suppress("unused")
+    suspend fun insertOne(
+        apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>,
+        item: T,
+        overrideValidation: Boolean = false
+    ): ItemState<T> {
+        val itemState = insertOne(
+            apiItem = ApiItem.Action.Upsert.Create(item, apiItem.apiFilter),
+            overrideValidation = overrideValidation
+        )
+        return itemState.copy(itemAlreadyOn = true)
+    }
+
+    /**
      * Inserts a single item into the database.
      *
      * @param apiItem The API item containing the item to be inserted.

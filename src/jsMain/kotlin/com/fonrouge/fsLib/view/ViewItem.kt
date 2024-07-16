@@ -294,9 +294,9 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             },
                             apiFilter = apiFilter
                         ) { itemResponse ->
-                            if (crudAction == CrudTask.Create && itemResponse.itemAlreadyOn) {
+                            if (crudAction == CrudTask.Create && itemResponse.item != null && itemResponse.itemAlreadyOn) {
                                 urlParams?.params?.set("action", CrudTask.Update.name)
-                                itemResponse.item?._id?.let {
+                                itemResponse.item._id.let {
                                     urlParams?.params?.set(
                                         propertyName = "id",
                                         value = Json.encodeToString(
@@ -311,7 +311,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
                                 @Suppress("UNUSED_VARIABLE")
                                 val stateObj =
-                                    "{${itemResponse::class.simpleName}: \"${itemResponse.item?._id}\"}".asDynamic()
+                                    "{${itemResponse::class.simpleName}: \"${itemResponse.item._id}\"}".asDynamic()
                                 js("""history.replaceState(stateObj,"createToUpdate",url)""")
                             }
                             var alreadyBack = false
