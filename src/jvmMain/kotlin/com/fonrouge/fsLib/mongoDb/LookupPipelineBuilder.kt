@@ -2,19 +2,17 @@ package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.mongoDb.Coll.Companion.collMap
 import com.mongodb.client.model.UnwindOptions
 import com.mongodb.client.model.Variable
 import org.bson.conversions.Bson
 import org.litote.kmongo.limit
 import org.litote.kmongo.unwind
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
-    collKClass: KClass<out Coll<out ICommonContainer<U, ID, *>, U, ID, *>>,
+    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     let: List<Variable<out Any>>? = null,
@@ -24,7 +22,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     preserveNullAndEmptyArrays: Boolean = true,
 ): LookupPipelineBuilder<T, U, ID> {
     return object : LookupPipelineBuilder<T, U, ID>(
-        collKClass = collKClass,
+        coll = coll,
         localField = localField,
         foreignField = foreignField,
         let = let,
@@ -38,7 +36,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
 
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
-    collKClass: KClass<out Coll<out ICommonContainer<U, ID, *>, out U, ID, *>>,
+    coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     let: List<Variable<out Any>>? = null,
@@ -48,7 +46,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     limit: Int? = null,
 ): LookupPipelineBuilder<T, U, ID> {
     return object : LookupPipelineBuilder<T, U, ID>(
-        collKClass = collKClass,
+        coll = coll,
         localField = localField,
         foreignField = foreignField,
         let = let,
@@ -61,7 +59,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
 }
 
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
-    private val collKClass: KClass<out Coll<out ICommonContainer<U, ID, *>, out U, ID, *>>,
+    private val coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
     private val localField: KProperty<*>,
     private val foreignField: KProperty<*>,
     private val let: List<Variable<out Any>>? = null,
@@ -80,29 +78,25 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     ): List<Bson> {
         val pip2 = mutableListOf<Bson>()
         this.pipeline?.let { bsonList -> pip2 += bsonList }
-        collMap[collKClass]?.let { coll ->
-            coll.buildPipeline(
-                pipeline = mutableListOf(),
-                lookups = lookup?.lookupWrappers ?: emptyList(),
-                resultUnit = resultUnit,
-            ).let { it ->
-                pip2 += it
-                limit?.let { pip2 += limit(it) }
-            }
+        coll.buildPipeline(
+            pipeline = mutableListOf(),
+            lookups = lookup?.lookupWrappers ?: emptyList(),
+            resultUnit = resultUnit,
+        ).let { it ->
+            pip2 += it
+            limit?.let { pip2 += limit(it) }
         }
         val pipeline = mutableListOf<Bson>()
         if (pip2.isEmpty()) {
             pipeline += lookup(
-                from = collMap[collKClass]?.mongoColl?.namespace?.collectionName
-                    ?: throw Exception(),
+                from = coll.mongoColl.namespace.collectionName,
                 localField = localField,
                 foreignField = foreignField,
                 resultField = resultProperty,
             )
         } else {
             pipeline += lookup5(
-                from = collMap[collKClass]?.mongoColl?.namespace?.collectionName
-                    ?: throw Exception(),
+                from = coll.mongoColl.namespace.collectionName,
                 localField = localField,
                 foreignField = foreignField,
                 let = let,

@@ -34,20 +34,22 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import java.util.*
-import kotlin.reflect.KClass
-import kotlin.reflect.KClassifier
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.KProperty1
+import kotlin.jvm.internal.PropertyReference1Impl
+import kotlin.reflect.*
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
+
+internal val collSet = mutableSetOf<Coll<*, *, *, *>>()
 
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> buildColl(
     commonContainer: CC,
     debug: Boolean = false
-): Coll<CC, T, ID, FILT> =
-    object : Coll<CC, T, ID, FILT>(commonContainer = commonContainer, debug = debug) {}
+): Coll<CC, T, ID, FILT> = object : Coll<CC, T, ID, FILT>(
+    commonContainer = commonContainer,
+    debug = debug
+) {}
 
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
@@ -55,7 +57,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 ) {
     companion object {
         var globalDebug = false
-        internal val collMap = mutableMapOf<KClass<*>, Coll<*, *, *, *>>()
         fun collectionName(klass: KClass<out BaseDoc<*>>): String =
             klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
     }
@@ -72,7 +73,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): List<KProperty1<in T, *>>? = null
 
     open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
-    open fun childCollections(): List<KClass<out Coll<*, *, *, *>>> = listOf()
+
     val mongoColl: MongoCollection<T> =
         mongoDatabase.getCollection(collectionName, commonContainer.itemKClass.java)
 
@@ -263,11 +264,56 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return bson
     }
 
+    private var childColls: List<Pair<KProperty1<*, ID>, Coll<*, *, *, *>>>? = null
+        get() {
+            if (field == null) {
+                val list = mutableListOf<Pair<KProperty1<*, ID>, Coll<*, *, *, *>>>()
+                commonContainer.children?.invoke()?.forEach { kProperty1: KProperty1<*, ID> ->
+                    val kProperty1Owner = (kProperty1 as PropertyReference1Impl).owner
+                    collSet.find { coll ->
+                        if (coll.commonContainer.itemKClass == kProperty1Owner) {
+                            coll.commonContainer.itemKClass.memberProperties.any { it == kProperty1 }
+                        } else {
+                            false
+                        }
+                    }?.let { coll ->
+                        list.add(kProperty1 to coll)
+                    }
+                }
+                field = list
+            }
+            return field
+        }
+
     /**
-     * Deletes one item from the API
+     * Finds the children that are not associated with the given ID.
      *
-     * @param apiItem The API item to be deleted
-     * @return The state of the delete operation
+     * @param id The ID of the item to check for children.
+     * @return An instance of ItemState indicating the status of the operation. If any children are found, the returned ItemState will have isOk set to false and msgError will contain
+     *  the error message. If no children are found, the returned ItemState will have isOk set to true.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun findChildrenNot(id: ID): ItemState<T> {
+        childColls?.forEach { pair ->
+            val item = pair.second.findOne(filter = pair.first eq id)
+            if (item != null) {
+                return ItemState(
+                    isOk = false,
+                    msgError = "'${commonContainer.labelItem}' has '${pair.second.commonContainer.labelList}' children"
+                )
+            }
+        }
+        return ItemState(isOk = true)
+    }
+
+    /**
+     * Deletes a single item from the database based on the provided filter.
+     *
+     * @param apiItem The API item representing the action to perform the delete operation.
+     * @param filter An optional filter to apply to the delete operation.
+     *
+     * @return The state of the delete operation. It contains information about whether the operation was successful or not,
+     * as well as any error message in case of failure.
      */
     @Suppress("unused")
     suspend fun deleteOne(
@@ -275,6 +321,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
     ): ItemState<T> {
         return try {
+            val itemState = findChildrenNot(apiItem.item._id)
+            if (!itemState.isOk) return itemState
             onBeforeDelete(apiItem).also {
                 if (!it.isOk) return ItemState(it)
             }
@@ -762,7 +810,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
     init {
         @Suppress("LeakingThis")
-        collMap[this::class] = this
+        collSet.add(this)
         CoroutineScope(Dispatchers.IO).launch {
             with(coroutineColl) {
                 ensureIndexes()

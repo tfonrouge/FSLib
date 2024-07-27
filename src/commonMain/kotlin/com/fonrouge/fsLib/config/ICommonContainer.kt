@@ -10,6 +10,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 
 abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val itemKClass: KClass<T>,
@@ -24,6 +25,8 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
 ) {
     @OptIn(InternalSerializationApi::class)
     val itemSerializer get() = itemKClass.serializer()
+
+    open val children: (() -> List<KProperty1<*, ID>>)? = null
 
     /* ApiItem */
     @Suppress("unused")
