@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "3.2.6"
+version = "3.2.7"
 
 repositories {
     google()
@@ -146,8 +146,8 @@ android {
     }
     dependencies {
         implementation("androidx.core:core-ktx:1.13.1")
-        implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
-        implementation("androidx.activity:activity-compose:1.9.0")
+        implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+        implementation("androidx.activity:activity-compose:1.9.1")
         implementation(platform("androidx.compose:compose-bom:2024.06.00"))
         implementation("androidx.compose.ui:ui")
         implementation("androidx.compose.ui:ui-graphics")
@@ -156,11 +156,11 @@ android {
         implementation("androidx.compose.material:material-icons-extended")
         implementation("androidx.navigation:navigation-compose:2.7.7")
 
-        implementation("androidx.paging:paging-compose:3.3.0")
+        implementation("androidx.paging:paging-compose:3.3.1")
         /* scanner service provided by Google Play */
         implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
-        implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
-        api("androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
+        implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
+        api("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
 
         implementation("androidx.camera:camera-camera2:1.4.0-beta02")
         implementation("androidx.camera:camera-lifecycle:1.4.0-beta02")
@@ -190,7 +190,7 @@ android {
         androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
         androidTestImplementation("androidx.compose.ui:ui-test-junit4")
         debugImplementation("androidx.compose.ui:ui-tooling")
-        debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.0-beta05")
+        debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.0-beta06")
     }
     /*
         buildTypes {
