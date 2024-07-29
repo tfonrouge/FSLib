@@ -552,7 +552,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         countType: CountType = CountType.PreLookup,
         debug: Boolean? = this.debug,
-        postProcessList: ((List<T>) -> Unit)? = null,
+        postProcessList: (suspend (List<T>) -> List<T>)? = null,
     ): ListState<T> {
         var pageCountInfo: PageCountInfo? = null
         val publisher = aggregateLookupPublisher(
@@ -587,8 +587,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (debug ?: globalDebug) {
             println("Class: ${commonContainer.itemKClass.simpleName} ('$collectionName'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
         }
-        postProcessList?.let { it(list) }
-        val data = Json.encodeToString(ListSerializer(commonContainer.itemSerializer), list)
+        val data = Json.encodeToString(
+            serializer = ListSerializer(elementSerializer = commonContainer.itemSerializer),
+            value = postProcessList?.let { it(list) } ?: list
+        )
         return ListState(
             data = data,
             last_page = pageCountInfo?.lastPage,
@@ -610,7 +612,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean? = this.debug,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        postProcessList: ((List<T>) -> Unit)? = null
+        postProcessList: (suspend (List<T>) -> List<T>)? = null
     ): ListState<T> {
         return listContainer(
             listFirstStage = listFirstStage(
