@@ -286,19 +286,22 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
 
     /**
-     * Finds the children that are not associated with the given ID.
+     * Finds the children not belonging to the specified ID in the given child collections.
      *
-     * @param id The ID of the item to check for children.
-     * @return An instance of ItemState indicating the status of the operation. If any children are found, the returned ItemState will have isOk set to false and msgError will contain
-     *  the error message. If no children are found, the returned ItemState will have isOk set to true.
+     * @param id The ID to search for children not belonging to.
+     * @param kProps The list of child collections (optional). If not provided, it uses the default child collections.
+     * @return An [ItemState] indicating if any children not belonging to the ID are found.
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun findChildrenNot(id: ID): ItemState<T> {
-        childColls?.forEach { pair ->
+    suspend fun findChildrenNot(
+        id: ID,
+        kProps: List<KProperty1<*, ID>>? = childColls?.map { it.first }
+    ): ItemState<T> {
+        kProps?.mapNotNull { kProps1 -> childColls?.find { kProps1 == it.first } }?.forEach { pair ->
             val item = pair.second.findOne(filter = pair.first eq id)
             if (item != null) {
                 return ItemState(
-                    isOk = false,
+                    state = State.Warn,
                     msgError = "'${commonContainer.labelItem}' has '${pair.second.commonContainer.labelList}' children"
                 )
             }
@@ -321,10 +324,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
     ): ItemState<T> {
         return try {
-            val itemState = findChildrenNot(apiItem.item._id)
-            if (!itemState.isOk) return itemState
             onBeforeDelete(apiItem).also {
-                if (!it.isOk) return ItemState(it)
+                if (!it.isOk) return it
             }
             val result = coroutineColl.deleteOne(
                 and(
@@ -518,7 +519,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         checkDontPersist(item)
         return try {
             onBeforeUpsert(apiItem).also {
-                if (!it.isOk) return ItemState(it)
+                if (!it.isOk) return it
             }
             val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
             val result = insertOneResult.insertedId != null
@@ -732,13 +733,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun onAfterUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>) = Unit
 
     /**
-     * Executes before deleting an [ApiItem], and vetoes if [SimpleState] response [State] is not [State.Ok]
+     * Performs the "onBeforeDelete" operation. By default, returns the result of [findChildrenNot]
+     * Please have in mind that if you override this function make a proper (if needed) call to [findChildrenNot]
      *
-     * @param apiItem The [ApiItem] to be deleted.
-     * @return A [SimpleState] indicating the result of the operation.
+     * @param apiItem The [ApiItem.Action.Delete] object representing the delete action.
+     * @return An [ItemState] object containing the state of the item.
+     * @see ApiItem.Action.Delete
+     * @see ItemState
      */
-    open suspend fun onBeforeDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>): SimpleState =
-        SimpleState(isOk = true)
+    open suspend fun onBeforeDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> =
+        findChildrenNot(apiItem.item._id)
 
     /**
      * Executes before upserting an [ApiItem], and vetoes if [SimpleState] response [State] is not [State.Ok]
@@ -746,8 +750,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem the API item being upserted.
      * @return a SimpleState object indicating the success or failure of the operation.
      */
-    open suspend fun onBeforeUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>): SimpleState =
-        SimpleState(isOk = true)
+    open suspend fun onBeforeUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>): ItemState<T> =
+        ItemState(isOk = true)
 
     /**
      * Allows to build a custom pipeline to be added to the [buildPipeline] in the db engine call
@@ -775,7 +779,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         val item = apiItem.item
         onBeforeUpsert(apiItem).also {
-            if (!it.isOk) return ItemState(it)
+            if (!it.isOk) return it
         }
         commonContainer.validateItem(item = item, apiFilter = apiItem.apiFilter).also { itemState ->
             if (!itemState.isOk) return itemState

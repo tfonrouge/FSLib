@@ -9,29 +9,35 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.mongoDb.Coll
 
 /**
- * Process API operations for an item using default query and action functions.
+ * Processes the API item using the provided functions for query and action operations.
  *
- * @param CC the type of the common container implementing [ICommonContainer]
- * @param T the type of the base document implementing [BaseDoc]
- * @param ID the type of the ID property in the base document
- * @param FILT the type of the API filter extending [IApiFilter]
- * @param coll the collection containing the items
- * @param queryCreate the query function for creating an item (optional, default function returns success)
- * @param queryRead the query function for reading an item (optional, default function reads item by ID)
- * @param queryUpdate the query function for updating an item (optional, default function updates item by ID)
- * @param queryDelete the query function for deleting an item (optional, default function deletes item by ID)
- * @param actionCreate the action function for creating an item (optional, default function inserts item into collection)
- * @param actionUpdate the action function for updating an item (optional, default function updates item in collection)
- * @param actionDelete the action function for deleting an item (optional, default function deletes item from collection)
- * @return the state of the item after the API operation
+ * @param CC the type of the common container
+ * @param T the type of the item document
+ * @param ID the type of the item identifier
+ * @param FILT the type of the API filter
+ * @param coll the collection instance
+ * @param queryCreate the function to create a new item with the provided query
+ * @param queryRead the function to read an existing item with the provided query
+ * @param queryUpdate the function to update an existing item with the provided query
+ * @param queryDelete the function to delete an existing item with the provided query
+ * @param actionCreate the function to create a new item with the provided action
+ * @param actionUpdate the function to update an existing item with the provided action
+ * @param actionDelete the function to delete an existing item with the provided action
+ * @return the state of the processed item
  */
 @Suppress("unused")
 suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> IApiItem<T, ID, FILT>.defaultApiProcess(
     coll: Coll<CC, T, ID, FILT>,
     queryCreate: suspend (ApiItem.Query.Upsert.Create<T, ID, FILT>) -> ItemState<T> = { ItemState(isOk = true) },
-    queryRead: suspend (ApiItem.Query.Read<T, ID, FILT>) -> ItemState<T> = { coll.findItemStateById(it.id) },
-    queryUpdate: suspend (ApiItem.Query.Upsert.Update<T, ID, FILT>) -> ItemState<T> = { coll.findItemStateById(it.id) },
-    queryDelete: suspend (ApiItem.Query.Delete<T, ID, FILT>) -> ItemState<T> = { coll.findItemStateById(it.id) },
+    queryRead: suspend (ApiItem.Query.Read<T, ID, FILT>, ItemState<T>) -> ItemState<T> = { _, itemState ->
+        itemState
+    },
+    queryUpdate: suspend (ApiItem.Query.Upsert.Update<T, ID, FILT>, ItemState<T>) -> ItemState<T> = { _, itemState ->
+        itemState
+    },
+    queryDelete: suspend (ApiItem.Query.Delete<T, ID, FILT>, ItemState<T>) -> ItemState<T> = { _, itemState ->
+        itemState.item?.let { coll.findChildrenNot(it._id) } ?: itemState
+    },
     actionCreate: suspend (ApiItem.Action.Upsert.Create<T, ID, FILT>) -> ItemState<T> = { coll.insertOne(it) },
     actionUpdate: suspend (ApiItem.Action.Upsert.Update<T, ID, FILT>) -> ItemState<T> = { coll.updateOne(it) },
     actionDelete: suspend (ApiItem.Action.Delete<T, ID, FILT>) -> ItemState<T> = { coll.deleteOne(it) },
@@ -39,10 +45,9 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     return when (val apiItem = asApiItem(coll.commonContainer)) {
         is ApiItem.Query -> when (apiItem) {
             is ApiItem.Query.Upsert.Create -> queryCreate(apiItem)
-
-            is ApiItem.Query.Read -> queryRead(apiItem)
-            is ApiItem.Query.Upsert.Update -> queryUpdate(apiItem)
-            is ApiItem.Query.Delete -> queryDelete(apiItem)
+            is ApiItem.Query.Read -> queryRead(apiItem, coll.findItemState(apiItem))
+            is ApiItem.Query.Upsert.Update -> queryUpdate(apiItem, coll.findItemState(apiItem))
+            is ApiItem.Query.Delete -> queryDelete(apiItem, coll.findItemState(apiItem))
         }
 
         is ApiItem.Action -> when (apiItem) {
