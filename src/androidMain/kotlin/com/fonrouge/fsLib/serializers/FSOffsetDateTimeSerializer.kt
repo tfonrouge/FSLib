@@ -13,10 +13,10 @@ import java.time.format.DateTimeFormatter
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
-    override val descriptor: SerialDescriptor
+    actual override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("OffsetDateTime backEnd Serializer", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): OffsetDateTime {
+    actual override fun deserialize(decoder: Decoder): OffsetDateTime {
         return run {
             val decoded = decoder.decodeString()
             if (decoded.contains('T')) {
@@ -29,7 +29,7 @@ actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
         }
     }
 
-    override fun serialize(encoder: Encoder, value: OffsetDateTime) {
+    actual override fun serialize(encoder: Encoder, value: OffsetDateTime) {
         encoder.encodeString(value.toString())
     }
 }

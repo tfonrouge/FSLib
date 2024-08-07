@@ -12,10 +12,10 @@ import org.bson.BsonType
 
 @Suppress("unused", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSNumberInt32Serializer : KSerializer<Int> {
-    override val descriptor: SerialDescriptor =
+    actual override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Number as Int Serializer", PrimitiveKind.DOUBLE)
 
-    override fun deserialize(decoder: Decoder): Int {
+    actual override fun deserialize(decoder: Decoder): Int {
         return if (decoder is BsonFlexibleDecoder) {
             when (decoder.reader.currentBsonType) {
                 BsonType.INT32 -> decoder.decodeInt()
@@ -30,7 +30,7 @@ actual object FSNumberInt32Serializer : KSerializer<Int> {
         }
     }
 
-    override fun serialize(encoder: Encoder, value: Int) {
+    actual override fun serialize(encoder: Encoder, value: Int) {
         return encoder.encodeInt(value = value)
     }
 }

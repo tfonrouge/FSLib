@@ -10,15 +10,15 @@ import java.time.LocalDate
 
 @Suppress("unused", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSLocalDateSerializer : KSerializer<LocalDate> {
-    override fun deserialize(decoder: Decoder): LocalDate {
+    actual override fun deserialize(decoder: Decoder): LocalDate {
         val decoded = decoder.decodeString()
         return LocalDate.parse(decoded.substring(0..9))
     }
 
-    override val descriptor: SerialDescriptor
+    actual override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("LocalDate backEnd Serializer", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: LocalDate) {
+    actual override fun serialize(encoder: Encoder, value: LocalDate) {
         encoder.encodeString(value.toString())
     }
 }

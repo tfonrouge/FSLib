@@ -9,14 +9,14 @@ import kotlinx.serialization.encoding.Encoder
 
 @Suppress("unused", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSNumberInt32Serializer : KSerializer<Int> {
-    override val descriptor: SerialDescriptor =
+    actual override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Number as Int Serializer", PrimitiveKind.DOUBLE)
 
-    override fun deserialize(decoder: Decoder): Int {
+    actual override fun deserialize(decoder: Decoder): Int {
         return decoder.decodeInt()
     }
 
-    override fun serialize(encoder: Encoder, value: Int) {
+    actual override fun serialize(encoder: Encoder, value: Int) {
         encoder.encodeInt(value = value)
     }
 }

@@ -9,15 +9,15 @@ import kotlinx.serialization.encoding.Encoder
 
 @Suppress("unused", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSNumberDoubleSerializer : KSerializer<Double> {
-    override val descriptor: SerialDescriptor =
+    actual override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Number as Double Serializer", PrimitiveKind.DOUBLE)
 
-    override fun deserialize(decoder: Decoder): Double {
+    actual override fun deserialize(decoder: Decoder): Double {
         return decoder.decodeDouble()
 
     }
 
-    override fun serialize(encoder: Encoder, value: Double) {
+    actual override fun serialize(encoder: Encoder, value: Double) {
         return encoder.encodeDouble(value = value)
     }
 }

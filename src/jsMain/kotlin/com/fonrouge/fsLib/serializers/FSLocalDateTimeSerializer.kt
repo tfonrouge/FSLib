@@ -12,14 +12,14 @@ import kotlinx.serialization.encoding.Encoder
 
 @Suppress("unused", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSLocalDateTimeSerializer : KSerializer<LocalDateTime> {
-    override fun deserialize(decoder: Decoder): LocalDateTime {
+    actual override fun deserialize(decoder: Decoder): LocalDateTime {
         return convert(LocalDate.parse(decoder.decodeString())).toDate()
     }
 
-    override val descriptor: SerialDescriptor
+    actual override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("LocalDateTime Js Serializer", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: LocalDateTime) {
+    actual override fun serialize(encoder: Encoder, value: LocalDateTime) {
         /* YYYY-MM-DD */
         encoder.encodeString(value.toISOString())
     }

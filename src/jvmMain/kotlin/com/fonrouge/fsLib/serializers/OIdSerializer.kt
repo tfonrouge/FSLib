@@ -16,7 +16,7 @@ const val EMPTY_OID = "000000000000000000000000"
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object OIdSerializer : KSerializer<OId<Any>> {
-    override fun deserialize(decoder: Decoder): OId<Any> {
+    actual override fun deserialize(decoder: Decoder): OId<Any> {
         return if (decoder is BsonFlexibleDecoder) {
             OId(id = decoder.reader.readObjectId().toHexString())
         } else {
@@ -24,10 +24,10 @@ actual object OIdSerializer : KSerializer<OId<Any>> {
         }
     }
 
-    override val descriptor: SerialDescriptor
+    actual override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("ObjectId MP Serializer", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: OId<Any>) {
+    actual override fun serialize(encoder: Encoder, value: OId<Any>) {
         if (encoder is BsonEncoder) {
             encoder.encodeObjectId(ObjectId(value.id))
         } else {

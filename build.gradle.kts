@@ -6,11 +6,12 @@ plugins {
     id("com.android.library") version "8.2.2"
     kotlin("multiplatform") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
+//    id("org.jetbrains.kotlin.plugin.compose") version kotlinVersion
     id("maven-publish")
 }
 
 group = "com.fonrouge.fsLib"
-version = "3.2.7"
+version = "4.0.0"
 
 repositories {
     google()
