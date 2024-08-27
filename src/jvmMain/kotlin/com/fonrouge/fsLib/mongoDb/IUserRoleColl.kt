@@ -92,7 +92,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         val pipeline = mutableListOf<Bson>()
         pipeline.add(0, match(IUserGroup<U, UID, *, *>::userId eq user._id))
         pipeline += lookup5(
-            from = groupRoleColl.collectionName,
+            from = groupRoleColl.commonContainer.itemKClass.collectionName,
             localField = IUserGroup<U, UID, *, *>::groupOfUserId,
             foreignField = IGroupRole<*, GOU>::groupOfUserId,
             resultField = IUserGroup<U, UID, *, *>::groupRoles,

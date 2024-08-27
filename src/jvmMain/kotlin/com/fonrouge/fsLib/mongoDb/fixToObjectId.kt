@@ -20,7 +20,7 @@ suspend fun <T : BaseDoc<*>> fixToObjectId(
     baseDocKClass: KClass<T>,
     fields: List<Pair<KProperty1<T, *>, ((Document) -> Unit)?>>,
 ): Boolean {
-    val collName = Coll.collectionName(baseDocKClass)
+    val collName = baseDocKClass.collectionName
     val newCollName = "${collName}_new"
     if (collName !in mongoDatabase.listCollectionNames().toList()) return false
     if (newCollName in mongoDatabase.listCollectionNames().toList()) return false

@@ -42,6 +42,7 @@ import kotlin.reflect.full.memberProperties
 
 internal val collSet = mutableSetOf<Coll<*, *, *, *>>()
 
+/*
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> buildColl(
     commonContainer: CC,
@@ -50,6 +51,10 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     commonContainer = commonContainer,
     debug = debug
 ) {}
+*/
+
+val KClass<out BaseDoc<*>>.collectionName: String
+    get() = this::class.findAnnotation<Collection>()?.name ?: this::class.simpleName ?: ""
 
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
@@ -57,11 +62,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 ) {
     companion object {
         var globalDebug = false
-        fun collectionName(klass: KClass<out BaseDoc<*>>): String =
-            klass.findAnnotation<Collection>()?.name ?: klass.simpleName!!
     }
-
-    val collectionName = collectionName(commonContainer.itemKClass)
 
     /**
      * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function
@@ -75,7 +76,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
 
     val mongoColl: MongoCollection<T> =
-        mongoDatabase.getCollection(collectionName, commonContainer.itemKClass.java)
+        mongoDatabase.getCollection(
+            commonContainer.itemKClass.collectionName,
+            commonContainer.itemKClass.java
+        )
 
     val coroutineColl: CoroutineCollection<T> = mongoColl.coroutine
 
@@ -146,7 +150,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
         }
         if (debug ?: globalDebug) {
-            println("Class: ${commonContainer.itemKClass.simpleName} ('$collectionName'), Aggregate pipeline:")
+            println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate pipeline:")
             println(pipeline.json)
         }
         return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
@@ -168,7 +172,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
         postProcessPipeline?.let { it(pipeline) }
         if (debug ?: globalDebug) {
-            println("Class: ${commonContainer.itemKClass.simpleName} ('$collectionName'), Aggregate pipeline:")
+            println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate pipeline:")
             println(pipeline.json)
         }
         return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
@@ -297,15 +301,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         id: ID,
         kProps: List<KProperty1<*, ID>>? = childColls?.map { it.first }
     ): ItemState<T> {
-        kProps?.mapNotNull { kProps1 -> childColls?.find { kProps1 == it.first } }?.forEach { pair ->
-            val item = pair.second.findOne(filter = pair.first eq id)
-            if (item != null) {
-                return ItemState(
-                    state = State.Warn,
-                    msgError = "'${commonContainer.labelItem}' has '${pair.second.commonContainer.labelList}' children"
-                )
+        kProps?.mapNotNull { kProps1 -> childColls?.find { kProps1 == it.first } }
+            ?.forEach { pair ->
+                val item = pair.second.findOne(filter = pair.first eq id)
+                if (item != null) {
+                    return ItemState(
+                        state = State.Warn,
+                        msgError = "'${commonContainer.labelItem}' has '${pair.second.commonContainer.labelList}' children"
+                    )
+                }
             }
-        }
         return ItemState(isOk = true)
     }
 
@@ -586,7 +591,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             joinAll(j1, j2)
         }
         if (debug ?: globalDebug) {
-            println("Class: ${commonContainer.itemKClass.simpleName} ('$collectionName'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
+            println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
         }
         val data = Json.encodeToString(
             serializer = ListSerializer(elementSerializer = commonContainer.itemSerializer),
