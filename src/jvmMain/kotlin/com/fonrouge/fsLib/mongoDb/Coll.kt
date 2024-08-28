@@ -42,19 +42,10 @@ import kotlin.reflect.full.memberProperties
 
 internal val collSet = mutableSetOf<Coll<*, *, *, *>>()
 
-/*
-@Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> buildColl(
-    commonContainer: CC,
-    debug: Boolean = false
-): Coll<CC, T, ID, FILT> = object : Coll<CC, T, ID, FILT>(
-    commonContainer = commonContainer,
-    debug = debug
-) {}
-*/
-
 val KClass<out BaseDoc<*>>.collectionName: String
-    get() = this::class.findAnnotation<Collection>()?.name ?: this::class.simpleName ?: ""
+    get() {
+        return findAnnotation<Collection>()?.name ?: simpleName ?: ""
+    }
 
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
