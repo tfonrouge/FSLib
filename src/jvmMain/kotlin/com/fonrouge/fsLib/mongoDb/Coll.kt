@@ -72,7 +72,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             commonContainer.itemKClass.java
         )
 
-    val coroutineColl: CoroutineCollection<T> = mongoColl.coroutine
+    val coroutine: CoroutineCollection<T> = mongoColl.coroutine
 
     /**
      * build an AggregatePublisher<T>.
@@ -216,7 +216,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 if (debug) {
                     println("BulkWrite ${writeModels.hashCode()} start with ${writeModels.size} items.")
                 }
-                val r = coroutineColl.bulkWrite(writeModels)
+                val r = coroutine.bulkWrite(writeModels)
                 if (debug) {
                     println("BulkWrite ${writeModels.hashCode()} result = ${r.insertedCount}")
                 }
@@ -323,7 +323,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             onBeforeDelete(apiItem).also {
                 if (!it.isOk) return it
             }
-            val result = coroutineColl.deleteOne(
+            val result = coroutine.deleteOne(
                 and(
                     BaseDoc<*>::_id eq apiItem.item._id,
                     filter ?: EMPTY_BSON
@@ -814,7 +814,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         @Suppress("LeakingThis")
         collSet.add(this)
         CoroutineScope(Dispatchers.IO).launch {
-            with(coroutineColl) {
+            with(coroutine) {
                 ensureIndexes()
             }
         }

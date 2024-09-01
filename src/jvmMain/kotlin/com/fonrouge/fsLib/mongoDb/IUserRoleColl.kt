@@ -21,7 +21,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
     commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<UR>.ensureIndexes() {
-        coroutineColl.ensureUniqueIndex(
+        coroutine.ensureUniqueIndex(
             IUserRole<U, UID>::userId, IUserRole<U, UID>::appRoleId
         )
     }
@@ -56,7 +56,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
     ): SimpleState {
         user ?: return SimpleState(isOk = false, msgError = "Empty user")
         if (rootUser(user = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
-        val appRole = appRoleColl.coroutineColl.findOne(
+        val appRole = appRoleColl.coroutine.findOne(
             IAppRole::classOwner eq classOwner,
             IAppRole::funcName eq funcName
         ) ?: return SimpleState(
@@ -64,7 +64,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
             msgError = "App role doesn't exist '$classOwner::$funcName' ... "
         )
         val groupPermissionType: PermissionType? = getGroupPermission(user, appRole)
-        val userPermissionType: PermissionType? = coroutineColl.find(
+        val userPermissionType: PermissionType? = coroutine.find(
             filter = and(
                 IUserRole<U, UID>::userId eq user._id,
                 IUserRole<U, UID>::appRoleId eq appRole._id
@@ -106,7 +106,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
             )
         )
         pipeline += replaceRoot(IUserGroup<U, UID, *, *>::groupRoles)
-        val groupRoleList = userGroupColl.coroutineColl.aggregate<GroupRole>(
+        val groupRoleList = userGroupColl.coroutine.aggregate<GroupRole>(
             pipeline = pipeline
         ).toList()
         // group by permissionType
