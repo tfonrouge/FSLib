@@ -28,32 +28,44 @@ import com.fonrouge.fsLib.mongoDb.Coll
 @Suppress("unused")
 suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> IApiItem<T, ID, FILT>.defaultApiProcess(
     coll: Coll<CC, T, ID, FILT>,
-    queryCreate: suspend (ApiItem.Query.Upsert.Create<T, ID, FILT>) -> ItemState<T> = { ItemState(isOk = true) },
-    queryRead: suspend (ApiItem.Query.Read<T, ID, FILT>, ItemState<T>) -> ItemState<T> = { _, itemState ->
+    queryCreate: (suspend (ApiItem.Query.Upsert.Create<T, ID, FILT>) -> ItemState<T>)? = { ItemState(isOk = true) },
+    queryRead: (suspend (ApiItem.Query.Read<T, ID, FILT>, ItemState<T>) -> ItemState<T>)? = { _, itemState ->
         itemState
     },
-    queryUpdate: suspend (ApiItem.Query.Upsert.Update<T, ID, FILT>, ItemState<T>) -> ItemState<T> = { _, itemState ->
+    queryUpdate: (suspend (ApiItem.Query.Upsert.Update<T, ID, FILT>, ItemState<T>) -> ItemState<T>)? = { _, itemState ->
         itemState
     },
-    queryDelete: suspend (ApiItem.Query.Delete<T, ID, FILT>, ItemState<T>) -> ItemState<T> = { _, itemState ->
+    queryDelete: (suspend (ApiItem.Query.Delete<T, ID, FILT>, ItemState<T>) -> ItemState<T>)? = { _, itemState ->
         itemState.item?.let { coll.findChildrenNot(it._id) } ?: itemState
     },
-    actionCreate: suspend (ApiItem.Action.Upsert.Create<T, ID, FILT>) -> ItemState<T> = { coll.insertOne(it) },
-    actionUpdate: suspend (ApiItem.Action.Upsert.Update<T, ID, FILT>) -> ItemState<T> = { coll.updateOne(it) },
-    actionDelete: suspend (ApiItem.Action.Delete<T, ID, FILT>) -> ItemState<T> = { coll.deleteOne(it) },
+    actionCreate: (suspend (ApiItem.Action.Upsert.Create<T, ID, FILT>) -> ItemState<T>)? = { coll.insertOne(it) },
+    actionUpdate: (suspend (ApiItem.Action.Upsert.Update<T, ID, FILT>) -> ItemState<T>)? = { coll.updateOne(it) },
+    actionDelete: (suspend (ApiItem.Action.Delete<T, ID, FILT>) -> ItemState<T>)? = { coll.deleteOne(it) },
 ): ItemState<T> {
     return when (val apiItem = asApiItem(coll.commonContainer)) {
         is ApiItem.Query -> when (apiItem) {
-            is ApiItem.Query.Upsert.Create -> queryCreate(apiItem)
-            is ApiItem.Query.Read -> queryRead(apiItem, coll.findItemState(apiItem))
-            is ApiItem.Query.Upsert.Update -> queryUpdate(apiItem, coll.findItemState(apiItem))
-            is ApiItem.Query.Delete -> queryDelete(apiItem, coll.findItemState(apiItem))
+            is ApiItem.Query.Upsert.Create -> queryCreate?.invoke(apiItem) ?: ItemState(isOk = false)
+            is ApiItem.Query.Read -> queryRead?.invoke(apiItem, coll.findItemState(apiItem)) ?: ItemState(isOk = false)
+            is ApiItem.Query.Upsert.Update -> queryUpdate?.invoke(apiItem, coll.findItemState(apiItem)) ?: ItemState(
+                isOk = false
+            )
+
+            is ApiItem.Query.Delete -> queryDelete?.invoke(apiItem, coll.findItemState(apiItem))
+                ?: ItemState(isOk = false)
         }
 
         is ApiItem.Action -> when (apiItem) {
-            is ApiItem.Action.Upsert.Create -> actionCreate(apiItem)
-            is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem)
-            is ApiItem.Action.Delete -> actionDelete(apiItem)
+            is ApiItem.Action.Upsert.Create -> queryCreate?.let {
+                actionCreate?.invoke(apiItem)
+            } ?: ItemState(isOk = false)
+
+            is ApiItem.Action.Upsert.Update -> queryUpdate?.let {
+                actionUpdate?.invoke(apiItem)
+            } ?: ItemState(isOk = false)
+
+            is ApiItem.Action.Delete -> queryDelete?.let {
+                actionDelete?.invoke(apiItem)
+            } ?: ItemState(isOk = false)
         }
     }
 }
