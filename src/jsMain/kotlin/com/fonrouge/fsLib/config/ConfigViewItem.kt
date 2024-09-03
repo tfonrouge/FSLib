@@ -64,6 +64,13 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             return url + urlParams.toEncodedUrlString()
         }
 
+    /**
+     * Opens a new browser window or tab with the URL corresponding to the given ApiItem.
+     *
+     * @param apiItem The ApiItem representing the query to be executed.
+     * @param target The target where the URL should be opened. Defaults to "_blank".
+     * @return The window object of the newly opened window/tab, or null if the URL cannot be generated.
+     */
     @Suppress("unused")
     fun navigateTo(apiItem: ApiItem.Query<T, ID, FILT>, target: String = "_blank"): Window? {
         return viewItemUrl(apiItem)?.let { url ->

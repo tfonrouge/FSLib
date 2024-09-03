@@ -53,6 +53,13 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         return urlWithParams(*params.toTypedArray())
     }
 
+    /**
+     * Navigates to a specific URL in a new or existing window.
+     *
+     * @param apiFilter An optional filter to apply to the URL, defaults to an instance of the filter.
+     * @param target The target window or frame where the URL should be opened, defaults to "_blank".
+     * @return The Window object of the opened URL, or null if the operation fails.
+     */
     @Suppress("unused")
     fun navigateTo(
         apiFilter: FILT = commonContainer.apiFilterInstance(),
