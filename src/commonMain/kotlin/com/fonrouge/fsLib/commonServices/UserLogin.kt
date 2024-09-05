@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.apiServices
+package com.fonrouge.fsLib.commonServices
 
 import kotlinx.serialization.Serializable
 

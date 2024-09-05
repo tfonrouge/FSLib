@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.apiServices
+package com.fonrouge.fsLib.commonServices
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -16,7 +16,7 @@ import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.functions
 
 @Suppress("UNCHECKED_CAST", "unused")
-suspend fun <API : IApiService> callMethod(api: API, methodName: String?) {
+suspend fun <API : IApiCommonService> callMethod(api: API, methodName: String?) {
     val f1 = api::class.functions.find { it.name == methodName } ?: return
     when (f1.parameters.size) {
         1 -> respond1(api, f1 as KSuspendFunction1<API, Any>)
@@ -29,7 +29,7 @@ suspend fun <API : IApiService> callMethod(api: API, methodName: String?) {
     }
 }
 
-suspend inline fun <API : IApiService> respond1(
+suspend inline fun <API : IApiCommonService> respond1(
     api: API,
     func: KSuspendFunction1<API, Any>,
 ) {
@@ -44,7 +44,7 @@ suspend inline fun <API : IApiService> respond1(
     )
 }
 
-suspend inline fun <API : IApiService> respond2(
+suspend inline fun <API : IApiCommonService> respond2(
     api: API,
     func: KSuspendFunction2<API, *, Any>,
 ) {
@@ -64,7 +64,7 @@ suspend inline fun <API : IApiService> respond2(
     )
 }
 
-suspend inline fun <API : IApiService> respond3(
+suspend inline fun <API : IApiCommonService> respond3(
     api: API,
     func: KSuspendFunction3<API, *, *, Any>,
 ) {
@@ -87,7 +87,7 @@ suspend inline fun <API : IApiService> respond3(
     )
 }
 
-suspend inline fun <API : IApiService> respond4(
+suspend inline fun <API : IApiCommonService> respond4(
     api: API,
     func: KSuspendFunction4<API, *, *, *, Any>,
 ) {
@@ -113,7 +113,7 @@ suspend inline fun <API : IApiService> respond4(
     )
 }
 
-suspend inline fun <API : IApiService> respond5(
+suspend inline fun <API : IApiCommonService> respond5(
     api: API,
     func: KSuspendFunction5<API, *, *, *, *, Any>,
 ) {
@@ -142,7 +142,7 @@ suspend inline fun <API : IApiService> respond5(
     )
 }
 
-suspend inline fun <API : IApiService> respond6(
+suspend inline fun <API : IApiCommonService> respond6(
     api: API,
     func: KSuspendFunction6<API, *, *, *, *, *, Any>,
 ) {

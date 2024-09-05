@@ -12,7 +12,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.fonrouge.fsLib.apiServices.AppApi
+import com.fonrouge.fsLib.commonServices.AppApi
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.config.toIApiItem
 import com.fonrouge.fsLib.domain.BasePagingSource

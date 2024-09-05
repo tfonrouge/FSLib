@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.apiServices
+package com.fonrouge.fsLib.commonServices
 
 import io.ktor.server.application.*
 
@@ -6,6 +6,6 @@ import io.ktor.server.application.*
     "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING",
     "NON_ACTUAL_MEMBER_DECLARED_IN_EXPECT_NON_FINAL_CLASSIFIER_ACTUALIZATION_WARNING"
 )
-actual interface IApiService {
+actual interface IApiCommonService {
     val call: ApplicationCall
 }

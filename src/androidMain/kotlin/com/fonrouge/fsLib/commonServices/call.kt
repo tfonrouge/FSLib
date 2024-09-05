@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.apiServices
+package com.fonrouge.fsLib.commonServices
 
 import android.util.Log
 import androidx.camera.core.ExperimentalGetImage
@@ -34,7 +34,7 @@ inline fun <reified PAR> serialize(value: PAR): String {
  * @return the URL string for the API service and calling function.
  */
 @ExperimentalGetImage
-fun <A : IApiService> A.urlString(): String =
+fun <A : IApiCommonService> A.urlString(): String =
     this::class.simpleName?.let { apiServiceName ->
         val callerFuncName = Thread.currentThread().stackTrace[3].methodName
         "${AppApi.urlBase}/${AppApi.appRoute}/$apiServiceName/${callerFuncName}"
@@ -52,7 +52,7 @@ fun <A : IApiService> A.urlString(): String =
  * @throws Exception if there is any other error during the API call.
  */
 @Suppress("unused")
-suspend inline fun <A : IApiService, reified RET : Any> A.call(): RET {
+suspend inline fun <A : IApiCommonService, reified RET : Any> A.call(): RET {
     return remoteCall(emptyList())
 }
 
@@ -64,7 +64,7 @@ suspend inline fun <A : IApiService, reified RET : Any> A.call(): RET {
  * @throws Exception if an error occurs during the API call or deserialization.
  */
 @Suppress("unused")
-suspend inline fun <A : IApiService, reified PAR1, reified RET : Any> A.call(p1: PAR1): RET {
+suspend inline fun <A : IApiCommonService, reified PAR1, reified RET : Any> A.call(p1: PAR1): RET {
     val s1 = serialize(p1)
     return remoteCall(listOf(s1))
 }
@@ -82,10 +82,10 @@ suspend inline fun <A : IApiService, reified PAR1, reified RET : Any> A.call(p1:
  * @throws ConnectTimeoutException If there is a connection timeout during the API call.
  * @throws Exception If there is any other exception during the API call.
  *
- * @see IApiService
+ * @see IApiCommonService
  */
 @Suppress("unused")
-suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified RET : Any> A.call(
+suspend inline fun <A : IApiCommonService, reified PAR1, reified PAR2, reified RET : Any> A.call(
     p1: PAR1,
     p2: PAR2
 ): RET {
@@ -108,7 +108,7 @@ suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified RET : A
  * @throws Exception When any other exception occurs.
  */
 @Suppress("unused")
-suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, reified RET : Any> A.call(
+suspend inline fun <A : IApiCommonService, reified PAR1, reified PAR2, reified PAR3, reified RET : Any> A.call(
     p1: PAR1,
     p2: PAR2,
     p3: PAR3,
@@ -136,7 +136,7 @@ suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, r
  * @throws Exception if there is any other error during the API call.
  */
 @Suppress("unused")
-suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, reified PAR4, reified RET : Any> A.call(
+suspend inline fun <A : IApiCommonService, reified PAR1, reified PAR2, reified PAR3, reified PAR4, reified RET : Any> A.call(
     p1: PAR1,
     p2: PAR2,
     p3: PAR3,
@@ -166,7 +166,7 @@ suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, r
  * @throws Exception if there is any other error during the API call.
  */
 @Suppress("unused")
-suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, reified PAR4, reified PAR5, reified RET : Any> A.call(
+suspend inline fun <A : IApiCommonService, reified PAR1, reified PAR2, reified PAR3, reified PAR4, reified PAR5, reified RET : Any> A.call(
     p1: PAR1,
     p2: PAR2,
     p3: PAR3,
@@ -195,7 +195,7 @@ suspend inline fun <A : IApiService, reified PAR1, reified PAR2, reified PAR3, r
  */
 @ExperimentalGetImage
 @Suppress("unused")
-suspend inline fun <A : IApiService, reified RET : Any> A.remoteCall(params: List<String?>): RET {
+suspend inline fun <A : IApiCommonService, reified RET : Any> A.remoteCall(params: List<String?>): RET {
     val urlString = urlString()
     val tag = "HttpClient"
     val response = try {

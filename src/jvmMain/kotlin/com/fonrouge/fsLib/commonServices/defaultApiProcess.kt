@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.apiServices
+package com.fonrouge.fsLib.commonServices
 
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiItem
