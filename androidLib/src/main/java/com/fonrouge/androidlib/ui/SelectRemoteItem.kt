@@ -14,6 +14,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -85,7 +86,8 @@ fun <T : BaseDoc<ID>, ID : Any> SelectRemoteItem(
                 }
             },
             modifier = Modifier
-                .menuAnchor(),
+//                .menuAnchor()
+                .menuAnchor(type = MenuAnchorType.PrimaryEditable),
             enabled = enabled,
             label = label,
             leadingIcon = {

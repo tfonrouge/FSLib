@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.model.*
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
@@ -19,7 +18,6 @@ import com.mongodb.client.model.WriteModel
 import com.mongodb.client.result.InsertOneResult
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
-import io.ktor.http.*
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
@@ -314,7 +312,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the delete operation. It contains information about whether the operation was successful or not,
      * as well as any error message in case of failure.
      */
-    @Suppress("unused")
     suspend fun deleteOne(
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
         filter: Bson? = null,
@@ -371,7 +368,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param lookupWrappers array of [LookupWrapper]
      * @return list of T items
      */
-    @Suppress("unused", "MemberVisibilityCanBePrivate")
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findPublisher(
         filter: Bson? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
@@ -432,7 +429,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return findOne(BaseDoc<*>::_id eq id, apiFilter, lookupWrappers)
     }
 
-    @Suppress("unused")
     suspend fun findItemState(
         apiItem: ApiItem.Query<T, ID, FILT>,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
@@ -444,7 +440,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
     }
 
-    @Suppress("unused")
     suspend fun findItemStateById(
         id: ID?,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
@@ -501,7 +496,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param overrideValidation Flag indicating whether to override the item validation. (Default: false)
      * @return The state of the item after insertion.
      */
-    @Suppress("unused")
     suspend fun insertOne(
         apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
         overrideValidation: Boolean = false
@@ -767,7 +761,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * @return The state of the item after the update operation.
      */
-    @Suppress("MemberVisibilityCanBePrivate", "unused")
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun updateOne(
         apiItem: ApiItem.Action.Upsert.Update<T, ID, FILT>,
         filter: Bson? = null,

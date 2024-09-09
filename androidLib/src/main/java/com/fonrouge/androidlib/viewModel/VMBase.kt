@@ -93,7 +93,7 @@ abstract class VMBase : ViewModel() {
             State.Warn -> StateAlert(
                 simpleState = itemState,
                 type = StateAlert.Type.Warn(
-                    canRetry = canRetry ?: true,
+                    canRetry = canRetry != false,
                     onAccept = onAccept,
                     onCancel = onCancel,
                 )
@@ -102,7 +102,7 @@ abstract class VMBase : ViewModel() {
             State.Error -> StateAlert(
                 simpleState = itemState,
                 type = StateAlert.Type.Error(
-                    canRetry = canRetry ?: false,
+                    canRetry = canRetry == true,
                     onAccept = onAccept,
                     onCancel = onCancel
                 )

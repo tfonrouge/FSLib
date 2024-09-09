@@ -46,7 +46,6 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         } ?: "")
     }
 
-    @Suppress("unused")
     fun viewListUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String {
         val params = mutableListOf<Pair<String, String>>()
         apiFilterParam(apiFilter).let { params.add(it) }

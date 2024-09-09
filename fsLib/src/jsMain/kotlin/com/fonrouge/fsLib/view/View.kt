@@ -219,7 +219,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         hasOffCanvasFilterView = buildOffCanvasFilterView()?.let {
             offCanvasFilter = it
             true
-        } ?: false
+        } == true
     }
 
     /**

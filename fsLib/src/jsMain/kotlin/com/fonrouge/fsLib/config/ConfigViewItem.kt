@@ -133,7 +133,6 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         return url
     }
 
-    @Suppress("unused")
     @OptIn(ExperimentalSerializationApi::class)
     fun callItemService(
         crudTask: CrudTask,

@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.mongoDb
 
 import org.bson.conversions.Bson
 
-@Suppress("unused")
 data class ListFirstStage(
     val pipeline: MutableList<Bson> = mutableListOf(),
     val pageSize: Int?,
