@@ -1,11 +1,17 @@
-# Project exclude paths
-/.gradle/
-/build/
-/build/classes/kotlin/backend/main/
-/.idea/
-/.kotlin-js-store/yarn.lock
-.idea/misc.xml
-.idea/jarRepositories.xml
-.DS_Store
+*.iml
+.gradle
 /local.properties
-/kotlin-js-store/yarn.lock
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/.idea/artifacts
+/.kotlin
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
