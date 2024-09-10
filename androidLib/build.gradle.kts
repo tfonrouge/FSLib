@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.fonrouge.juanaLaCubana2"
+    namespace = "com.fonrouge.androidLib"
     compileSdk = 34
 
     defaultConfig {
@@ -40,6 +40,7 @@ android {
 
 dependencies {
     implementation(project(":fsLib"))
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
@@ -56,7 +57,7 @@ dependencies {
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.paging.compose.android)
-    api(libs.eu.bambooapps.compose.material3.pullrefresh)
+    implementation(libs.eu.bambooapps.compose.material3.pullrefresh)
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.accompanist.permissions)
     implementation(libs.play.services.code.scanner)
@@ -72,7 +73,7 @@ publishing {
         publications {
             register<MavenPublication>("release") {
                 groupId = "com.fonrouge.androidLib"
-//                artifactId = "androidLib"
+                artifactId = "androidLib"
                 version = "4.1.0"
 
                 afterEvaluate {
