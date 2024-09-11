@@ -74,7 +74,7 @@ publishing {
             register<MavenPublication>("release") {
                 groupId = "com.fonrouge.androidLib"
                 artifactId = "androidLib"
-                version = "4.1.0"
+                version = libs.versions.libVersion.get()
 
                 afterEvaluate {
                     from(components["release"])

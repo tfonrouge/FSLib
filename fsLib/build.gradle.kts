@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.fonrouge.fsLib"
-version = "4.1.0"
+version = libs.versions.libVersion.get()
 
 val mainClassName = "io.ktor.server.netty.EngineMain"
 
