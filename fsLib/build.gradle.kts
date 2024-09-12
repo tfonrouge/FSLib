@@ -64,7 +64,7 @@ kotlin {
                 api(libs.ktor.server.http.redirect)
                 api(libs.ktor.server.partial.content)
                 api(libs.ktor.server.content.negotiation)
-                implementation(libs.logback.classic)
+                api(libs.logback.classic)
                 api(libs.kmongo.coroutine.serialization)
                 api(libs.kmongo.id.serialization)
                 api(libs.exposed.core)
@@ -74,6 +74,7 @@ kotlin {
                 api(libs.kotlinx.datetime.jvm)
                 api(libs.jtds)
                 api(libs.mssql.jdbc)
+//                api("org.mongodb:mongodb-driver-kotlin-coroutine:4.11.0")
             }
         }
 

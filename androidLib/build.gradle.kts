@@ -27,11 +27,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "1.8"
     }
     buildFeatures {
 //        compose = true
@@ -39,7 +39,9 @@ android {
 }
 
 dependencies {
-    implementation(project(":fsLib"))
+    implementation(project(":fsLib")) {
+//        exclude("com.google.guava")
+    }
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
