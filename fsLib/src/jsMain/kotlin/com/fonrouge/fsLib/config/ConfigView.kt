@@ -22,7 +22,10 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
 ) {
     open val baseUrl: String
         get() {
-            return _baseUrl ?: ("View" + commonContainer.name)
+            val result =
+                _baseUrl
+                    ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("View" + commonContainer.name)
+            return result
         }
 
     companion object {
@@ -68,6 +71,7 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
     /**
      * helper to build an api filter parameter in the url string
      */
+    @Suppress("unused")
     fun apiFilterParam(obj: FILT): Pair<String, String> =
         pairParam(key = "apiFilter", serializer = commonContainer.apiFilterSerializer, obj = obj)
 

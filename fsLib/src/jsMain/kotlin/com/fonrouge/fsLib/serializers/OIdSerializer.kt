@@ -25,6 +25,7 @@ actual object OIdSerializer : KSerializer<OId<Any>> {
 /**
  * Get a [Date] from [OId] value
  */
+@Suppress("unused")
 val OId<out Any>?.date: Date?
     get() {
         @Suppress("UNUSED_VARIABLE") val hex = this?.id?.substring(0..7)

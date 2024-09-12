@@ -2,5 +2,5 @@ package com.fonrouge.fsLib
 
 import java.time.OffsetDateTime
 
-@Suppress("RedundantVisibilityModifier")
+@Suppress("unused", "RedundantVisibilityModifier")
 public actual fun offsetDateTimeNow(): OffsetDateTime = OffsetDateTime.now()

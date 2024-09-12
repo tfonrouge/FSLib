@@ -39,7 +39,7 @@ class BarcodeCamera {
 
     private var camera: Camera? = null
 
-    val torchState: Boolean get() = camera?.cameraInfo?.torchState?.value?.let { it != 0 } == true
+    val torchState: Boolean get() = camera?.cameraInfo?.torchState?.value?.let { it != 0 } ?: false
 
     @Composable
     fun CameraPreview(

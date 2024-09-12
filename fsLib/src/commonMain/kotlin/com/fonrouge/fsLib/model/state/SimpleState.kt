@@ -17,6 +17,7 @@ data class SimpleState(
     override val isOk: Boolean
         get() = state == State.Ok
 
+    @Suppress("unused")
     constructor(itemState: ItemState<*>) : this(
         state = itemState.state,
         msgOk = itemState.msgOk,

@@ -8,6 +8,7 @@ import io.kvision.toast.ToastOptions
 /**
  * https://github.com/CodeSeven/toastr
  */
+@Suppress("unused")
 fun ISimpleState.toast() {
     when (state) {
         State.Ok -> Toast.success(
