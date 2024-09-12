@@ -1,27 +1,11 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
         google()
         mavenCentral()
         mavenLocal()
+        gradlePluginPortal()
         maven { url = uri("https://jitpack.io") }
     }
 }
 
 rootProject.name = "fsLib"
-include(":app")
-include(":androidLib")
-include(":fsLib")
