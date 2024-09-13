@@ -1,17 +1,17 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    val kotlinVersion: String by System.getProperties()
-    val kvisionVersion: String by System.getProperties()
-    id("com.android.library") version "8.2.2"
-    kotlin("multiplatform") version kotlinVersion
-    kotlin("plugin.serialization") version kotlinVersion
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.serialization)
 //    id("org.jetbrains.kotlin.plugin.compose") version kotlinVersion
     id("maven-publish")
 }
 
+val libVersion = "1.0.0"
+
 group = "com.fonrouge.kmpLib"
-version = libs.versions.version.get()
+version = libVersion
 
 repositories {
     google()
@@ -20,15 +20,6 @@ repositories {
     gradlePluginPortal()
     maven { url = uri("https://jitpack.io") }
 }
-
-val kvisionVersion: String by System.getProperties()
-val serializationVersion: String by project
-val exposedVersion: String by project
-val ktorAndroidVersion: String by project
-val kmongoVersion: String by project
-val kotlinxDatetimeVersion: String by project
-val commonsCodecVersion: String by project
-val logbackVersion: String by project
 
 val mainClassName = "io.ktor.server.netty.EngineMain"
 
@@ -59,73 +50,73 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("io.kvision:kvision-server-ktor-koin:$kvisionVersion")
-                api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
-                api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
+                api(libs.kvision.server.ktor.koin)
+                api(libs.kotlinx.datetime)
+                api(libs.kotlinx.serialization.json)
             }
         }
 
         val jvmMain by getting {
             dependencies {
                 implementation(kotlin("reflect"))
-                api("io.ktor:ktor-client-core:${ktorAndroidVersion}")
-                api("io.ktor:ktor-client-cio:${ktorAndroidVersion}")
-                api("io.ktor:ktor-client-auth:${ktorAndroidVersion}")
-                api("io.ktor:ktor-client-content-negotiation:${ktorAndroidVersion}")
-                api("io.ktor:ktor-client-encoding:$ktorAndroidVersion")
-                api("io.ktor:ktor-serialization-kotlinx-json:$ktorAndroidVersion")
-                api("io.ktor:ktor-client-serialization:${ktorAndroidVersion}")
-                api("io.ktor:ktor-server-auth:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-auth-jwt:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-call-logging:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-compression:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-core:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-default-headers:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-netty:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-sessions:$ktorAndroidVersion")
-                api("io.ktor:ktor-network-tls-certificates:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-auto-head-response:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-http-redirect:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-partial-content:$ktorAndroidVersion")
-                api("io.ktor:ktor-server-content-negotiation:$ktorAndroidVersion")
-                api("ch.qos.logback:logback-classic:$logbackVersion")
-                api("org.litote.kmongo:kmongo-coroutine-serialization:$kmongoVersion")
-                api("org.litote.kmongo:kmongo-id-serialization:$kmongoVersion")
-                api("org.jetbrains.exposed:exposed-core:$exposedVersion")
-                api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
-                api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-                api("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-                api("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$kotlinxDatetimeVersion")
-                api("net.sourceforge.jtds:jtds:1.3.1")
-                api("com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre8")
+                api(libs.ktor.client.core)
+                api(libs.ktor.client.cio)
+                api(libs.ktor.client.auth)
+                api(libs.ktor.client.content.negotiation)
+                api(libs.ktor.client.encoding)
+                api(libs.ktor.serialization.kotlinx.json)
+                api(libs.ktor.client.serialization)
+                api(libs.ktor.server.auth)
+                api(libs.ktor.server.auth.jwt)
+                api(libs.ktor.server.call.logging)
+                api(libs.ktor.server.compression)
+                api(libs.ktor.server.core)
+                api(libs.ktor.server.default.headers)
+                api(libs.ktor.server.netty)
+                api(libs.ktor.server.sessions)
+                api(libs.ktor.network.tls.certificates)
+                api(libs.ktor.server.auto.head.response)
+                api(libs.ktor.server.http.redirect)
+                api(libs.ktor.server.partial.content)
+                api(libs.ktor.server.content.negotiation)
+                api(libs.logback.classic)
+                api(libs.kmongo.coroutine.serialization)
+                api(libs.kmongo.id.serialization)
+                api(libs.exposed.core)
+                api(libs.exposed.dao)
+                api(libs.exposed.jdbc)
+                api(libs.exposed.java.time)
+                api(libs.kotlinx.datetime.jvm)
+                api(libs.jtds)
+                api(libs.mssql.jdbc)
 //                api("org.mongodb:mongodb-driver-kotlin-coroutine:4.11.0")
             }
         }
 
         val jsMain by getting {
             dependencies {
-                api("org.litote.kmongo:kmongo-id:$kmongoVersion")
-                api("io.kvision:kvision:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-icons:$kvisionVersion")
-                api("io.kvision:kvision-bootstrap-upload:$kvisionVersion")
-                api("io.kvision:kvision-datetime:$kvisionVersion")
-                api("io.kvision:kvision-chart:$kvisionVersion")
-                api("io.kvision:kvision-fontawesome:$kvisionVersion")
-                api("io.kvision:kvision-imask:$kvisionVersion")
-                api("io.kvision:kvision-jquery:$kvisionVersion")
-                api("io.kvision:kvision-pace:$kvisionVersion")
-                api("io.kvision:kvision-print:$kvisionVersion")
-                api("io.kvision:kvision-react:$kvisionVersion")
-                api("io.kvision:kvision-redux-kotlin:$kvisionVersion")
-                api("io.kvision:kvision-rest:$kvisionVersion")
-                api("io.kvision:kvision-richtext:$kvisionVersion")
-                api("io.kvision:kvision-routing-navigo-ng:$kvisionVersion")
-                api("io.kvision:kvision-tabulator:$kvisionVersion")
-                api("io.kvision:kvision-tabulator-remote:$kvisionVersion")
-                api("io.kvision:kvision-toastify:$kvisionVersion")
-                api("io.kvision:kvision-tom-select:$kvisionVersion")
-                api("io.kvision:kvision-tom-select-remote:$kvisionVersion")
+                api(libs.kmongo.id)
+                api(libs.kvision)
+                api(libs.kvision.bootstrap)
+                api(libs.kvision.bootstrap.icons)
+                api(libs.kvision.bootstrap.upload)
+                api(libs.kvision.datetime)
+                api(libs.kvision.chart)
+                api(libs.kvision.fontawesome)
+                api(libs.kvision.imask)
+                api(libs.kvision.jquery)
+                api(libs.kvision.pace)
+                api(libs.kvision.print)
+                api(libs.kvision.react)
+                api(libs.kvision.redux.kotlin)
+                api(libs.kvision.rest)
+                api(libs.kvision.richtext)
+                api(libs.kvision.routing.navigo.ng)
+                api(libs.kvision.tabulator)
+                api(libs.kvision.tabulator.remote)
+                api(libs.kvision.toastify)
+                api(libs.kvision.tom.select)
+                api(libs.kvision.tom.select.remote)
             }
         }
 
@@ -146,52 +137,52 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     dependencies {
-        implementation("androidx.core:core-ktx:1.13.1")
-        implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-        implementation("androidx.activity:activity-compose:1.9.1")
-        implementation(platform("androidx.compose:compose-bom:2024.06.00"))
-        implementation("androidx.compose.ui:ui")
-        implementation("androidx.compose.ui:ui-graphics")
-        implementation("androidx.compose.ui:ui-tooling-preview")
-        implementation("androidx.compose.material3:material3:1.2.1")
-        implementation("androidx.compose.material:material-icons-extended")
-        implementation("androidx.navigation:navigation-compose:2.7.7")
+        implementation(libs.core.ktx)
+        implementation(libs.lifecycle.runtime.ktx)
+        implementation(libs.activity.compose)
+        implementation(libs.compose.bom)
+        implementation(libs.ui)
+        implementation(libs.ui.graphics)
+        implementation(libs.ui.tooling.preview)
+        implementation(libs.material3)
+        implementation(libs.material.icons.extended)
+        implementation(libs.navigation.compose)
 
-        implementation("androidx.paging:paging-compose:3.3.1")
+        implementation(libs.paging.compose)
         /* scanner service provided by Google Play */
-        implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
-        implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
-        api("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+        implementation(libs.play.services.code.scanner)
+        implementation(libs.lifecycle.viewmodel.compose)
+        api(libs.lifecycle.runtime.compose)
 
-        implementation("androidx.camera:camera-camera2:1.4.0-beta02")
-        implementation("androidx.camera:camera-lifecycle:1.4.0-beta02")
-        implementation("androidx.camera:camera-view:1.4.0-beta02")
+        implementation(libs.camera.camera2)
+        implementation(libs.camera.lifecycle)
+        implementation(libs.camera.view)
 
-        api("com.google.mlkit:barcode-scanning:17.2.0")
+        api(libs.barcode.scanning)
 
         /* permission*/
-        implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+        implementation(libs.accompanist.permissions)
         /* replacement for pullRefresh that doesn't exist in Material3 */
-        api("eu.bambooapps:compose-material3-pullrefresh:1.0.1")
+        api(libs.compose.material3.pullrefresh)
         /* multi-button floating action button */
-        api("com.github.iamageo:MultiFab:1.0.6")
+        api(libs.multifab)
 
-        implementation("io.ktor:ktor-client-cio:$ktorAndroidVersion")
-        implementation("io.ktor:ktor-client-okhttp:$ktorAndroidVersion")
-        implementation("io.ktor:ktor-client-android:$ktorAndroidVersion")
-        implementation("io.ktor:ktor-client-auth:$ktorAndroidVersion")
-        implementation("io.ktor:ktor-client-content-negotiation:$ktorAndroidVersion")
-        implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorAndroidVersion")
-        implementation("io.ktor:ktor-client-serialization:$ktorAndroidVersion")
-        implementation("io.ktor:ktor-client-logging:$ktorAndroidVersion")
+        implementation(libs.ktor.client.cio)
+        implementation(libs.ktor.client.okhttp)
+        implementation(libs.ktor.client.android)
+        implementation(libs.ktor.client.auth)
+        implementation(libs.ktor.client.content.negotiation)
+        implementation(libs.ktor.serialization.kotlinx.json)
+        implementation(libs.ktor.client.serialization)
+        implementation(libs.ktor.client.logging)
 
-        testImplementation("junit:junit:4.13.2")
-        androidTestImplementation("androidx.test.ext:junit:1.2.1")
-        androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-        androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
-        androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-        debugImplementation("androidx.compose.ui:ui-tooling")
-        debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.0-beta06")
+        testImplementation(libs.junit)
+        androidTestImplementation(libs.ext.junit)
+        androidTestImplementation(libs.espresso.core)
+        androidTestImplementation(libs.compose.bom)
+        androidTestImplementation(libs.ui.test.junit4)
+        debugImplementation(libs.ui.tooling)
+        debugImplementation(libs.ui.test.manifest)
     }
     /*
         buildTypes {
