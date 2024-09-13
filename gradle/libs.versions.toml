@@ -4,6 +4,7 @@ activityCompose = "1.9.1"
 agp = "8.2.2"
 barcodeScanning = "17.2.0"
 cameraCamera2 = "1.4.0-beta02"
+compose-plugin = "1.6.11"
 composeBom = "2024.06.00"
 composeMaterial3Pullrefresh = "1.0.1"
 coreKtx = "1.13.1"
@@ -118,5 +119,6 @@ ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
