@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.serialization)
-//    id("org.jetbrains.kotlin.plugin.compose") version kotlinVersion
+//    alias(libs.plugins.compose.compiler)
     id("maven-publish")
 }
 
