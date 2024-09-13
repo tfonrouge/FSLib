@@ -10,3 +10,4 @@
 .DS_Store
 /local.properties
 /kotlin-js-store/yarn.lock
+/.kotlin/
