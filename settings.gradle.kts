@@ -9,4 +9,4 @@ pluginManagement {
 }
 
 rootProject.name = "KmpLib"
-include("kmpLib")
+include(":kmpLib")

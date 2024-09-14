@@ -1,14 +1,15 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.serialization)
-//    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.jetbrainsCompose)
     id("maven-publish")
 }
 
-val libVersion = "1.0.0"
+val libVersion = "1.1.0"
 
 group = "com.fonrouge.kmpLib"
 version = libVersion
@@ -55,6 +56,8 @@ kotlin {
         }
 
         jvmMain.dependencies {
+            compose.runtime
+            implementation(compose.runtime)
             implementation(kotlin("reflect"))
             api(libs.ktor.client.core)
             api(libs.ktor.client.cio)
@@ -86,10 +89,10 @@ kotlin {
             api(libs.kotlinx.datetime.jvm)
             api(libs.jtds)
             api(libs.mssql.jdbc)
-//                api("org.mongodb:mongodb-driver-kotlin-coroutine:4.11.0")
         }
 
         jsMain.dependencies {
+            implementation(compose.runtime)
             api(libs.kmongo.id)
             api(libs.kvision)
             api(libs.kvision.bootstrap)
@@ -189,9 +192,9 @@ android {
         }
     */
     buildFeatures {
-        compose = true
+//        compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
+//        kotlinCompilerExtensionVersion = "1.5.14"
     }
 }

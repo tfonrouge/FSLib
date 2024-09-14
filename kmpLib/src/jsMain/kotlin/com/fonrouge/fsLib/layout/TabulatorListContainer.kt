@@ -177,19 +177,19 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
         callAgent = CallAgent()
         options.ajaxURL = urlPrefix + url.drop(1)
         options.ajaxRequestFunc = { _, _, params ->
-            val page: Int = params.page as? Int ?: 1
-            val size: Int = params.size as? Int ?: 50
-            val filters = if (params.filter != null) {
+            val page: Int = params?.asDynamic()?.page as? Int ?: 1
+            val size: Int = params?.asDynamic()?.size as? Int ?: 50
+            val filters = if (params?.asDynamic()?.filter != null) {
                 Json.decodeFromString(
                     ListSerializer(RemoteFilter::class.serializer()),
-                    JSON.stringify(params.filter)
+                    JSON.stringify(params.asDynamic()?.filter)
                 )
             } else {
                 null
             }
-            val sorters = if (params.sort != null) {
+            val sorters = if (params?.asDynamic()?.sort != null) {
                 val j = js("[]")
-                JSON.stringify(params.sort)
+                JSON.stringify(params.asDynamic()?.sort)
                 js(
                     """
                     params.sort.forEach(function(value) {
