@@ -29,7 +29,7 @@ suspend fun <API : IApiCommonService> callMethod(api: API, methodName: String?) 
     }
 }
 
-suspend inline fun <API : IApiCommonService> respond1(
+suspend fun <API : IApiCommonService> respond1(
     api: API,
     func: KSuspendFunction1<API, Any>,
 ) {
@@ -44,7 +44,7 @@ suspend inline fun <API : IApiCommonService> respond1(
     )
 }
 
-suspend inline fun <API : IApiCommonService> respond2(
+suspend fun <API : IApiCommonService> respond2(
     api: API,
     func: KSuspendFunction2<API, *, Any>,
 ) {
@@ -64,7 +64,7 @@ suspend inline fun <API : IApiCommonService> respond2(
     )
 }
 
-suspend inline fun <API : IApiCommonService> respond3(
+suspend fun <API : IApiCommonService> respond3(
     api: API,
     func: KSuspendFunction3<API, *, *, Any>,
 ) {
@@ -87,7 +87,7 @@ suspend inline fun <API : IApiCommonService> respond3(
     )
 }
 
-suspend inline fun <API : IApiCommonService> respond4(
+suspend fun <API : IApiCommonService> respond4(
     api: API,
     func: KSuspendFunction4<API, *, *, *, Any>,
 ) {
@@ -113,7 +113,7 @@ suspend inline fun <API : IApiCommonService> respond4(
     )
 }
 
-suspend inline fun <API : IApiCommonService> respond5(
+suspend fun <API : IApiCommonService> respond5(
     api: API,
     func: KSuspendFunction5<API, *, *, *, *, Any>,
 ) {
@@ -142,7 +142,7 @@ suspend inline fun <API : IApiCommonService> respond5(
     )
 }
 
-suspend inline fun <API : IApiCommonService> respond6(
+suspend fun <API : IApiCommonService> respond6(
     api: API,
     func: KSuspendFunction6<API, *, *, *, *, *, Any>,
 ) {
