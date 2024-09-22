@@ -50,6 +50,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
+            implementation(kotlin("reflect"))
             api(libs.kvision.server.ktor.koin)
             api(libs.kotlinx.datetime)
             api(libs.kotlinx.serialization.json)
@@ -58,7 +59,6 @@ kotlin {
         jvmMain.dependencies {
             compose.runtime
             implementation(compose.runtime)
-            implementation(kotlin("reflect"))
             api(libs.ktor.client.core)
             api(libs.ktor.client.cio)
             api(libs.ktor.client.auth)
