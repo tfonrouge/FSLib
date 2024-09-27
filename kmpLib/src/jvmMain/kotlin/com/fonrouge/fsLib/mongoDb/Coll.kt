@@ -3,7 +3,6 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.model.*
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
@@ -19,12 +18,12 @@ import com.mongodb.client.model.WriteModel
 import com.mongodb.client.result.InsertOneResult
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
-import io.ktor.http.*
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import org.bson.*
@@ -99,7 +98,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
         listFirstStage?.preLookupMatch?.let {
-            if (Document.parse(it.json).size > 0) pipeline.add(
+            if (Document.parse(it.json).isNotEmpty()) pipeline.add(
                 match(it)
             )
         }
@@ -112,7 +111,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
         postProcessPipeline?.let { it(pipeline) }
         listFirstStage?.postLookupMatch?.let {
-            if (Document.parse(it.json).size > 0) pipeline.add(
+            if (Document.parse(it.json).isNotEmpty()) pipeline.add(
                 match(it)
             )
         }
@@ -212,7 +211,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("unused")
     fun bulkWrite(writeModels: MutableList<WriteModel<T>>, debug: Boolean = false) {
         CoroutineScope(context = Dispatchers.IO).launch {
-            if (writeModels.size > 0) {
+            if (writeModels.isNotEmpty()) {
                 if (debug) {
                     println("BulkWrite ${writeModels.hashCode()} start with ${writeModels.size} items.")
                 }
@@ -231,32 +230,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 kProperty1.setter.call(item, null)
             }
         }
-    }
-
-    private fun checkSignatures(json: String): BsonDocument {
-        val result = BsonDocument.parse(json)
-        val bson = BsonDocument()
-        val properties = commonContainer.itemKClass.memberProperties
-        result.forEach { entry ->
-            properties.find { it.name == entry.key }?.let { kProperty: KProperty1<T, *> ->
-                if (!kProperty.hasAnnotation<DontPersist>()) {
-                    when (kProperty.returnType.classifier) {
-                        Double::class -> bson.append(
-                            entry.key, when (entry.value.bsonType) {
-                                BsonType.DOUBLE -> entry.value
-                                BsonType.INT32 -> BsonDouble((entry.value as BsonInt32).doubleValue())
-                                BsonType.INT64 -> BsonDouble((entry.value as BsonInt64).doubleValue())
-                                else -> entry.value.asDouble() // 'll throw exception
-                            }
-                        )
-
-
-                        else -> bson.append(entry.key, entry.value)
-                    }
-                }
-            }
-        }
-        return bson
     }
 
     private var childColls: List<Pair<KProperty1<*, ID>, Coll<*, *, *, *>>>? = null
@@ -686,7 +659,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     result.add(BsonDocument(remoteFilter.field, value))
                 }
             }
-            if (result.size > 0) postLookupMatchList.add(and(result))
+            if (result.isNotEmpty()) postLookupMatchList.add(and(result))
         }
         var sortDocument: Bson? = null
         if (preLookupSort != null) {
@@ -820,6 +793,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
+    @Serializable
     enum class CountType {
         PreLookup,
         PostLookup,
@@ -839,7 +813,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 CountType.PreLookup ->
                     coll.mongoColl.coroutine.countDocuments(
                         match?.let {
-                            if (Document.parse(match.json).size > 0)
+                            if (Document.parse(match.json).isNotEmpty())
                                 it
                             else
                                 EMPTY_BSON
