@@ -27,14 +27,9 @@ val mainClassName = "io.ktor.server.netty.EngineMain"
 kotlin {
     jvmToolchain(17)
     jvm {
-        compilations.all {
-            java {
-                targetCompatibility = JavaVersion.VERSION_17
-            }
-            kotlinOptions {
-                jvmTarget = "17"
-                freeCompilerArgs = listOf("-Xjsr305=strict")
-            }
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
         }
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
@@ -43,7 +38,7 @@ kotlin {
     }
     js(IR) {
         browser()
-        binaries.executable()
+        binaries.library()
     }
     androidTarget {
         publishLibraryVariants("debug", "release")
