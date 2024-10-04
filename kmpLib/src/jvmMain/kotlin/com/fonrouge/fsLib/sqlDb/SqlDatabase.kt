@@ -112,7 +112,7 @@ abstract class SqlDatabase(
 
     suspend inline fun <reified T : Any> findItem(
         @Language("SQL") sql: String,
-        args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
+        args: Iterable<Pair<IColumnType<*>, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
     ): T? {
         var result: T? = null
@@ -142,7 +142,7 @@ abstract class SqlDatabase(
 
     suspend inline fun <reified T> forEachResult(
         @Language("SQL") sql: String,
-        args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
+        args: Iterable<Pair<IColumnType<*>, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
         debug: Boolean = false,
         /* TODO: how to make this block suspended */
@@ -176,7 +176,7 @@ abstract class SqlDatabase(
 
     suspend inline fun <reified T> findList(
         @Language("SQL") sql: String,
-        args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
+        args: Iterable<Pair<IColumnType<*>, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
         debug: Boolean = false,
         crossinline doBlock: (ResultSet) -> T? = { resultSet ->
@@ -194,7 +194,7 @@ abstract class SqlDatabase(
 
     suspend inline fun <reified T> findJsonList(
         @Language("SQL") sql: String,
-        args: Iterable<Pair<IColumnType, Any?>> = emptyList(),
+        args: Iterable<Pair<IColumnType<*>, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
         debug: Boolean = false,
     ): List<JsonObject> {
