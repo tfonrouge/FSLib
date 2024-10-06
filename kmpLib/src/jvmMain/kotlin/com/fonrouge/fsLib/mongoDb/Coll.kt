@@ -68,63 +68,63 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         val user = call.requireUser<U>()
         userRoleColl.getUserPermission(user).let { if (!it.isOk) return ItemState(it) }
-        return apiProcess(iApiItem, call.requireUser<U>())
+        return apiProcess(iApiItem, user)
     }
 
     @Suppress("unused")
     open suspend fun <U : IUser<UID>, UID : Any> apiProcess(
         iApiItem: IApiItem<T, ID, FILT>,
-        user: U? = null,
+        iUser: U? = null,
     ): ItemState<T> {
         return when (val apiItem = iApiItem.asApiItem(commonContainer)) {
             is ApiItem.Query<*, *, *> -> when (apiItem) {
-                is ApiItem.Query.Upsert.Create -> queryCreate(apiItem, user)
-                is ApiItem.Query.Read -> queryRead(apiItem, user)
-                is ApiItem.Query.Upsert.Update -> queryUpdate(apiItem, user)
-                is ApiItem.Query.Delete -> queryDelete(apiItem, user)
+                is ApiItem.Query.Upsert.Create -> queryCreate(apiItem, iUser)
+                is ApiItem.Query.Read -> queryRead(apiItem, iUser)
+                is ApiItem.Query.Upsert.Update -> queryUpdate(apiItem, iUser)
+                is ApiItem.Query.Delete -> queryDelete(apiItem, iUser)
             }
 
             is ApiItem.Action<*, *, *> -> when (apiItem) {
-                is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, user)
-                is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, user)
-                is ApiItem.Action.Delete -> actionDelete(apiItem, user)
+                is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, iUser)
+                is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, iUser)
+                is ApiItem.Action.Delete -> actionDelete(apiItem, iUser)
             }
         }
     }
 
     open suspend fun <U : IUser<UID>, UID : Any> queryCreate(
         apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>,
-        user: U? = null,
+        iUser: U? = null,
     ): ItemState<T> = ItemState(isOk = true)
 
     open suspend fun <U : IUser<UID>, UID : Any> queryRead(
         apiItem: ApiItem.Query.Read<T, ID, FILT>,
-        user: U? = null,
+        iUser: U? = null,
     ): ItemState<T> = findItemState(apiItem)
 
     open suspend fun <U : IUser<UID>, UID : Any> queryUpdate(
         apiItem: ApiItem.Query.Upsert.Update<T, ID, FILT>,
-        user: U? = null,
+        iUser: U? = null,
     ): ItemState<T> = findItemState(apiItem)
 
     open suspend fun <U : IUser<UID>, UID : Any> queryDelete(
         apiItem: ApiItem.Query.Delete<T, ID, FILT>,
-        user: U? = null,
+        iUser: U? = null,
     ): ItemState<T> = findChildrenNot(apiItem.id)
 
     open suspend fun <U : IUser<UID>, UID : Any> actionCreate(
         apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
-        user: U? = null,
+        iUser: U? = null,
     ): ItemState<T> = insertOne(apiItem)
 
     open suspend fun <U : IUser<UID>, UID : Any> actionUpdate(
         apiItem: ApiItem.Action.Upsert.Update<T, ID, FILT>,
-        user: U? = null,
+        iUser: U? = null,
     ): ItemState<T> = updateOne(apiItem)
 
     open suspend fun <U : IUser<UID>, UID : Any> actionDelete(
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
-        user: U? = null,
+        iUser: U? = null,
     ): ItemState<T> = deleteOne(apiItem)
 
     /**
