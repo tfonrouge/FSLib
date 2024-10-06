@@ -48,7 +48,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * Observable that holds the [ItemState] for the [ViewItem]
      */
-    var itemStateObservableValue: ObservableValue<ItemState<T>> = ObservableValue(ItemState())
+    val itemStateObservableValue: ObservableValue<ItemState<T>> = ObservableValue(ItemState())
 
     /**
      * Helper to get the item property from the [ItemState]
