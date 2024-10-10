@@ -61,7 +61,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     init {
         itemObservable.subscribe {
             it?.let { item ->
-                console.warn("itemObservable -> ", item)
                 labelBanner = label
                 formPanel?.setData(item)
                 onChangeItemObservable(it)
