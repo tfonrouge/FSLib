@@ -847,6 +847,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return if (updateResult.matchedCount > 0) {
             onAfterUpsert(apiItem)
             ItemState(
+                item = apiItem.item,
                 state = if (updateResult.matchedCount == 1L) State.Ok else State.Warn,
                 noDataModified = updateResult.modifiedCount == 0L,
                 msgError = "No data was modified ..."

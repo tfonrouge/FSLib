@@ -48,23 +48,24 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * Observable that holds the [ItemState] for the [ViewItem]
      */
-    val itemStateObservableValue: ObservableValue<ItemState<T>> = ObservableValue(ItemState())
+    val itemObservable: ObservableValue<T?> = ObservableValue(null)
 
     /**
      * Helper to get the item property from the [ItemState]
      */
-    val item: T? get() = itemStateObservableValue.value.item
+    val item: T? get() = itemObservable.value
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
 
     init {
-        itemStateObservableValue.subscribe {
-            it.item?.let { item ->
+        itemObservable.subscribe {
+            it?.let { item ->
+                console.warn("itemObservable -> ", item)
                 labelBanner = label
                 formPanel?.setData(item)
+                onChangeItemObservable(it)
             }
-            onChangeItemState(it)
         }
     }
 
@@ -79,7 +80,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
 
     /**
-     * Set to true if periodic update of [itemStateObservableValue] is allowed
+     * Set to true if periodic update of [itemObservable] is allowed
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewItem
@@ -328,7 +329,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             )
                             val crudAction1 = urlParams?.crudTask
                             if (itemResponse.isOk && crudAction1 != null) {
-                                itemStateObservableValue.value = itemResponse
+                                itemObservable.value = itemResponse.item
                                 displayForm(crudAction1)
                             } else {
                                 flexPanel(
@@ -400,7 +401,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * Called when the [ItemState] value changes
      */
-    open fun onChangeItemState(itemState: ItemState<T>) {}
+    open fun onChangeItemObservable(item: T) {}
 
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
