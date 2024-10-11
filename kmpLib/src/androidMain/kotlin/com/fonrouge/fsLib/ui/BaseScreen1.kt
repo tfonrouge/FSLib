@@ -163,7 +163,7 @@ fun snackbarHostState(vmBase: VMBase): SnackbarHostState {
 //    LaunchedEffect(key1 = simpleState?.dateTime) {
     LaunchedEffect(key1 = simpleState) {
         simpleState?.let {
-            when (it.notError) {
+            when (it.hasError.not()) {
                 true -> it.msgOk?.let { it1 ->
                     snackbarHostState.showSnackbar(
                         message = it1,

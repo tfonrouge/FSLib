@@ -104,7 +104,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 close = true,
                 stopOnFocus = true
             )
-            if (it.notError) {
+            if (it.hasError.not()) {
                 Toast.info(
                     message = if (it.noDataModified == true) "No data was modified ..." else it.msgOk
                         ?: "info...",
@@ -328,7 +328,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                 escapeHtml = true,
                             )
                             val crudAction1 = urlParams?.crudTask
-                            if (itemResponse.notError && crudAction1 != null) {
+                            if (itemResponse.hasError.not() && crudAction1 != null) {
                                 itemObservable.value = itemResponse.item
                                 displayForm(crudAction1)
                             } else {

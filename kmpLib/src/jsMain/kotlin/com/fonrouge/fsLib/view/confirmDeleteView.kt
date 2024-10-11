@@ -26,7 +26,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
         item = item,
         apiFilter = apiFilter,
     ) { itemState ->
-        if (itemState.notError) {
+        if (itemState.hasError.not()) {
             val modal = Confirm(
                 caption = "Please Confirm",
                 text = "<b>Delete</b> '<i>${configViewItem.label}</i>', id: <b>${
@@ -47,7 +47,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
                         item = item,
                         apiFilter = apiFilter,
                     ) { itemState1 ->
-                        if (itemState1.notError) {
+                        if (itemState1.hasError.not()) {
                             Toast.success(
                                 message = itemState1.msgOk ?: "Delete action successful ...",
                             )

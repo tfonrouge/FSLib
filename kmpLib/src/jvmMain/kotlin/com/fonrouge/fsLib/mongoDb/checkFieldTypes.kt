@@ -91,7 +91,7 @@ class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
         fieldKClass: KClass<*>
     ): ItemState<Long> {
         val itemState = countInvalidFields(filter, kProperty1)
-        if (itemState.notError) {
+        if (itemState.hasError.not()) {
             return itemState
         }
         count = 0
@@ -153,7 +153,7 @@ class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
                 val fieldKClass = kProperty1.returnType.classifier as KClass<*>
                 if (kProperty1.returnType.isMarkedNullable.not()) {
                     val simpleState = checkNullables(collection, kProperty1)
-                    if (simpleState.notError.not()) {
+                    if (simpleState.hasError) {
                         return simpleState.asSimpleState
                     }
                 }
@@ -204,7 +204,7 @@ class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
                                 kProperty1 = kProperty1,
                                 fieldKClass = fieldKClass
                             ).also { itemState: ItemState<Long> ->
-                                if (itemState.notError) {
+                                if (itemState.hasError.not()) {
                                     println(" ${itemState.msgOk}")
                                 }
                             }
@@ -213,7 +213,7 @@ class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
 
                     else -> null
                 }?.let { itemState: ItemState<Long> ->
-                    if (itemState.notError.not()) {
+                    if (itemState.hasError) {
                         println("  ${itemState.msgError}")
                         return itemState.asSimpleState
                     }

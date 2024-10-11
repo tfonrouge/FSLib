@@ -44,7 +44,7 @@ fun ScreenStateAlert(vmBase: VMBase) {
             } else {
                 null
             },
-            icon = if (itemAlert.simpleState.notError) {
+            icon = if (itemAlert.simpleState.hasError.not()) {
                 {
                     Icon(imageVector = Icons.Default.Check, contentDescription = "info")
                 }
@@ -57,9 +57,9 @@ fun ScreenStateAlert(vmBase: VMBase) {
                 Text(text = "${itemAlert.simpleState.state}")
             },
             text = {
-                Text(text = if (itemAlert.simpleState.notError) "${itemAlert.simpleState.msgOk}" else "${itemAlert.simpleState.msgError}")
+                Text(text = if (itemAlert.simpleState.hasError.not()) "${itemAlert.simpleState.msgOk}" else "${itemAlert.simpleState.msgError}")
             },
-            iconContentColor = if (itemAlert.simpleState.notError) Color.Green else Color.Red
+            iconContentColor = if (itemAlert.simpleState.hasError.not()) Color.Green else Color.Red
         )
     }
 }

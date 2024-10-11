@@ -339,7 +339,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         kProps: List<KProperty1<*, ID>>? = childColls?.map { it.first }
     ): ItemState<T> {
         val itemState = findItemStateById(id)
-        if (itemState.notError) {
+        if (itemState.hasError.not()) {
             kProps?.mapNotNull { kProps1 -> childColls?.find { kProps1 == it.first } }
                 ?.forEach { pair ->
                     val item = pair.second.findOne(filter = pair.first eq id)
@@ -370,7 +370,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         return try {
             onBeforeDelete(apiItem).also {
-                if (!it.notError) return it
+                if (it.hasError) return it
             }
             val result = coroutine.deleteOne(
                 and(
@@ -558,13 +558,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val item = apiItem.item
         if (!overrideValidation) {
             commonContainer.validateItem(item = item, apiItem.apiFilter).also { itemState ->
-                if (!itemState.notError) return itemState
+                if (itemState.hasError) return itemState
             }
         }
         checkDontPersist(item)
         return try {
             onBeforeUpsert(apiItem).also {
-                if (!it.notError) return it
+                if (it.hasError) return it
             }
             val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
             val result = insertOneResult.insertedId != null
@@ -824,10 +824,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         val item = apiItem.item
         onBeforeUpsert(apiItem).also {
-            if (!it.notError) return it
+            if (it.hasError) return it
         }
         commonContainer.validateItem(item = item, apiFilter = apiItem.apiFilter).also { itemState ->
-            if (!itemState.notError) return itemState
+            if (itemState.hasError) return itemState
         }
         checkDontPersist(item)
         val filter1 = and(BaseDoc<ID>::_id eq item._id, filter ?: EMPTY_BSON)
