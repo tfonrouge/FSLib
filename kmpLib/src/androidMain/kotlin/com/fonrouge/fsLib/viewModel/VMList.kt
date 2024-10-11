@@ -111,7 +111,7 @@ abstract class VMList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
                 apiFilter = apiFilter
             )
             var itemState: ItemState<T> = itemStateFun(commonContainer.toIApiItem(apiItem))
-            if (itemState.isOk) {
+            if (itemState.notError) {
                 itemState = itemStateFun(
                     commonContainer.toIApiItem(
                         ApiItem.Action.Delete(
@@ -120,7 +120,7 @@ abstract class VMList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
                         )
                     ),
                 )
-                if (!itemState.isOk) {
+                if (!itemState.notError) {
                     itemState.pushAlert()
                 }
             } else {

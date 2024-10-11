@@ -67,7 +67,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         userRoleColl: IUserRoleColl<UR, U, UID, GR, GOU, *>
     ): ItemState<T> {
         val user = call.requireUser<U>()
-        userRoleColl.getUserPermission(user).let { if (!it.isOk) return ItemState(it) }
+        userRoleColl.getUserPermission(user).let { if (it.state == State.Error) return ItemState(it) }
         return apiProcess(iApiItem, user)
     }
 
@@ -339,7 +339,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         kProps: List<KProperty1<*, ID>>? = childColls?.map { it.first }
     ): ItemState<T> {
         val itemState = findItemStateById(id)
-        if (itemState.isOk) {
+        if (itemState.notError) {
             kProps?.mapNotNull { kProps1 -> childColls?.find { kProps1 == it.first } }
                 ?.forEach { pair ->
                     val item = pair.second.findOne(filter = pair.first eq id)
@@ -370,7 +370,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         return try {
             onBeforeDelete(apiItem).also {
-                if (!it.isOk) return it
+                if (!it.notError) return it
             }
             val result = coroutine.deleteOne(
                 and(
@@ -558,13 +558,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val item = apiItem.item
         if (!overrideValidation) {
             commonContainer.validateItem(item = item, apiItem.apiFilter).also { itemState ->
-                if (!itemState.isOk) return itemState
+                if (!itemState.notError) return itemState
             }
         }
         checkDontPersist(item)
         return try {
             onBeforeUpsert(apiItem).also {
-                if (!it.isOk) return it
+                if (!it.notError) return it
             }
             val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
             val result = insertOneResult.insertedId != null
@@ -824,10 +824,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         val item = apiItem.item
         onBeforeUpsert(apiItem).also {
-            if (!it.isOk) return it
+            if (!it.notError) return it
         }
         commonContainer.validateItem(item = item, apiFilter = apiItem.apiFilter).also { itemState ->
-            if (!itemState.isOk) return itemState
+            if (!itemState.notError) return itemState
         }
         checkDontPersist(item)
         val filter1 = and(BaseDoc<ID>::_id eq item._id, filter ?: EMPTY_BSON)

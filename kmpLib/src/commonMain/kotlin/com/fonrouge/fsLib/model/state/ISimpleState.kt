@@ -11,6 +11,5 @@ interface ISimpleState {
     val msgError: String?
     val cargo: String?
     val dateTime: OffsetDateTime
-
-    val isOk: Boolean
+    val notError: Boolean
 }

@@ -14,8 +14,8 @@ data class SimpleState(
 ) : ISimpleState {
     @Serializable(with = FSOffsetDateTimeSerializer::class)
     override val dateTime: OffsetDateTime = offsetDateTimeNow()
-    override val isOk: Boolean
-        get() = state == State.Ok
+    override val notError: Boolean
+        get() = state != State.Error
 
     @Suppress("unused")
     constructor(itemState: ItemState<*>) : this(

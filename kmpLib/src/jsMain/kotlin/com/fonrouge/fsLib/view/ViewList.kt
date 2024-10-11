@@ -13,6 +13,7 @@ import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.State
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.ColumnDefinition
@@ -130,7 +131,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
         if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
             masterViewItem?.acceptUpsertAction { itemResponse ->
-                if (itemResponse.isOk) {
+                if (itemResponse.state != State.Error) {
                     callBlock()
                 } else {
                     Toast.danger(itemResponse.msgError ?: "unknown error")

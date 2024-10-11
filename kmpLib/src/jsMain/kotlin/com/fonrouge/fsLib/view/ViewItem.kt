@@ -12,6 +12,7 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
+import com.fonrouge.fsLib.model.state.State
 import io.kvision.core.AlignContent
 import io.kvision.core.AlignItems
 import io.kvision.core.Container
@@ -103,7 +104,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 close = true,
                 stopOnFocus = true
             )
-            if (it.isOk) {
+            if (it.notError) {
                 Toast.info(
                     message = if (it.noDataModified == true) "No data was modified ..." else it.msgOk
                         ?: "info...",
@@ -123,7 +124,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 if (formPanel.validate()) {
                     val data = formPanelGetData()
                     val simpleState = formPanelValidate(data)
-                    if (simpleState.isOk) {
+                    if (simpleState.state != State.Error) {
                         configView.callItemService(
                             crudTask = crudAction,
                             callType = CallType.Action,
@@ -131,7 +132,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             item = data?.let { transformData(it) },
                             apiFilter = apiFilter,
                         ) { itemResponse ->
-                            block?.let { it(itemResponse) }
+                            block?.invoke(itemResponse)
                             itemResponse
                         }
                     } else {
@@ -327,7 +328,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                 escapeHtml = true,
                             )
                             val crudAction1 = urlParams?.crudTask
-                            if (itemResponse.isOk && crudAction1 != null) {
+                            if (itemResponse.notError && crudAction1 != null) {
                                 itemObservable.value = itemResponse.item
                                 displayForm(crudAction1)
                             } else {
