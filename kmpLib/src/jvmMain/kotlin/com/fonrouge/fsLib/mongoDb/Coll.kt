@@ -844,12 +844,31 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 msgError = e.message
             )
         }
-        return if (updateResult.matchedCount > 0) {
+        val state: State
+        val noDataModified: Boolean
+        if (updateResult.matchedCount > 0) {
+            if (updateResult.modifiedCount == 1L) {
+                state = State.Ok
+                noDataModified = false
+            } else {
+                state = State.Warn
+                noDataModified = true
+            }
+        } else {
+            if (updateOptions.isUpsert && updateResult.upsertedId != null) {
+                state = State.Ok
+                noDataModified = false
+            } else {
+                state = State.Error
+                noDataModified = true
+            }
+        }
+        return if (state != State.Error) {
             onAfterUpsert(apiItem)
             ItemState(
-                item = apiItem.item,
-                state = if (updateResult.matchedCount == 1L) State.Ok else State.Warn,
-                noDataModified = updateResult.modifiedCount == 0L,
+                item = item,
+                state = state,
+                noDataModified = noDataModified,
                 msgError = "No data was modified ..."
             )
         } else {
