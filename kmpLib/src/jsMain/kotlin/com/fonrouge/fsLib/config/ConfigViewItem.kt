@@ -3,11 +3,7 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.toEncodedUrlString
-import com.fonrouge.fsLib.model.apiData.ApiItem
-import com.fonrouge.fsLib.model.apiData.CallType
-import com.fonrouge.fsLib.model.apiData.CrudTask
-import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.apiData.IApiItem
+import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
@@ -57,7 +53,6 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     @Suppress("unused")
     fun labelUrlUpdate(id: ID) = commonContainer.labelItem to urlUpdate(id)
 
-    @Suppress("unused")
     val urlCreate: String
         get() {
             val urlParams = UrlParams("action" to CrudTask.Create.name)
@@ -133,7 +128,6 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         return url
     }
 
-    @Suppress("unused")
     @OptIn(ExperimentalSerializationApi::class)
     fun callItemService(
         crudTask: CrudTask,

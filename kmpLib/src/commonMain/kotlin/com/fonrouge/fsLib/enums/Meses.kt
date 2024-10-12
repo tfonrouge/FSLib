@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.enums
 
 import kotlinx.serialization.Serializable
 
+@Suppress("unused")
 @Serializable
 enum class Meses {
     ENERO,

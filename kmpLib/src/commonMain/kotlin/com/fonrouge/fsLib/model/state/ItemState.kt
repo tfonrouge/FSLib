@@ -20,7 +20,6 @@ data class ItemState<T>(
     override val hasError: Boolean
         get() = state == State.Error
 
-    @Suppress("unused")
     constructor(simpleResponse: SimpleState) : this(
         state = simpleResponse.state,
         msgOk = simpleResponse.msgOk,
@@ -43,6 +42,5 @@ data class ItemState<T>(
         cargo = cargo
     )
 
-    @Suppress("unused")
     val asSimpleState get() = SimpleState(this)
 }

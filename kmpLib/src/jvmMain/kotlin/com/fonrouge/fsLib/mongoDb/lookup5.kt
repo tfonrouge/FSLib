@@ -3,13 +3,7 @@ package com.fonrouge.fsLib.mongoDb
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.Variable
 import org.bson.conversions.Bson
-import org.litote.kmongo.MongoOperator
-import org.litote.kmongo.expr
-import org.litote.kmongo.from
-import org.litote.kmongo.lookup
-import org.litote.kmongo.match
-import org.litote.kmongo.path
-import org.litote.kmongo.variableDefinition
+import org.litote.kmongo.*
 import kotlin.reflect.KProperty
 
 /**

@@ -5,12 +5,7 @@ import io.kvision.core.Color
 import io.kvision.core.Container
 import io.kvision.core.Cursor
 import io.kvision.core.onClick
-import io.kvision.html.Button
-import io.kvision.html.ButtonStyle
-import io.kvision.html.ButtonType
-import io.kvision.html.button
-import io.kvision.html.div
-import io.kvision.html.icon
+import io.kvision.html.*
 import io.kvision.panel.vPanel
 import io.kvision.state.ObservableValue
 import io.kvision.state.bind
@@ -21,6 +16,7 @@ import io.kvision.table.table
 import io.kvision.utils.rem
 import kotlinx.browser.window
 
+@Suppress("unused")
 fun Container.buttonMenu(
     text: String,
     icon: String? = null,

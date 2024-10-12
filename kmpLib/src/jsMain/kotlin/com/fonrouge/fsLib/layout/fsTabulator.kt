@@ -13,12 +13,7 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.onEvent
 import io.kvision.panel.vPanel
-import io.kvision.tabulator.FilterMode
-import io.kvision.tabulator.Layout
-import io.kvision.tabulator.PaginationMode
-import io.kvision.tabulator.SortMode
-import io.kvision.tabulator.TableType
-import io.kvision.tabulator.TabulatorOptions
+import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi

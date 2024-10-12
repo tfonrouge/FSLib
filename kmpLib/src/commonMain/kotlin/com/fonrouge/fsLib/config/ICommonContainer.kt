@@ -93,7 +93,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     )
 
     /* IApiItem */
-    @Suppress("unused")
     fun iApiItemQueryCreate(
         id: ID? = null,
         apiFilter: FILT = apiFilterInstance()
@@ -102,7 +101,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 
-    @Suppress("unused")
     fun iApiItemQueryRead(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
@@ -111,7 +109,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 
-    @Suppress("unused")
     fun iApiItemQueryUpdate(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
@@ -120,7 +117,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 
-    @Suppress("unused")
     fun iApiItemQueryDelete(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
@@ -129,7 +125,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 
-    @Suppress("unused")
     fun iApiItemActionCreate(
         item: T,
         apiFilter: FILT = apiFilterInstance()
@@ -139,7 +134,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     )
 
 
-    @Suppress("unused")
     fun iApiItemActionUpdate(
         item: T,
         apiFilter: FILT = apiFilterInstance()
@@ -148,7 +142,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 
-    @Suppress("unused")
     fun iApiItemActionDelete(
         item: T,
         apiFilter: FILT = apiFilterInstance()
@@ -157,12 +150,12 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 
-    @Suppress("unused")
     open fun validateItem(item: T, apiFilter: FILT = apiFilterInstance()): ItemState<T> {
         return ItemState(isOk = true)
     }
 }
 
+@Suppress("unused")
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FILT>.toIApiItem(
     apiItem: ApiItem<T, ID, FILT>
 ): IApiItem<T, ID, FILT> =

@@ -1,19 +1,13 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.serializers.FSLocalDateSerializer
-import com.fonrouge.fsLib.serializers.FSLocalDateTimeSerializer
-import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
-import com.fonrouge.fsLib.serializers.IntIdSerializer
-import com.fonrouge.fsLib.serializers.LongIdSerializer
-import com.fonrouge.fsLib.serializers.OIdSerializer
-import com.fonrouge.fsLib.serializers.StringIdSerializer
+import com.fonrouge.fsLib.serializers.*
 import com.mongodb.client.model.Collation
 import com.mongodb.client.model.CollationStrength
 import com.mongodb.reactivestreams.client.MongoDatabase
-import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.*
 import org.litote.kmongo.reactivestreams.KMongo
 import org.litote.kmongo.serialization.registerSerializer
-import java.util.Locale
+import java.util.*
 
 internal var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
 

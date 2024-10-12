@@ -12,11 +12,7 @@ import io.kvision.core.Container
 import io.kvision.core.Cursor
 import io.kvision.core.Widget
 import io.kvision.core.onClick
-import io.kvision.html.Button
-import io.kvision.html.ButtonStyle
-import io.kvision.html.Link
-import io.kvision.html.button
-import io.kvision.html.link
+import io.kvision.html.*
 import io.kvision.navbar.Navbar
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar

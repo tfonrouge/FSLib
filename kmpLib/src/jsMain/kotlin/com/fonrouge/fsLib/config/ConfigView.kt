@@ -71,7 +71,6 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
     /**
      * helper to build an api filter parameter in the url string
      */
-    @Suppress("unused")
     fun apiFilterParam(obj: FILT): Pair<String, String> =
         pairParam(key = "apiFilter", serializer = commonContainer.apiFilterSerializer, obj = obj)
 

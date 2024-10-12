@@ -1,17 +1,11 @@
 package com.fonrouge.fsLib.commonServices
 
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.request.receive
-import io.ktor.server.response.respondText
+import io.ktor.http.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import kotlin.reflect.KSuspendFunction1
-import kotlin.reflect.KSuspendFunction2
-import kotlin.reflect.KSuspendFunction3
-import kotlin.reflect.KSuspendFunction4
-import kotlin.reflect.KSuspendFunction5
-import kotlin.reflect.KSuspendFunction6
+import kotlin.reflect.*
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.functions
 

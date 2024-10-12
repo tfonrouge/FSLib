@@ -17,7 +17,6 @@ data class SimpleState(
     override val hasError: Boolean
         get() = state == State.Error
 
-    @Suppress("unused")
     constructor(itemState: ItemState<*>) : this(
         state = itemState.state,
         msgOk = itemState.msgOk,

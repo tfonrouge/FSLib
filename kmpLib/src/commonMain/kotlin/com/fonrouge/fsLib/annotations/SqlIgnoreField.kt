@@ -1,4 +1,4 @@
-@file:Suppress("unused", "RedundantVisibilityModifier")
+@file:Suppress("RedundantVisibilityModifier")
 
 package com.fonrouge.fsLib.annotations
 

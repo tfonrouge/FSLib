@@ -10,7 +10,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
-import java.util.Base64
+import java.util.*
 import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1

@@ -29,7 +29,6 @@ fun <T : BaseDoc<*>> String.toOIdSet(): Set<OId<T>> = this.split(',').map { OId<
  * @param T the type of the `BaseDoc` elements.
  * @return a Set of `StringId` elements, or null if the current instance is null.
  */
-@Suppress("unused")
 fun <T : BaseDoc<*>> StringId<T>?.setOf(): Set<StringId<T>>? {
     return this?.let { setOf(it) }
 }
@@ -41,7 +40,6 @@ fun <T : BaseDoc<*>> StringId<T>?.setOf(): Set<StringId<T>>? {
  * @return a set containing the specified [IntId] element, or an empty set
  *         if the element is null
  */
-@Suppress("unused")
 fun <T : BaseDoc<*>> IntId<T>?.setOf(): Set<IntId<T>>? {
     return this?.let { setOf(it) }
 }
@@ -55,7 +53,6 @@ fun <T : BaseDoc<*>> IntId<T>?.setOf(): Set<IntId<T>>? {
  *
  * @return a set containing the receiver [LongId] object, or null if the receiver object is null.
  */
-@Suppress("unused")
 fun <T : BaseDoc<*>> LongId<T>?.setOf(): Set<LongId<T>>? {
     return this?.let { setOf(it) }
 }
@@ -69,7 +66,6 @@ fun <T : BaseDoc<*>> LongId<T>?.setOf(): Set<LongId<T>>? {
  *
  * @return a set containing the receiver [OId] object, or null if the receiver object is null.
  */
-@Suppress("unused")
 fun <T : BaseDoc<*>> OId<T>?.setOf(): Set<OId<T>>? {
     return this?.let { setOf(it) }
 }

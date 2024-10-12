@@ -1,10 +1,8 @@
 package com.fonrouge.fsLib.services
 
 import com.fonrouge.fsLib.model.base.IUser
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
-import io.ktor.server.sessions.set
+import io.ktor.server.application.*
+import io.ktor.server.sessions.*
 import io.kvision.remote.ServiceException
 
 inline fun <reified U : IUser<*>> ApplicationCall.getUser(): U? {
