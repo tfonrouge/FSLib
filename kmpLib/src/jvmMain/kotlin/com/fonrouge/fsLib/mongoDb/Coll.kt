@@ -4,11 +4,7 @@ import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.*
-import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.base.IGroupOfUser
-import com.fonrouge.fsLib.model.base.IGroupRole
-import com.fonrouge.fsLib.model.base.IUser
-import com.fonrouge.fsLib.model.base.IUserRole
+import com.fonrouge.fsLib.model.base.*
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.state.SimpleState
@@ -16,14 +12,14 @@ import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.LongId
 import com.fonrouge.fsLib.serializers.StringId
-import com.fonrouge.fsLib.services.requireUser
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
 import com.mongodb.client.result.InsertOneResult
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
-import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.*
+import io.ktor.server.sessions.*
 import io.kvision.remote.RemoteFilter
 import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
@@ -46,6 +42,7 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 internal val collSet = mutableSetOf<Coll<*, *, *, *>>()
+internal var userRoleColl: IUserRoleColl<*, *, *, *, *, *>? = null
 
 val KClass<out BaseDoc<*>>.collectionName: String
     get() {
@@ -54,84 +51,125 @@ val KClass<out BaseDoc<*>>.collectionName: String
 
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
-    var debug: Boolean? = null
+    private val apiPermission: Set<ApiPermission> = setOf(ApiPermission.All),
+    private var debug: Boolean? = null
 ) {
+    enum class ApiPermission {
+        Create,
+        Read,
+        Update,
+        Delete,
+        All
+    }
+
     companion object {
         var globalDebug = false
     }
 
     @Suppress("unused")
-    suspend inline fun <reified U : IUser<UID>, UID : Any, UR : IUserRole<U, UID>, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>> apiProcessWithUserPerms(
+    suspend fun <U : IUser<UID>, UID : Any> apiProcessWithUserPerms(
         iApiItem: IApiItem<T, ID, FILT>,
-        call: ApplicationCall,
-        userRoleColl: IUserRoleColl<UR, U, UID, GR, GOU, *>
+        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
+        user: U?,
     ): ItemState<T> {
-        val user = call.requireUser<U>()
-        userRoleColl.getUserPermission(user).let { if (it.state == State.Error) return ItemState(it) }
-        return apiProcess(iApiItem, user)
+        user ?: return ItemState(isOk = false, msgError = "User is null")
+        userRoleColl?.getUserPermission(
+            user = user,
+            stackTraceElement = stackTraceElement
+        )?.let { if (it.state == State.Error) return ItemState(it) }
+        return apiProcess(iApiItem = iApiItem, user = user)
     }
 
     @Suppress("unused")
-    open suspend fun <U : IUser<UID>, UID : Any> apiProcess(
+    suspend fun apiProcess(
         iApiItem: IApiItem<T, ID, FILT>,
-        iUser: U? = null,
+    ): ItemState<T> = apiProcess(iApiItem = iApiItem, user = null)
+
+    open suspend fun <U : IUser<*>> apiProcess(
+        iApiItem: IApiItem<T, ID, FILT>,
+        user: U?,
     ): ItemState<T> {
+        if (apiPermission.none { it == ApiPermission.All }) {
+            val permission: Boolean = when (iApiItem.crudTask) {
+                CrudTask.Create -> apiPermission.contains(ApiPermission.Create)
+                CrudTask.Read -> apiPermission.contains(ApiPermission.Read)
+                CrudTask.Update -> apiPermission.contains(ApiPermission.Update)
+                CrudTask.Delete -> apiPermission.contains(ApiPermission.Delete)
+            }
+            if (permission.not()) return ItemState(isOk = false, msgError = "Permission ${iApiItem.crudTask} denied")
+        }
         return when (val apiItem = iApiItem.asApiItem(commonContainer)) {
             is ApiItem.Query<*, *, *> -> when (apiItem) {
-                is ApiItem.Query.Upsert.Create -> queryCreate(apiItem, iUser)
-                is ApiItem.Query.Read -> queryRead(apiItem, iUser)
-                is ApiItem.Query.Upsert.Update -> queryUpdate(apiItem, iUser)
-                is ApiItem.Query.Delete -> queryDelete(apiItem, iUser)
+                is ApiItem.Query.Upsert.Create -> queryCreate(apiItem, user)
+                is ApiItem.Query.Read -> {
+                    val itemState = findItemState(apiItem)
+                    if (itemState.hasError) return itemState
+                    queryRead(apiItem, itemState, user)
+                }
+
+                is ApiItem.Query.Upsert.Update -> {
+                    val itemState = findItemState(apiItem)
+                    if (itemState.hasError) return itemState
+                    queryUpdate(apiItem, itemState, user)
+                }
+
+                is ApiItem.Query.Delete -> {
+                    val itemState = findItemState(apiItem)
+                    if (itemState.hasError) return itemState
+                    queryDelete(apiItem, itemState, user)
+                }
             }
 
             is ApiItem.Action<*, *, *> -> when (apiItem) {
-                is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, iUser)
-                is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, iUser)
-                is ApiItem.Action.Delete -> actionDelete(apiItem, iUser)
+                is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, user)
+                is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, user)
+                is ApiItem.Action.Delete -> actionDelete(apiItem, user)
             }
         }
     }
 
-    open suspend fun <U : IUser<UID>, UID : Any> queryCreate(
+    protected open suspend fun queryCreate(
         apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>,
-        iUser: U? = null,
+        iUser: IUser<*>? = null,
     ): ItemState<T> = ItemState(isOk = true)
 
-    open suspend fun <U : IUser<UID>, UID : Any> queryRead(
+    protected open suspend fun queryRead(
         apiItem: ApiItem.Query.Read<T, ID, FILT>,
-        iUser: U? = null,
+        itemState: ItemState<T>,
+        iUser: IUser<*>? = null,
     ): ItemState<T> = findItemState(apiItem)
 
-    open suspend fun <U : IUser<UID>, UID : Any> queryUpdate(
+    protected open suspend fun queryUpdate(
         apiItem: ApiItem.Query.Upsert.Update<T, ID, FILT>,
-        iUser: U? = null,
+        itemState: ItemState<T>,
+        iUser: IUser<*>? = null,
     ): ItemState<T> = findItemState(apiItem)
 
-    open suspend fun <U : IUser<UID>, UID : Any> queryDelete(
+    protected open suspend fun queryDelete(
         apiItem: ApiItem.Query.Delete<T, ID, FILT>,
-        iUser: U? = null,
+        itemState: ItemState<T>,
+        iUser: IUser<*>? = null,
     ): ItemState<T> = findChildrenNot(apiItem.id)
 
-    open suspend fun <U : IUser<UID>, UID : Any> actionCreate(
+    protected open suspend fun actionCreate(
         apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
-        iUser: U? = null,
+        iUser: IUser<*>? = null,
     ): ItemState<T> = insertOne(apiItem)
 
-    open suspend fun <U : IUser<UID>, UID : Any> actionUpdate(
+    protected open suspend fun actionUpdate(
         apiItem: ApiItem.Action.Upsert.Update<T, ID, FILT>,
-        iUser: U? = null,
+        iUser: IUser<*>? = null,
     ): ItemState<T> = updateOne(apiItem)
 
-    open suspend fun <U : IUser<UID>, UID : Any> actionDelete(
+    protected open suspend fun actionDelete(
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
-        iUser: U? = null,
+        iUser: IUser<*>? = null,
     ): ItemState<T> = deleteOne(apiItem)
 
     /**
      * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function
      * for the aggregation operation
      */
-    @Suppress("MemberVisibilityCanBePrivate")
     open fun fixedLookupList(
         apiFilter: FILT = commonContainer.apiFilterInstance()
     ): List<KProperty1<in T, *>>? = null
@@ -219,7 +257,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
     }
 
-    @Suppress("MemberVisibilityCanBePrivate", "unused")
+    @Suppress("unused")
     // TODO: find a better func name
     suspend fun aggregateOneLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
@@ -363,7 +401,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the delete operation. It contains information about whether the operation was successful or not,
      * as well as any error message in case of failure.
      */
-    @Suppress("unused")
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun deleteOne(
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
         filter: Bson? = null,
@@ -420,7 +458,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param lookupWrappers array of [LookupWrapper]
      * @return list of T items
      */
-    @Suppress("unused", "MemberVisibilityCanBePrivate")
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findPublisher(
         filter: Bson? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
@@ -481,7 +519,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return findOne(BaseDoc<*>::_id eq id, apiFilter, lookupWrappers)
     }
 
-    @Suppress("unused")
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findItemState(
         apiItem: ApiItem.Query<T, ID, FILT>,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
@@ -493,7 +531,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
     }
 
-    @Suppress("unused")
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findItemStateById(
         id: ID?,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
@@ -550,7 +588,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param overrideValidation Flag indicating whether to override the item validation. (Default: false)
      * @return The state of the item after insertion.
      */
-    @Suppress("unused")
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun insertOne(
         apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
         overrideValidation: Boolean = false
@@ -816,7 +854,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * @return The state of the item after the update operation.
      */
-    @Suppress("MemberVisibilityCanBePrivate", "unused")
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun updateOne(
         apiItem: ApiItem.Action.Upsert.Update<T, ID, FILT>,
         filter: Bson? = null,
