@@ -6,6 +6,8 @@ import com.fonrouge.fsLib.model.base.*
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.serializers.OId
 import com.mongodb.client.model.UnwindOptions
+import io.ktor.server.application.*
+import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -16,7 +18,8 @@ import kotlin.reflect.KClass
 
 @Suppress("unused")
 abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
-    commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>
+    commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>,
+    private val userKClass: KClass<U>,
 ) : Coll<ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>, UR, OId<IUserRole<U, UID>>, FILT>(
     commonContainer = commonContainer
 ) {
@@ -29,10 +32,23 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
     abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
     abstract val groupRoleColl: IGroupRoleColl<GR, *, GOU, *>
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter<*>>
-    open fun rootUser(user: U?): Boolean? = null
+    open fun rootUser(user: IUser<*>?): Boolean? = null
 
     suspend fun getUserPermission(
+        call: ApplicationCall?,
+        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
+        kCallable: KCallable<*>? = null,
+    ): SimpleState {
+        return getUserPermission(
+            user = userRoleColl?.userKClass?.let { call?.sessions?.get(klass = it) },
+            stackTraceElement = stackTraceElement,
+            kCallable = kCallable
+        )
+    }
+
+    suspend fun <U : IUser<UID>, UID : Any> getUserPermission(
         user: U?,
+        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
         kCallable: KCallable<*>? = null,
     ): SimpleState {
         val classOwner: String
@@ -41,16 +57,15 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
             classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName ?: ""
             funcName = kCallable.name
         } else {
-            val st = Thread.currentThread().stackTrace[3]
-            classOwner = st.className.substringAfterLast('.')
-            funcName = st.methodName
+            classOwner = stackTraceElement.className.substringAfterLast('.')
+            funcName = stackTraceElement.methodName
         }
         return getUserPermission(user = user, classOwner = classOwner, funcName = funcName)
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun getUserPermission(
-        user: U?,
+        user: IUser<*>?,
         classOwner: String,
         funcName: String,
     ): SimpleState {
@@ -86,7 +101,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         return SimpleState(isOk = false, msgError = "User not authorized ...")
     }
 
-    private suspend fun getGroupPermission(user: U, appRole: IAppRole): PermissionType? {
+    private suspend fun getGroupPermission(user: IUser<*>, appRole: IAppRole): PermissionType? {
         val userGroupColl = userGroupColl
         val groupRoleColl = groupRoleColl
         val pipeline = mutableListOf<Bson>()
@@ -122,6 +137,11 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         } else {
             null
         }
+    }
+
+    init {
+        @Suppress("LeakingThis")
+        userRoleColl = this
     }
 }
 
