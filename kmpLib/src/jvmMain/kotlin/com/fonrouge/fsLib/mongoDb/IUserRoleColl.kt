@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
 @Suppress("unused")
 abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>,
-    private val userKClass: KClass<U>,
+    internal val userKClass: KClass<U>,
 ) : Coll<ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>, UR, OId<IUserRole<U, UID>>, FILT>(
     commonContainer = commonContainer
 ) {

@@ -66,13 +66,42 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         var globalDebug = false
     }
 
+    private fun apiPermission(iApiItem: IApiItem<T, ID, FILT>): SimpleState {
+        if (apiPermission.none { it == ApiPermission.All }) {
+            val permission: Boolean = when (iApiItem.crudTask) {
+                CrudTask.Create -> apiPermission.contains(ApiPermission.Create)
+                CrudTask.Read -> apiPermission.contains(ApiPermission.Read)
+                CrudTask.Update -> apiPermission.contains(ApiPermission.Update)
+                CrudTask.Delete -> apiPermission.contains(ApiPermission.Delete)
+            }
+            if (permission.not()) return SimpleState(isOk = false, msgError = "${iApiItem.crudTask} permission denied")
+        }
+        return SimpleState(isOk = true)
+    }
+
     @Suppress("unused")
+    suspend fun apiProcessWithUserPerms(
+        iApiItem: IApiItem<T, ID, FILT>,
+        call: ApplicationCall?,
+        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
+    ): ItemState<T> {
+        return apiProcessWithUserPerms(
+            iApiItem = iApiItem,
+            stackTraceElement = stackTraceElement,
+            user = userRoleColl?.userKClass?.let { call?.sessions?.get(klass = it) }
+        )
+    }
+
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun <U : IUser<UID>, UID : Any> apiProcessWithUserPerms(
         iApiItem: IApiItem<T, ID, FILT>,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
         user: U?,
     ): ItemState<T> {
         user ?: return ItemState(isOk = false, msgError = "User is null")
+        apiPermission(iApiItem).also {
+            if (it.hasError) return ItemState(it)
+        }
         userRoleColl?.getUserPermission(
             user = user,
             stackTraceElement = stackTraceElement
@@ -89,14 +118,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         iApiItem: IApiItem<T, ID, FILT>,
         user: U?,
     ): ItemState<T> {
-        if (apiPermission.none { it == ApiPermission.All }) {
-            val permission: Boolean = when (iApiItem.crudTask) {
-                CrudTask.Create -> apiPermission.contains(ApiPermission.Create)
-                CrudTask.Read -> apiPermission.contains(ApiPermission.Read)
-                CrudTask.Update -> apiPermission.contains(ApiPermission.Update)
-                CrudTask.Delete -> apiPermission.contains(ApiPermission.Delete)
-            }
-            if (permission.not()) return ItemState(isOk = false, msgError = "Permission ${iApiItem.crudTask} denied")
+        apiPermission(iApiItem).also {
+            if (it.hasError) return ItemState(it)
         }
         return when (val apiItem = iApiItem.asApiItem(commonContainer)) {
             is ApiItem.Query<*, *, *> -> when (apiItem) {
