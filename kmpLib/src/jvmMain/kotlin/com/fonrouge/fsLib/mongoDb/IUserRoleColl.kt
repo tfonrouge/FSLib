@@ -36,8 +36,8 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
 
     suspend fun getUserPermission(
         call: ApplicationCall?,
-        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
         kCallable: KCallable<*>? = null,
+        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
         return getUserPermission(
             user = call?.sessions?.get(klass = userKClass),
@@ -48,8 +48,8 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
 
     suspend fun <U : IUser<UID>, UID : Any> getUserPermission(
         user: U?,
-        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
         kCallable: KCallable<*>? = null,
+        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
         val classOwner: String
         val funcName: String
