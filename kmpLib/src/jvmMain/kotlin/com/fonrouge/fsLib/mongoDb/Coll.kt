@@ -42,7 +42,6 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 internal val collSet = mutableSetOf<Coll<*, *, *, *>>()
-internal var userRoleColl: IUserRoleColl<*, *, *, *, *, *>? = null
 
 val KClass<out BaseDoc<*>>.collectionName: String
     get() {
@@ -80,46 +79,21 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     @Suppress("unused")
-    suspend fun apiProcessWithUserPerms(
+    open suspend fun apiProcess(
         iApiItem: IApiItem<T, ID, FILT>,
-        call: ApplicationCall?,
-        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
+        user: IUser<*>? = null,
+        call: ApplicationCall? = null,
+        userRoleColl: IUserRoleColl<*, *, *, *, *, *>? = null,
+        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2]
     ): ItemState<T> {
-        return apiProcessWithUserPerms(
-            iApiItem = iApiItem,
-            stackTraceElement = stackTraceElement,
-            user = userRoleColl?.userKClass?.let { call?.sessions?.get(klass = it) }
-        )
-    }
-
-    @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun <U : IUser<UID>, UID : Any> apiProcessWithUserPerms(
-        iApiItem: IApiItem<T, ID, FILT>,
-        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
-        user: U?,
-    ): ItemState<T> {
-        user ?: return ItemState(isOk = false, msgError = "User is null")
         apiPermission(iApiItem).also {
             if (it.hasError) return ItemState(it)
         }
         userRoleColl?.getUserPermission(
-            user = user,
+            user = user ?: call?.sessions?.get(userRoleColl.userKClass),
             stackTraceElement = stackTraceElement
-        )?.let { if (it.state == State.Error) return ItemState(it) }
-        return apiProcess(iApiItem = iApiItem, user = user)
-    }
-
-    @Suppress("unused")
-    suspend fun apiProcess(
-        iApiItem: IApiItem<T, ID, FILT>,
-    ): ItemState<T> = apiProcess(iApiItem = iApiItem, user = null)
-
-    open suspend fun <U : IUser<*>> apiProcess(
-        iApiItem: IApiItem<T, ID, FILT>,
-        user: U?,
-    ): ItemState<T> {
-        apiPermission(iApiItem).also {
-            if (it.hasError) return ItemState(it)
+        )?.let {
+            if (it.state == State.Error) return ItemState(it)
         }
         return when (val apiItem = iApiItem.asApiItem(commonContainer)) {
             is ApiItem.Query<*, *, *> -> when (apiItem) {
