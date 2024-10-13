@@ -32,7 +32,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
     abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
     abstract val groupRoleColl: IGroupRoleColl<GR, *, GOU, *>
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter<*>>
-    open fun rootUser(user: IUser<*>?): Boolean? = null
+    open fun rootUser(iUser: IUser<*>?): Boolean? = null
 
     suspend fun getUserPermission(
         call: ApplicationCall?,
@@ -70,7 +70,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         funcName: String,
     ): SimpleState {
         user ?: return SimpleState(isOk = false, msgError = "Empty user")
-        if (rootUser(user = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
+        if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val appRole = appRoleColl.coroutine.findOne(
             IAppRole::classOwner eq classOwner,
             IAppRole::funcName eq funcName
