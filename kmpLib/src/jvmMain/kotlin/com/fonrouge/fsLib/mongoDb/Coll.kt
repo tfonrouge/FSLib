@@ -79,48 +79,51 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     @Suppress("unused")
-    open suspend fun apiProcess(
+    suspend fun apiProcess(
         iApiItem: IApiItem<T, ID, FILT>,
         user: IUser<*>? = null,
         call: ApplicationCall? = null,
         userRoleColl: IUserRoleColl<*, *, *, *, *, *>? = null,
+        kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2]
     ): ItemState<T> {
         apiPermission(iApiItem).also {
             if (it.hasError) return ItemState(it)
         }
+        val user1 = user ?: userRoleColl?.let { call?.sessions?.get(userRoleColl.userKClass) }
         userRoleColl?.getUserPermission(
-            user = user ?: call?.sessions?.get(userRoleColl.userKClass),
+            user = user1,
+            kCallable = kCallable,
             stackTraceElement = stackTraceElement
         )?.let {
             if (it.state == State.Error) return ItemState(it)
         }
         return when (val apiItem = iApiItem.asApiItem(commonContainer)) {
             is ApiItem.Query<*, *, *> -> when (apiItem) {
-                is ApiItem.Query.Upsert.Create -> queryCreate(apiItem, user)
+                is ApiItem.Query.Upsert.Create -> queryCreate(apiItem, user1)
                 is ApiItem.Query.Read -> {
                     val itemState = findItemState(apiItem)
                     if (itemState.hasError) return itemState
-                    queryRead(apiItem, itemState, user)
+                    queryRead(apiItem, itemState, user1)
                 }
 
                 is ApiItem.Query.Upsert.Update -> {
                     val itemState = findItemState(apiItem)
                     if (itemState.hasError) return itemState
-                    queryUpdate(apiItem, itemState, user)
+                    queryUpdate(apiItem, itemState, user1)
                 }
 
                 is ApiItem.Query.Delete -> {
                     val itemState = findChildrenNot(apiItem.id)
                     if (itemState.hasError) return itemState
-                    queryDelete(apiItem, itemState, user)
+                    queryDelete(apiItem, itemState, user1)
                 }
             }
 
             is ApiItem.Action<*, *, *> -> when (apiItem) {
-                is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, user)
-                is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, user)
-                is ApiItem.Action.Delete -> actionDelete(apiItem, user)
+                is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, user1)
+                is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, user1)
+                is ApiItem.Action.Delete -> actionDelete(apiItem, user1)
             }
         }
     }
