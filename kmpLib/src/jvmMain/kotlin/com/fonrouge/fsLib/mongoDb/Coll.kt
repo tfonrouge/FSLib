@@ -78,6 +78,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return SimpleState(isOk = true)
     }
 
+    /**
+     * Processes an API request and returns an item state.
+     *
+     * @param iApiItem The API item to be processed.
+     * @param user The user making the request, if available.
+     * @param call The application call instance, if available.
+     * @param userRoleColl The user role collection, if available.
+     * @param kCallable The KCallable instance related to the action, if available.
+     * @param stackTraceElement The stack trace element from the caller.
+     * @return Returns the state of the item based on the processed API request.
+     */
     @Suppress("unused")
     suspend fun apiProcess(
         iApiItem: IApiItem<T, ID, FILT>,
