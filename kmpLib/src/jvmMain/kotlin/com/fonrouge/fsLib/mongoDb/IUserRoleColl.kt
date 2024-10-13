@@ -40,7 +40,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         kCallable: KCallable<*>? = null,
     ): SimpleState {
         return getUserPermission(
-            user = userRoleColl?.userKClass?.let { call?.sessions?.get(klass = it) },
+            user = call?.sessions?.get(klass = userKClass),
             stackTraceElement = stackTraceElement,
             kCallable = kCallable
         )
@@ -137,11 +137,6 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         } else {
             null
         }
-    }
-
-    init {
-        @Suppress("LeakingThis")
-        userRoleColl = this
     }
 }
 
