@@ -137,7 +137,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 }
 
                 is ApiItem.Query.Delete -> {
-                    val itemState = findItemState(apiItem)
+                    val itemState = findChildrenNot(apiItem.id)
                     if (itemState.hasError) return itemState
                     queryDelete(apiItem, itemState, user)
                 }
@@ -160,19 +160,19 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Query.Read<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
-    ): ItemState<T> = findItemState(apiItem)
+    ): ItemState<T> = itemState
 
     protected open suspend fun queryUpdate(
         apiItem: ApiItem.Query.Upsert.Update<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
-    ): ItemState<T> = findItemState(apiItem)
+    ): ItemState<T> = itemState
 
     protected open suspend fun queryDelete(
         apiItem: ApiItem.Query.Delete<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
-    ): ItemState<T> = findChildrenNot(apiItem.id)
+    ): ItemState<T> = itemState
 
     protected open suspend fun actionCreate(
         apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
@@ -281,7 +281,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     @Suppress("unused")
-    // TODO: find a better func name
     suspend fun aggregateOneLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: List<LookupWrapper<*, *>> = emptyList(),
@@ -406,7 +405,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     val item = pair.second.findOne(filter = pair.first eq id)
                     if (item != null) {
                         return ItemState(
-                            state = State.Warn,
+                            state = State.Error,
                             msgError = "'${commonContainer.labelItem}' has '${pair.second.commonContainer.labelList}' children"
                         )
                     }
