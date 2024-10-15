@@ -646,7 +646,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         countType: CountType = CountType.PreLookup,
         debug: Boolean? = this.debug,
-        postProcessList: (suspend (List<T>) -> List<T>)? = null,
+        postProcessList: ((List<T>) -> List<T>)? = null,
     ): ListState<T> {
         var pageCountInfo: PageCountInfo? = null
         val publisher = aggregateLookupPublisher(
@@ -706,7 +706,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean? = this.debug,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        postProcessList: (suspend (List<T>) -> List<T>)? = null
+        postProcessList: ((List<T>) -> List<T>)? = null
     ): ListState<T> {
         return apiListProcess(
             listFirstStage = listFirstStage(
