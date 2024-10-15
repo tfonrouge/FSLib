@@ -90,7 +90,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return Returns the state of the item based on the processed API request.
      */
     @Suppress("unused")
-    suspend fun apiProcess(
+    suspend fun apiItemProcess(
         iApiItem: IApiItem<T, ID, FILT>,
         user: IUser<*>? = null,
         call: ApplicationCall? = null,
@@ -639,7 +639,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The resulting list state containing the serialized items and pagination information.
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun listContainer(
+    suspend fun apiListProcess(
         listFirstStage: ListFirstStage,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -696,7 +696,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Returns a [ListState] built with the parameters provided
      **/
     @Suppress("unused")
-    suspend fun listContainer(
+    suspend fun apiListProcess(
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
         preLookupSort: Bson? = null,
@@ -708,7 +708,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
         postProcessList: (suspend (List<T>) -> List<T>)? = null
     ): ListState<T> {
-        return listContainer(
+        return apiListProcess(
             listFirstStage = listFirstStage(
                 preLookupMatch = preLookupMatch,
                 postLookupMatch = postLookupMatch,
