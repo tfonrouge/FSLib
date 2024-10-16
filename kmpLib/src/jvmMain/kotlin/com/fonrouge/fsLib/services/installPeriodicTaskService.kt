@@ -21,9 +21,11 @@ interface IPeriodicTaskService {
 }
 
 /**
- * Starts a periodic task runner for each function marked with @Task annotation in the [T] parameter class
+ * Installs a periodic task service of type [T] within the application.
+ * The service will periodically execute tasks annotated with [Task] based on the specified time unit.
  *
- * @param debug Shows some info when running tasks
+ * @param T The type of the periodic task service that implements [IPeriodicTaskService].
+ * @param debug If set to true, debug information will be printed to the console.
  */
 @Suppress("unused")
 inline fun <reified T : IPeriodicTaskService> Application.installPeriodicTaskService(
