@@ -811,6 +811,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
     }
 
+    open suspend fun onAfterOpen() = Unit
+
     /**
      * Method to be called after deleting an item from the API.
      *
@@ -932,6 +934,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         collSet.add(this)
         CoroutineScope(Dispatchers.IO).launch {
             with(coroutine) {
+                onAfterOpen()
                 ensureIndexes()
             }
         }
