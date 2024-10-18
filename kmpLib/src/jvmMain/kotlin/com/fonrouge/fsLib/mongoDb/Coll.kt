@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.FieldPath
 import com.fonrouge.fsLib.annotations.Collection
 import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.config.ICommonContainer
@@ -40,8 +41,6 @@ import kotlin.reflect.*
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
-
-internal val collSet = mutableSetOf<Coll<*, *, *, *>>()
 
 val KClass<out BaseDoc<*>>.collectionName: String
     get() {
@@ -353,51 +352,37 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
-    private var childColls: List<Pair<KProperty1<*, ID>, Coll<*, *, *, *>>>? = null
-        get() {
-            if (field == null) {
-                val list = mutableListOf<Pair<KProperty1<*, ID>, Coll<*, *, *, *>>>()
-                commonContainer.children?.invoke()?.forEach { kProperty1: KProperty1<*, ID> ->
-                    val kProperty1Owner = (kProperty1 as PropertyReference1Impl).owner
-                    collSet.find { coll ->
-                        if (coll.commonContainer.itemKClass == kProperty1Owner) {
-                            coll.commonContainer.itemKClass.memberProperties.any { it == kProperty1 }
-                        } else {
-                            false
-                        }
-                    }?.let { coll ->
-                        list.add(kProperty1 to coll)
-                    }
-                }
-                field = list
-            }
-            return field
-        }
-
     /**
-     * Finds the children not belonging to the specified ID in the given child collections.
+     * Checks whether an item of a given `id` has children in any referenced collections.
+     * If children are found, an error state is returned with the appropriate message.
      *
-     * @param id The ID to search for children not belonging to.
-     * @param kProps The list of child collections (optional). If not provided, it uses the default child collections.
-     * @return An [ItemState] indicating if any children not belonging to the ID are found.
+     * @param id The identifier of the item to be checked.
+     * @return The state of the item, indicating whether it has children in any referenced collections or not.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findChildrenNot(
         id: ID,
-        kProps: List<KProperty1<*, ID>>? = childColls?.map { it.first }
     ): ItemState<T> {
         val itemState = findItemStateById(id)
         if (itemState.hasError.not()) {
-            kProps?.mapNotNull { kProps1 -> childColls?.find { kProps1 == it.first } }
-                ?.forEach { pair ->
-                    val item = pair.second.findOne(filter = pair.first eq id)
-                    if (item != null) {
-                        return ItemState(
-                            state = State.Error,
-                            msgError = "'${commonContainer.labelItem}' has '${pair.second.commonContainer.labelList}' children"
-                        )
+            commonContainer.children?.invoke()?.forEach { kProperty1: KProperty1<out BaseDoc<*>, ID?> ->
+                when (kProperty1) {
+                    is FieldPath -> kProperty1.path to kProperty1.owner.collectionName
+                    is PropertyReference1Impl -> (kProperty1.owner as KClass<*>)
+                        .findAnnotation<Collection>()?.name?.let { kProperty1.name to it }
+
+                    else -> null
+                }?.let { (fieldName: String, collectionName) ->
+                    mongoDatabase.getCollection(collectionName).also { mongoCollection ->
+                        mongoCollection.coroutine.find(Document(fieldName, id)).first()?.let {
+                            return ItemState(
+                                state = State.Error,
+                                msgError = "'${commonContainer.labelItem}' has children in '$collectionName.$fieldName'"
+                            )
+                        }
                     }
                 }
+            }
         }
         return itemState
     }
@@ -811,6 +796,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
     }
 
+    /**
+     * Function to be called immediately after an entity is opened.
+     * This is a suspend function, allowing for asynchronous operations.
+     *
+     * Can be overridden to provide specific behavior upon opening.
+     */
     open suspend fun onAfterOpen() = Unit
 
     /**
@@ -930,8 +921,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     init {
-        @Suppress("LeakingThis")
-        collSet.add(this)
         CoroutineScope(Dispatchers.IO).launch {
             with(coroutine) {
                 onAfterOpen()

@@ -26,7 +26,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     @OptIn(InternalSerializationApi::class)
     val itemSerializer get() = itemKClass.serializer()
 
-    open val children: (() -> List<KProperty1<*, ID>>)? = null
+    open val children: (() -> List<KProperty1<out BaseDoc<*>, ID?>>)? = null
 
     /* ApiItem */
     @Suppress("unused")
