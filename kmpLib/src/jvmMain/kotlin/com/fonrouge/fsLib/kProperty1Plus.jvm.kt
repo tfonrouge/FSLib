@@ -23,6 +23,7 @@ data class FieldPath<T : BaseDoc<*>, R>(
     val property: KProperty1<*, R?>
 ) : KProperty1<T, R> {
 
+    @Suppress("UNCHECKED_CAST")
     val kClass: KClass<out BaseDoc<*>> = (property as PropertyReference1Impl).owner as KClass<out BaseDoc<*>>
     val owner: KClass<out BaseDoc<*>> = previous?.kClass ?: kClass
 
