@@ -100,14 +100,14 @@ data class FieldPath<T : BaseDoc<*>, R>(
 }
 
 /**
- * Combines two nullable properties of `KProperty1` type and returns a new property path.
+ * Combines two nullable properties of `KProperty1` type and returns a new [FieldPath] path.
  *
  * @param T0 The base document type that extends `BaseDoc<*>`.
  * @param T1 The type of the first property.
  * @param T2 The type of the second property.
  * @param next The next property in the path.
- * @return A new `KProperty1` instance representing the combined property path.
+ * @return A new [FieldPath] instance representing the combined property path.
  */
-actual operator fun <T0 : BaseDoc<*>, T1, T2> KProperty1<T0, T1?>.plus(next: KProperty1<T1, T2?>): KProperty1<T0, T2?> =
+operator fun <T0 : BaseDoc<*>, T1, T2> KProperty1<T0, T1?>.plus(next: KProperty1<T1, T2?>): KProperty1<T0, T2?> =
 //    FieldPath(this, next)
     FieldPath(FieldPath(null, this), next)

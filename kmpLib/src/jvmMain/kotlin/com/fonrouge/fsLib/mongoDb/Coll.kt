@@ -64,6 +64,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         var globalDebug = false
     }
 
+    open val children: (() -> List<KProperty1<out BaseDoc<*>, ID?>>)? = null
+
     private fun apiPermission(iApiItem: IApiItem<T, ID, FILT>): SimpleState {
         if (apiPermission.none { it == ApiPermission.All }) {
             val permission: Boolean = when (iApiItem.crudTask) {
@@ -365,7 +367,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         val itemState = findItemStateById(id)
         if (itemState.hasError.not()) {
-            commonContainer.children?.invoke()?.forEach { kProperty1: KProperty1<out BaseDoc<*>, ID?> ->
+            children?.invoke()?.forEach { kProperty1: KProperty1<out BaseDoc<*>, ID?> ->
                 when (kProperty1) {
                     is FieldPath -> kProperty1.path to kProperty1.owner.collectionName
                     is PropertyReference1Impl -> (kProperty1.owner as KClass<*>)
