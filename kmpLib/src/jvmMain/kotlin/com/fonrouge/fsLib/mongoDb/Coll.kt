@@ -141,52 +141,117 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
+    /**
+     * Executes a query to create an item represented by the provided API item.
+     *
+     * @param apiItem The API item containing the creation details, of type ApiItem.Query.Upsert.Create.
+     * @param iUser Optional parameter representing the user performing the operation, of type IUser.
+     * @return The state of the item after the creation operation, encapsulated in an ItemState object.
+     */
     protected open suspend fun queryCreate(
         apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = ItemState(isOk = true)
 
+    /**
+     * Executes a read query for the specified API item.
+     *
+     * @param apiItem The API item containing read query details.
+     * @param itemState The current state of the item being queried.
+     * @param iUser The user performing the query, optional.
+     * @return The updated state of the item after the query is executed.
+     */
     protected open suspend fun queryRead(
         apiItem: ApiItem.Query.Read<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = itemState
 
+    /**
+     * Handles the update operation for the provided API query item.
+     *
+     * @param apiItem The API item representing the update query.
+     * @param itemState The current state of the item to be updated.
+     * @param iUser The user performing the update operation, can be null.
+     * @return The updated state of the item.
+     */
     protected open suspend fun queryUpdate(
         apiItem: ApiItem.Query.Upsert.Update<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = itemState
 
+    /**
+     * Executes a delete query on the specified item and returns the resulting state.
+     *
+     * @param apiItem The API item representing the delete query.
+     * @param itemState The current state of the item to be deleted.
+     * @param iUser The user performing the delete operation, optional.
+     * @return The new state of the item after the delete operation.
+     */
     protected open suspend fun queryDelete(
         apiItem: ApiItem.Query.Delete<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = itemState
 
+    /**
+     * Handles the creation action for an API item.
+     *
+     * @param apiItem the item to be created, encapsulated in an ApiItem.Action.Upsert.Create object.
+     * @param iUser optional user information associated with the action.
+     * @return the state of the item after the creation process.
+     */
     protected open suspend fun actionCreate(
         apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = insertOne(apiItem)
 
+    /**
+     * Performs the update action on the given API item.
+     *
+     * @param apiItem The API item encapsulating the details required for the update.
+     * @param iUser The user initiating the action, can be null.
+     * @return The state of the item after the update has been performed.
+     */
     protected open suspend fun actionUpdate(
         apiItem: ApiItem.Action.Upsert.Update<T, ID, FILT>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = updateOne(apiItem)
 
+    /**
+     * Handles the deletion of an item based on the provided ApiItem.Action.Delete instance.
+     *
+     * @param apiItem The ApiItem.Action.Delete instance containing details for the deletion.
+     * @param iUser The user performing the deletion, nullable.
+     * @return The state of the item after the deletion.
+     */
     protected open suspend fun actionDelete(
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = deleteOne(apiItem)
 
     /**
-     * [List] of [Bson] (lookup result properties) that is *always* added in the [buildLookupList] function
-     * for the aggregation operation
+     * Generates a fixed lookup list based on the provided API filter.
+     *
+     * @param apiFilter An optional filter parameter used to control or refine the lookup process.
+     * By default, it retrieves the instance of the API filter from the common container.
+     * @return A list of KProperty1 instances or null, representing the properties of the type `T`
+     * that match the criteria defined by the provided API filter.
      */
     open fun fixedLookupList(
         apiFilter: FILT = commonContainer.apiFilterInstance()
     ): List<KProperty1<in T, *>>? = null
 
+    /**
+     * A function that takes a filter of type `FILT` and returns a list of `LookupPipelineBuilder` instances.
+     *
+     * This function is designed to perform lookups based on the provided filter and build a pipeline of
+     * lookup operations. By default, it returns an empty list, indicating no lookups.
+     *
+     * @param FILT the type of the filter used for lookups.
+     * @return a list of `LookupPipelineBuilder` instances based on the provided filter.
+     */
     open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
 
     val mongoColl: MongoCollection<T> =
@@ -195,20 +260,28 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             commonContainer.itemKClass.java
         )
 
+    /**
+     * A coroutine-based collection instance derived from a MongoDB collection.
+     * This variable provides coroutine support for asynchronous operations
+     * on the MongoDB collection, enabling more efficient and non-blocking database
+     * interactions.
+     *
+     * @param T The type of documents stored within the MongoDB collection.
+     */
     val coroutine: CoroutineCollection<T> = mongoColl.coroutine
 
     /**
-     * build an AggregatePublisher<T>.
+     * Aggregates a lookup publisher with a provided pipeline and lookups.
      *
-     * process calls from backend service which provide an [ListFirstStage] from a
-     * frontend requiring a list of items.
-     * accept a custom pipeline (list of Bson) argument and
-     * also accept a list of [LookupWrapper] to be added to the
-     * final pipeline on the aggregate operation
-     *
-     * @param pipeline [Bson] list
-     * @param lookups list of lookups to be included [LookupWrapper]
-     * @param postProcessPipeline allow to post-process the resulted [Bson] list before call aggregate
+     * @param pipeline The mutable list of BSON stages to be applied to the aggregation pipeline.
+     * @param lookups The list of lookup wrapper objects to be used for aggregation.
+     * @param apiFilter An instance of a common filter type used for API filtering.
+     * @param listFirstStage The first stage of the list, which may include pre- and post-lookup match and sort stages.
+     * @param countType The type of counting to be done, pre-lookup, post-lookup, estimated, or unknown.
+     * @param debug A flag to indicate whether debugging information should be printed.
+     * @param pageStateInfoFun A function to handle page count information, called with a PageCountInfo object.
+     * @param postProcessPipeline A function to post-process the pipeline.
+     * @return An AggregatePublisher that executes the aggregation pipeline with the applied stages and lookups.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun aggregateLookupPublisher(
@@ -270,6 +343,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
     }
 
+    /**
+     * Aggregates data with a specified lookup in a MongoDB collection.
+     *
+     * @param pipeline an initial list of BSON operations to start the aggregation pipeline.
+     * @param lookups a list of lookup wrappers to specify join conditions in the aggregation.
+     * @param apiFilter a filter applied to the API, defaulting to a common container instance.
+     * @param postProcessPipeline an optional lambda to further process the pipeline after it is built.
+     * @return an AggregatePublisher that provides asynchronous access to the aggregated data.
+     */
     @Suppress("unused")
     suspend fun aggregateOneLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
@@ -292,12 +374,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Builds a list of bson (pipeline) to be used in the *lookup* stage of the aggregate operation.
+     * Builds a pipeline of BSON lookup stages for aggregation queries.
      *
-     * Always appends the content result properties from the [fixedLookupList]
-     *
-     * @param lookupWrappers array of [LookupWrapper] items to extract lookup info
-     * @return List<Bson>
+     * @param lookupWrappers A list of lookup wrappers that define custom lookup operations. Defaults to an empty list.
+     * @param apiFilter A filter instance used to customize the lookup behavior.
+     * @return A mutable list of BSON stages for the lookup pipeline.
      */
     private suspend fun buildLookupList(
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
@@ -329,7 +410,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * helper function to write a bulk write list and clean the list after that
+     * Performs a bulk write operation asynchronously on the provided list of write models.
+     *
+     * @param writeModels A mutable list of write models to be written in bulk.
+     * @param debug A boolean flag indicating whether to print debug information. Default is false.
      */
     @Suppress("unused")
     fun bulkWrite(writeModels: MutableList<WriteModel<T>>, debug: Boolean = false) {
@@ -356,11 +440,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Checks whether an item of a given `id` has children in any referenced collections.
-     * If children are found, an error state is returned with the appropriate message.
+     * Finds the children of an item specified by the given ID that do not match certain conditions.
      *
-     * @param id The identifier of the item to be checked.
-     * @return The state of the item, indicating whether it has children in any referenced collections or not.
+     * @param id The ID of the item to find children for.
+     * @return An ItemState indicating the result of the find operation,
+     *         including potential errors or states.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findChildrenNot(
@@ -430,13 +514,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Override to build indexes
+     * Ensures that the indexes for the collection are created and exist.
+     *
+     * This suspend function goes through the necessary steps to ensure that all required indexes on the collection are properly set up.
+     * It is intended to be used within a coroutine context to leverage Kotlin's asynchronous programming features.
+     *
+     * @receiver CoroutineCollection<T> The collection for which the indexes need to be ensured.
      */
     open suspend fun CoroutineCollection<T>.ensureIndexes() {
     }
 
     /**
-     * Builds the final pipeline to be used in the db engine including defined lookups in [lookupFun]
+     * Constructs and modifies the provided aggregation pipeline.
+     *
+     * @param pipeline The initial mutable list of Bson objects representing the pipeline stages.
+     * @param lookups A list of LookupWrapper instances to build lookup stages.
+     * @param resultUnit The result unit used for refactoring the pipeline.
+     * @param apiFilter An instance of the FILT configuration for filtering the pipeline.
+     * @return The modified list of Bson objects representing the complete pipeline.
      */
     suspend fun buildPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
@@ -455,11 +550,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Find [filter] expression in collection and returns a list of [T] items
+     * Finds a publisher with the specified criteria.
      *
-     * @param filter bson expression
-     * @param lookupWrappers array of [LookupWrapper]
-     * @return list of T items
+     * @param filter Filter condition in BSON format. Defaults to null.
+     * @param lookupWrappers List of lookup wrappers to be applied. Defaults to an empty list.
+     * @param apiFilter An instance of the API filter. Defaults to `commonContainer.apiFilterInstance()`.
+     * @param debug Flag to enable or disable debug mode. Defaults to false.
+     * @return An instance of [AggregatePublisher] that runs the aggregate query with the given criteria.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findPublisher(
@@ -477,11 +574,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Find [filter] expression in collection and returns a list of [T] items
+     * Suspends the current coroutine and performs a query to find a list of documents from the database
+     * based on the provided filter, lookup wrappers, and api filter.
      *
-     * @param filter bson expression
-     * @param lookupWrappers array of [LookupWrapper]
-     * @return list of T items
+     * @param filter Optional Bson filter to apply to the query. Defaults to null.
+     * @param lookupWrappers List of LookupWrapper instances to be used for lookups in the query. Defaults to an empty list.
+     * @param apiFilter Instance of FILT used for additional API-level filtering. Defaults to an instance from the commonContainer.
+     * @param debug Boolean flag to enable or disable debugging for the query. Defaults to false.
+     * @return A list of documents of type T matching the query criteria.
      */
     @Suppress("unused")
     suspend fun findList(
@@ -498,6 +598,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         ).toList()
     }
 
+    /**
+     * Finds a single document based on the provided filter criteria and lookup wrappers.
+     *
+     * @param filter BSON filter to narrow down the search.
+     * @param apiFilter An instance of FILT used to apply additional API-level filters.
+     * @param lookupWrappers List of LookupWrapper instances for join operations.
+     * @param debug Boolean flag to enable or disable debug mode.
+     * @return The first document matching the filter criteria or null if no match is found.
+     */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findOne(
         filter: Bson? = null,
@@ -513,6 +622,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         ).awaitFirstOrNull()
     }
 
+    /**
+     * Finds an entity by its ID.
+     *
+     * @param id The ID of the entity to find. Can be null.
+     * @param apiFilter An optional filter to apply for the search. Defaults to a common API filter instance.
+     * @param lookupWrappers An optional list of lookup wrappers to include in the query. Defaults to an empty list.
+     * @return The entity that matches the given ID or null if no entity is found.
+     */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findById(
         id: ID?,
@@ -522,6 +639,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return findOne(BaseDoc<*>::_id eq id, apiFilter, lookupWrappers)
     }
 
+    /**
+     * Finds the state of an item based on the provided API query and lookup wrappers.
+     *
+     * @param apiItem An instance of ApiItem.Query containing the item's ID and filter.
+     * @param lookupWrappers An optional list of LookupWrapper instances to perform additional lookups.
+     * @return The state of the item as an ItemState instance.
+     */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findItemState(
         apiItem: ApiItem.Query<T, ID, FILT>,
@@ -534,6 +658,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
     }
 
+    /**
+     * Finds the state of an item by its identifier.
+     *
+     * @param id The identifier of the item to find.
+     * @param apiFilter The filter to apply when looking up the item. Defaults to the common container's default filter instance.
+     * @param lookupWrappers A list of lookup wrappers to apply during the lookup. Defaults to an empty list.
+     * @return The state of the item, including whether the lookup was successful and any associated error messages.
+     */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findItemStateById(
         id: ID?,
@@ -686,8 +818,23 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Returns a [ListState] built with the parameters provided
-     **/
+     * Processes the given `ApiList` through a multi-step pipeline which includes matching, sorting, and
+     * various transformations specified by the provided arguments. The main processing steps are
+     * executed before and after lookups are applied, with additional options for post-processing
+     * both the pipeline and the resulting list.
+     *
+     * @param preLookupMatch the BSON filter to apply before performing lookups
+     * @param postLookupMatch the BSON filter to apply after performing lookups
+     * @param preLookupSort the BSON sort expression to apply before performing lookups
+     * @param postLookupSort the BSON sort expression to apply after performing lookups
+     * @param apiList the `ApiList` object containing pagination, filter, and sorting information
+     * @param countType the type of count operation to perform (before or after lookups)
+     * @param debug an optional flag to enable or disable debug mode
+     * @param lookupWrappers a list of `LookupWrapper` objects specifying the lookup stages to apply
+     * @param postProcessPipeline an optional lambda function to apply additional transformations to the pipeline
+     * @param postProcessList an optional lambda function to apply transformations to the final result list
+     * @return the processed `ListState` containing the final list and metadata such as count and pagination
+     */
     @Suppress("unused")
     suspend fun apiListProcess(
         preLookupMatch: Bson? = null,
@@ -813,9 +960,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun onAfterOpen() = Unit
 
     /**
-     * Method to be called after deleting an item from the API.
+     * This method is called after an item has been deleted.
      *
-     * @param apiItem The `ApiItem` containing the item that was deleted.
+     * @param apiItem An instance of ApiItem.Action.Delete containing details about the deleted item.
      */
     open suspend fun onAfterDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>) = Unit
 
@@ -848,7 +995,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         ItemState(isOk = true)
 
     /**
-     * Allows to build a custom pipeline to be added to the [buildPipeline] in the db engine call
+     * Refactors the given pipeline by applying a result unit and an API filter.
+     *
+     * @param pipeline a mutable list of Bson elements representing the data pipeline
+     * @param resultUnit an instance of the ResultUnit to apply to the pipeline
+     * @param apiFilter an instance of FILT filter to apply to the pipeline, with a default of commonContainer.apiFilterInstance()
+     * @return the refactored pipeline as a mutable list of Bson elements
      */
     open suspend fun refactorPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
