@@ -514,7 +514,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun findOneById(
+    suspend fun findById(
         id: ID?,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
@@ -542,7 +542,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         return try {
             ItemState(
-                item = findOneById(id = id, apiFilter = apiFilter, lookupWrappers = lookupWrappers),
+                item = findById(id = id, apiFilter = apiFilter, lookupWrappers = lookupWrappers),
                 msgError = "_id '$id' (${commonContainer.itemKClass.simpleName}) not found..."
             )
         } catch (e: Exception) {
