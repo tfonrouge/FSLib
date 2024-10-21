@@ -10,7 +10,7 @@ data class ItemState<T>(
     val item: T? = null,
     val itemAlreadyOn: Boolean = false,
     val noDataModified: Boolean? = null,
-    override val state: State = if (item != null) State.Ok else State.Warn,
+    override val state: State = if (item != null) State.Ok else State.Error,
     override val msgOk: String? = MSG_OK,
     override val msgError: String? = MSG_ERROR,
     override val cargo: String? = null

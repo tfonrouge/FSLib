@@ -35,6 +35,7 @@ import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
+import org.litote.kmongo.property.KPropertyPath
 import java.util.*
 import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.*
@@ -372,6 +373,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     is FieldPath -> kProperty1.path to kProperty1.owner.collectionName
                     is PropertyReference1Impl -> (kProperty1.owner as KClass<*>)
                         .findAnnotation<Collection>()?.name?.let { kProperty1.name to it }
+
+                    is KPropertyPath<*, ID?> -> return ItemState(
+                        state = State.Error,
+                        msgError = "Child field path '${commonContainer.itemKClass.simpleName}::${kProperty1.path()}' not valid (if you used '/' or '%' operators you must use '+' operator)"
+                    )
 
                     else -> null
                 }?.let { (fieldName: String, collectionName) ->
