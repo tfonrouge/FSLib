@@ -134,6 +134,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         callType: CallType,
         id: ID? = null,
         item: T? = null,
+        orig: T? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         block: (ItemState<T>) -> ItemState<T>,
     ) {
@@ -159,7 +160,8 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                 CrudTask.Update -> item?.let {
                     commonContainer.iApiItemActionUpdate(
                         item,
-                        apiFilter
+                        apiFilter,
+                        orig
                     )
                 }
 

@@ -10,7 +10,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
 
 abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val itemKClass: KClass<T>,
@@ -75,10 +74,12 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     @Suppress("unused")
     fun apiItemActionUpdate(
         item: T,
-        apiFilter: FILT = apiFilterInstance()
+        apiFilter: FILT = apiFilterInstance(),
+        orig: T?
     ): ApiItem.Action.Upsert.Update<T, ID, FILT> = ApiItem.Action.Upsert.Update(
         item = item,
-        apiFilter = apiFilter
+        apiFilter = apiFilter,
+        orig = orig
     )
 
     @Suppress("unused")
@@ -134,10 +135,12 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
 
     fun iApiItemActionUpdate(
         item: T,
-        apiFilter: FILT = apiFilterInstance()
+        apiFilter: FILT = apiFilterInstance(),
+        orig: T?
     ): IApiItem.Action.Upsert.Update<T, ID, FILT> = IApiItem.Action.Upsert.Update(
         serializedItem = Json.encodeToString(itemSerializer, item),
-        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
+        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter),
+        serializedOrig = orig?.let { Json.encodeToString(itemSerializer, orig) }
     )
 
     fun iApiItemActionDelete(
@@ -185,7 +188,8 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
 
         is ApiItem.Action.Upsert.Update -> IApiItem.Action.Upsert.Update(
             serializedItem = Json.encodeToString(itemSerializer, apiItem.item),
-            serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter)
+            serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter),
+            serializedOrig = apiItem.orig?.let { Json.encodeToString(itemSerializer, it) }
         )
 
         is ApiItem.Action.Delete -> IApiItem.Action.Delete(

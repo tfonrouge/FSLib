@@ -117,16 +117,15 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             @Serializable
             data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val serializedItem: String,
-                override val serializedApiFilter: String
+                override val serializedApiFilter: String,
+                val serializedOrig: String?
             ) : Upsert<T, ID, FILT>() {
                 override val crudTask: CrudTask = CrudTask.Update
                 override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
                     return ApiItem.Action.Upsert.Update(
                         item = Json.decodeFromString(cc.itemSerializer, serializedItem),
-                        apiFilter = Json.decodeFromString(
-                            cc.apiFilterSerializer,
-                            serializedApiFilter
-                        )
+                        apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter),
+                        orig = serializedOrig?.let { Json.decodeFromString(cc.itemSerializer, serializedOrig) }
                     )
                 }
             }

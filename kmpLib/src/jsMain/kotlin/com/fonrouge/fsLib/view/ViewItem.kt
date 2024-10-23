@@ -55,6 +55,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * Helper to get the item property from the [ItemState]
      */
     val item: T? get() = itemObservable.value
+    private var origSerialized: String? = null
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
@@ -130,6 +131,12 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             callType = CallType.Action,
                             id = item?._id,
                             item = data?.let { transformData(it) },
+                            orig = origSerialized?.let {
+                                Json.decodeFromString(
+                                    configView.commonContainer.itemSerializer,
+                                    it
+                                )
+                            },
                             apiFilter = apiFilter,
                         ) { itemResponse ->
                             block?.invoke(itemResponse)
@@ -258,6 +265,13 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 item?.let {
                     labelBanner = label
                     formPanel?.setData(it)
+                    origSerialized = formPanelGetData()?.let {
+                        Json.encodeToString(
+                            configView.commonContainer.itemSerializer,
+                            transformData(it)
+                        )
+                    }
+                    console.warn("origSerialized", origSerialized)
                 }
             }
 
