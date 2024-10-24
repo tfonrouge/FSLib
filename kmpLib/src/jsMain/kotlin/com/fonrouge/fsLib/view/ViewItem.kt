@@ -123,23 +123,30 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         formPanel?.let { formPanel ->
             if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
                 if (formPanel.validate()) {
-                    val data = formPanelGetData()
+                    val data = formPanel.getData()
                     val simpleState = formPanelValidate(data)
                     if (simpleState.state != State.Error) {
+                        val dataTransformed = transformData(data)
                         configView.callItemService(
                             crudTask = crudAction,
                             callType = CallType.Action,
                             id = item?._id,
-                            item = data?.let { transformData(it) },
+                            item = dataTransformed,
                             orig = origSerialized?.let {
                                 Json.decodeFromString(
-                                    configView.commonContainer.itemSerializer,
-                                    it
+                                    deserializer = configView.commonContainer.itemSerializer,
+                                    string = it
                                 )
                             },
                             apiFilter = apiFilter,
                         ) { itemResponse ->
                             block?.invoke(itemResponse)
+                            if (crudAction == CrudTask.Update && itemResponse.hasError.not()) {
+                                origSerialized = Json.encodeToString(
+                                    serializer = configView.commonContainer.itemSerializer,
+                                    value = dataTransformed
+                                )
+                            }
                             itemResponse
                         }
                     } else {
@@ -162,7 +169,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         var proceedClose = true
         if (confirmCancel && formPanel != null) {
             try {
-                val s1 = formPanelGetData()?.let {
+                val s1 = formPanel?.getData()?.let {
                     Json.encodeToString(
                         configView.commonContainer.itemSerializer,
                         transformData(it)
@@ -265,7 +272,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 item?.let {
                     labelBanner = label
                     formPanel?.setData(it)
-                    origSerialized = formPanelGetData()?.let {
+                    origSerialized = formPanel?.getData()?.let {
                         Json.encodeToString(
                             configView.commonContainer.itemSerializer,
                             transformData(it)
@@ -392,13 +399,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     fun encodeId(id: ID? = item?._id): String? {
         return id?.let { Json.encodeToString(configView.commonContainer.idSerializer, id) }
     }
-
-    /**
-     * Retrieves the data from the form panel.
-     *
-     * @return The data from the form panel, or null if the form panel is null.
-     */
-    open fun formPanelGetData(): T? = formPanel?.getData()
 
     /**
      * Validates the form panel data.
