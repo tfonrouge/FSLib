@@ -374,6 +374,123 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
+     * Retrieves a list of container items based on the provided parameters.
+     *
+     * @param listFirstStage The first stage of the pipeline for aggregating the items.
+     * @param lookupWrappers The list of lookup wrappers to perform lookups on the items.
+     * @param postProcessPipeline The pipeline to post-process the MongoDB aggregation pipeline.
+     * @param apiFilter The API filter for filtering the items.
+     * @param countType The type of count to perform on the items.
+     * @param debug Indicates whether debugging should be enabled.
+     * @param postProcessList The function to post-process the retrieved list of items.
+     * @return The resulting list state containing the serialized items and pagination information.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun apiListProcess(
+        listFirstStage: ListFirstStage,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        countType: CountType = CountType.PreLookup,
+        debug: Boolean? = this.debug,
+        postProcessList: ((List<T>) -> List<T>)? = null,
+    ): ListState<T> {
+        var pageCountInfo: PageCountInfo? = null
+        val publisher = aggregateLookupPublisher(
+            pipeline = listFirstStage.pipeline,
+            lookups = lookupWrappers,
+            apiFilter = apiFilter,
+            listFirstStage = listFirstStage,
+            countType = countType,
+            debug = debug,
+            postProcessPipeline = postProcessPipeline,
+            pageStateInfoFun = {
+                pageCountInfo = it
+            }
+        )
+        val curTime = Date().time
+        var t1: Long? = null
+        var t2: Long? = null
+        var list: List<T> = emptyList()
+        coroutineScope {
+            val j1 = launch {
+                list = publisher.toList()
+                t1 = Date().time - curTime
+            }
+            val j2 = launch {
+                listFirstStage.pageSize?.let {
+                    pageCountInfo?.count(this@Coll, listFirstStage.pageSize)
+                }
+                t2 = Date().time - curTime
+            }
+            joinAll(j1, j2)
+        }
+        if (debug ?: globalDebug) {
+            println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
+        }
+        val data = Json.encodeToString(
+            serializer = ListSerializer(elementSerializer = commonContainer.itemSerializer),
+            value = postProcessList?.let { it(list) } ?: list
+        )
+        return ListState(
+            data = data,
+            last_page = pageCountInfo?.lastPage,
+            last_row = pageCountInfo?.lastRow,
+        )
+    }
+
+    /**
+     * Processes the given `ApiList` through a multi-step pipeline which includes matching, sorting, and
+     * various transformations specified by the provided arguments. The main processing steps are
+     * executed before and after lookups are applied, with additional options for post-processing
+     * both the pipeline and the resulting list.
+     *
+     * @param preLookupMatch the BSON filter to apply before performing lookups
+     * @param postLookupMatch the BSON filter to apply after performing lookups
+     * @param preLookupSort the BSON sort expression to apply before performing lookups
+     * @param postLookupSort the BSON sort expression to apply after performing lookups
+     * @param apiList the `ApiList` object containing pagination, filter, and sorting information
+     * @param countType the type of count operation to perform (before or after lookups)
+     * @param debug an optional flag to enable or disable debug mode
+     * @param lookupWrappers a list of `LookupWrapper` objects specifying the lookup stages to apply
+     * @param postProcessPipeline an optional lambda function to apply additional transformations to the pipeline
+     * @param postProcessList an optional lambda function to apply transformations to the final result list
+     * @return the processed `ListState` containing the final list and metadata such as count and pagination
+     */
+    @Suppress("unused")
+    suspend fun apiListProcess(
+        preLookupMatch: Bson? = null,
+        postLookupMatch: Bson? = null,
+        preLookupSort: Bson? = null,
+        postLookupSort: Bson? = null,
+        apiList: ApiList<FILT>,
+        countType: CountType = CountType.PreLookup,
+        debug: Boolean? = this.debug,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
+        postProcessList: ((List<T>) -> List<T>)? = null
+    ): ListState<T> {
+        return apiListProcess(
+            listFirstStage = listFirstStage(
+                preLookupMatch = preLookupMatch,
+                postLookupMatch = postLookupMatch,
+                preLookupSort = preLookupSort,
+                postLookupSort = postLookupSort,
+                page = apiList.tabPage,
+                size = apiList.tabSize,
+                filter = apiList.tabFilter,
+                sorter = apiList.tabSorter,
+            ),
+            lookupWrappers = lookupWrappers,
+            postProcessPipeline = postProcessPipeline,
+            apiFilter = apiList.apiFilter,
+            countType = countType,
+            debug = debug,
+            postProcessList = postProcessList
+        )
+    }
+
+    /**
      * Builds a pipeline of BSON lookup stages for aggregation queries.
      *
      * @param lookupWrappers A list of lookup wrappers that define custom lookup operations. Defaults to an empty list.
@@ -749,123 +866,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } catch (e: Exception) {
             ItemState(isOk = false, msgError = e.message)
         }
-    }
-
-    /**
-     * Retrieves a list of container items based on the provided parameters.
-     *
-     * @param listFirstStage The first stage of the pipeline for aggregating the items.
-     * @param lookupWrappers The list of lookup wrappers to perform lookups on the items.
-     * @param postProcessPipeline The pipeline to post-process the MongoDB aggregation pipeline.
-     * @param apiFilter The API filter for filtering the items.
-     * @param countType The type of count to perform on the items.
-     * @param debug Indicates whether debugging should be enabled.
-     * @param postProcessList The function to post-process the retrieved list of items.
-     * @return The resulting list state containing the serialized items and pagination information.
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun apiListProcess(
-        listFirstStage: ListFirstStage,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        countType: CountType = CountType.PreLookup,
-        debug: Boolean? = this.debug,
-        postProcessList: ((List<T>) -> List<T>)? = null,
-    ): ListState<T> {
-        var pageCountInfo: PageCountInfo? = null
-        val publisher = aggregateLookupPublisher(
-            pipeline = listFirstStage.pipeline,
-            lookups = lookupWrappers,
-            apiFilter = apiFilter,
-            listFirstStage = listFirstStage,
-            countType = countType,
-            debug = debug,
-            postProcessPipeline = postProcessPipeline,
-            pageStateInfoFun = {
-                pageCountInfo = it
-            }
-        )
-        val curTime = Date().time
-        var t1: Long? = null
-        var t2: Long? = null
-        var list: List<T> = emptyList()
-        coroutineScope {
-            val j1 = launch {
-                list = publisher.toList()
-                t1 = Date().time - curTime
-            }
-            val j2 = launch {
-                listFirstStage.pageSize?.let {
-                    pageCountInfo?.count(this@Coll, listFirstStage.pageSize)
-                }
-                t2 = Date().time - curTime
-            }
-            joinAll(j1, j2)
-        }
-        if (debug ?: globalDebug) {
-            println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
-        }
-        val data = Json.encodeToString(
-            serializer = ListSerializer(elementSerializer = commonContainer.itemSerializer),
-            value = postProcessList?.let { it(list) } ?: list
-        )
-        return ListState(
-            data = data,
-            last_page = pageCountInfo?.lastPage,
-            last_row = pageCountInfo?.lastRow,
-        )
-    }
-
-    /**
-     * Processes the given `ApiList` through a multi-step pipeline which includes matching, sorting, and
-     * various transformations specified by the provided arguments. The main processing steps are
-     * executed before and after lookups are applied, with additional options for post-processing
-     * both the pipeline and the resulting list.
-     *
-     * @param preLookupMatch the BSON filter to apply before performing lookups
-     * @param postLookupMatch the BSON filter to apply after performing lookups
-     * @param preLookupSort the BSON sort expression to apply before performing lookups
-     * @param postLookupSort the BSON sort expression to apply after performing lookups
-     * @param apiList the `ApiList` object containing pagination, filter, and sorting information
-     * @param countType the type of count operation to perform (before or after lookups)
-     * @param debug an optional flag to enable or disable debug mode
-     * @param lookupWrappers a list of `LookupWrapper` objects specifying the lookup stages to apply
-     * @param postProcessPipeline an optional lambda function to apply additional transformations to the pipeline
-     * @param postProcessList an optional lambda function to apply transformations to the final result list
-     * @return the processed `ListState` containing the final list and metadata such as count and pagination
-     */
-    @Suppress("unused")
-    suspend fun apiListProcess(
-        preLookupMatch: Bson? = null,
-        postLookupMatch: Bson? = null,
-        preLookupSort: Bson? = null,
-        postLookupSort: Bson? = null,
-        apiList: ApiList<FILT>,
-        countType: CountType = CountType.PreLookup,
-        debug: Boolean? = this.debug,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
-        postProcessList: ((List<T>) -> List<T>)? = null
-    ): ListState<T> {
-        return apiListProcess(
-            listFirstStage = listFirstStage(
-                preLookupMatch = preLookupMatch,
-                postLookupMatch = postLookupMatch,
-                preLookupSort = preLookupSort,
-                postLookupSort = postLookupSort,
-                page = apiList.tabPage,
-                size = apiList.tabSize,
-                filter = apiList.tabFilter,
-                sorter = apiList.tabSorter,
-            ),
-            lookupWrappers = lookupWrappers,
-            postProcessPipeline = postProcessPipeline,
-            apiFilter = apiList.apiFilter,
-            countType = countType,
-            debug = debug,
-            postProcessList = postProcessList
-        )
     }
 
     private fun findFieldType(kClass: KClass<*>, fieldName: String): KClassifier? {
