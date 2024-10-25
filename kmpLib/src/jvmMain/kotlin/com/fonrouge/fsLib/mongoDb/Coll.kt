@@ -612,7 +612,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         return try {
             onBeforeDelete(apiItem).also {
-                if (it.hasError) return it
+                if (it.hasError) {
+                    onAfterDelete(apiItem = apiItem, result = false)
+                    return it
+                }
             }
             val result = coroutine.deleteOne(
                 and(
@@ -620,12 +623,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     filter ?: EMPTY_BSON
                 )
             ).deletedCount == 1L
-            if (result) onAfterDelete(apiItem)
+            onAfterDelete(apiItem = apiItem, result = result)
             ItemState(
                 isOk = result,
                 msgOk = "Delete operation ok"
             )
         } catch (e: Exception) {
+            onAfterDelete(apiItem = apiItem, result = false)
             ItemState(isOk = false, msgError = e.message)
         }
     }
@@ -854,16 +858,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         checkDontPersist(item)
         return try {
             onBeforeUpsert(apiItem).also {
-                if (it.hasError) return it
+                if (it.hasError) {
+                    onAfterUpsert(apiItem = apiItem, result = false)
+                    return it
+                }
             }
             val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
             val result = insertOneResult.insertedId != null
-            if (result) onAfterUpsert(apiItem)
+            onAfterUpsert(apiItem = apiItem, result = result)
             ItemState(
                 item = item,
                 state = if (result) State.Ok else State.Error,
             )
         } catch (e: Exception) {
+            onAfterUpsert(apiItem = apiItem, result = false)
             ItemState(isOk = false, msgError = e.message)
         }
     }
@@ -960,18 +968,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun onAfterOpen() = Unit
 
     /**
-     * This method is called after an item has been deleted.
+     * Method called after an item is deleted.
      *
-     * @param apiItem An instance of ApiItem.Action.Delete containing details about the deleted item.
+     * @param apiItem The action delete API item that contains information about the delete request.
+     * @param result  Boolean value indicating whether the deletion was successful or not.
      */
-    open suspend fun onAfterDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>) = Unit
+    open suspend fun onAfterDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>, result: Boolean) = Unit
 
     /**
-     * Method to be called after upserting an item into the API.
+     * This method is called after an upsert operation is performed.
      *
-     * @param apiItem The `ApiItem` containing the item that was upserted.
+     * @param apiItem The details of the upsert action including the entity, its ID, and any filters applied.
+     * @param result A boolean indicating the success or failure of the upsert operation.
      */
-    open suspend fun onAfterUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>) = Unit
+    open suspend fun onAfterUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>, result: Boolean) = Unit
 
     /**
      * Performs the "onBeforeDelete" operation. By default, returns the result of [findChildrenNot]
@@ -1054,10 +1064,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         val item = apiItem.item
         onBeforeUpsert(apiItem).also {
-            if (it.hasError) return it
+            if (it.hasError) {
+                onAfterUpsert(apiItem = apiItem, result = false)
+                return it
+            }
         }
         commonContainer.validateItem(item = item, apiFilter = apiItem.apiFilter).also { itemState ->
-            if (itemState.hasError) return itemState
+            if (itemState.hasError) {
+                onAfterUpsert(apiItem = apiItem, result = false)
+                return itemState
+            }
         }
         checkDontPersist(item)
         val filter1 = and(BaseDoc<ID>::_id eq item._id, filter ?: EMPTY_BSON)
@@ -1068,6 +1084,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 options = updateOptions
             )
         } catch (e: java.lang.Exception) {
+            onAfterUpsert(apiItem = apiItem, result = false)
             e.printStackTrace()
             return ItemState(
                 isOk = false,
@@ -1093,8 +1110,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 noDataModified = true
             }
         }
+        onAfterUpsert(apiItem = apiItem, result = state != State.Error)
         return if (state != State.Error) {
-            onAfterUpsert(apiItem)
             ItemState(
                 item = item,
                 state = state,
