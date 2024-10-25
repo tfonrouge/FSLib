@@ -1009,6 +1009,35 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): MutableList<Bson> = pipeline
 
     /**
+     * Updates a single item in the database.
+     *
+     * @param item The item to be updated.
+     * @param orig The original item before update, if available. Defaults to null.
+     * @param filter The filter to identify the item to be updated. Defaults to null.
+     * @param apiFilter The API filter instance for the update operation. Defaults to a common API filter instance.
+     * @param updateOptions Options to apply during the update operation. Defaults to an instance of UpdateOptions.
+     * @return The state of the item after the update operation.
+     */
+    @Suppress("unused")
+    suspend fun updateOne(
+        item: T,
+        orig: T? = null,
+        filter: Bson? = null,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        updateOptions: UpdateOptions = UpdateOptions()
+    ): ItemState<T> {
+        return updateOne(
+            apiItem = ApiItem.Action.Upsert.Update(
+                item = item,
+                apiFilter = apiFilter,
+                orig
+            ),
+            filter = filter,
+            updateOptions = updateOptions
+        )
+    }
+
+    /**
      * Updates a single item in the database based on the provided filter.
      *
      * @param apiItem The API item containing the item id [ApiItem] to update and other relevant information.
