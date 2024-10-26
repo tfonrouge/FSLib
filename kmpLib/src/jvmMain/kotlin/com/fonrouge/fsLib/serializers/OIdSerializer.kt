@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.serializers
 
 import com.github.jershell.kbson.BsonEncoder
-import com.github.jershell.kbson.BsonFlexibleDecoder
+import com.github.jershell.kbson.FlexibleDecoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -17,7 +17,7 @@ const val EMPTY_OID = "000000000000000000000000"
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object OIdSerializer : KSerializer<OId<Any>> {
     actual override fun deserialize(decoder: Decoder): OId<Any> {
-        return if (decoder is BsonFlexibleDecoder) {
+        return if (decoder is FlexibleDecoder) {
             OId(id = decoder.reader.readObjectId().toHexString())
         } else {
             OId(decoder.decodeString())
