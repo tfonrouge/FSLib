@@ -146,7 +146,7 @@ class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
         return ItemState(isOk = true)
     }
 
-    suspend fun start(): SimpleState {
+    suspend fun run(): SimpleState {
         val collection: MongoCollection<Document> = mongoDatabase.getCollection(baseDocKClass.collectionName)
         baseDocKClass.memberProperties
             .forEach { kProperty1: KProperty1<T, *> ->
