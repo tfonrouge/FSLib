@@ -134,8 +134,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
 
             is ApiItem.Action<*, *, *> -> when (apiItem) {
-                is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, user1)
-                is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, user1)
+                is ApiItem.Action.Upsert -> actionUpsert(apiItem, user1)
                 is ApiItem.Action.Delete -> actionDelete(apiItem, user1)
             }
         }
@@ -194,6 +193,21 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = itemState
+
+    /**
+     * Performs an upsert operation, which can be either a creation or an update of an item.
+     *
+     * @param apiItem The upsert action to be performed. It can be either a `Create` or `Update` action.
+     * @param iUser The user performing the action, optional parameter.
+     * @return The state of the item after the upsert operation.
+     */
+    protected open suspend fun actionUpsert(
+        apiItem: ApiItem.Action.Upsert<T, ID, FILT>,
+        iUser: IUser<*>? = null,
+    ): ItemState<T> = when (apiItem) {
+        is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, iUser)
+        is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, iUser)
+    }
 
     /**
      * Handles the creation action for an API item.
