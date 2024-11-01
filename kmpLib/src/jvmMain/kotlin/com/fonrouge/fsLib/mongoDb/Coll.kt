@@ -42,10 +42,19 @@ import kotlin.reflect.*
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.superclasses
 
 val KClass<out BaseDoc<*>>.collectionName: String
     get() {
-        return findAnnotation<Collection>()?.name ?: simpleName ?: ""
+        var self: KClass<*>? = this
+        var name: String? = null
+        do {
+            name = self?.findAnnotation<Collection>()?.name
+            if (name == null) {
+                self = self?.superclasses?.firstOrNull()
+            }
+        } while (name == null && self != Any::class)
+        return name ?: simpleName ?: ""
     }
 
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
