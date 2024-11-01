@@ -132,12 +132,18 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 is ApiItem.Query.Upsert.Update -> {
                     val itemState = findItemState(apiItem)
                     if (itemState.hasError) return itemState
+                    itemState.item?.let {
+                        if (itemIsReadOnly(it)) return ItemState(item = itemState.item, state = State.Error)
+                    }
                     queryUpdate(apiItem, itemState, user1)
                 }
 
                 is ApiItem.Query.Delete -> {
                     val itemState = findChildrenNot(apiItem.id)
                     if (itemState.hasError) return itemState
+                    itemState.item?.let {
+                        if (itemIsReadOnly(it)) return ItemState(item = itemState.item, state = State.Error)
+                    }
                     queryDelete(apiItem, itemState, user1)
                 }
             }
@@ -633,6 +639,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
         filter: Bson? = null,
     ): ItemState<T> {
+        if (itemIsReadOnly(apiItem.item)) return ItemState(item = apiItem.item, state = State.Error)
         return try {
             onBeforeDelete(apiItem).also {
                 if (it.hasError) {
@@ -910,6 +917,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
+    /**
+     * Checks if the given item is read-only.
+     *
+     * @param item the item to be checked for read-only status
+     * @return a Boolean indicating if the item is read-only (true) or editable (false)
+     */
+    open suspend fun itemIsReadOnly(item: T): Boolean = false
+
     private fun listFirstStage(
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
@@ -1085,25 +1100,25 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
-        val item = apiItem.item
+        if (itemIsReadOnly(apiItem.item)) return ItemState(item = apiItem.item, state = State.Error)
         onBeforeUpsert(apiItem).also {
             if (it.hasError) {
                 onAfterUpsert(apiItem = apiItem, result = false)
                 return it
             }
         }
-        commonContainer.validateItem(item = item, apiFilter = apiItem.apiFilter).also { itemState ->
+        commonContainer.validateItem(item = apiItem.item, apiFilter = apiItem.apiFilter).also { itemState ->
             if (itemState.hasError) {
                 onAfterUpsert(apiItem = apiItem, result = false)
                 return itemState
             }
         }
-        checkDontPersist(item)
-        val filter1 = and(BaseDoc<ID>::_id eq item._id, filter ?: EMPTY_BSON)
+        checkDontPersist(apiItem.item)
+        val filter1 = and(BaseDoc<ID>::_id eq apiItem.item._id, filter ?: EMPTY_BSON)
         val updateResult = try {
             mongoColl.coroutine.updateOne(
                 filter = filter1,
-                target = item,
+                target = apiItem.item,
                 options = updateOptions
             )
         } catch (e: java.lang.Exception) {
@@ -1136,7 +1151,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         onAfterUpsert(apiItem = apiItem, result = state != State.Error)
         return if (state != State.Error) {
             ItemState(
-                item = item,
+                item = apiItem.item,
                 state = state,
                 noDataModified = noDataModified,
                 msgError = "No data was modified ..."
@@ -1144,7 +1159,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } else {
             ItemState(
                 isOk = false,
-                msgError = "${commonContainer.labelItemId(item)} not found with [ ${filter1.json} ]"
+                msgError = "${commonContainer.labelItemId(apiItem.item)} not found with [ ${filter1.json} ]"
             )
         }
     }
