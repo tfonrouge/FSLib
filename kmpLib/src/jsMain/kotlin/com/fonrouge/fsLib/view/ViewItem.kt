@@ -123,15 +123,14 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         formPanel?.let { formPanel ->
             if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
                 if (formPanel.validate()) {
-                    val data = formPanel.getData()
+                    val data = transformData(formPanel.getData())
                     val simpleState = formPanelValidate(data)
                     if (simpleState.state != State.Error) {
-                        val dataTransformed = transformData(data)
                         configView.callItemService(
                             crudTask = crudAction,
                             callType = CallType.Action,
                             id = item?._id,
-                            item = dataTransformed,
+                            item = data,
                             orig = origSerialized?.let {
                                 Json.decodeFromString(
                                     deserializer = configView.commonContainer.itemSerializer,
@@ -144,7 +143,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             if (crudAction == CrudTask.Update && itemResponse.hasError.not()) {
                                 origSerialized = Json.encodeToString(
                                     serializer = configView.commonContainer.itemSerializer,
-                                    value = dataTransformed
+                                    value = data
                                 )
                             }
                             itemResponse
