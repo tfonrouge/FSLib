@@ -135,7 +135,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )?.let {
             if (it.state == State.Error) return ItemState(it)
         }
-        return when (val apiItem = asApiItem(iApiItem)) {
+        val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer)).let {
+            if (it.hasError || it.item == null) {
+                return ItemState(isOk = false, msgError = it.msgError)
+            } else {
+                it.item
+            }
+        }
+        return when (apiItem) {
             is ApiItem.Upsert -> {
                 if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
                 onBeforeUpsert(apiItem).also { if (it.hasError) return it }
@@ -205,12 +212,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Converts an IApiItem to an ApiItem using the provided common container.
+     * Converts the given input into an ApiItem and wraps it in an ItemState.
      *
-     * @param iApiItem The IApiItem to be converted.
-     * @return The resulting ApiItem.
+     * @param apiItem The input item to be converted to an ApiItem.
+     * @return An ItemState containing the ApiItem.
      */
-    open fun asApiItem(iApiItem: IApiItem<T, ID, FILT>): ApiItem<T, ID, FILT> = iApiItem.asApiItem(commonContainer)
+    open suspend fun asApiItem(apiItem: ApiItem<T, ID, FILT>): ItemState<ApiItem<T, ID, FILT>> =
+        ItemState<ApiItem<T, ID, FILT>>(isOk = true)
 
     /**
      * Executes a query to create an item represented by the provided API item.
