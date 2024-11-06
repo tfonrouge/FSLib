@@ -91,6 +91,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open val children: (() -> List<KProperty1<out BaseDoc<*>, ID?>>)? = null
 
     /**
+     * Filters items based on the criteria specified in the given filter.
+     *
+     * @param apiFilter the filter criteria to apply when searching for items.
+     * @return a BSON object representing the filter to be applied, or null if no filter is specified.
+     */
+    open fun findItemFilter(apiFilter: FILT): Bson? = null
+
+    /**
      * Indicates if the current instance should be read-only.
      *
      * This variable determines whether the instance can be modified or not.
@@ -160,12 +168,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                             )
                         }
 
-                        is ApiItem.Upsert.Update.Action -> {
-                            actionUpdate(
-                                apiItem = apiItem,
-                                iUser = user1
-                            )
-                        }
+                        is ApiItem.Upsert.Update.Action -> actionUpdate(
+                            apiItem = apiItem,
+                            iUser = user1
+                        )
                     }
                 }
             }
@@ -802,20 +808,22 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Finds an entity by its ID.
+     * Finds an entity by its ID with optional filters, API filter, and lookup wrappers.
      *
-     * @param id The ID of the entity to find. Can be null.
-     * @param apiFilter An optional filter to apply for the search. Defaults to a common API filter instance.
-     * @param lookupWrappers An optional list of lookup wrappers to include in the query. Defaults to an empty list.
-     * @return The entity that matches the given ID or null if no entity is found.
+     * @param id The ID of the entity to find.
+     * @param filter Optional Bson filter to apply additional query conditions.
+     * @param apiFilter The API filter instance to apply to the query.
+     * @param lookupWrappers List of LookupWrapper instances to specify lookup conditions for related collections.
+     * @return The entity matching the provided ID and filters, or null if not found.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findById(
         id: ID?,
+        filter: Bson? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     ): T? {
-        return findOne(BaseDoc<*>::_id eq id, apiFilter, lookupWrappers)
+        return findOne(and(BaseDoc<*>::_id eq id, filter), apiFilter, lookupWrappers)
     }
 
     /**
@@ -849,20 +857,22 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     /**
      * Finds the state of an item by its identifier.
      *
-     * @param id The identifier of the item to find.
-     * @param apiFilter The filter to apply when looking up the item. Defaults to the common container's default filter instance.
-     * @param lookupWrappers A list of lookup wrappers to apply during the lookup. Defaults to an empty list.
-     * @return The state of the item, including whether the lookup was successful and any associated error messages.
+     * @param id The identifier of the item.
+     * @param apiFilter The API filter to be applied; defaults to commonContainer's API filter instance.
+     * @param filter The BSON filter for querying the item; defaults to the result of the `findItemFilter` function.
+     * @param lookupWrappers List of lookup wrappers to be used in the query; defaults to an empty list.
+     * @return An [ItemState] containing the item or an error message if the item could not be found.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findItemStateById(
         id: ID?,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
+        filter: Bson? = findItemFilter(apiFilter),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
     ): ItemState<T> {
         return try {
             ItemState(
-                item = findById(id = id, apiFilter = apiFilter, lookupWrappers = lookupWrappers),
+                item = findById(id = id, filter = filter, apiFilter = apiFilter, lookupWrappers = lookupWrappers),
                 msgError = "_id '$id' (${commonContainer.itemKClass.simpleName}) not found..."
             )
         } catch (e: Exception) {
@@ -1063,8 +1073,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return findChildrenNot(item._id)
     }
 
+    /**
+     * This method is executed before reading an item. It retrieves the state of the item
+     * using its identifier provided via the apiItem parameter.
+     *
+     * @param apiItem The API item which contains the identifier required to find the item's state.
+     * @return The state of the item identified by the apiItem's id.
+     */
     open suspend fun onBeforeRead(apiItem: ApiItem.Read<T, ID, FILT>): ItemState<T> =
-        findItemStateById(apiItem.id)
+        findItemStateById(id = apiItem.id)
 
     /**
      * Handles actions to be performed before an upsert operation.
