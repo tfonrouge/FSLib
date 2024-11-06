@@ -8,8 +8,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract val apiFilter: FILT
 
     sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : ApiItem<T, ID, FILT>() {
-        sealed class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
-            Upsert<T, ID, FILT>() {
+        sealed class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Upsert<T, ID, FILT>() {
             override val crudTask: CrudTask = CrudTask.Create
 
             data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
@@ -26,8 +25,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             }
         }
 
-        sealed class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
-            Upsert<T, ID, FILT>() {
+        sealed class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Upsert<T, ID, FILT>() {
             override val crudTask: CrudTask = CrudTask.Update
 
             data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
