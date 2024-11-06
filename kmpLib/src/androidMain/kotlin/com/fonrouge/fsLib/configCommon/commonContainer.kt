@@ -25,16 +25,16 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     navBackStackEntry: NavBackStackEntry,
     function: @Composable (apiItem: ApiItem<T, ID, FILT>) -> Unit
 ) {
-/*
-    val iApiItem = navBackStackEntry.arguments?.getString("apiItem")?.let {
-        if (it != "\"null\"") Json.decodeFromString(
-            IApiItem.Query.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-            it.removePrefix("\"").removeSuffix("\"")
-        ) else null
-    }
-    val apiItem = iApiItem?.asApiItem(this) as? ApiItem.Query<T, ID, FILT>
-    apiItem?.let { function(apiItem) }
-*/
+    /*
+        val iApiItem = navBackStackEntry.arguments?.getString("apiItem")?.let {
+            if (it != "\"null\"") Json.decodeFromString(
+                IApiItem.Query.serializer(itemSerializer, idSerializer, apiFilterSerializer),
+                it.removePrefix("\"").removeSuffix("\"")
+            ) else null
+        }
+        val apiItem = iApiItem?.asApiItem(this) as? ApiItem.Query<T, ID, FILT>
+        apiItem?.let { function(apiItem) }
+    */
 }
 
 @Composable
@@ -69,30 +69,30 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     navHostController: NavHostController,
 //    apiItem: ApiItem.Query<T, ID, FILT>,
 ) {
-/*
-    val serializedApiItem = Json.encodeToString(
-        IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-        toIApiItem(apiItem)
-    )
-    navHostController.navigate(
-        "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
-    )
-*/
+    /*
+        val serializedApiItem = Json.encodeToString(
+            IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
+            toIApiItem(apiItem)
+        )
+        navHostController.navigate(
+            "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
+        )
+    */
 }
 
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> CC.navigateCreateItem(
     navHostController: NavHostController,
     apiFilter: FILT = apiFilterInstance()
 ) {
-/*
-    val serializedApiItem = Json.encodeToString(
-        IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
-        toIApiItem(ApiItem.Query.Upsert.Create(apiFilter = apiFilter))
-    )
-    navHostController.navigate(
-        "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
-    )
-*/
+    /*
+        val serializedApiItem = Json.encodeToString(
+            IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer),
+            toIApiItem(ApiItem.Query.Upsert.Create(apiFilter = apiFilter))
+        )
+        navHostController.navigate(
+            "ViewItem$name?apiItem=\"${Uri.encode(serializedApiItem)}\""
+        )
+    */
 }
 
 /**
@@ -162,15 +162,15 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     commonContainer: CC,
 //    function: @Composable AnimatedContentScope.(ApiItem.Query<T, ID, FILT>) -> Unit,
 ) {
-/*
-    composable(commonContainer.routeItem) { navBackStackEntry ->
-        commonContainer.DecodeRouteItemParams(
-            navBackStackEntry = navBackStackEntry,
-        ) {
-            function(it)
+    /*
+        composable(commonContainer.routeItem) { navBackStackEntry ->
+            commonContainer.DecodeRouteItemParams(
+                navBackStackEntry = navBackStackEntry,
+            ) {
+                function(it)
+            }
         }
-    }
-*/
+    */
 }
 
 @Suppress("unused")

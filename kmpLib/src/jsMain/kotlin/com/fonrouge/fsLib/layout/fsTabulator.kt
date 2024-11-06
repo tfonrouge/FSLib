@@ -25,15 +25,15 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     tabulatorOptions: TabulatorOptions<T>,
     viewList: ViewList<*, T, *, *, *>
 ): TabulatorOptions<T> {
-    val autoResize = tabulatorOptions.autoResize ?: true
+    val autoResize = tabulatorOptions.autoResize != false
     val columns = tabulatorOptions.columns ?: viewList.columnDefinitionList()
     val columnDefaults = tabulatorOptions.columnDefaults ?: viewList.columnDefaults
-    val dataLoader = tabulatorOptions.dataLoader ?: false
+    val dataLoader = tabulatorOptions.dataLoader == true
     val filterMode = tabulatorOptions.filterMode ?: FilterMode.REMOTE
     val height = tabulatorOptions.height ?: "calc(100vh - 35vh)"
     val layout = tabulatorOptions.layout ?: Layout.FITDATAFILL
-    val layoutColumnsOnNewData = tabulatorOptions.layoutColumnsOnNewData ?: true
-    val pagination = tabulatorOptions.pagination ?: true
+    val layoutColumnsOnNewData = tabulatorOptions.layoutColumnsOnNewData != false
+    val pagination = tabulatorOptions.pagination != false
     val paginationCounter = tabulatorOptions.paginationCounter ?: "rows"
     val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
     val paginationSize = tabulatorOptions.paginationSize ?: 50

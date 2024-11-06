@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.ui
 
-import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.runtime.Composable
 import com.fonrouge.fsLib.viewModel.VMCamera
