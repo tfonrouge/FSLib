@@ -12,7 +12,7 @@ import io.kvision.dropdown.ddLink
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> DropDown.ddLink(
     configViewItem: ConfigViewItem<CC, T, ID, *, *, FILT>,
-    apiItem: ApiItem.Query<T, ID, FILT>,
+    apiItem: ApiItem<T, ID, FILT>,
 ) {
     ddLink(
         label = configViewItem.label,

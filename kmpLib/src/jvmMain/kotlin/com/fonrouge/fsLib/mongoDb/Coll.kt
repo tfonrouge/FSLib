@@ -8,7 +8,6 @@ import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.*
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
-import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.LongId
@@ -44,6 +43,14 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.superclasses
 
+/**
+ * Extension property that retrieves the collection name for a given class extending `BaseDoc`.
+ *
+ * This property navigates the class hierarchy to find a `@Collection` annotation,
+ * and returns the specified collection name. If no `@Collection` annotation is found
+ * in the class hierarchy, the simple name of the class is returned. If the class has no
+ * simple name (i.e., it is anonymous or synthetic), an empty string is returned.
+ */
 val KClass<out BaseDoc<*>>.collectionName: String
     get() {
         var self: KClass<*>? = this
@@ -57,37 +64,40 @@ val KClass<out BaseDoc<*>>.collectionName: String
         return name ?: simpleName ?: ""
     }
 
+/**
+ * Represents a MongoDb collection
+ *
+ * @property commonContainer The common container instance.
+ * @property debug The debug flag indicating if debugging is enabled.
+ * @property children Set of children associated with the collection.
+ * @property readOnly Indicates if the collection is read-only.
+ * @property lookupFun Function for performing lookups.
+ * @property mongoColl The MongoDB collection instance.
+ * @property coroutine The CoroutineScope used for handling suspending functions.
+ */
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
-    private val apiPermission: Set<ApiPermission> = setOf(ApiPermission.All),
     private var debug: Boolean? = null
 ) {
-    enum class ApiPermission {
-        Create,
-        Read,
-        Update,
-        Delete,
-        All
-    }
-
     companion object {
         var globalDebug = false
     }
 
+    /**
+     * A lambda function that, when invoked, returns a list of KProperty1 instances representing
+     * properties of type ID? within a subclass of BaseDoc. These properties are typically
+     * used to define relationships or associations within a document.
+     */
     open val children: (() -> List<KProperty1<out BaseDoc<*>, ID?>>)? = null
 
-    private fun apiPermission(iApiItem: IApiItem<T, ID, FILT>): SimpleState {
-        if (apiPermission.none { it == ApiPermission.All }) {
-            val permission: Boolean = when (iApiItem.crudTask) {
-                CrudTask.Create -> apiPermission.contains(ApiPermission.Create)
-                CrudTask.Read -> apiPermission.contains(ApiPermission.Read)
-                CrudTask.Update -> apiPermission.contains(ApiPermission.Update)
-                CrudTask.Delete -> apiPermission.contains(ApiPermission.Delete)
-            }
-            if (permission.not()) return SimpleState(isOk = false, msgError = "${iApiItem.crudTask} permission denied")
-        }
-        return SimpleState(isOk = true)
-    }
+    /**
+     * Indicates if the current instance should be read-only.
+     *
+     * This variable determines whether the instance can be modified or not.
+     * If set to `true`, the instance is immutable and cannot be changed.
+     * If set to `false`, the instance is mutable and can be altered.
+     */
+    open val readOnly = false
 
     /**
      * Processes an API request and returns an item state.
@@ -109,9 +119,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2]
     ): ItemState<T> {
-        apiPermission(iApiItem).also {
-            if (it.hasError) return ItemState(it)
-        }
         val user1 = user ?: userRoleColl?.let { call?.sessions?.get(userRoleColl.userKClass) }
         userRoleColl?.getUserPermission(
             user = user1,
@@ -121,36 +128,72 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             if (it.state == State.Error) return ItemState(it)
         }
         return when (val apiItem = iApiItem.asApiItem(commonContainer)) {
-            is ApiItem.Query<*, *, *> -> when (apiItem) {
-                is ApiItem.Query.Upsert.Create -> queryCreate(apiItem, user1)
-                is ApiItem.Query.Read -> {
-                    val itemState = findItemState(apiItem)
-                    if (itemState.hasError) return itemState
-                    queryRead(apiItem, itemState, user1)
-                }
+            is ApiItem.Upsert -> {
+                if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
+                onBeforeUpsert(apiItem).also { if (it.hasError) return it }
+                when (apiItem) {
+                    is ApiItem.Upsert.Create -> when (apiItem) {
+                        is ApiItem.Upsert.Create.Query -> {
+                            onBeforeUpsertCreate(apiItem = apiItem).also { if (it.hasError) return it }
+                            queryCreate(
+                                apiItem = apiItem,
+                                iUser = user1
+                            )
+                        }
 
-                is ApiItem.Query.Upsert.Update -> {
-                    val itemState = findItemState(apiItem)
-                    if (itemState.hasError) return itemState
-                    itemState.item?.let {
-                        if (itemIsReadOnly(it)) return ItemState(item = itemState.item, state = State.Error)
+                        is ApiItem.Upsert.Create.Action -> actionCreate(
+                            apiItem = apiItem,
+                            iUser = user1
+                        )
                     }
-                    queryUpdate(apiItem, itemState, user1)
-                }
 
-                is ApiItem.Query.Delete -> {
-                    val itemState = findChildrenNot(apiItem.id)
-                    if (itemState.hasError) return itemState
-                    itemState.item?.let {
-                        if (itemIsReadOnly(it)) return ItemState(item = itemState.item, state = State.Error)
+                    is ApiItem.Upsert.Update -> when (apiItem) {
+                        is ApiItem.Upsert.Update.Query -> {
+                            val itemState = findItemState(apiItem)
+                            val item = itemState.item
+                            if (itemState.hasError || item == null) return itemState
+                            onBeforeUpsertUpdate(apiItem = apiItem, item = item).also { if (it.hasError) return it }
+                            queryUpdate(
+                                apiItem = apiItem,
+                                itemState = itemState,
+                                iUser = user1
+                            )
+                        }
+
+                        is ApiItem.Upsert.Update.Action -> {
+                            actionUpdate(
+                                apiItem = apiItem,
+                                iUser = user1
+                            )
+                        }
                     }
-                    queryDelete(apiItem, itemState, user1)
                 }
             }
 
-            is ApiItem.Action<*, *, *> -> when (apiItem) {
-                is ApiItem.Action.Upsert -> actionUpsert(apiItem, user1)
-                is ApiItem.Action.Delete -> actionDelete(apiItem, user1)
+            is ApiItem.Read -> {
+                val itemState = onBeforeRead(apiItem = apiItem).also { if (it.hasError) return it }
+                val item = itemState.item
+                if (itemState.hasError || item == null) return itemState
+                queryRead(
+                    apiItem = apiItem,
+                    itemState = itemState,
+                    iUser = user1
+                )
+            }
+
+            is ApiItem.Delete -> {
+                if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
+                when (apiItem) {
+                    is ApiItem.Delete.Query -> {
+                        val itemState = findChildrenNot(apiItem.id)
+                        val item = itemState.item
+                        if (itemState.hasError || item == null) return itemState
+                        onBeforeDelete(apiItem = apiItem, item = item).also { if (it.hasError) return it }
+                        queryDelete(apiItem = apiItem, itemState = itemState, iUser = user1)
+                    }
+
+                    is ApiItem.Delete.Action -> actionDelete(apiItem = apiItem, iUser = user1)
+                }
             }
         }
     }
@@ -163,7 +206,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the item after the creation operation, encapsulated in an ItemState object.
      */
     protected open suspend fun queryCreate(
-        apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>,
+        apiItem: ApiItem.Upsert.Create.Query<T, ID, FILT>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = ItemState(isOk = true)
 
@@ -176,7 +219,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The updated state of the item after the query is executed.
      */
     protected open suspend fun queryRead(
-        apiItem: ApiItem.Query.Read<T, ID, FILT>,
+        apiItem: ApiItem.Read<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = itemState
@@ -190,7 +233,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The updated state of the item.
      */
     protected open suspend fun queryUpdate(
-        apiItem: ApiItem.Query.Upsert.Update<T, ID, FILT>,
+        apiItem: ApiItem.Upsert.Update.Query<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = itemState
@@ -204,25 +247,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The new state of the item after the delete operation.
      */
     protected open suspend fun queryDelete(
-        apiItem: ApiItem.Query.Delete<T, ID, FILT>,
+        apiItem: ApiItem.Delete.Query<T, ID, FILT>,
         itemState: ItemState<T>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = itemState
-
-    /**
-     * Performs an upsert operation, which can be either a creation or an update of an item.
-     *
-     * @param apiItem The upsert action to be performed. It can be either a `Create` or `Update` action.
-     * @param iUser The user performing the action, optional parameter.
-     * @return The state of the item after the upsert operation.
-     */
-    protected open suspend fun actionUpsert(
-        apiItem: ApiItem.Action.Upsert<T, ID, FILT>,
-        iUser: IUser<*>? = null,
-    ): ItemState<T> = when (apiItem) {
-        is ApiItem.Action.Upsert.Create -> actionCreate(apiItem, iUser)
-        is ApiItem.Action.Upsert.Update -> actionUpdate(apiItem, iUser)
-    }
 
     /**
      * Handles the creation action for an API item.
@@ -232,7 +260,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return the state of the item after the creation process.
      */
     protected open suspend fun actionCreate(
-        apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
+        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = insertOne(apiItem)
 
@@ -244,7 +272,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the item after the update has been performed.
      */
     protected open suspend fun actionUpdate(
-        apiItem: ApiItem.Action.Upsert.Update<T, ID, FILT>,
+        apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = updateOne(apiItem)
 
@@ -256,7 +284,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the item after the deletion.
      */
     protected open suspend fun actionDelete(
-        apiItem: ApiItem.Action.Delete<T, ID, FILT>,
+        apiItem: ApiItem.Delete.Action<T, ID, FILT>,
         iUser: IUser<*>? = null,
     ): ItemState<T> = deleteOne(apiItem)
 
@@ -469,7 +497,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Processes the given `ApiList` through a multi-step pipeline which includes matching, sorting, and
+     * Processes the given `ApiList` through a multistep pipeline which includes matching, sorting, and
      * various transformations specified by the provided arguments. The main processing steps are
      * executed before and after lookups are applied, with additional options for post-processing
      * both the pipeline and the resulting list.
@@ -636,14 +664,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun deleteOne(
-        apiItem: ApiItem.Action.Delete<T, ID, FILT>,
+        apiItem: ApiItem.Delete.Action<T, ID, FILT>,
         filter: Bson? = null,
     ): ItemState<T> {
-        if (itemIsReadOnly(apiItem.item)) return ItemState(item = apiItem.item, state = State.Error)
+        if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
         return try {
-            onBeforeDelete(apiItem).also {
+            onBeforeDelete(apiItem = apiItem, item = apiItem.item).also {
                 if (it.hasError) {
-                    onAfterDelete(apiItem = apiItem, result = false)
+                    onAfterDeleteAction(apiItem = apiItem, result = false)
                     return it
                 }
             }
@@ -653,13 +681,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     filter ?: EMPTY_BSON
                 )
             ).deletedCount == 1L
-            onAfterDelete(apiItem = apiItem, result = result)
+            onAfterDeleteAction(apiItem = apiItem, result = result)
             ItemState(
                 isOk = result,
                 msgOk = "Delete operation ok"
             )
         } catch (e: Exception) {
-            onAfterDelete(apiItem = apiItem, result = false)
+            onAfterDeleteAction(apiItem = apiItem, result = false)
             ItemState(isOk = false, msgError = e.message)
         }
     }
@@ -799,11 +827,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findItemState(
-        apiItem: ApiItem.Query<T, ID, FILT>,
+        apiItem: ApiItem<T, ID, FILT>,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
     ): ItemState<T> {
+        val id: ID = when (apiItem) {
+            is ApiItem.Upsert.Create.Query -> null
+            is ApiItem.Upsert.Create.Action -> apiItem.item._id
+            is ApiItem.Read -> apiItem.id
+            is ApiItem.Upsert.Update.Query -> apiItem.id
+            is ApiItem.Upsert.Update.Action -> apiItem.item._id
+            is ApiItem.Delete.Query -> apiItem.id
+            is ApiItem.Delete.Action -> apiItem.item._id
+        } ?: return ItemState(isOk = false)
         return findItemStateById(
-            id = apiItem.id,
+            id = id,
             apiFilter = apiItem.apiFilter,
             lookupWrappers = lookupWrappers,
         )
@@ -839,7 +876,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         overrideValidation: Boolean = false
     ): ItemState<T> = insertOne(
-        apiItem = ApiItem.Action.Upsert.Create(
+        apiItem = ApiItem.Upsert.Create.Action(
             item = item,
             apiFilter = apiFilter
         ),
@@ -856,12 +893,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("unused")
     suspend fun insertOne(
-        apiItem: ApiItem.Query.Upsert.Create<T, ID, FILT>,
+        apiItem: ApiItem.Upsert.Create.Query<T, ID, FILT>,
         item: T,
         overrideValidation: Boolean = false
     ): ItemState<T> {
         val itemState = insertOne(
-            apiItem = ApiItem.Action.Upsert.Create(item, apiItem.apiFilter),
+            apiItem = ApiItem.Upsert.Create.Action(item, apiItem.apiFilter),
             overrideValidation = overrideValidation
         )
         return itemState.copy(itemAlreadyOn = true)
@@ -876,9 +913,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun insertOne(
-        apiItem: ApiItem.Action.Upsert.Create<T, ID, FILT>,
+        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
         overrideValidation: Boolean = false
     ): ItemState<T> {
+        if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
         val item = apiItem.item
         if (!overrideValidation) {
             commonContainer.validateItem(item = item, apiItem.apiFilter).also { itemState ->
@@ -887,21 +925,21 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         checkDontPersist(item)
         return try {
-            onBeforeUpsert(apiItem).also {
+            onBeforeUpsertCreate(apiItem).also {
                 if (it.hasError) {
-                    onAfterUpsert(apiItem = apiItem, result = false)
+                    onAfterUpsertAction(apiItem = apiItem, result = false)
                     return it
                 }
             }
             val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
             val result = insertOneResult.insertedId != null
-            onAfterUpsert(apiItem = apiItem, result = result)
+            onAfterUpsertAction(apiItem = apiItem, result = result)
             ItemState(
                 item = item,
                 state = if (result) State.Ok else State.Error,
             )
         } catch (e: Exception) {
-            onAfterUpsert(apiItem = apiItem, result = false)
+            onAfterUpsertAction(apiItem = apiItem, result = false)
             ItemState(isOk = false, msgError = e.message)
         }
     }
@@ -916,14 +954,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             k.firstOrNull { it.name == fieldName }?.returnType?.classifier
         }
     }
-
-    /**
-     * Checks if the given item is read-only.
-     *
-     * @param item the item to be checked for read-only status
-     * @return a Boolean indicating if the item is read-only (true) or editable (false)
-     */
-    open suspend fun itemIsReadOnly(item: T): Boolean = false
 
     private fun listFirstStage(
         preLookupMatch: Bson? = null,
@@ -1006,40 +1036,65 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun onAfterOpen() = Unit
 
     /**
-     * Method called after an item is deleted.
+     * This method is executed after a delete action is performed.
      *
-     * @param apiItem The action delete API item that contains information about the delete request.
-     * @param result  Boolean value indicating whether the deletion was successful or not.
+     * @param apiItem Represents the API item on which the delete action was performed, containing details about the action.
+     * @param result The result of the delete action, where true indicates success and false indicates failure.
      */
-    open suspend fun onAfterDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>, result: Boolean) = Unit
+    open suspend fun onAfterDeleteAction(apiItem: ApiItem.Delete.Action<T, ID, FILT>, result: Boolean) = Unit
 
     /**
-     * This method is called after an upsert operation is performed.
+     * This method is executed after the upsert action is performed.
      *
-     * @param apiItem The details of the upsert action including the entity, its ID, and any filters applied.
-     * @param result A boolean indicating the success or failure of the upsert operation.
+     * @param apiItem The item that was involved in the upsert action containing
+     *                Upsert details such as the type T, identifier ID, and filters FILT.
+     * @param result  The result of the upsert action as a Boolean value.
      */
-    open suspend fun onAfterUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>, result: Boolean) = Unit
+    open suspend fun onAfterUpsertAction(apiItem: ApiItem.Upsert<T, ID, FILT>, result: Boolean) = Unit
 
     /**
-     * Performs the "onBeforeDelete" operation. By default, returns the result of [findChildrenNot]
-     * Please have in mind that if you override this function make a proper (if needed) call to [findChildrenNot]
+     * This method is invoked before deleting an action.
+     * It handles pre-deletion logic, such as verifying child items to ensure they can be deleted.
      *
-     * @param apiItem The [ApiItem.Action.Delete] object representing the delete action.
-     * @return An [ItemState] object containing the state of the item.
-     * @see ApiItem.Action.Delete
-     * @see ItemState
+     * @param apiItem The delete action containing the item to be deleted and related information.
+     * @return The state of the item before deletion.
      */
-    open suspend fun onBeforeDelete(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> =
-        findChildrenNot(apiItem.item._id)
+    open suspend fun onBeforeDelete(apiItem: ApiItem.Delete<T, ID, FILT>, item: T): ItemState<T> {
+        return findChildrenNot(item._id)
+    }
+
+    open suspend fun onBeforeRead(apiItem: ApiItem.Read<T, ID, FILT>): ItemState<T> =
+        findItemStateById(apiItem.id)
 
     /**
-     * Executes before upserting an [ApiItem], and vetoes if [SimpleState] response [State] is not [State.Ok]
+     * Handles actions to be performed before an upsert operation.
      *
-     * @param apiItem the API item being upserted.
-     * @return a SimpleState object indicating the success or failure of the operation.
+     * @param apiItem The API item representing the upsert operation.
+     * @return An instance of [ItemState] indicating the state of the item after invoking this action.
      */
-    open suspend fun onBeforeUpsert(apiItem: ApiItem.Action.Upsert<T, ID, FILT>): ItemState<T> =
+    open suspend fun onBeforeUpsert(apiItem: ApiItem.Upsert<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
+
+    /**
+     * This method is called before the upsert create action is performed.
+     *
+     * @param apiItem An object representing the API item for the upsert create action, containing
+     *                the necessary parameters such as type, ID, and filter.
+     * @return An ItemState object indicating the status of the action, typically used to signal
+     *         whether the operation is considered okay or has issues.
+     */
+    open suspend fun onBeforeUpsertCreate(apiItem: ApiItem.Upsert.Create<T, ID, FILT>): ItemState<T> =
+        ItemState(isOk = true)
+
+    /**
+     * Invoked before an upsert update action is performed on the specified API item. This method
+     * can be overridden to implement any custom behavior or validation that needs to occur prior
+     * to the update action.
+     *
+     * @param apiItem The API item undergoing the upsert update action.
+     * @return An ItemState indicating the status of the pre-update action. By default, it returns a state
+     * where `isOk` is true.
+     */
+    open suspend fun onBeforeUpsertUpdate(apiItem: ApiItem.Upsert.Update<T, ID, FILT>, item: T): ItemState<T> =
         ItemState(isOk = true)
 
     /**
@@ -1075,7 +1130,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
         return updateOne(
-            apiItem = ApiItem.Action.Upsert.Update(
+            apiItem = ApiItem.Upsert.Update.Action(
                 item = item,
                 apiFilter = apiFilter,
                 orig
@@ -1096,23 +1151,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun updateOne(
-        apiItem: ApiItem.Action.Upsert.Update<T, ID, FILT>,
+        apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
         filter: Bson? = null,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
-        if (itemIsReadOnly(apiItem.item)) return ItemState(item = apiItem.item, state = State.Error)
-        onBeforeUpsert(apiItem).also {
+        if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
+        onBeforeUpsertUpdate(apiItem = apiItem, item = apiItem.item).also {
             if (it.hasError) {
-                onAfterUpsert(apiItem = apiItem, result = false)
+                onAfterUpsertAction(apiItem = apiItem, result = false)
                 return it
             }
         }
-        commonContainer.validateItem(item = apiItem.item, apiFilter = apiItem.apiFilter).also { itemState ->
-            if (itemState.hasError) {
-                onAfterUpsert(apiItem = apiItem, result = false)
-                return itemState
+        commonContainer.validateItem(item = apiItem.item, apiFilter = apiItem.apiFilter)
+            .also { itemState ->
+                if (itemState.hasError) {
+                    onAfterUpsertAction(apiItem = apiItem, result = false)
+                    return itemState
+                }
             }
-        }
         checkDontPersist(apiItem.item)
         val filter1 = and(BaseDoc<ID>::_id eq apiItem.item._id, filter ?: EMPTY_BSON)
         val updateResult = try {
@@ -1122,7 +1178,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 options = updateOptions
             )
         } catch (e: java.lang.Exception) {
-            onAfterUpsert(apiItem = apiItem, result = false)
+            onAfterUpsertAction(apiItem = apiItem, result = false)
             e.printStackTrace()
             return ItemState(
                 isOk = false,
@@ -1148,7 +1204,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 noDataModified = true
             }
         }
-        onAfterUpsert(apiItem = apiItem, result = state != State.Error)
+        onAfterUpsertAction(apiItem = apiItem, result = state != State.Error)
         return if (state != State.Error) {
             ItemState(
                 item = apiItem.item,

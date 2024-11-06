@@ -31,20 +31,20 @@ abstract class VMItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
         onDone: VMContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
         val serializedId = id?.let { Json.encodeToString(commonContainer.idSerializer, id) }
-        val apiItem: ApiItem.Query<T, ID, FILT>? = when (crudTask) {
-            CrudTask.Create -> ApiItem.Query.Upsert.Create(
+        val apiItem: ApiItem<T, ID, FILT>? = when (crudTask) {
+            CrudTask.Create -> ApiItem.Upsert.Create.Query(
                 apiFilter = apiFilter
             )
 
             CrudTask.Read -> serializedId?.let {
-                ApiItem.Query.Read(
+                ApiItem.Read(
                     id = id,
                     apiFilter = apiFilter
                 )
             }
 
             CrudTask.Update -> serializedId?.let {
-                ApiItem.Query.Upsert.Update(
+                ApiItem.Upsert.Update.Query(
                     id = id,
                     apiFilter = apiFilter
                 )
@@ -67,7 +67,7 @@ abstract class VMItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
 
     @Suppress("unused")
     suspend fun makeQueryCall(
-        apiItem: ApiItem.Query<T, ID, FILT>,
+        apiItem: ApiItem<T, ID, FILT>,
         onDone: VMContainer<CC, T, ID, FILT>.(ItemState<T>) -> Unit,
     ) {
         crudTask = apiItem.crudTask
@@ -101,20 +101,20 @@ abstract class VMItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
             )
             return
         }
-        val apiItem: ApiItem.Action<T, ID, FILT> = when (crudTask) {
-            CrudTask.Create -> ApiItem.Action.Upsert.Create(
+        val apiItem: ApiItem<T, ID, FILT> = when (crudTask) {
+            CrudTask.Create -> ApiItem.Upsert.Create.Action(
                 item = item,
                 apiFilter = apiFilter
             )
 
             CrudTask.Read -> return
-            CrudTask.Update -> ApiItem.Action.Upsert.Update(
+            CrudTask.Update -> ApiItem.Upsert.Update.Action(
                 item = item,
                 apiFilter = apiFilter,
                 orig = null
             )
 
-            CrudTask.Delete -> ApiItem.Action.Delete(
+            CrudTask.Delete -> ApiItem.Delete.Action(
                 item = item,
                 apiFilter = apiFilter
             )

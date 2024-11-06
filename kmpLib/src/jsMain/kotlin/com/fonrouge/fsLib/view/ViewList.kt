@@ -109,12 +109,20 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = this.configViewItem,
     ) {
         configViewItem ?: return
+        val apiItem = when(crudTask) {
+            CrudTask.Create -> ApiItem.Upsert.Create.Query<T,ID,FILT>(apiFilter = apiFilter)
+            CrudTask.Read -> item?._id?.let {ApiItem.Read<T,ID,FILT>(id = item._id, apiFilter = apiFilter) }
+            CrudTask.Update -> item?._id?.let { ApiItem.Upsert.Update.Query<T,ID,FILT>(id = item._id, apiFilter = apiFilter) }
+            CrudTask.Delete -> item?._id?.let { ApiItem.Delete.Query<T,ID,FILT>(id= item._id, apiFilter = apiFilter) }
+        } ?: return
+/*
         val apiItem = ApiItem.Query.build(
             commonContainer = configViewItem.commonContainer,
             id = item?._id,
             crudTask = crudTask,
             apiFilter = apiFilter
         ) ?: return
+*/
         val url = configViewItem.viewItemUrl(
             apiItem = apiItem
         )

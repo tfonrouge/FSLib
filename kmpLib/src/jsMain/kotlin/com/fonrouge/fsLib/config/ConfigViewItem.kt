@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.*
+import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
@@ -67,7 +68,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
      * @return The window object of the newly opened window/tab, or null if the URL cannot be generated.
      */
     @Suppress("unused")
-    fun navigateTo(apiItem: ApiItem.Query<T, ID, FILT>, target: String = "_blank"): Window? {
+    fun navigateTo(apiItem: ApiItem<T, ID, FILT>, target: String = "_blank"): Window? {
         return viewItemUrl(apiItem)?.let { url ->
             window.open(
                 url = url,
@@ -104,18 +105,26 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         return url + urlParams.toEncodedUrlString()
     }
 
-    fun viewItemUrl(apiItem: ApiItem.Query<T, ID, FILT>): String? {
+    fun viewItemUrl(apiItem: ApiItem<T, ID, FILT>): String? {
         val url: String? = when (apiItem) {
-            is ApiItem.Query.Upsert.Create -> listOf("action" to CrudTask.Create.name)
-            else -> {
-                apiItem.id?.let { it: ID ->
-                    listOf(
-                        "action" to apiItem.crudTask.name,
-                        "id" to Json.encodeToString(commonContainer.idSerializer, it)
-                    )
-                }
-            }
-        }?.let { params ->
+            is ApiItem.Upsert.Create.Query -> listOf("action" to CrudTask.Create.name)
+            is ApiItem.Read -> listOf(
+                "action" to apiItem.crudTask.name,
+                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+            )
+
+            is ApiItem.Upsert.Update.Query -> listOf(
+                "action" to apiItem.crudTask.name,
+                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+            )
+
+            is ApiItem.Delete.Query -> listOf(
+                "action" to apiItem.crudTask.name,
+                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+            )
+
+            else -> null
+        }?.let { params: List<Pair<String, String>> ->
             val urlParams = UrlParams(*params.toTypedArray())
             urlParams.pushParam(
                 "apiFilter" to Json.encodeToString(
@@ -142,7 +151,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         val callAgent = CallAgent()
         val iApiItem = when (callType) {
             CallType.Query -> when (crudTask) {
-                CrudTask.Create -> commonContainer.iApiItemQueryCreate(id, apiFilter)
+                CrudTask.Create -> commonContainer.iApiItemCreateQuery(apiFilter)
                 CrudTask.Read -> id?.let { commonContainer.iApiItemQueryRead(id, apiFilter) }
                 CrudTask.Update -> id?.let { commonContainer.iApiItemQueryUpdate(id, apiFilter) }
                 CrudTask.Delete -> id?.let { commonContainer.iApiItemQueryDelete(id, apiFilter) }

@@ -28,10 +28,8 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     /* ApiItem */
     @Suppress("unused")
     fun apiItemQueryCreate(
-        id: ID? = null,
         apiFilter: FILT = apiFilterInstance()
-    ): ApiItem.Query.Upsert.Create<T, ID, FILT> = ApiItem.Query.Upsert.Create(
-        id = id,
+    ): ApiItem.Upsert.Create.Query<T, ID, FILT> = ApiItem.Upsert.Create.Query(
         apiFilter = apiFilter
     )
 
@@ -39,7 +37,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun apiItemQueryRead(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
-    ): ApiItem.Query.Read<T, ID, FILT> = ApiItem.Query.Read(
+    ): ApiItem.Read<T, ID, FILT> = ApiItem.Read(
         id = id,
         apiFilter = apiFilter
     )
@@ -48,7 +46,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun apiItemQueryUpdate(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
-    ): ApiItem.Query.Upsert.Update<T, ID, FILT> = ApiItem.Query.Upsert.Update(
+    ): ApiItem.Upsert.Update.Query<T, ID, FILT> = ApiItem.Upsert.Update.Query(
         id = id,
         apiFilter = apiFilter
     )
@@ -57,7 +55,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun apiItemQueryDelete(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
-    ): ApiItem.Query.Delete<T, ID, FILT> = ApiItem.Query.Delete(
+    ): ApiItem.Delete.Query<T, ID, FILT> = ApiItem.Delete.Query(
         id = id,
         apiFilter = apiFilter
     )
@@ -66,7 +64,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun apiItemActionCreate(
         item: T,
         apiFilter: FILT = apiFilterInstance()
-    ): ApiItem.Action.Upsert.Create<T, ID, FILT> = ApiItem.Action.Upsert.Create(
+    ): ApiItem.Upsert.Create.Action<T, ID, FILT> = ApiItem.Upsert.Create.Action(
         item = item,
         apiFilter = apiFilter
     )
@@ -76,7 +74,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         item: T,
         apiFilter: FILT = apiFilterInstance(),
         orig: T?
-    ): ApiItem.Action.Upsert.Update<T, ID, FILT> = ApiItem.Action.Upsert.Update(
+    ): ApiItem.Upsert.Update.Action<T, ID, FILT> = ApiItem.Upsert.Update.Action(
         item = item,
         apiFilter = apiFilter,
         orig = orig
@@ -86,24 +84,22 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun apiItemActionDelete(
         item: T,
         apiFilter: FILT = apiFilterInstance()
-    ): ApiItem.Action.Delete<T, ID, FILT> = ApiItem.Action.Delete(
+    ): ApiItem.Delete.Action<T, ID, FILT> = ApiItem.Delete.Action(
         item = item,
         apiFilter = apiFilter
     )
 
     /* IApiItem */
-    fun iApiItemQueryCreate(
-        id: ID? = null,
+    fun iApiItemCreateQuery(
         apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Query.Upsert.Create<T, ID, FILT> = IApiItem.Query.Upsert.Create(
-        serializedId = id?.let { Json.encodeToString(idSerializer, it) },
+    ): IApiItem.Upsert.Create.Query<T, ID, FILT> = IApiItem.Upsert.Create.Query(
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 
     fun iApiItemQueryRead(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Query.Read<T, ID, FILT> = IApiItem.Query.Read(
+    ): IApiItem.Read<T, ID, FILT> = IApiItem.Read(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -111,7 +107,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun iApiItemQueryUpdate(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Query.Upsert.Update<T, ID, FILT> = IApiItem.Query.Upsert.Update(
+    ): IApiItem.Upsert.Update.Query<T, ID, FILT> = IApiItem.Upsert.Update.Query(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -119,7 +115,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun iApiItemQueryDelete(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Query.Delete<T, ID, FILT> = IApiItem.Query.Delete(
+    ): IApiItem.Delete.Query<T, ID, FILT> = IApiItem.Delete.Query(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -127,7 +123,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun iApiItemActionCreate(
         item: T,
         apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Action.Upsert.Create<T, ID, FILT> = IApiItem.Action.Upsert.Create(
+    ): IApiItem.Upsert.Create.Action<T, ID, FILT> = IApiItem.Upsert.Create.Action(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -137,7 +133,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         item: T,
         apiFilter: FILT = apiFilterInstance(),
         orig: T?
-    ): IApiItem.Action.Upsert.Update<T, ID, FILT> = IApiItem.Action.Upsert.Update(
+    ): IApiItem.Upsert.Update.Action<T, ID, FILT> = IApiItem.Upsert.Update.Action(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter),
         serializedOrig = orig?.let { Json.encodeToString(itemSerializer, orig) }
@@ -146,7 +142,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun iApiItemActionDelete(
         item: T,
         apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Action.Delete<T, ID, FILT> = IApiItem.Action.Delete(
+    ): IApiItem.Delete.Action<T, ID, FILT> = IApiItem.Delete.Action(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -161,38 +157,37 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
     apiItem: ApiItem<T, ID, FILT>
 ): IApiItem<T, ID, FILT> =
     when (apiItem) {
-        is ApiItem.Query.Upsert.Create -> IApiItem.Query.Upsert.Create(
-            serializedId = apiItem.id?.let { Json.encodeToString(idSerializer, it) },
+        is ApiItem.Upsert.Create.Query -> IApiItem.Upsert.Create.Query(
             serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter)
         )
 
-        is ApiItem.Query.Read -> IApiItem.Query.Read(
+        is ApiItem.Read -> IApiItem.Read(
             serializedId = Json.encodeToString(idSerializer, apiItem.id),
             serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter)
         )
 
-        is ApiItem.Query.Upsert.Update -> IApiItem.Query.Upsert.Update(
+        is ApiItem.Upsert.Update.Query -> IApiItem.Upsert.Update.Query(
             serializedId = Json.encodeToString(idSerializer, apiItem.id),
             serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter)
         )
 
-        is ApiItem.Query.Delete -> IApiItem.Query.Delete(
+        is ApiItem.Delete.Query -> IApiItem.Delete.Query(
             serializedId = Json.encodeToString(idSerializer, apiItem.id),
             serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter)
         )
 
-        is ApiItem.Action.Upsert.Create -> IApiItem.Action.Upsert.Create(
+        is ApiItem.Upsert.Create.Action -> IApiItem.Upsert.Create.Action(
             serializedItem = Json.encodeToString(itemSerializer, apiItem.item),
             serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter)
         )
 
-        is ApiItem.Action.Upsert.Update -> IApiItem.Action.Upsert.Update(
+        is ApiItem.Upsert.Update.Action -> IApiItem.Upsert.Update.Action(
             serializedItem = Json.encodeToString(itemSerializer, apiItem.item),
             serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter),
             serializedOrig = apiItem.orig?.let { Json.encodeToString(itemSerializer, it) }
         )
 
-        is ApiItem.Action.Delete -> IApiItem.Action.Delete(
+        is ApiItem.Delete.Action -> IApiItem.Delete.Action(
             serializedItem = Json.encodeToString(itemSerializer, apiItem.item),
             serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter)
         )

@@ -17,22 +17,19 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT>
 
     @Serializable
-    sealed class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : IApiItem<T, ID, FILT>() {
-        override val callType: CallType = CallType.Query
-        abstract val serializedId: String?
-
+    sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : IApiItem<T, ID, FILT>() {
         @Serializable
-        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
-            Query<T, ID, FILT>() {
+        sealed class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
+            Upsert<T, ID, FILT>() {
+            override val crudTask: CrudTask = CrudTask.Create
+
             @Serializable
-            data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-                override val serializedId: String? = null,
+            data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val serializedApiFilter: String
-            ) : Upsert<T, ID, FILT>() {
-                override val crudTask: CrudTask = CrudTask.Create
+            ) : Create<T, ID, FILT>() {
+                override val callType: CallType = CallType.Query
                 override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
-                    return ApiItem.Query.Upsert.Create(
-                        id = serializedId?.let { Json.decodeFromString(cc.idSerializer, it) },
+                    return ApiItem.Upsert.Create.Query(
                         apiFilter = Json.decodeFromString(
                             cc.apiFilterSerializer,
                             serializedApiFilter
@@ -42,13 +39,36 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             }
 
             @Serializable
-            data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-                override val serializedId: String,
+            data class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+                val serializedItem: String,
                 override val serializedApiFilter: String
-            ) : Upsert<T, ID, FILT>() {
-                override val crudTask: CrudTask = CrudTask.Update
+            ) : Create<T, ID, FILT>() {
+                override val callType: CallType = CallType.Action
                 override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
-                    return ApiItem.Query.Upsert.Update(
+                    return ApiItem.Upsert.Create.Action(
+                        item = Json.decodeFromString(cc.itemSerializer, serializedItem),
+                        apiFilter = Json.decodeFromString(
+                            cc.apiFilterSerializer,
+                            serializedApiFilter
+                        )
+                    )
+                }
+            }
+        }
+
+        @Serializable
+        sealed class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
+            Upsert<T, ID, FILT>() {
+            override val crudTask: CrudTask = CrudTask.Update
+
+            @Serializable
+            data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+                val serializedId: String,
+                override val serializedApiFilter: String,
+            ) : Update<T, ID, FILT>() {
+                override val callType: CallType = CallType.Query
+                override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
+                    return ApiItem.Upsert.Update.Query(
                         id = Json.decodeFromString(cc.idSerializer, serializedId),
                         apiFilter = Json.decodeFromString(
                             cc.apiFilterSerializer,
@@ -57,88 +77,74 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                     )
                 }
             }
-        }
 
-        @Serializable
-        data class Read<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-            override val serializedId: String,
-            override val serializedApiFilter: String
-        ) : Query<T, ID, FILT>() {
-            override val crudTask: CrudTask = CrudTask.Read
-            override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
-                return ApiItem.Query.Read(
-                    id = Json.decodeFromString(cc.idSerializer, serializedId),
-                    apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
-                )
-            }
-        }
-
-        @Serializable
-        data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-            override val serializedId: String,
-            override val serializedApiFilter: String
-        ) : Query<T, ID, FILT>() {
-            override val crudTask: CrudTask = CrudTask.Delete
-            override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
-                return ApiItem.Query.Delete(
-                    id = Json.decodeFromString(cc.idSerializer, serializedId),
-                    apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
-                )
+            @Serializable
+            data class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+                val serializedItem: String,
+                override val serializedApiFilter: String,
+                val serializedOrig: String?
+            ) : Update<T, ID, FILT>() {
+                override val callType: CallType = CallType.Action
+                override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
+                    return ApiItem.Upsert.Update.Action(
+                        item = Json.decodeFromString(cc.itemSerializer, serializedItem),
+                        apiFilter = Json.decodeFromString(
+                            cc.apiFilterSerializer,
+                            serializedApiFilter
+                        ),
+                        orig = serializedOrig?.let {
+                            Json.decodeFromString(
+                                cc.itemSerializer,
+                                serializedOrig
+                            )
+                        }
+                    )
+                }
             }
         }
     }
 
     @Serializable
-    sealed class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : IApiItem<T, ID, FILT>() {
-        override val callType: CallType = CallType.Action
-        abstract val serializedItem: String
+    data class Read<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+        val serializedId: String,
+        override val serializedApiFilter: String
+    ) : IApiItem<T, ID, FILT>() {
+        override val crudTask: CrudTask = CrudTask.Read
+        override val callType: CallType = CallType.Query
+        override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
+            return ApiItem.Read(
+                id = Json.decodeFromString(cc.idSerializer, serializedId),
+                apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
+            )
+        }
+    }
+
+    @Serializable
+    sealed class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : IApiItem<T, ID, FILT>() {
+        override val crudTask: CrudTask = CrudTask.Delete
 
         @Serializable
-        sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> :
-            Action<T, ID, FILT>() {
-
-            @Serializable
-            data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-                override val serializedItem: String,
-                override val serializedApiFilter: String
-            ) : Upsert<T, ID, FILT>() {
-                override val crudTask: CrudTask = CrudTask.Create
-                override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
-                    return ApiItem.Action.Upsert.Create(
-                        item = Json.decodeFromString(cc.itemSerializer, serializedItem),
-                        apiFilter = Json.decodeFromString(
-                            cc.apiFilterSerializer,
-                            serializedApiFilter
-                        )
-                    )
-                }
-            }
-
-            @Serializable
-            data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-                override val serializedItem: String,
-                override val serializedApiFilter: String,
-                val serializedOrig: String?
-            ) : Upsert<T, ID, FILT>() {
-                override val crudTask: CrudTask = CrudTask.Update
-                override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
-                    return ApiItem.Action.Upsert.Update(
-                        item = Json.decodeFromString(cc.itemSerializer, serializedItem),
-                        apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter),
-                        orig = serializedOrig?.let { Json.decodeFromString(cc.itemSerializer, serializedOrig) }
-                    )
-                }
+        data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+            val serializedId: String,
+            override val serializedApiFilter: String
+        ) : Delete<T, ID, FILT>() {
+            override val callType: CallType = CallType.Query
+            override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
+                return ApiItem.Delete.Query(
+                    id = Json.decodeFromString(cc.idSerializer, serializedId),
+                    apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
+                )
             }
         }
 
         @Serializable
-        data class Delete<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-            override val serializedItem: String,
+        data class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+            val serializedItem: String,
             override val serializedApiFilter: String
-        ) : Action<T, ID, FILT>() {
-            override val crudTask: CrudTask = CrudTask.Delete
+        ) : Delete<T, ID, FILT>() {
+            override val callType: CallType = CallType.Action
             override fun asApiItem(cc: ICommonContainer<T, ID, FILT>): ApiItem<T, ID, FILT> {
-                return ApiItem.Action.Delete(
+                return ApiItem.Delete.Action(
                     item = Json.decodeFromString(cc.itemSerializer, serializedItem),
                     apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter)
                 )
