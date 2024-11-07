@@ -219,7 +219,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the `ApiItem` after conversion, wrapped in an `ItemState`.
      */
     open suspend fun asApiItem(apiItem: ApiItem<T, ID, FILT>, iUser: IUser<*>?): ItemState<ApiItem<T, ID, FILT>> =
-        ItemState<ApiItem<T, ID, FILT>>(isOk = true)
+        ItemState<ApiItem<T, ID, FILT>>(item = apiItem)
 
     /**
      * Executes a query to create an item represented by the provided API item.
