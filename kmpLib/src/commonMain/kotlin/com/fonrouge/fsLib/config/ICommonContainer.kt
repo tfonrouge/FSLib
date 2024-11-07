@@ -90,7 +90,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     )
 
     /* IApiItem */
-    fun iApiItemCreateQuery(
+    fun iApiItemQueryCreate(
         apiFilter: FILT = apiFilterInstance()
     ): IApiItem.Upsert.Create.Query<T, ID, FILT> = IApiItem.Upsert.Create.Query(
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)

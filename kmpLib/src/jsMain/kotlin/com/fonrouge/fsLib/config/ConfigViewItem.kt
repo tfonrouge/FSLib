@@ -151,7 +151,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         val callAgent = CallAgent()
         val iApiItem = when (callType) {
             CallType.Query -> when (crudTask) {
-                CrudTask.Create -> commonContainer.iApiItemCreateQuery(apiFilter)
+                CrudTask.Create -> commonContainer.iApiItemQueryCreate(apiFilter)
                 CrudTask.Read -> id?.let { commonContainer.iApiItemQueryRead(id, apiFilter) }
                 CrudTask.Update -> id?.let { commonContainer.iApiItemQueryUpdate(id, apiFilter) }
                 CrudTask.Delete -> id?.let { commonContainer.iApiItemQueryDelete(id, apiFilter) }

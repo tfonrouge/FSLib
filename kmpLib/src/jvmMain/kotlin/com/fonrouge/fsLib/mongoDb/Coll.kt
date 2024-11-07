@@ -127,7 +127,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2]
     ): ItemState<T> {
-        val user1 = user ?: userRoleColl?.let { call?.sessions?.get(userRoleColl.userKClass) }
+        val user1: IUser<out Any>? = user ?: userRoleColl?.let { call?.sessions?.get(userRoleColl.userKClass) }
         userRoleColl?.getUserPermission(
             user = user1,
             kCallable = kCallable,
@@ -135,7 +135,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )?.let {
             if (it.state == State.Error) return ItemState(it)
         }
-        val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer)).let {
+        val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer), iUser = user1).let {
             if (it.hasError || it.item == null) {
                 return ItemState(isOk = false, msgError = it.msgError)
             } else {
@@ -212,12 +212,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Converts the given input into an ApiItem and wraps it in an ItemState.
+     * Converts the current item to an `ApiItem`.
      *
-     * @param apiItem The input item to be converted to an ApiItem.
-     * @return An ItemState containing the ApiItem.
+     * @param apiItem The API item to be processed.
+     * @param iUser The user information associated with the API call.
+     * @return The state of the `ApiItem` after conversion, wrapped in an `ItemState`.
      */
-    open suspend fun asApiItem(apiItem: ApiItem<T, ID, FILT>): ItemState<ApiItem<T, ID, FILT>> =
+    open suspend fun asApiItem(apiItem: ApiItem<T, ID, FILT>, iUser: IUser<*>?): ItemState<ApiItem<T, ID, FILT>> =
         ItemState<ApiItem<T, ID, FILT>>(isOk = true)
 
     /**
