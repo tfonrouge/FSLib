@@ -18,7 +18,7 @@ import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
+abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : Any, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>,
     internal val userKClass: KClass<U>,
 ) : Coll<ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>, UR, OId<IUserRole<U, UID>>, FILT>(
@@ -30,27 +30,34 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         )
     }
 
-    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
+    //    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
+    abstract val appRoleColl: IAppRoleColl<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
     abstract val groupRoleColl: IGroupRoleColl<GR, *, GOU, *>
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter<*>>
+
     open fun rootUser(iUser: IUser<*>?): Boolean? = null
 
     suspend fun getUserPermission(
         call: ApplicationCall?,
+        commonContainer: ICommonContainer<*, *, *>? = null,
+        crudTask: CrudTask = CrudTask.Read,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
         return getUserPermission(
             user = call?.sessions?.get(klass = userKClass),
             roleType = IAppRole.RoleType.SingleAction,
+            commonContainer = commonContainer,
+            crudTask = crudTask,
             kCallable = kCallable,
             stackTraceElement = stackTraceElement
         )
     }
 
-    suspend fun <U : IUser<UID>, UID : Any> getUserPermission(
+    suspend fun <U : IUser<out UID>, UID : Any> getUserPermission(
         user: U?,
         roleType: IAppRole.RoleType,
+        commonContainer: ICommonContainer<*, *, *>? = null,
         crudTask: CrudTask = CrudTask.Read,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
@@ -67,6 +74,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
         return getUserPermission(
             user = user,
             roleType = roleType,
+            commonContainer = commonContainer,
             crudTask = crudTask,
             classOwner = classOwner,
             funcName = funcName
@@ -77,19 +85,39 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
     suspend fun getUserPermission(
         user: IUser<*>?,
         roleType: IAppRole.RoleType = IAppRole.RoleType.SingleAction,
+        commonContainer: ICommonContainer<*, *, *>? = null,
         crudTask: CrudTask = CrudTask.Read,
         classOwner: String,
         funcName: String,
     ): SimpleState {
         user ?: return SimpleState(isOk = false, msgError = "Empty user")
         if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
-        val appRole: IAppRole = appRoleColl.coroutine.findOne(
-            IAppRole::classOwner eq classOwner,
-            IAppRole::funcName eq funcName
-        ) ?: return SimpleState(
-            isOk = false,
-            msgError = "App role doesn't exist '$classOwner::$funcName' ... "
-        )
+        val (matchLabel, matchAppRole) = if (roleType == IAppRole.RoleType.CrudTask) {
+            "${commonContainer?.name}" to and(
+                IAppRole::roleType eq roleType,
+                IAppRole::classOwner eq commonContainer?.name
+            )
+        } else {
+            "${classOwner}::${funcName}" to and(
+                IAppRole::roleType eq roleType,
+                IAppRole::classOwner eq classOwner,
+                IAppRole::funcName eq funcName
+            )
+        }
+        val appRole: IAppRole = appRoleColl.coroutine.findOne(matchAppRole) ?: run {
+            appRoleColl.defaultAppRoleItem(
+                roleType = roleType,
+                commonContainer = commonContainer,
+                crudTask = crudTask,
+                classOwner = classOwner,
+                funcName = funcName,
+            )?.let {
+                appRoleColl.insertOne(item = it).item
+            } ?: return SimpleState(
+                isOk = false,
+                msgError = "App role doesn't exist '$matchLabel' ... "
+            )
+        }
         val groupPermissionType: Pair<PermissionType, Set<CrudTask>>? = getGroupPermission(
             user = user,
             crudTask = crudTask,

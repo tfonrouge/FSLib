@@ -8,6 +8,7 @@ import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.*
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
+import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.LongId
@@ -81,6 +82,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 ) {
     companion object {
         var globalDebug = false
+        private var privateUserRoleColl: IUserRoleColl<*, *, *, *, *, *>? = null
     }
 
     /**
@@ -108,39 +110,53 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open val readOnly = false
 
     /**
-     * Processes an API request and returns an item state.
+     * Determines the permission state for a given user and CRUD task within an application context.
+     *
+     * @param call The ApplicationCall context which may contain session information.
+     * @param user The user for whom the permission is being checked, defaults to the session user if not explicitly provided.
+     * @param crudTask The CRUD task to be performed, influencing the permission state.
+     * @return A SimpleState indicating whether the permission is granted (isOk = true) or denied (isOk = false) along with an optional error message.
+     */
+    suspend fun <U : IUser<out UID>, UID : Any> getPermission(
+        call: ApplicationCall?,
+        user: IUser<*>? = privateUserRoleColl?.let { call?.sessions?.get(it.userKClass) },
+        crudTask: CrudTask,
+    ): SimpleState {
+        return privateUserRoleColl?.getUserPermission(
+            user = user,
+            roleType = IAppRole.RoleType.CrudTask,
+            commonContainer = commonContainer,
+            crudTask = crudTask
+        ) ?: SimpleState(isOk = false, msgError = "User Role Collection not defined.")
+    }
+
+    /**
+     * Processes the provided API item based on its type and performs the corresponding
+     * CRUD operations or validations.
      *
      * @param iApiItem The API item to be processed.
-     * @param user The user making the request, if available.
-     * @param call The application call instance, if available.
-     * @param userRoleColl The user role collection, if available.
-     * @param kCallable The KCallable instance related to the action, if available.
-     * @param stackTraceElement The stack trace element from the caller.
-     * @return Returns the state of the item based on the processed API request.
+     * @param call The ApplicationCall context (nullable).
+     * @param user The user performing the operation (nullable).
+     * @return The resulting state of the item after processing.
      */
     @Suppress("unused")
-    suspend fun <U : IUser<UID>, UID : Any> apiItemProcess(
+    suspend fun apiItemProcess(
         iApiItem: IApiItem<T, ID, FILT>,
-        user: U? = null,
-        call: ApplicationCall? = null,
-        userRoleColl: IUserRoleColl<*, U, UID, *, *, *>? = null,
-        kCallable: KCallable<*>? = null,
-        stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2]
+        call: ApplicationCall?,
+        user: IUser<*>? = privateUserRoleColl?.let { call?.sessions?.get(it.userKClass) },
     ): ItemState<T> {
-        val user1: U? = user ?: userRoleColl?.let { call?.sessions?.get(userRoleColl.userKClass) }
-        val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer), iUser = user1).let {
+        val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer), iUser = user).let {
             if (it.hasError || it.item == null) {
                 return ItemState(isOk = false, msgError = it.msgError)
             } else {
                 it.item
             }
         }
-        userRoleColl?.getUserPermission(
-            user = user1,
+        privateUserRoleColl?.getUserPermission(
+            user = user,
             roleType = IAppRole.RoleType.CrudTask,
+            commonContainer = commonContainer,
             crudTask = apiItem.crudTask,
-            kCallable = kCallable,
-            stackTraceElement = stackTraceElement
         )?.let {
             if (it.state == State.Error) return ItemState(it)
         }
@@ -154,13 +170,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                             onBeforeUpsertCreate(apiItem = apiItem).also { if (it.hasError) return it }
                             queryCreate(
                                 apiItem = apiItem,
-                                iUser = user1
+                                iUser = user
                             )
                         }
 
                         is ApiItem.Upsert.Create.Action -> actionCreate(
                             apiItem = apiItem,
-                            iUser = user1
+                            iUser = user
                         )
                     }
 
@@ -173,13 +189,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                             queryUpdate(
                                 apiItem = apiItem,
                                 itemState = itemState,
-                                iUser = user1
+                                iUser = user
                             )
                         }
 
                         is ApiItem.Upsert.Update.Action -> actionUpdate(
                             apiItem = apiItem,
-                            iUser = user1
+                            iUser = user
                         )
                     }
                 }
@@ -192,7 +208,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 queryRead(
                     apiItem = apiItem,
                     itemState = itemState,
-                    iUser = user1
+                    iUser = user
                 )
             }
 
@@ -204,10 +220,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         val item = itemState.item
                         if (itemState.hasError || item == null) return itemState
                         onBeforeDelete(apiItem = apiItem, item = item).also { if (it.hasError) return it }
-                        queryDelete(apiItem = apiItem, itemState = itemState, iUser = user1)
+                        queryDelete(apiItem = apiItem, itemState = itemState, iUser = user)
                     }
 
-                    is ApiItem.Delete.Action -> actionDelete(apiItem = apiItem, iUser = user1)
+                    is ApiItem.Delete.Action -> actionDelete(apiItem = apiItem, iUser = user)
                 }
             }
         }
@@ -1310,5 +1326,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     enum class ResultUnit {
         One,
         List,
+    }
+
+    init {
+        if (this is IUserRoleColl<*, *, *, *, *, *>) {
+            privateUserRoleColl = this
+        }
     }
 }
