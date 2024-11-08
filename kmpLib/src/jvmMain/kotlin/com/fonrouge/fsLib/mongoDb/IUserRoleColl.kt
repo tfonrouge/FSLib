@@ -42,7 +42,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
     ): SimpleState {
         return getUserPermission(
             user = call?.sessions?.get(klass = userKClass),
-            roleType = IAppRole.RoleType.SimpleAction,
+            roleType = IAppRole.RoleType.SingleAction,
             kCallable = kCallable,
             stackTraceElement = stackTraceElement
         )
@@ -76,7 +76,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<UID>, UID : Any, 
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun getUserPermission(
         user: IUser<*>?,
-        roleType: IAppRole.RoleType = IAppRole.RoleType.SimpleAction,
+        roleType: IAppRole.RoleType = IAppRole.RoleType.SingleAction,
         crudTask: CrudTask = CrudTask.Read,
         classOwner: String,
         funcName: String,

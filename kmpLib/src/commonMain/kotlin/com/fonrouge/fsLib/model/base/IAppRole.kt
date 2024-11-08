@@ -19,7 +19,7 @@ interface IAppRole : BaseDoc<OId<IAppRole>> {
     @Serializable
     enum class RoleType(override val encoded: String) : XEnum {
         @SerialName("S")
-        SimpleAction("S"),
+        SingleAction("S"),
 
         @SerialName("CT")
         CrudTask("CT"),
