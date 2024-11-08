@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.model.base
 
 import com.fonrouge.fsLib.enums.XEnum
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.serializers.OId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -8,18 +9,19 @@ import kotlinx.serialization.Serializable
 @Suppress("unused")
 interface IAppRole : BaseDoc<OId<IAppRole>> {
     val classOwner: String
-    val funcName: String
+    val funcName: String?
     val roleType: RoleType
     val description: String?
     val detail: String?
     val defaultPermission: PermissionType
+    val defaultCrudTaskSet: Set<CrudTask>
 
     @Serializable
     enum class RoleType(override val encoded: String) : XEnum {
         @SerialName("S")
-        Simple("S"),
+        SimpleAction("S"),
 
-        @SerialName("DA")
-        DataAction("DA"),
+        @SerialName("CT")
+        CrudTask("CT"),
     }
 }

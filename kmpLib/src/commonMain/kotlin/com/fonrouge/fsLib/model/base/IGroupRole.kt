@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.model.base
 
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.serializers.OId
 
 interface IGroupRole<T : Any, GOU : IGroupOfUser<*>> : BaseDoc<OId<T>> {
@@ -7,4 +8,5 @@ interface IGroupRole<T : Any, GOU : IGroupOfUser<*>> : BaseDoc<OId<T>> {
     val groupOfUserId: OId<GOU>
     val appRoleId: OId<IAppRole>
     val permission: PermissionType
+    val crudTaskSet: Set<CrudTask>
 }

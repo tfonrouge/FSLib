@@ -119,28 +119,30 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return Returns the state of the item based on the processed API request.
      */
     @Suppress("unused")
-    suspend fun apiItemProcess(
+    suspend fun <U : IUser<UID>, UID : Any> apiItemProcess(
         iApiItem: IApiItem<T, ID, FILT>,
-        user: IUser<*>? = null,
+        user: U? = null,
         call: ApplicationCall? = null,
-        userRoleColl: IUserRoleColl<*, *, *, *, *, *>? = null,
+        userRoleColl: IUserRoleColl<*, U, UID, *, *, *>? = null,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2]
     ): ItemState<T> {
-        val user1: IUser<out Any>? = user ?: userRoleColl?.let { call?.sessions?.get(userRoleColl.userKClass) }
-        userRoleColl?.getUserPermission(
-            user = user1,
-            kCallable = kCallable,
-            stackTraceElement = stackTraceElement
-        )?.let {
-            if (it.state == State.Error) return ItemState(it)
-        }
+        val user1: U? = user ?: userRoleColl?.let { call?.sessions?.get(userRoleColl.userKClass) }
         val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer), iUser = user1).let {
             if (it.hasError || it.item == null) {
                 return ItemState(isOk = false, msgError = it.msgError)
             } else {
                 it.item
             }
+        }
+        userRoleColl?.getUserPermission(
+            user = user1,
+            roleType = IAppRole.RoleType.CrudTask,
+            crudTask = apiItem.crudTask,
+            kCallable = kCallable,
+            stackTraceElement = stackTraceElement
+        )?.let {
+            if (it.state == State.Error) return ItemState(it)
         }
         return when (apiItem) {
             is ApiItem.Upsert -> {
