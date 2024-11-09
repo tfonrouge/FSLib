@@ -31,7 +31,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
     }
 
     //    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
-    abstract val appRoleColl: IAppRoleColl<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
+    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
     abstract val groupRoleColl: IGroupRoleColl<GR, *, GOU, *>
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter<*>>
 
@@ -104,20 +104,10 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
                 IAppRole::funcName eq funcName
             )
         }
-        val appRole: IAppRole = appRoleColl.coroutine.findOne(matchAppRole) ?: run {
-            appRoleColl.defaultAppRoleItem(
-                roleType = roleType,
-                commonContainer = commonContainer,
-                crudTask = crudTask,
-                classOwner = classOwner,
-                funcName = funcName,
-            )?.let {
-                appRoleColl.insertOne(item = it).item
-            } ?: return SimpleState(
-                isOk = false,
-                msgError = "App role doesn't exist '$matchLabel' ... "
-            )
-        }
+        val appRole: IAppRole = appRoleColl.coroutine.findOne(matchAppRole) ?: return SimpleState(
+            isOk = false,
+            msgError = "App role doesn't exist '$matchLabel' ... "
+        )
         val groupPermissionType: Pair<PermissionType, Set<CrudTask>>? = getGroupPermission(
             user = user,
             crudTask = crudTask,
