@@ -6,7 +6,7 @@ import com.fonrouge.fsLib.serializers.OId
 interface IUserRole<U : IUser<out UID>, UID : Any> : BaseDoc<OId<IUserRole<U, UID>>> {
     override val _id: OId<IUserRole<U, UID>>
     val userId: UID
-    val appRoleId: OId<IAppRole>
+    val appRoleId: OId<out IAppRole<*>>
     val permission: PermissionType
     val crudTaskSet: Set<CrudTask>
 }

@@ -31,7 +31,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
     }
 
     //    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
-    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
+    abstract val appRoleColl: IAppRoleColl<*, *, *, *>
     abstract val groupRoleColl: IGroupRoleColl<GR, *, GOU, *>
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter<*>>
 
@@ -94,20 +94,29 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val (matchLabel, matchAppRole) = if (roleType == IAppRole.RoleType.CrudTask) {
             "${commonContainer?.name}" to and(
-                IAppRole::roleType eq roleType,
-                IAppRole::classOwner eq commonContainer?.name
+                IAppRole<*>::roleType eq roleType,
+                IAppRole<*>::classOwner eq commonContainer?.name
             )
         } else {
             "${classOwner}::${funcName}" to and(
-                IAppRole::roleType eq roleType,
-                IAppRole::classOwner eq classOwner,
-                IAppRole::funcName eq funcName
+                IAppRole<*>::roleType eq roleType,
+                IAppRole<*>::classOwner eq classOwner,
+                IAppRole<*>::funcName eq funcName
             )
         }
-        val appRole: IAppRole = appRoleColl.coroutine.findOne(matchAppRole) ?: return SimpleState(
-            isOk = false,
-            msgError = "App role doesn't exist '$matchLabel' ... "
-        )
+        val appRole: IAppRole<out Any> = appRoleColl.coroutine.findOne(matchAppRole) ?: run {
+            val itemState = appRoleColl.insertDefaultAppRole(
+                roleType = roleType,
+                commonContainer = commonContainer,
+                crudTask = crudTask,
+                classOwner = classOwner,
+                funcName = funcName
+            )
+            itemState.item ?: return SimpleState(
+                isOk = false,
+                msgError = "App role doesn't exist '$matchLabel' ... "
+            )
+        }
         val groupPermissionType: Pair<PermissionType, Set<CrudTask>>? = getGroupPermission(
             user = user,
             crudTask = crudTask,
@@ -138,7 +147,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
     private suspend fun getGroupPermission(
         user: IUser<*>,
         crudTask: CrudTask,
-        appRole: IAppRole
+        appRole: IAppRole<out Any>
     ): Pair<PermissionType, Set<CrudTask>>? {
         val userGroupColl = userGroupColl
         val groupRoleColl = groupRoleColl
@@ -188,7 +197,7 @@ private data class GroupOfUser(
 private data class GroupRole(
     override val _id: OId<GroupRole>,
     override val groupOfUserId: OId<GroupOfUser>,
-    override val appRoleId: OId<IAppRole>,
+    override val appRoleId: OId<out IAppRole<*>>,
     override val permission: PermissionType,
     override val crudTaskSet: Set<CrudTask> = emptySet(),
 ) : IGroupRole<GroupRole, GroupOfUser>

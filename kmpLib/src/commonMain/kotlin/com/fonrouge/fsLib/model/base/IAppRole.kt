@@ -2,12 +2,11 @@ package com.fonrouge.fsLib.model.base
 
 import com.fonrouge.fsLib.enums.XEnum
 import com.fonrouge.fsLib.model.apiData.CrudTask
-import com.fonrouge.fsLib.serializers.OId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Suppress("unused")
-interface IAppRole : BaseDoc<OId<IAppRole>> {
+interface IAppRole<ID : Any> : BaseDoc<ID> {
     val classOwner: String
     val funcName: String?
     val roleType: RoleType
