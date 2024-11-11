@@ -54,7 +54,11 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * Helper to get the item property from the [ItemState]
      */
-    val item: T? get() = itemObservable.value
+    var item: T?
+        get() = itemObservable.value
+        set(value) {
+            itemObservable.value = value
+        }
     private var origSerialized: String? = null
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
