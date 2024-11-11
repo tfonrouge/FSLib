@@ -19,7 +19,7 @@ import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : Any, GR : IGroupRole<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
+abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : Any, GR : IRoleInGroup<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>,
     internal val userKClass: KClass<U>,
 ) : Coll<ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>, UR, OId<IUserRole<U, UID>>, FILT>(
@@ -137,10 +137,10 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         pipeline += lookup5(
             from = groupRoleColl.commonContainer.itemKClass.collectionName,
             localField = IUserGroup<U, UID, *, *>::groupOfUserId,
-            foreignField = IGroupRole<*, GOU>::groupOfUserId,
+            foreignField = IRoleInGroup<*, GOU>::groupOfUserId,
             resultField = IUserGroup<U, UID, *, *>::groupRoles,
             pipeline = listOf(
-                match(IGroupRole<*, GOU>::appRoleId eq appRole._id)
+                match(IRoleInGroup<*, GOU>::appRoleId eq appRole._id)
             )
         )
         pipeline += IUserGroup<U, UID, *, *>::groupRoles.unwind(
@@ -149,7 +149,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
             )
         )
         pipeline += replaceRoot(IUserGroup<U, UID, *, *>::groupRoles)
-        val groupRoleList = userGroupColl.coroutine.aggregate<GroupRole>(
+        val groupRoleList = userGroupColl.coroutine.aggregate<RoleInGroup>(
             pipeline = pipeline
         ).toList()
         // group by permissionType
@@ -175,10 +175,10 @@ private data class GroupOfUser(
 ) : IGroupOfUser<GroupOfUser>
 
 @Serializable
-private data class GroupRole(
-    override val _id: OId<GroupRole>,
+private data class RoleInGroup(
+    override val _id: OId<RoleInGroup>,
     override val groupOfUserId: OId<GroupOfUser>,
     override val appRoleId: OId<out IAppRole<*>>,
     override val permission: PermissionType,
     override val crudTaskSet: Set<CrudTask> = emptySet(),
-) : IGroupRole<GroupRole, GroupOfUser>
+) : IRoleInGroup<RoleInGroup, GroupOfUser>

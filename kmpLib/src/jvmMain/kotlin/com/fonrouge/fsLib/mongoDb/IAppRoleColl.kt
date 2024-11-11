@@ -25,6 +25,12 @@ abstract class IAppRoleColl<CC : ICommonContainer<T, ID, FILT>, T : IAppRole<ID>
     ): ItemState<T> = ItemState(isOk = false)
 
     override suspend fun onAfterOpen() {
+        coroutine.ensureIndex(IAppRole<*>::description)
+        coroutine.ensureUniqueIndex(
+            IAppRole<*>::roleType,
+            IAppRole<*>::description,
+            indexOptions = IndexOptions().collation(collation())
+        )
         coroutine.ensureUniqueIndex(
             IAppRole<*>::classOwner,
             indexOptions = IndexOptions().partialFilterExpression(IAppRole<*>::roleType eq RoleType.CrudTask)
