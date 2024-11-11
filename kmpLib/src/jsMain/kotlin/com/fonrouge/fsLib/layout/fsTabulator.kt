@@ -19,7 +19,6 @@ import io.kvision.panel.vPanel
 import io.kvision.state.bind
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
-import io.kvision.toast.Toast
 import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
@@ -121,8 +120,8 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     }
 
     vPanel {
-        viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
         bind(viewList.errorStateObs) { errorState ->
+            viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
             if (errorState == false) {
                 viewList.tabulator = tabulatorListContainer(
                     viewList = viewList,
@@ -182,9 +181,6 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                     color = Color("Red")
                     addBsBgColor(BsBgColor.DARKSUBTLE)
                     border = io.kvision.core.Border(width = 5.px, color = Color("Red"))
-                }
-                viewList.errorMessage?.let { msg ->
-                    Toast.danger(msg)
                 }
             }
         }

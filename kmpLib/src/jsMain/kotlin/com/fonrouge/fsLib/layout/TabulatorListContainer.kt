@@ -141,7 +141,13 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
                 ((result.state as? String) == State.Error.name).also { errorState ->
                     if (viewList.errorStateObs.value != errorState) {
                         viewList.errorStateObs.value = errorState
-                        viewList.errorMessage = if (errorState) result.msgError as? String else null
+                    }
+                    viewList.errorMessage = if (errorState) result.msgError as? String else null
+                    if (errorState) {
+                        Toast.danger(
+                            message = viewList.errorMessage ?: "Unknown error",
+                            options = ToastOptions(avatar = "")
+                        )
                     }
                 }
 
