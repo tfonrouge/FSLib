@@ -7,6 +7,7 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.layout.NavbarTabulator
 import com.fonrouge.fsLib.layout.TabulatorListContainer
 import com.fonrouge.fsLib.layout.TabulatorMenuItem
+import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.apiData.ApiItem
@@ -14,13 +15,19 @@ import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.State
+import io.kvision.core.BsBgColor
+import io.kvision.core.Color
 import io.kvision.core.Container
+import io.kvision.core.addBsBgColor
+import io.kvision.html.div
 import io.kvision.state.ObservableValue
+import io.kvision.state.bind
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.tabulator.RowRangeLookup
 import io.kvision.tabulator.js.Tabulator
 import io.kvision.tabulator.toJs
 import io.kvision.toast.Toast
+import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 
@@ -56,6 +63,9 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
 
     open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(title = "", headerSort = false)
+
+    val errorStateObs = ObservableValue<Boolean>(false)
+    var errorMessage: String? = null
 
     /**
      * contains an object of [T] type for the selected row in the [tabulator]
@@ -257,7 +267,21 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         if (!noPageBanner) {
             pageBanner()
         }
-        pageListBody()
+        div().bind(errorStateObs) {
+            console.warn("errorStateObs", errorStateObs.value)
+            if (it == false) {
+                pageListBody()
+            } else {
+                centeredMessage(errorMessage ?: "unknown error") {
+                    color = Color("Red")
+                    addBsBgColor(BsBgColor.DARKSUBTLE)
+                    border = io.kvision.core.Border(width = 5.px, color = Color("Red"))
+                }
+                errorMessage?.let { msg ->
+                    Toast.danger(msg)
+                }
+            }
+        }
     }
 
     /**

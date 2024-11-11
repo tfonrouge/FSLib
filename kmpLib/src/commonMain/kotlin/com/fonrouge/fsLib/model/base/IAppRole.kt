@@ -10,7 +10,7 @@ interface IAppRole<ID : Any> : BaseDoc<ID> {
     val classOwner: String
     val funcName: String?
     val roleType: RoleType
-    val description: String?
+    val description: String
     val detail: String?
     val defaultPermission: PermissionType
     val defaultCrudTaskSet: Set<CrudTask>

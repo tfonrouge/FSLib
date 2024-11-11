@@ -64,12 +64,17 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
     ): SimpleState {
         val classOwner: String
         val funcName: String
-        if (kCallable != null) {
-            classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName ?: ""
-            funcName = kCallable.name
+        if (commonContainer == null) {
+            if (kCallable != null) {
+                classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName ?: ""
+                funcName = kCallable.name
+            } else {
+                classOwner = stackTraceElement.className.substringAfterLast('.')
+                funcName = stackTraceElement.methodName
+            }
         } else {
-            classOwner = stackTraceElement.className.substringAfterLast('.')
-            funcName = stackTraceElement.methodName
+            classOwner = commonContainer.name
+            funcName = ""
         }
         return getUserPermission(
             user = user,
@@ -92,19 +97,24 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
     ): SimpleState {
         user ?: return SimpleState(isOk = false, msgError = "Empty user")
         if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
-        val (matchLabel, matchAppRole) = if (roleType == IAppRole.RoleType.CrudTask) {
-            "${commonContainer?.name}" to and(
-                IAppRole<*>::roleType eq roleType,
-                IAppRole<*>::classOwner eq commonContainer?.name
-            )
-        } else {
-            "${classOwner}::${funcName}" to and(
-                IAppRole<*>::roleType eq roleType,
-                IAppRole<*>::classOwner eq classOwner,
-                IAppRole<*>::funcName eq funcName
-            )
+        val (matchLabel, matchAppRole) = when (roleType) {
+            IAppRole.RoleType.CrudTask -> {
+                "${commonContainer?.name}" to and(
+                    IAppRole<*>::roleType eq roleType,
+                    IAppRole<*>::classOwner eq commonContainer?.name
+                )
+            }
+
+            IAppRole.RoleType.SingleAction -> {
+                "${classOwner}::${funcName}" to and(
+                    IAppRole<*>::roleType eq roleType,
+                    IAppRole<*>::classOwner eq classOwner,
+                    IAppRole<*>::funcName eq funcName
+                )
+            }
         }
         val appRole: IAppRole<out Any> = appRoleColl.coroutine.findOne(matchAppRole) ?: run {
+            println(matchAppRole.json)
             val itemState = appRoleColl.insertDefaultAppRole(
                 roleType = roleType,
                 commonContainer = commonContainer,
@@ -116,6 +126,13 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
                 isOk = false,
                 msgError = "App role doesn't exist '$matchLabel' ... "
             )
+        }
+        when (roleType) {
+            IAppRole.RoleType.SingleAction -> if (appRole.defaultPermission == PermissionType.Allow)
+                return SimpleState(isOk = true)
+
+            IAppRole.RoleType.CrudTask -> if (appRole.defaultPermission == PermissionType.Allow && crudTask in appRole.defaultCrudTaskSet)
+                return SimpleState(isOk = true)
         }
         val groupPermissionType: Pair<PermissionType, Set<CrudTask>>? = getGroupPermission(
             user = user,

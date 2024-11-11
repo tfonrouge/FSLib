@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.remote.*
@@ -136,6 +137,14 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
                     diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
                     contentHashCode = result.contentHashCode as? Int
                 }
+//                console.warn("result", result)
+                ((result.state as? String) == State.Error.name).also { errorState ->
+                    if (viewList.errorStateObs.value != errorState) {
+                        viewList.errorStateObs.value = errorState
+                        viewList.errorMessage = if (errorState) result.msgError as? String else null
+                    }
+                }
+
                 result.data = js("eval(result.data)")
 
 //                console.warn("result received", result)

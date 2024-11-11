@@ -485,6 +485,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun apiListProcess(
+        call: ApplicationCall? = null,
+        iUser: IUser<*>? = call?.let { privateUserRoleColl?.let { call.sessions.get(it.userKClass) } },
         listFirstStage: ListFirstStage,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -493,6 +495,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean? = this.debug,
         postProcessList: ((List<T>) -> List<T>)? = null,
     ): ListState<T> {
+        iUser?.let {
+            privateUserRoleColl?.getUserPermission(
+                user = iUser,
+                roleType = IAppRole.RoleType.CrudTask,
+                commonContainer = commonContainer
+            )?.also { if (it.hasError) return ListState(state = State.Error, msgError = "User not authorized") }
+        }
         var pageCountInfo: PageCountInfo? = null
         val publisher = aggregateLookupPublisher(
             pipeline = listFirstStage.pipeline,
@@ -534,6 +543,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             data = data,
             last_page = pageCountInfo?.lastPage,
             last_row = pageCountInfo?.lastRow,
+            state = State.Ok,
         )
     }
 
@@ -557,6 +567,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("unused")
     suspend fun apiListProcess(
+        call: ApplicationCall? = null,
+        iUser: IUser<*>? = call?.let { privateUserRoleColl?.let { call.sessions.get(it.userKClass) } },
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
         preLookupSort: Bson? = null,
@@ -569,6 +581,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         postProcessList: ((List<T>) -> List<T>)? = null
     ): ListState<T> {
         return apiListProcess(
+            call = call,
+            iUser = iUser,
             listFirstStage = listFirstStage(
                 preLookupMatch = preLookupMatch,
                 postLookupMatch = postLookupMatch,
