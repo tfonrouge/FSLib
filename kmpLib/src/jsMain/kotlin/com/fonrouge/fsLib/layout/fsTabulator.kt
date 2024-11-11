@@ -10,11 +10,17 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
+import io.kvision.core.BsBgColor
+import io.kvision.core.Color
 import io.kvision.core.Container
+import io.kvision.core.addBsBgColor
 import io.kvision.core.onEvent
 import io.kvision.panel.vPanel
+import io.kvision.state.bind
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
+import io.kvision.toast.Toast
+import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
@@ -116,56 +122,69 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
 
     vPanel {
         viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
-        viewList.tabulator = tabulatorListContainer(
-            viewList = viewList,
-            apiListBlock = apiListBlock,
-            apiListSerialize = apiListSerialize,
-            serializer = T::class.serializer(),
-            options = tabulatorOptions,
-            types = types,
-        ) {
-            id = viewList::class.simpleName
-            init?.invoke(this)
-            onEvent {
-                rowSelectionChangedTabulator = {
-                    val tList = self.getSelectedData()
-                    viewList.selectedItemObs.value = tList.let {
-                        if (it.isEmpty()) null else it[0]
-                    }
-                    viewList.onRowSelected?.invoke(viewList.selectedItemObs.value)
-                }
-                viewList.onDataLoadedTabulator?.let { func ->
-                    dataLoadedTabulator = { func(it.detail.unsafeCast<List<T>>()) }
-                }
-            }
-            addAfterInsertHook {
-                jsTabulator?.on("rowMouseOver") { event: Event, row: RowComponent ->
-                    if (!event.defaultPrevented) {
-                        viewList.overItem = row.getData()
-                        ViewDataContainer.clearStartTime()
-                    }
-                }
-                jsTabulator?.on("menuOpened") {
-                    viewList.menuOpenedState = true
-                }
-                jsTabulator?.on("menuClosed") {
-                    viewList.menuOpenedState = false
-                }
-                jsTabulator?.on("tableBuilt") {
-                    viewList.jsTabulatorBuilt = true
-                }
-                jsTabulator?.on("dataProcessing") {
-                    window.setTimeout(
-                        {
-                            val list = viewList.selectedIdList
-                            if (list?.isNotEmpty() == true) {
-                                jsTabulator?.getRows("")?.firstOrNull {
-                                    it.getData().asDynamic()["_id"] == list[0]
-                                }?.select?.invoke()
+        bind(viewList.errorStateObs) { errorState ->
+            if (errorState == false) {
+                viewList.tabulator = tabulatorListContainer(
+                    viewList = viewList,
+                    apiListBlock = apiListBlock,
+                    apiListSerialize = apiListSerialize,
+                    serializer = T::class.serializer(),
+                    options = tabulatorOptions,
+                    types = types,
+                ) {
+                    id = viewList::class.simpleName
+                    init?.invoke(this)
+                    onEvent {
+                        rowSelectionChangedTabulator = {
+                            val tList = self.getSelectedData()
+                            viewList.selectedItemObs.value = tList.let {
+                                if (it.isEmpty()) null else it[0]
                             }
-                        },
-                        0
-                    )
+                            viewList.onRowSelected?.invoke(viewList.selectedItemObs.value)
+                        }
+                        viewList.onDataLoadedTabulator?.let { func ->
+                            dataLoadedTabulator = { func(it.detail.unsafeCast<List<T>>()) }
+                        }
+                    }
+                    addAfterInsertHook {
+                        jsTabulator?.on("rowMouseOver") { event: Event, row: RowComponent ->
+                            if (!event.defaultPrevented) {
+                                viewList.overItem = row.getData()
+                                ViewDataContainer.clearStartTime()
+                            }
+                        }
+                        jsTabulator?.on("menuOpened") {
+                            viewList.menuOpenedState = true
+                        }
+                        jsTabulator?.on("menuClosed") {
+                            viewList.menuOpenedState = false
+                        }
+                        jsTabulator?.on("tableBuilt") {
+                            viewList.jsTabulatorBuilt = true
+                        }
+                        jsTabulator?.on("dataProcessing") {
+                            window.setTimeout(
+                                {
+                                    val list = viewList.selectedIdList
+                                    if (list?.isNotEmpty() == true) {
+                                        jsTabulator?.getRows("")?.firstOrNull {
+                                            it.getData().asDynamic()["_id"] == list[0]
+                                        }?.select?.invoke()
+                                    }
+                                },
+                                0
+                            )
+                        }
+                    }
+                }
+            } else {
+                centeredMessage(viewList.errorMessage ?: "unknown error") {
+                    color = Color("Red")
+                    addBsBgColor(BsBgColor.DARKSUBTLE)
+                    border = io.kvision.core.Border(width = 5.px, color = Color("Red"))
+                }
+                viewList.errorMessage?.let { msg ->
+                    Toast.danger(msg)
                 }
             }
         }
