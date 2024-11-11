@@ -9,9 +9,6 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import io.kvision.core.AlignItems
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
-import io.kvision.core.Cursor
-import io.kvision.core.Widget
-import io.kvision.core.onClick
 import io.kvision.html.*
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
@@ -45,21 +42,50 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     var pageBannerLink: Link? = null
 
     /**
-     * Enable/disable periodic refresh interval of view
+     * Indicates whether the data view should perform periodic updates.
+     *
+     * This boolean flag is used to enable or disable automatic periodic updates
+     * for the data view. When set to true, the data view will periodically
+     * refresh its content according to the specified interval.
+     *
+     * It can be particularly useful in scenarios where real-time data
+     * synchronization is required or to ensure that the information displayed
+     * is always up-to-date.
+     *
+     * The default value is null, which means periodic updates are not configured.
      */
     open val periodicUpdateDataView: Boolean? = null
+
+    /**
+     * The interval, in seconds, at which the view will be periodically updated.
+     * This variable determines how often the view's data will be refreshed.
+     *
+     * Default value is set to 5 seconds.
+     */
     var periodicUpdateViewInterval = 5
     private val pageBannerUpdateObservable = ObservableValue(0)
 
     /**
-     * observable that contains an [FILT] object. It can be assigned from an apiFilter= url parameter
-     * or programmatically, and it's delivered to the backend
+     * Observable value that represents the current API filter instance used by the view.
+     * This value is lazily initialized with an API filter instance based on the URL parameters or,
+     * if not available, from the commonContainer configuration of the configView.
+     *
+     * The primary use of this observable is to keep track of changes to the API filter
+     * and trigger related updates within the view, such as updating the displayed content
+     * or the status of UI elements that depend on the filter.
      */
     val apiFilterObservable: ObservableValue<FILT> by lazy {
         ObservableValue(
             apiFilterInstance(apiFilterFromUrl) ?: configView.commonContainer.apiFilterInstance()
         )
     }
+
+    /**
+     * A variable representing the current API filter used within the view.
+     *
+     * The `apiFilter` is observable and can be set or retrieved programmatically. It's primarily used
+     * for filtering API data based on specific parameters defined by the `FILT` type.
+     */
     var apiFilter: FILT
         get() {
             return apiFilterObservable.value
@@ -113,11 +139,19 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     }
 
     /**
-     * Allows to describe a display that will be showed next to the view link banner
+     * Allows to describe a display that will be shown next to the view link banner
      * it can be triggered with [updateBanner] function.
      * Note: don't try to update [apiFilterObservable] inside this, or you'll get a recursive infinite loop
      */
     open fun Container.bannerLegend() {}
+
+    /**
+     * Renders the main content of the view within the specified container.
+     *
+     * This function serves as an abstract method to be implemented by subclasses, defining
+     * the logic for displaying the view's content in the given `Container`. It is typically
+     * called in the context of setting up or updating the UI.
+     */
     abstract fun Container.displayPage()
 
     /**
@@ -140,29 +174,69 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         linkBanner?.label = labelBanner(apiFilter)
     }
 
+    /**
+     * This method is called immediately after rendering the page's content.
+     *
+     * Override this method to execute any post-rendering logic or to update the UI components
+     * that depend on the page's content.
+     */
     open fun onAfterDisplayPage() {}
 
     /**
-     * Build an [FILT] class for the current view
+     * Sets the given API filter instance. This function is useful for assigning an API filter object
+     * to a view or passing the filter object around.
      *
-     * @param apiFilter [FILT] object decoded from the current url 'apiFilter' param view
-     * @return a [FILT] object
+     * @param apiFilter The API filter to be set or passed. Can be null.
+     * @return The provided API filter instance, or null if no filter is provided.
      */
     open fun apiFilterInstance(apiFilter: FILT?): FILT? = apiFilter
+
+    /**
+     * This method is called when there is an update to the API filter.
+     *
+     * The primary function of this method is to invoke the `updateBanner` method,
+     * which refreshes the content of the banner legend tied to the current view.
+     *
+     * Override this method to implement additional logic that should be executed
+     * when the API filter is updated.
+     */
     open fun onApiFilterUpdate() {
         updateBanner()
     }
 
+    /**
+     * This method is called before rendering the page's content.
+     *
+     * Override this method to execute any pre-rendering logic or to configure the UI components
+     * that should be displayed on the page.
+     *
+     * @param container The DSL container in which the view will be rendered.
+     */
     open fun onBeforeDisplayPage(container: Container) {}
 
+    /**
+     * This method is called before the disposal of the view.
+     *
+     * Override this method to execute any logic that needs to run before the view is disposed of.
+     * It can be used to clean up resources, save state, or perform other teardown operations.
+     */
     open fun onBeforeDispose() {}
 
     /**
-     * Contains the [linkBanner] where is the main label and the banner legend zone [bannerLegend]
+     * Creates a horizontally aligned panel container with centered items,
+     * encapsulated within a fluid container class, typically used
+     * for holding the banner legend components.
+     *
+     * @return the container with specified alignment and class.
      */
     open fun Container.bannerLeggendContainer(): Container =
         hPanel(alignItems = AlignItems.CENTER, className = "container-fluid")
 
+    /**
+     * Configures and displays a page banner within the container.
+     *
+     * @param onUpdatePageBannerLink A lambda function that gets called with the updated link information.
+     */
     fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
         /* TODO: find out how make horizontally scrollable */
         navbar(bgColor = BsBgColor.LIGHT).bind(
@@ -233,34 +307,21 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     }
 
     /**
-     * Makes a refresh on the banner legend with content of [bannerLegend] function
+     * Increments the value of the `pageBannerUpdateObservable` to trigger an update for the page banner.
+     * This function is typically invoked when the banner's content needs to be refreshed.
      */
     fun updateBanner() {
         pageBannerUpdateObservable.value++
     }
 
-    fun updateMainBannerLink(text: String, url: String) {
-        pageBannerLink?.label = "${configView.commonContainer.label}: $text"
-        pageBannerLink?.url = "${configView.url}/$url"
-    }
-
     /**
-     * open function that builds a filter form
+     * Builds and returns an off-canvas filter view within the current container.
+     *
+     * This method is designed to create an off-canvas filter component which can
+     * be used for applying filters within the UI. If no specific filter view is
+     * defined, it returns null.
+     *
+     * @return An instance of Offcanvas representing the filter view, or null if none is defined.
      */
     open fun Container.buildOffCanvasFilterView(): Offcanvas? = null
-
-    /**
-     * open function that fires when toolbar's filter button is clicked. If [apiFilterObservable] contains a null value then
-     * a new [FILT] object is created (with no constructor parameters) and assign it to the apiFilter value.
-     */
-    open fun onClickFilter() {
-        offCanvasFilter?.show()
-    }
-
-    fun Widget.onClickShowOffcanvasFilterView() {
-        cursor = Cursor.POINTER
-        onClick {
-            offCanvasFilter?.show()
-        }
-    }
 }

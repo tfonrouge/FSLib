@@ -31,7 +31,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                 ) {
                     onClick {
                         it.preventDefault()
-                        viewList.onClickFilter()
+                        viewList.offCanvasFilter?.show()
                     }
                     enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
                 }
