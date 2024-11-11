@@ -138,17 +138,17 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
             from = groupRoleColl.commonContainer.itemKClass.collectionName,
             localField = IUserGroup<U, UID, *, *>::groupOfUserId,
             foreignField = IRoleInGroup<*, GOU>::groupOfUserId,
-            resultField = IUserGroup<U, UID, *, *>::groupRoles,
+            resultField = IUserGroup<U, UID, *, *>::roleInGroups,
             pipeline = listOf(
                 match(IRoleInGroup<*, GOU>::appRoleId eq appRole._id)
             )
         )
-        pipeline += IUserGroup<U, UID, *, *>::groupRoles.unwind(
+        pipeline += IUserGroup<U, UID, *, *>::roleInGroups.unwind(
             UnwindOptions().preserveNullAndEmptyArrays(
                 false
             )
         )
-        pipeline += replaceRoot(IUserGroup<U, UID, *, *>::groupRoles)
+        pipeline += replaceRoot(IUserGroup<U, UID, *, *>::roleInGroups)
         val groupRoleList = userGroupColl.coroutine.aggregate<RoleInGroup>(
             pipeline = pipeline
         ).toList()
