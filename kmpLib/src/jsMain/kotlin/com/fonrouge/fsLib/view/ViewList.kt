@@ -34,7 +34,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
     editable = editable,
-    icon = icon,
 ) {
     var allowInstallUpdate: Boolean = true
 

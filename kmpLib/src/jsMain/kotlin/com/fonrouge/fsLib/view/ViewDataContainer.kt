@@ -11,11 +11,9 @@ import kotlin.js.Date
 abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val configViewContainer: ConfigViewContainer<CC, T, ID, *, FILT>,
     editable: (() -> Boolean) = { true },
-    icon: String? = null,
 ) : View<CC, FILT>(
     configView = configViewContainer,
     editable = editable,
-    icon = icon,
 ) {
     companion object {
         var startTime = 0L

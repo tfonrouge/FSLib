@@ -13,7 +13,6 @@ import io.kvision.core.Cursor
 import io.kvision.core.Widget
 import io.kvision.core.onClick
 import io.kvision.html.*
-import io.kvision.navbar.Navbar
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.offcanvas.Offcanvas
@@ -22,25 +21,15 @@ import io.kvision.state.ObservableValue
 import io.kvision.state.bind
 import io.kvision.utils.em
 import io.kvision.utils.px
+import kotlinx.coroutines.launch
 
 abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open val configView: ConfigView<CC, *, FILT>,
     var editable: (() -> Boolean) = { true },
-    val icon: String? = null,
 ) {
     abstract var urlParams: UrlParams?
     open val label: String get() = configView.label
-    open var labelBanner: String?
-        get() {
-            return linkBanner?.label
-        }
-        set(value) {
-            if (value != null) {
-                linkBanner?.label = value
-            }
-        }
     var linkBanner: Link? = null
-    var navbar: Navbar? = null
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
     var navButtonBack: Button? = null
@@ -130,6 +119,27 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     open fun Container.bannerLegend() {}
     abstract fun Container.displayPage()
+
+    /**
+     * Retrieves a label for the banner based on a given API filter.
+     *
+     * @param tag The API filter used to determine the label.
+     * @return The label used for the banner.
+     */
+    open suspend fun labelBanner(apiFilter: FILT): String = label
+
+    /**
+     * Updates the label of the link banner.
+     *
+     * This function asynchronously retrieves the latest label for the
+     * banner using the current `apiFilter` and sets it to the `linkBanner`'s label.
+     *
+     * Note that this function suspends while performing the label retrieval.
+     */
+    suspend fun updateLabelBanner() {
+        linkBanner?.label = labelBanner(apiFilter)
+    }
+
     open fun onAfterDisplayPage() {}
 
     /**
@@ -165,7 +175,11 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                     url = navigoUrlWithParams,
                     className = "navbar-brand",
                     icon = iconCrud(urlParams?.crudTask)
-                )
+                ) {
+                    AppScope.launch {
+                        label = labelBanner(apiFilter)
+                    }
+                }
                 bannerLegend()
             }
             nav(rightAlign = true) {

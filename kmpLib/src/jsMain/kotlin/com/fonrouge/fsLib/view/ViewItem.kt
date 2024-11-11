@@ -31,6 +31,7 @@ import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.em
 import kotlinx.browser.window
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
@@ -44,7 +45,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
     editable = editable,
-    icon = icon,
 ) {
     /**
      * Observable that holds the [ItemState] for the [ViewItem]
@@ -66,8 +66,10 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     init {
         itemObservable.subscribe {
+            AppScope.launch {
+                updateLabelBanner()
+            }
             it?.let { item ->
-                labelBanner = label
                 formPanel?.setData(item)
                 onChangeItemObservable(it)
             }
@@ -272,8 +274,10 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             }
 
             CrudTask.Update -> {
+//                AppScope.launch {
+//                    linkBanner?.label = labelBanner(apiFilter)
+//                }
                 item?.let {
-                    labelBanner = label
                     formPanel?.setData(it)
                     origSerialized = formPanel?.getData()?.let {
                         Json.encodeToString(

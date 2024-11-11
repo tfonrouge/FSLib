@@ -9,7 +9,7 @@ plugins {
     id("maven-publish")
 }
 
-val libVersion = "1.1.9"
+val libVersion = "1.2.0"
 
 group = "com.fonrouge.kmpLib"
 version = libVersion
