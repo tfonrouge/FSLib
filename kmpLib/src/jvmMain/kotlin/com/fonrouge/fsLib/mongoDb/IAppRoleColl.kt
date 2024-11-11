@@ -15,8 +15,8 @@ abstract class IAppRoleColl<CC : ICommonContainer<T, ID, FILT>, T : IAppRole<ID>
     commonContainer = commonContainer
 ) {
     open suspend fun insertDefaultAppRole(
-        roleType: IAppRole.RoleType,
-        commonContainer: ICommonContainer<*, *, *>?,
+        roleType: RoleType,
+        container: ICommonContainer<*, *, *>?,
         crudTask: CrudTask,
         classOwner: String,
         funcName: String

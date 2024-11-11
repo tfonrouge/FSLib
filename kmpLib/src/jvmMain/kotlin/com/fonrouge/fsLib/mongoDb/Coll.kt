@@ -125,7 +125,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return privateUserRoleColl?.getUserPermission(
             user = user,
             roleType = IAppRole.RoleType.CrudTask,
-            commonContainer = commonContainer,
+            container = commonContainer,
             crudTask = crudTask
         ) ?: SimpleState(isOk = false, msgError = "User Role Collection not defined.")
     }
@@ -155,7 +155,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         privateUserRoleColl?.getUserPermission(
             user = user,
             roleType = IAppRole.RoleType.CrudTask,
-            commonContainer = commonContainer,
+            container = commonContainer,
             crudTask = apiItem.crudTask,
         )?.let {
             if (it.state == State.Error) return ItemState(it)
@@ -499,7 +499,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             privateUserRoleColl?.getUserPermission(
                 user = iUser,
                 roleType = IAppRole.RoleType.CrudTask,
-                commonContainer = commonContainer
+                container = commonContainer
             )?.also { if (it.hasError) return ListState(state = State.Error, msgError = "User not authorized") }
         }
         var pageCountInfo: PageCountInfo? = null

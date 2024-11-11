@@ -39,7 +39,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
 
     suspend fun getUserPermission(
         call: ApplicationCall?,
-        commonContainer: ICommonContainer<*, *, *>? = null,
+        container: ICommonContainer<*, *, *>? = null,
         crudTask: CrudTask = CrudTask.Read,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
@@ -47,7 +47,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         return getUserPermission(
             user = call?.sessions?.get(klass = userKClass),
             roleType = IAppRole.RoleType.SingleAction,
-            commonContainer = commonContainer,
+            container = container,
             crudTask = crudTask,
             kCallable = kCallable,
             stackTraceElement = stackTraceElement
@@ -57,14 +57,14 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
     suspend fun <U : IUser<out UID>, UID : Any> getUserPermission(
         user: U?,
         roleType: IAppRole.RoleType,
-        commonContainer: ICommonContainer<*, *, *>? = null,
+        container: ICommonContainer<*, *, *>? = null,
         crudTask: CrudTask = CrudTask.Read,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
         val classOwner: String
         val funcName: String
-        if (commonContainer == null) {
+        if (container == null) {
             if (kCallable != null) {
                 classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName ?: ""
                 funcName = kCallable.name
@@ -73,13 +73,13 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
                 funcName = stackTraceElement.methodName
             }
         } else {
-            classOwner = commonContainer.name
+            classOwner = container.name
             funcName = ""
         }
         return getUserPermission(
             user = user,
             roleType = roleType,
-            commonContainer = commonContainer,
+            container = container,
             crudTask = crudTask,
             classOwner = classOwner,
             funcName = funcName
@@ -90,7 +90,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
     suspend fun getUserPermission(
         user: IUser<*>?,
         roleType: IAppRole.RoleType = IAppRole.RoleType.SingleAction,
-        commonContainer: ICommonContainer<*, *, *>? = null,
+        container: ICommonContainer<*, *, *>? = null,
         crudTask: CrudTask = CrudTask.Read,
         classOwner: String,
         funcName: String,
@@ -99,9 +99,9 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val (matchLabel, matchAppRole) = when (roleType) {
             IAppRole.RoleType.CrudTask -> {
-                "${commonContainer?.name}" to and(
+                "${container?.name}" to and(
                     IAppRole<*>::roleType eq roleType,
-                    IAppRole<*>::classOwner eq commonContainer?.name
+                    IAppRole<*>::classOwner eq container?.name
                 )
             }
 
@@ -117,7 +117,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
             println(matchAppRole.json)
             val itemState = appRoleColl.insertDefaultAppRole(
                 roleType = roleType,
-                commonContainer = commonContainer,
+                container = container,
                 crudTask = crudTask,
                 classOwner = classOwner,
                 funcName = funcName
