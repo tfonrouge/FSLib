@@ -123,12 +123,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         crudTask: CrudTask,
     ): SimpleState {
         if (user == null) return SimpleState(isOk = true) // No user provided
+        val userRoleColl =
+            privateUserRoleColl ?: return SimpleState(isOk = false, msgError = "User Role Collection not defined.")
+        if (userRoleColl.rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val matchDoc = and(
             IAppRole<*>::roleType eq IAppRole.RoleType.CrudTask,
             IAppRole<*>::classOwner eq commonContainer.name
         )
-        val userRoleColl =
-            privateUserRoleColl ?: return SimpleState(isOk = false, msgError = "User Role Collection not defined.")
         val appRole = userRoleColl.appRoleColl.findOne(matchDoc) ?: run {
             val itemState = userRoleColl.appRoleColl.insertCrudRole(
                 container = commonContainer,
