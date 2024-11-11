@@ -9,6 +9,8 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import io.kvision.core.AlignItems
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container
+import io.kvision.core.Cursor
+import io.kvision.core.onClick
 import io.kvision.html.*
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
@@ -254,7 +256,12 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                         label = labelBanner(apiFilter)
                     }
                 }
-                bannerLegend()
+                bannerLegend().apply {
+                    offCanvasFilter?.let { offCanvasFilter ->
+                        cursor = Cursor.POINTER
+                        onClick { offCanvasFilter.show() }
+                    }
+                }
             }
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *, *, *>) {
