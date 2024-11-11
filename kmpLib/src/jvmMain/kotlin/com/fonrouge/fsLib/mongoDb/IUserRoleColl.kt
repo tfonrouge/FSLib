@@ -33,7 +33,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
 
     //    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
     abstract val appRoleColl: IAppRoleColl<*, *, *, *>
-    abstract val groupRoleColl: IGroupRoleColl<GR, *, GOU, *>
+    abstract val roleInGroupColl: IRoleInGroupColl<GR, *, GOU, *>
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter<*>>
 
     open fun rootUser(iUser: IUser<*>?): Boolean? = null
@@ -131,7 +131,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         appRole: IAppRole<out Any>
     ): Pair<PermissionType, Set<CrudTask>>? {
         val userGroupColl = userGroupColl
-        val groupRoleColl = groupRoleColl
+        val groupRoleColl = roleInGroupColl
         val pipeline = mutableListOf<Bson>()
         pipeline.add(0, match(IUserGroup<U, UID, *, *>::userId eq user._id))
         pipeline += lookup5(
