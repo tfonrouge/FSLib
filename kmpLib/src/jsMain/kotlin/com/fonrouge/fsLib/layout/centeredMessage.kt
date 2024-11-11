@@ -13,7 +13,7 @@ fun Container.centeredMessage(message: String, height: CssSize = 75.vh, init: (D
         fontSize = 20.px
         this.height = height
         align = Align.CENTER
-        lineHeight = 75.vh
+        lineHeight = height
     }.also {
         init?.invoke(it)
     }

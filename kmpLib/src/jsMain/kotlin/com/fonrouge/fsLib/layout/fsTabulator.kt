@@ -20,6 +20,7 @@ import io.kvision.state.bind
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.utils.px
+import io.kvision.utils.vh
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
@@ -177,7 +178,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                     }
                 }
             } else {
-                centeredMessage(viewList.errorMessage ?: "unknown error") {
+                centeredMessage(viewList.errorMessage ?: "unknown error", 50.vh) {
                     color = Color("Red")
                     addBsBgColor(BsBgColor.DARKSUBTLE)
                     border = io.kvision.core.Border(width = 5.px, color = Color("Red"))
