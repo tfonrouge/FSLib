@@ -14,12 +14,14 @@ abstract class IAppRoleColl<CC : ICommonContainer<T, ID, FILT>, T : IAppRole<ID>
 ) : Coll<CC, T, ID, FILT>(
     commonContainer = commonContainer
 ) {
-    open suspend fun insertDefaultAppRole(
-        roleType: RoleType,
-        container: ICommonContainer<*, *, *>?,
-        crudTask: CrudTask,
+    open suspend fun insertSingleActionRole(
         classOwner: String,
         funcName: String
+    ): ItemState<T> = ItemState(isOk = false)
+
+    open suspend fun insertCrudRole(
+        container: ICommonContainer<*, *, *>,
+        crudTask: CrudTask,
     ): ItemState<T> = ItemState(isOk = false)
 
     override suspend fun onAfterOpen() {

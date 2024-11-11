@@ -4,6 +4,7 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.*
+import com.fonrouge.fsLib.model.base.IAppRole.RoleType
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.serializers.OId
 import com.mongodb.client.model.UnwindOptions
@@ -37,133 +38,96 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
 
     open fun rootUser(iUser: IUser<*>?): Boolean? = null
 
-    suspend fun getUserPermission(
-        call: ApplicationCall?,
-        container: ICommonContainer<*, *, *>? = null,
-        crudTask: CrudTask = CrudTask.Read,
+    suspend fun getSingleActionPermission(
+        call: ApplicationCall,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
-        return getUserPermission(
-            user = call?.sessions?.get(klass = userKClass),
-            roleType = IAppRole.RoleType.SingleAction,
-            container = container,
-            crudTask = crudTask,
+        return getSingleActionPermission(
+            user = call.sessions.get(klass = userKClass),
             kCallable = kCallable,
             stackTraceElement = stackTraceElement
         )
     }
 
-    suspend fun <U : IUser<out UID>, UID : Any> getUserPermission(
+    suspend fun <U : IUser<out UID>, UID : Any> getSingleActionPermission(
         user: U?,
-        roleType: IAppRole.RoleType,
-        container: ICommonContainer<*, *, *>? = null,
-        crudTask: CrudTask = CrudTask.Read,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
         val classOwner: String
         val funcName: String
-        if (container == null) {
-            if (kCallable != null) {
-                classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName ?: ""
-                funcName = kCallable.name
-            } else {
-                classOwner = stackTraceElement.className.substringAfterLast('.')
-                funcName = stackTraceElement.methodName
-            }
+        if (kCallable != null) {
+            classOwner = ((kCallable as FunctionReferenceImpl).owner as KClass<*>).simpleName ?: ""
+            funcName = kCallable.name
         } else {
-            classOwner = container.name
-            funcName = ""
+            classOwner = stackTraceElement.className.substringAfterLast('.')
+            funcName = stackTraceElement.methodName
         }
-        return getUserPermission(
+        return getSingleActionPermission(
             user = user,
-            roleType = roleType,
-            container = container,
-            crudTask = crudTask,
             classOwner = classOwner,
             funcName = funcName
         )
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun getUserPermission(
+    suspend fun getSingleActionPermission(
         user: IUser<*>?,
-        roleType: IAppRole.RoleType = IAppRole.RoleType.SingleAction,
-        container: ICommonContainer<*, *, *>? = null,
-        crudTask: CrudTask = CrudTask.Read,
         classOwner: String,
         funcName: String,
     ): SimpleState {
         user ?: return SimpleState(isOk = false, msgError = "Empty user")
         if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
-        val (matchLabel, matchAppRole) = when (roleType) {
-            IAppRole.RoleType.CrudTask -> {
-                "${container?.name}" to and(
-                    IAppRole<*>::roleType eq roleType,
-                    IAppRole<*>::classOwner eq container?.name
-                )
-            }
+        val (matchLabel, matchAppRole) = "${classOwner}::${funcName}" to and(
+            IAppRole<*>::roleType eq RoleType.SingleAction,
+            IAppRole<*>::classOwner eq classOwner,
+            IAppRole<*>::funcName eq funcName
+        )
 
-            IAppRole.RoleType.SingleAction -> {
-                "${classOwner}::${funcName}" to and(
-                    IAppRole<*>::roleType eq roleType,
-                    IAppRole<*>::classOwner eq classOwner,
-                    IAppRole<*>::funcName eq funcName
-                )
-            }
-        }
         val appRole: IAppRole<out Any> = appRoleColl.coroutine.findOne(matchAppRole) ?: run {
             println(matchAppRole.json)
-            val itemState = appRoleColl.insertDefaultAppRole(
-                roleType = roleType,
-                container = container,
-                crudTask = crudTask,
+            val itemState = appRoleColl.insertSingleActionRole(
                 classOwner = classOwner,
                 funcName = funcName
             )
+
             itemState.item ?: return SimpleState(
                 isOk = false,
                 msgError = "App role doesn't exist '$matchLabel' ... "
             )
         }
-        when (roleType) {
-            IAppRole.RoleType.SingleAction -> if (appRole.defaultPermission == PermissionType.Allow)
-                return SimpleState(isOk = true)
-
-            IAppRole.RoleType.CrudTask -> if (appRole.defaultPermission == PermissionType.Allow && crudTask in appRole.defaultCrudTaskSet)
-                return SimpleState(isOk = true)
+        if (appRole.defaultPermission == PermissionType.Allow) {
+            return SimpleState(isOk = true)
         }
-        val groupPermissionType: Pair<PermissionType, Set<CrudTask>>? = getGroupPermission(
+        val groupPermission: Pair<PermissionType, Any>? = getGroupPermission(
             user = user,
-            crudTask = crudTask,
             appRole = appRole
         )
-        val userPermissionType: Pair<PermissionType, Set<CrudTask>>? = coroutine.find(
+        val userPermission: Pair<PermissionType, Any>? = coroutine.find(
             filter = and(
                 IUserRole<U, UID>::userId eq user._id,
                 IUserRole<U, UID>::appRoleId eq appRole._id
             )
         ).first()?.let { it.permission to it.crudTaskSet }
         val combinedPermissionType =
-            if (groupPermissionType == userPermissionType ||
-                (groupPermissionType != null && userPermissionType == null)
-            ) groupPermissionType else {
-                userPermissionType
+            if (groupPermission == userPermission || (groupPermission != null && userPermission == null)) {
+                groupPermission
+            } else {
+                userPermission
             }
         if (combinedPermissionType != null) {
             return if (combinedPermissionType.first == PermissionType.Allow
                 || (combinedPermissionType.first == PermissionType.Default
                         && appRole.defaultPermission == PermissionType.Allow)
-            ) SimpleState(isOk = crudTask in combinedPermissionType.second)
+            ) SimpleState(isOk = true)
             else SimpleState(isOk = false, msgError = "Permission denied ...")
         }
         return SimpleState(isOk = false, msgError = "User not authorized ...")
     }
 
-    private suspend fun getGroupPermission(
+    suspend fun getGroupPermission(
         user: IUser<*>,
-        crudTask: CrudTask,
         appRole: IAppRole<out Any>
     ): Pair<PermissionType, Set<CrudTask>>? {
         val userGroupColl = userGroupColl

@@ -117,17 +117,55 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param crudTask The CRUD task to be performed, influencing the permission state.
      * @return A SimpleState indicating whether the permission is granted (isOk = true) or denied (isOk = false) along with an optional error message.
      */
-    suspend fun <U : IUser<out UID>, UID : Any> getPermission(
+    suspend fun <U : IUser<out UID>, UID : Any> getCrudPermission(
         call: ApplicationCall?,
         user: IUser<*>? = privateUserRoleColl?.let { call?.sessions?.get(it.userKClass) },
         crudTask: CrudTask,
     ): SimpleState {
-        return privateUserRoleColl?.getUserPermission(
+        if (user == null) return SimpleState(isOk = true) // No user provided
+        val matchDoc = and(
+            IAppRole<*>::roleType eq IAppRole.RoleType.CrudTask,
+            IAppRole<*>::classOwner eq commonContainer.name
+        )
+        val userRoleColl =
+            privateUserRoleColl ?: return SimpleState(isOk = false, msgError = "User Role Collection not defined.")
+        val appRole = userRoleColl.appRoleColl.findOne(matchDoc) ?: run {
+            val itemState = userRoleColl.appRoleColl.insertCrudRole(
+                container = commonContainer,
+                crudTask = crudTask
+            )
+            itemState.item ?: return SimpleState(
+                isOk = false,
+                msgError = "App role doesn't exist '${commonContainer.name}' for ${commonContainer.labelItem} item."
+            )
+        }
+        if (appRole.defaultPermission == PermissionType.Allow && crudTask in appRole.defaultCrudTaskSet) {
+            return SimpleState(isOk = true)
+        }
+        val groupPermission: Pair<PermissionType, Set<CrudTask>>? = userRoleColl.getGroupPermission(
             user = user,
-            roleType = IAppRole.RoleType.CrudTask,
-            container = commonContainer,
-            crudTask = crudTask
-        ) ?: SimpleState(isOk = false, msgError = "User Role Collection not defined.")
+            appRole = appRole
+        )
+        val userPermission: Pair<PermissionType, Set<CrudTask>>? = userRoleColl.coroutine.find(
+            filter = and(
+                IUserRole<U, UID>::userId eq user._id,
+                IUserRole<U, UID>::appRoleId eq appRole._id
+            )
+        ).first()?.let { it.permission to it.crudTaskSet }
+        val combinedPermissionType =
+            if (groupPermission == userPermission || (groupPermission != null && userPermission == null)) {
+                groupPermission
+            } else {
+                userPermission
+            }
+        if (combinedPermissionType != null) {
+            return if (combinedPermissionType.first == PermissionType.Allow
+                || (combinedPermissionType.first == PermissionType.Default
+                        && appRole.defaultPermission == PermissionType.Allow)
+            ) SimpleState(isOk = crudTask in combinedPermissionType.second)
+            else SimpleState(isOk = false, msgError = "Permission denied ...")
+        }
+        return SimpleState(isOk = false, msgError = "User not authorized ...")
     }
 
     /**
@@ -152,12 +190,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 it.item
             }
         }
-        privateUserRoleColl?.getUserPermission(
+        getCrudPermission<IUser<*>, Any>(
+            call = null,
             user = user,
-            roleType = IAppRole.RoleType.CrudTask,
-            container = commonContainer,
-            crudTask = apiItem.crudTask,
-        )?.let {
+            crudTask = apiItem.crudTask
+        ).also {
             if (it.state == State.Error) return ItemState(it)
         }
         return when (apiItem) {
@@ -496,11 +533,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         postProcessList: ((List<T>) -> List<T>)? = null,
     ): ListState<T> {
         iUser?.let {
-            privateUserRoleColl?.getUserPermission(
-                user = iUser,
-                roleType = IAppRole.RoleType.CrudTask,
-                container = commonContainer
-            )?.also { if (it.hasError) return ListState(state = State.Error, msgError = "User not authorized") }
+            getCrudPermission<IUser<*>, Any>(
+                call = null,
+                user = it,
+                crudTask = CrudTask.Read,
+            ).also {
+                if (it.hasError) return ListState(state = State.Error, msgError = "User not authorized")
+            }
         }
         var pageCountInfo: PageCountInfo? = null
         val publisher = aggregateLookupPublisher(
