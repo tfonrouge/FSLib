@@ -4,7 +4,9 @@ import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.*
+import com.fonrouge.fsLib.model.base.IAppRole.BaseRolePermission
 import com.fonrouge.fsLib.model.base.IAppRole.RoleType
+import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.serializers.OId
 import com.mongodb.client.model.UnwindOptions
@@ -78,64 +80,105 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         funcName: String,
     ): SimpleState {
         user ?: return SimpleState(isOk = false, msgError = "Empty user")
-        if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val (matchLabel, matchAppRole) = "${classOwner}::${funcName}" to and(
             IAppRole<*>::roleType eq RoleType.SingleAction,
             IAppRole<*>::classOwner eq classOwner,
             IAppRole<*>::funcName eq funcName
         )
-
-        val appRole: IAppRole<out Any> = appRoleColl.coroutine.findOne(matchAppRole) ?: run {
-            println(matchAppRole.json)
-            val itemState = appRoleColl.insertSingleActionRole(
+        return permissionState(
+            roleType = RoleType.SingleAction,
+            user = user,
+            crudTask = null
+        ) {
+            appRoleColl.coroutine.findOne(matchAppRole)?.let {
+                ItemState(item = it)
+            } ?: appRoleColl.insertSingleActionRole(
                 classOwner = classOwner,
                 funcName = funcName
-            )
-
-            itemState.item ?: return SimpleState(
+            ).item?.let {
+                ItemState(item = it)
+            } ?: ItemState(
                 isOk = false,
                 msgError = "App role doesn't exist '$matchLabel' ... "
             )
         }
-        if (appRole.defaultPermission == PermissionType.Allow) {
-            return SimpleState(isOk = true)
+    }
+
+    suspend fun permissionState(
+        roleType: RoleType,
+        user: IUser<*>,
+        crudTask: CrudTask? = null,
+        insertBlock: suspend () -> ItemState<out IAppRole<*>>,
+    ): SimpleState {
+        if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
+        val appRole: IAppRole<*> = insertBlock().let { itemState ->
+            itemState.item ?: return SimpleState(
+                isOk = false,
+                msgError = itemState.msgError ?: "App role doesn't exist"
+            )
         }
-        val groupPermission: Pair<PermissionType, Any>? = getGroupPermission(
-            user = user,
-            appRole = appRole
-        )
-        val userPermission: Pair<PermissionType, Any>? = coroutine.find(
+        var baseRolePermission: BaseRolePermission? = null
+        coroutine.find(
             filter = and(
                 IUserRole<U, UID>::userId eq user._id,
                 IUserRole<U, UID>::appRoleId eq appRole._id
             )
-        ).first()?.let { it.permission to it.crudTaskSet }
-        val combinedPermissionType =
-            if (groupPermission == userPermission || (groupPermission != null && userPermission == null)) {
-                groupPermission
-            } else {
-                userPermission
+        ).first()?.let { it: UR ->
+            if (crudTask in it.crudTaskSet) {
+                baseRolePermission = when (it.permission) {
+                    PermissionType.Allow -> BaseRolePermission.Allow
+                    PermissionType.Deny -> BaseRolePermission.Deny
+                    PermissionType.Default -> when (appRole.defaultPermission) {
+                        BaseRolePermission.Allow -> BaseRolePermission.Allow
+                        BaseRolePermission.Deny -> BaseRolePermission.Deny
+                    }
+                }
             }
-        if (combinedPermissionType != null) {
-            return if (combinedPermissionType.first == PermissionType.Allow
-                || (combinedPermissionType.first == PermissionType.Default
-                        && appRole.defaultPermission == PermissionType.Allow)
-            ) SimpleState(isOk = true)
-            else SimpleState(isOk = false, msgError = "Permission denied ...")
         }
-        return SimpleState(isOk = false, msgError = "User not authorized ...")
+        if (baseRolePermission != null) return buildSimpleState(baseRolePermission = baseRolePermission)
+        baseRolePermission = getGroupPermission(
+            user = user,
+            appRole = appRole,
+            crudTask = crudTask
+        )
+        return buildSimpleState(baseRolePermission = baseRolePermission)
     }
 
-    suspend fun getGroupPermission(
+    private fun buildSimpleState(baseRolePermission: BaseRolePermission): SimpleState {
+        val granted = baseRolePermission == BaseRolePermission.Allow
+        return SimpleState(
+            isOk = granted,
+            msgOk = if (granted) "Permission granted" else null,
+            msgError = if (granted.not()) "Permission denied" else null
+        )
+    }
+
+    private fun buildDefaultAppRolePermission(
+        appRole: IAppRole<*>,
+        crudTask: CrudTask? = null,
+    ): BaseRolePermission {
+        return when (appRole.roleType) {
+            RoleType.SingleAction -> appRole.defaultPermission
+            RoleType.CrudTask -> (crudTask in appRole.defaultCrudTaskSet).let { crudTaskContained ->
+                when (appRole.defaultPermission) {
+                    BaseRolePermission.Allow -> if (crudTaskContained) BaseRolePermission.Allow else BaseRolePermission.Deny
+                    BaseRolePermission.Deny -> if (crudTaskContained) BaseRolePermission.Deny else BaseRolePermission.Allow
+                }
+            }
+        }
+    }
+
+    private suspend fun getGroupPermission(
         user: IUser<*>,
-        appRole: IAppRole<out Any>
-    ): Pair<PermissionType, Set<CrudTask>>? {
+        appRole: IAppRole<out Any>,
+        crudTask: CrudTask? = null,
+    ): BaseRolePermission {
         val userGroupColl = userGroupColl
-        val groupRoleColl = roleInGroupColl
+        val roleInGroupColl = this@IUserRoleColl.roleInGroupColl
         val pipeline = mutableListOf<Bson>()
         pipeline.add(0, match(IUserGroup<U, UID, *, *>::userId eq user._id))
         pipeline += lookup5(
-            from = groupRoleColl.commonContainer.itemKClass.collectionName,
+            from = roleInGroupColl.commonContainer.itemKClass.collectionName,
             localField = IUserGroup<U, UID, *, *>::groupOfUserId,
             foreignField = IRoleInGroup<*, GOU>::groupOfUserId,
             resultField = IUserGroup<U, UID, *, *>::roleInGroups,
@@ -152,19 +195,22 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         val groupRoleList = userGroupColl.coroutine.aggregate<RoleInGroup>(
             pipeline = pipeline
         ).toList()
-        // group by permissionType
-        val permissionTypeListMap = groupRoleList.groupBy { it.permission }
-        return if (permissionTypeListMap.size == 1) {
-            // only one permissionType
-            val entry = permissionTypeListMap.entries.first()
-            if (entry.value.all { it.permission == entry.key })
-            // permissionType if all groupRole list has same permissionType
-                entry.key to entry.value.first().crudTaskSet
-            else
-                null
-        } else {
-            null
+        val permissionTypes = groupRoleList.filter { roleInGroup ->
+            crudTask?.let { it in roleInGroup.crudTaskSet } != false
         }
+        if (permissionTypes.isEmpty()) return buildDefaultAppRolePermission(appRole, crudTask)
+        if (permissionTypes.size == 1) return when (permissionTypes.first().permission) {
+            PermissionType.Allow -> BaseRolePermission.Allow
+            PermissionType.Deny -> BaseRolePermission.Deny
+            PermissionType.Default -> buildDefaultAppRolePermission(appRole, crudTask)
+        }
+        if (appRole.upVoteInGroup == BaseRolePermission.Allow && permissionTypes.any { it.permission == PermissionType.Allow }) {
+            return BaseRolePermission.Allow
+        }
+        if (appRole.upVoteInGroup == BaseRolePermission.Deny && permissionTypes.any { it.permission == PermissionType.Deny }) {
+            return BaseRolePermission.Deny
+        }
+        return buildDefaultAppRolePermission(appRole, crudTask)
     }
 }
 

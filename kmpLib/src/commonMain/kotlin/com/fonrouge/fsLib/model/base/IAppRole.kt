@@ -12,9 +12,9 @@ interface IAppRole<ID : Any> : BaseDoc<ID> {
     val roleType: RoleType
     val description: String
     val detail: String?
-    val defaultPermission: PermissionType
+    val defaultPermission: BaseRolePermission
     val defaultCrudTaskSet: Set<CrudTask>
-    val upVoteInGroup: UpVote
+    val upVoteInGroup: BaseRolePermission
 
     @Serializable
     enum class RoleType(override val encoded: String) : XEnum {
@@ -26,7 +26,7 @@ interface IAppRole<ID : Any> : BaseDoc<ID> {
     }
 
     @Serializable
-    enum class UpVote(override val encoded: String) : XEnum {
+    enum class BaseRolePermission(override val encoded: String) : XEnum {
         @SerialName("1")
         Allow("1"),
 

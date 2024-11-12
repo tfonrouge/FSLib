@@ -6,6 +6,7 @@ import com.fonrouge.fsLib.annotations.DontPersist
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.*
+import com.fonrouge.fsLib.model.base.IAppRole.RoleType
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.state.SimpleState
@@ -122,51 +123,30 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         user: IUser<*>? = privateUserRoleColl?.let { call?.sessions?.get(it.userKClass) },
         crudTask: CrudTask,
     ): SimpleState {
-        if (user == null) return SimpleState(isOk = true) // No user provided
+        user ?: return SimpleState(isOk = false, msgError = "Empty user")
         val userRoleColl =
             privateUserRoleColl ?: return SimpleState(isOk = false, msgError = "User Role Collection not defined.")
-        if (userRoleColl.rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val matchDoc = and(
-            IAppRole<*>::roleType eq IAppRole.RoleType.CrudTask,
+            IAppRole<*>::roleType eq RoleType.CrudTask,
             IAppRole<*>::classOwner eq commonContainer.name
         )
-        val appRole = userRoleColl.appRoleColl.findOne(matchDoc) ?: run {
-            val itemState = userRoleColl.appRoleColl.insertCrudRole(
+        return userRoleColl.permissionState(
+            roleType = RoleType.CrudTask,
+            user = user,
+            crudTask = crudTask
+        ) {
+            userRoleColl.appRoleColl.findOne(matchDoc)?.let {
+                ItemState(item = it)
+            } ?: userRoleColl.appRoleColl.insertCrudRole(
                 container = commonContainer,
                 crudTask = crudTask
-            )
-            itemState.item ?: return SimpleState(
+            ).item?.let {
+                ItemState(item = it)
+            } ?: ItemState(
                 isOk = false,
                 msgError = "App role doesn't exist '${commonContainer.name}' for ${commonContainer.labelItem} item."
             )
         }
-        if (appRole.defaultPermission == PermissionType.Allow && crudTask in appRole.defaultCrudTaskSet) {
-            return SimpleState(isOk = true)
-        }
-        val groupPermission: Pair<PermissionType, Set<CrudTask>>? = userRoleColl.getGroupPermission(
-            user = user,
-            appRole = appRole
-        )
-        val userPermission: Pair<PermissionType, Set<CrudTask>>? = userRoleColl.coroutine.find(
-            filter = and(
-                IUserRole<U, UID>::userId eq user._id,
-                IUserRole<U, UID>::appRoleId eq appRole._id
-            )
-        ).first()?.let { it.permission to it.crudTaskSet }
-        val combinedPermissionType =
-            if (groupPermission == userPermission || (groupPermission != null && userPermission == null)) {
-                groupPermission
-            } else {
-                userPermission
-            }
-        if (combinedPermissionType != null) {
-            return if (combinedPermissionType.first == PermissionType.Allow
-                || (combinedPermissionType.first == PermissionType.Default
-                        && appRole.defaultPermission == PermissionType.Allow)
-            ) SimpleState(isOk = crudTask in combinedPermissionType.second)
-            else SimpleState(isOk = false, msgError = "Permission denied ...")
-        }
-        return SimpleState(isOk = false, msgError = "User not authorized ...")
     }
 
     /**
