@@ -133,7 +133,9 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
                             BaseRolePermission.Deny -> BaseRolePermission.Deny
                         }
                     }
-                } else BaseRolePermission.Deny
+                } else BaseRolePermission.Deny,
+                appRole = appRole,
+                crudTask = crudTask
             )
         }
         return buildSimpleState(
@@ -141,16 +143,23 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
                 user = user,
                 appRole = appRole,
                 crudTask = crudTask
-            )
+            ),
+            appRole = appRole,
+            crudTask = crudTask
         )
     }
 
-    private fun buildSimpleState(baseRolePermission: BaseRolePermission): SimpleState {
+    private fun buildSimpleState(
+        baseRolePermission: BaseRolePermission,
+        appRole: IAppRole<*>,
+        crudTask: CrudTask?
+    ): SimpleState {
         val granted = baseRolePermission == BaseRolePermission.Allow
+        val preLabel = "${appRole.roleType} ${crudTask?.let { "[" + it.name + "]" } ?: ""} ${appRole.description}"
         return SimpleState(
             isOk = granted,
-            msgOk = if (granted) "Permission granted" else null,
-            msgError = if (granted.not()) "Permission denied" else null
+            msgOk = if (granted) "$preLabel: Permission granted" else null,
+            msgError = if (granted.not()) "$preLabel: Permission denied" else null
         )
     }
 
