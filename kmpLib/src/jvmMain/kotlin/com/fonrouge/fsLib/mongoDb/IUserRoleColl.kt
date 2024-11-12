@@ -160,7 +160,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
     ): BaseRolePermission {
         return when (appRole.roleType) {
             RoleType.SingleAction -> appRole.defaultPermission
-            RoleType.CrudTask -> (crudTask in appRole.defaultCrudTaskSet).let { crudTaskContained ->
+            RoleType.CrudTask -> (appRole.defaultCrudTaskSet?.contains(crudTask) == true).let { crudTaskContained ->
                 when (appRole.defaultPermission) {
                     BaseRolePermission.Allow -> if (crudTaskContained) BaseRolePermission.Allow else BaseRolePermission.Deny
                     BaseRolePermission.Deny -> if (crudTaskContained) BaseRolePermission.Deny else BaseRolePermission.Allow

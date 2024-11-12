@@ -13,7 +13,7 @@ interface IAppRole<ID : Any> : BaseDoc<ID> {
     val description: String
     val detail: String?
     val defaultPermission: BaseRolePermission
-    val defaultCrudTaskSet: Set<CrudTask>
+    val defaultCrudTaskSet: Set<CrudTask>?
     val upVoteInGroup: BaseRolePermission
 
     @Serializable
