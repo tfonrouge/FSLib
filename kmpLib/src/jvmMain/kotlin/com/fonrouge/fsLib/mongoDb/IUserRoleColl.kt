@@ -117,31 +117,32 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
                 msgError = itemState.msgError ?: "App role doesn't exist"
             )
         }
-        var baseRolePermission: BaseRolePermission? = null
         coroutine.find(
             filter = and(
                 IUserRole<U, UID>::userId eq user._id,
                 IUserRole<U, UID>::appRoleId eq appRole._id
             )
         ).first()?.let { it: UR ->
-            baseRolePermission = if (crudTask in it.crudTaskSet) {
-                when (it.permission) {
-                    PermissionType.Allow -> BaseRolePermission.Allow
-                    PermissionType.Deny -> BaseRolePermission.Deny
-                    PermissionType.Default -> when (appRole.defaultPermission) {
-                        BaseRolePermission.Allow -> BaseRolePermission.Allow
-                        BaseRolePermission.Deny -> BaseRolePermission.Deny
+            return buildSimpleState(
+                baseRolePermission = if (crudTask in it.crudTaskSet) {
+                    when (it.permission) {
+                        PermissionType.Allow -> BaseRolePermission.Allow
+                        PermissionType.Deny -> BaseRolePermission.Deny
+                        PermissionType.Default -> when (appRole.defaultPermission) {
+                            BaseRolePermission.Allow -> BaseRolePermission.Allow
+                            BaseRolePermission.Deny -> BaseRolePermission.Deny
+                        }
                     }
-                }
-            } else BaseRolePermission.Deny
+                } else BaseRolePermission.Deny
+            )
         }
-        if (baseRolePermission != null) return buildSimpleState(baseRolePermission = baseRolePermission)
-        baseRolePermission = getGroupPermission(
-            user = user,
-            appRole = appRole,
-            crudTask = crudTask
+        return buildSimpleState(
+            baseRolePermission = getGroupPermission(
+                user = user,
+                appRole = appRole,
+                crudTask = crudTask
+            )
         )
-        return buildSimpleState(baseRolePermission = baseRolePermission)
     }
 
     private fun buildSimpleState(baseRolePermission: BaseRolePermission): SimpleState {
