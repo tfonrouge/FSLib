@@ -124,8 +124,8 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
                 IUserRole<U, UID>::appRoleId eq appRole._id
             )
         ).first()?.let { it: UR ->
-            if (crudTask in it.crudTaskSet) {
-                baseRolePermission = when (it.permission) {
+            baseRolePermission = if (crudTask in it.crudTaskSet) {
+                when (it.permission) {
                     PermissionType.Allow -> BaseRolePermission.Allow
                     PermissionType.Deny -> BaseRolePermission.Deny
                     PermissionType.Default -> when (appRole.defaultPermission) {
@@ -133,7 +133,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
                         BaseRolePermission.Deny -> BaseRolePermission.Deny
                     }
                 }
-            }
+            } else BaseRolePermission.Deny
         }
         if (baseRolePermission != null) return buildSimpleState(baseRolePermission = baseRolePermission)
         baseRolePermission = getGroupPermission(
