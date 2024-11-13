@@ -8,5 +8,5 @@ interface IRoleInGroup<T : Any, GOU : IGroupOfUser<*>> : BaseDoc<OId<T>> {
     val groupOfUserId: OId<GOU>
     val appRoleId: OId<out IAppRole<*>>
     val permission: PermissionType
-    val crudTaskSet: Set<CrudTask>
+    val crudTaskSet: Set<CrudTask>?
 }

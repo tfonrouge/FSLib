@@ -8,5 +8,5 @@ interface IRoleInUser<U : IUser<out UID>, UID : Any> : BaseDoc<OId<IRoleInUser<U
     val userId: UID
     val appRoleId: OId<out IAppRole<*>>
     val permission: PermissionType
-    val crudTaskSet: Set<CrudTask>
+    val crudTaskSet: Set<CrudTask>?
 }

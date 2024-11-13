@@ -124,7 +124,7 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
             )
         ).first()?.let { it: UR ->
             return buildSimpleState(
-                baseRolePermission = if (crudTask in it.crudTaskSet) {
+                baseRolePermission = if (it.crudTaskSet?.contains(crudTask) == true) {
                     when (it.permission) {
                         PermissionType.Allow -> BaseRolePermission.Allow
                         PermissionType.Deny -> BaseRolePermission.Deny
@@ -206,7 +206,7 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
             pipeline = pipeline
         ).toList()
         val permissionTypes = groupRoleList.filter { roleInGroup ->
-            crudTask?.let { it in roleInGroup.crudTaskSet } != false
+            crudTask?.let { roleInGroup.crudTaskSet?.contains(it) == true } != false
         }
         if (permissionTypes.isEmpty()) return buildDefaultAppRolePermission(appRole, crudTask)
         if (permissionTypes.size == 1) return when (permissionTypes.first().permission) {
@@ -236,5 +236,5 @@ private data class RoleInGroup(
     override val groupOfUserId: OId<GroupOfUser>,
     override val appRoleId: OId<out IAppRole<*>>,
     override val permission: PermissionType,
-    override val crudTaskSet: Set<CrudTask> = emptySet(),
+    override val crudTaskSet: Set<CrudTask>?,
 ) : IRoleInGroup<RoleInGroup, GroupOfUser>
