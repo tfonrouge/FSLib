@@ -10,11 +10,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
-import io.kvision.core.BsBgColor
-import io.kvision.core.Color
-import io.kvision.core.Container
-import io.kvision.core.addBsBgColor
-import io.kvision.core.onEvent
+import io.kvision.core.*
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
 import io.kvision.tabulator.*
@@ -32,7 +28,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     viewList: ViewList<*, T, *, *, *>
 ): TabulatorOptions<T> {
     val autoResize = tabulatorOptions.autoResize != false
-    val columns = tabulatorOptions.columns ?: viewList.columnDefinitionList()
+    val columns = tabulatorOptions.columns ?: viewList.columnList
     val columnDefaults = tabulatorOptions.columnDefaults ?: viewList.columnDefaults
     val dataLoader = tabulatorOptions.dataLoader == true
     val filterMode = tabulatorOptions.filterMode ?: FilterMode.REMOTE
@@ -181,7 +177,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                 centeredMessage(viewList.errorMessage ?: "unknown error", 50.vh) {
                     color = Color("Red")
                     addBsBgColor(BsBgColor.DARKSUBTLE)
-                    border = io.kvision.core.Border(width = 5.px, color = Color("Red"))
+                    border = Border(width = 5.px, color = Color("Red"))
                 }
             }
         }

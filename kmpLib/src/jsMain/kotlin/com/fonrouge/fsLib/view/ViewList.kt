@@ -70,7 +70,18 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     /* dynamic content only used to get _id */
     var overItem: Any? = null
+    open val rowSelectedColumn: ColumnDefinition<T>? = null
+
+    /* TODO: Implement this default value
+        open val rowSelectedColumn: ColumnDefinition<T>? = ColumnDefinition<T>(
+            title = "<i class=\"fa-regular fa-square\"></i>",
+            field = "rowSelected",
+            formatter = Formatter.ROWSELECTION
+        )
+    */
+
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
+    val columnList: List<ColumnDefinition<T>> get() = listOfNotNull(rowSelectedColumn) + columnDefinitionList()
     var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? =
         null
         set(value) {
@@ -244,7 +255,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     fun loadColumnDefinitions() {
         tabulator?.let { tabulator ->
             tabulator.jsTabulator?.setColumns(
-                columnDefinitionList().map {
+                columnList.map {
                     it.toJs(tabulator, tabulator::translate, configView.commonContainer.itemKClass)
                 }.toTypedArray()
             )
