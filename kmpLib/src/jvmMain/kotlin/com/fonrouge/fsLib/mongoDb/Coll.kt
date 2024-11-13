@@ -83,7 +83,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 ) {
     companion object {
         var globalDebug = false
-        private var privateUserRoleColl: IUserRoleColl<*, *, *, *, *, *>? = null
+        private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
     }
 
     /**
@@ -120,24 +120,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     suspend fun <U : IUser<out UID>, UID : Any> getCrudPermission(
         call: ApplicationCall?,
-        user: IUser<*>? = privateUserRoleColl?.let { call?.sessions?.get(it.userKClass) },
+        user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
         crudTask: CrudTask,
     ): SimpleState {
         user ?: return SimpleState(isOk = false, msgError = "Empty user")
-        val userRoleColl =
-            privateUserRoleColl ?: return SimpleState(isOk = false, msgError = "User Role Collection not defined.")
+        val roleInUserColl =
+            privateRoleInUserColl ?: return SimpleState(isOk = false, msgError = "User Role Collection not defined.")
         val matchDoc = and(
             IAppRole<*>::roleType eq RoleType.CrudTask,
             IAppRole<*>::classOwner eq commonContainer.name
         )
-        return userRoleColl.permissionState(
+        return roleInUserColl.permissionState(
             roleType = RoleType.CrudTask,
             user = user,
             crudTask = crudTask
         ) {
-            userRoleColl.appRoleColl.findOne(matchDoc)?.let {
+            roleInUserColl.appRoleColl.findOne(matchDoc)?.let {
                 ItemState(item = it)
-            } ?: userRoleColl.appRoleColl.insertCrudRole(
+            } ?: roleInUserColl.appRoleColl.insertCrudRole(
                 container = commonContainer,
                 crudTask = crudTask
             ).item?.let {
@@ -162,7 +162,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     suspend fun apiItemProcess(
         iApiItem: IApiItem<T, ID, FILT>,
         call: ApplicationCall?,
-        user: IUser<*>? = privateUserRoleColl?.let { call?.sessions?.get(it.userKClass) },
+        user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
     ): ItemState<T> {
         val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer), iUser = user).let {
             if (it.hasError || it.item == null) {
@@ -504,7 +504,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun apiListProcess(
         call: ApplicationCall? = null,
-        iUser: IUser<*>? = call?.let { privateUserRoleColl?.let { call.sessions.get(it.userKClass) } },
+        iUser: IUser<*>? = call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } },
         listFirstStage: ListFirstStage,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -588,7 +588,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("unused")
     suspend fun apiListProcess(
         call: ApplicationCall? = null,
-        iUser: IUser<*>? = call?.let { privateUserRoleColl?.let { call.sessions.get(it.userKClass) } },
+        iUser: IUser<*>? = call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } },
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
         preLookupSort: Bson? = null,
@@ -1363,8 +1363,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     init {
-        if (this is IUserRoleColl<*, *, *, *, *, *>) {
-            privateUserRoleColl = this
+        if (this is IRoleInUserColl<*, *, *, *, *, *>) {
+            privateRoleInUserColl = this
         }
     }
 }

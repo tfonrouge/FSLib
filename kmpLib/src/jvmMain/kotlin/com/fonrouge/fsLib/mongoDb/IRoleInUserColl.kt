@@ -21,15 +21,15 @@ import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
 @Suppress("unused")
-abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : Any, GR : IRoleInGroup<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
-    commonContainer: ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>,
+abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID : Any, GR : IRoleInGroup<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
+    commonContainer: ICommonContainer<UR, OId<IRoleInUser<U, UID>>, FILT>,
     internal val userKClass: KClass<U>,
-) : Coll<ICommonContainer<UR, OId<IUserRole<U, UID>>, FILT>, UR, OId<IUserRole<U, UID>>, FILT>(
+) : Coll<ICommonContainer<UR, OId<IRoleInUser<U, UID>>, FILT>, UR, OId<IRoleInUser<U, UID>>, FILT>(
     commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<UR>.ensureIndexes() {
         coroutine.ensureUniqueIndex(
-            IUserRole<U, UID>::userId, IUserRole<U, UID>::appRoleId
+            IRoleInUser<U, UID>::userId, IRoleInUser<U, UID>::appRoleId
         )
     }
 
@@ -119,8 +119,8 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         }
         coroutine.find(
             filter = and(
-                IUserRole<U, UID>::userId eq user._id,
-                IUserRole<U, UID>::appRoleId eq appRole._id
+                IRoleInUser<U, UID>::userId eq user._id,
+                IRoleInUser<U, UID>::appRoleId eq appRole._id
             )
         ).first()?.let { it: UR ->
             return buildSimpleState(
@@ -184,7 +184,7 @@ abstract class IUserRoleColl<UR : IUserRole<U, UID>, U : IUser<out UID>, UID : A
         crudTask: CrudTask? = null,
     ): BaseRolePermission {
         val userGroupColl = userGroupColl
-        val roleInGroupColl = this@IUserRoleColl.roleInGroupColl
+        val roleInGroupColl = this@IRoleInUserColl.roleInGroupColl
         val pipeline = mutableListOf<Bson>()
         pipeline.add(0, match(IUserGroup<U, UID, *, *>::userId eq user._id))
         pipeline += lookup5(
