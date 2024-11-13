@@ -86,6 +86,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
     }
 
+    private val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
+
     /**
      * A lambda function that, when invoked, returns a list of KProperty1 instances representing
      * properties of type ID? within a subclass of BaseDoc. These properties are typically
@@ -180,7 +182,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         return when (apiItem) {
             is ApiItem.Upsert -> {
-                if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
+                if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
                 onBeforeUpsert(apiItem).also { if (it.hasError) return it }
                 when (apiItem) {
                     is ApiItem.Upsert.Create -> when (apiItem) {
@@ -231,7 +233,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
 
             is ApiItem.Delete -> {
-                if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
+                if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
                 when (apiItem) {
                     is ApiItem.Delete.Query -> {
                         val itemState = findChildrenNot(apiItem.id)
@@ -742,7 +744,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Delete.Action<T, ID, FILT>,
         filter: Bson? = null,
     ): ItemState<T> {
-        if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
+        if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         return try {
             onBeforeDelete(apiItem = apiItem, item = apiItem.item).also {
                 if (it.hasError) {
@@ -995,7 +997,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
         overrideValidation: Boolean = false
     ): ItemState<T> {
-        if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
+        if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         val item = apiItem.item
         if (!overrideValidation) {
             commonContainer.validateItem(item = item, apiItem.apiFilter).also { itemState ->
@@ -1241,7 +1243,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
         updateOptions: UpdateOptions = UpdateOptions()
     ): ItemState<T> {
-        if (readOnly) return ItemState(isOk = false, msgError = "Collection is read-only")
+        if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         onBeforeUpsertUpdate(apiItem = apiItem, item = apiItem.item).also {
             if (it.hasError) {
                 onAfterUpsertAction(apiItem = apiItem, result = false)
