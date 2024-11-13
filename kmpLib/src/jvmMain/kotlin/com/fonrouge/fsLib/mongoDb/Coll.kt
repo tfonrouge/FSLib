@@ -118,7 +118,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param crudTask The CRUD task to be performed, influencing the permission state.
      * @return A SimpleState indicating whether the permission is granted (isOk = true) or denied (isOk = false) along with an optional error message.
      */
-    suspend fun <U : IUser<out UID>, UID : Any> getCrudPermission(
+    suspend fun getCrudPermission(
         call: ApplicationCall?,
         user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
         crudTask: CrudTask,
@@ -171,7 +171,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 it.item
             }
         }
-        getCrudPermission<IUser<*>, Any>(
+        getCrudPermission(
             call = null,
             user = user,
             crudTask = apiItem.crudTask
@@ -514,7 +514,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         postProcessList: ((List<T>) -> List<T>)? = null,
     ): ListState<T> {
         iUser?.let {
-            getCrudPermission<IUser<*>, Any>(
+            getCrudPermission(
                 call = null,
                 user = it,
                 crudTask = CrudTask.Read,

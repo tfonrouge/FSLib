@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.enums.XEnum
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Suppress("unused")
 @Serializable
 enum class PermissionType(override val encoded: String) : XEnum {
     @SerialName("1")

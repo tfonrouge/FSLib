@@ -19,7 +19,6 @@ val mongoDatabase: MongoDatabase by lazy {
     mongoClient.getDatabase(mongoDbPluginConfiguration.database)
 }
 
-@Suppress("unused")
 fun collation(
     locale: String = mongoDbPluginConfiguration.locale,
     collationStrength: CollationStrength = CollationStrength.PRIMARY
