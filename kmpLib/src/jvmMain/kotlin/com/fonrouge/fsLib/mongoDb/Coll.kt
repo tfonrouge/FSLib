@@ -991,12 +991,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        val item = apiItem.item
         onPermissionUpsert(apiItem).also { if (it.hasError) return it }
         onPermissionUpsertCreate(apiItem).also { if (it.hasError) return it }
         onBeforeUpsertAction(apiItem).also { if (it.hasError) return it }
         onBeforeUpsertCreateAction(apiItem).also { if (it.hasError) return it }
         var result: Boolean? = null
+        val item = apiItem.item
         return try {
             val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
             result = insertOneResult.insertedId != null
