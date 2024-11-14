@@ -5,8 +5,7 @@
 /kmpLib/build/
 /.idea/
 /.kotlin-js-store/yarn.lock
-.idea/misc.xml
-.idea/jarRepositories.xml
+.idea/
 .DS_Store
 /local.properties
 /kotlin-js-store/yarn.lock
