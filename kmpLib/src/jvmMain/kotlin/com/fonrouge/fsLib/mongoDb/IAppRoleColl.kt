@@ -9,6 +9,18 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.mongodb.client.model.IndexOptions
 import org.litote.kmongo.eq
 
+/**
+ * This abstract class `IAppRoleColl` manages application roles within a collection and provides methods
+ * to insert roles into the collection. It extends the `Coll` class by handling roles of type `IAppRole`.
+ *
+ * @param CC The common container type, extending `ICommonContainer` with generics `T`, `ID`, and `FILT`.
+ * @param T The type of roles being managed, which must implement `IAppRole`.
+ * @param ID The type of the identifier for the roles, which must be non-null.
+ * @param FILT The type of API filter used for querying, which must extend `IApiFilter`.
+ * @constructor Initializes the `IAppRoleColl` with the provided common container.
+ *
+ * @param commonContainer The common container instance used by this collection.
+ */
 abstract class IAppRoleColl<CC : ICommonContainer<T, ID, FILT>, T : IAppRole<ID>, ID : Any, FILT : IApiFilter<*>>(
     commonContainer: CC
 ) : Coll<CC, T, ID, FILT>(

@@ -4,10 +4,11 @@ import org.bson.conversions.Bson
 import org.litote.kmongo.util.KMongoUtil
 
 /**
- * Creates an update that sets te value of the provided value obj
+ * Converts an object into a BSON representation.
  *
- * @param obj the update object
- * @param updateOnlyNotNullProperties
+ * @param obj The object to be converted into BSON.
+ * @param updateOnlyNotNullProperties If true, only the non-null properties of the object will be included in the BSON output.
+ * @return The BSON representation of the object.
  */
 @Suppress("unused")
 fun <T : Any> toBsonSet(obj: T, updateOnlyNotNullProperties: Boolean = false): Bson {

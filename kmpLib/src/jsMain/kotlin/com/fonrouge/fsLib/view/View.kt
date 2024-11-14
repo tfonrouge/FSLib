@@ -22,9 +22,18 @@ import io.kvision.utils.em
 import io.kvision.utils.px
 import kotlinx.coroutines.launch
 
+/**
+ * Represents an abstract base class for creating views with configurable display elements.
+ *
+ * This class provides functionality to manage URL parameters, display labels,
+ * periodic updates, API filters, banners, and navigation buttons.
+ *
+ * @param CC The type of the common container that implements ICommon.
+ * @param FILT The type of the API filter that implements IApiFilter.
+ * @property configView The configuration view instance providing necessary configurations.
+ */
 abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open val configView: ConfigView<CC, *, FILT>,
-    var editable: (() -> Boolean) = { true },
 ) {
     abstract var urlParams: UrlParams?
     open val label: String get() = configView.label

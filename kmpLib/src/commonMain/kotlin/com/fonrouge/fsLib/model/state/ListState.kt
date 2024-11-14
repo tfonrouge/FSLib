@@ -7,6 +7,20 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+/**
+ * This data class represents the state of a list.
+ *
+ * @param T The type of elements in the list.
+ * @property data JSON representation of the list data.
+ * @property last_page The index of the last page in a paginated list.
+ * @property last_row The index of the last row in the list.
+ * @property state The current state of the list, conforming to the `State` enum.
+ * @property msgOk The success message.
+ * @property msgError The error message.
+ * @property cargo Additional data or metadata associated with the list state.
+ * @property dateTime The date and time when the state was last modified.
+ * @property hasError Indicates whether the current state represents an error.
+ */
 @Serializable
 data class ListState<@Suppress("unused") T : Any>(
     val data: String = "[]",
@@ -22,6 +36,17 @@ data class ListState<@Suppress("unused") T : Any>(
     override val hasError: Boolean get() = state == State.Error
 }
 
+/**
+ * Converts a list of data items to a ListState object with additional state information.
+ *
+ * @param T the type of elements in the data list.
+ * @param data the list of data items.
+ * @param last_page the last page number, optional.
+ * @param last_row the last row number, optional.
+ * @param state the state of the list, defaults to State.Ok.
+ * @param cargo additional information, optional.
+ * @return a ListState object containing the serialized data and additional state information.
+ */
 @Suppress("unused")
 inline fun <reified T : Any> listState(
     data: List<T>,
@@ -41,11 +66,23 @@ inline fun <reified T : Any> listState(
     )
 }
 
+/**
+ * Decodes the JSON string stored in the `data` property of the `ListState` object into a list of objects of type `T`.
+ *
+ * @return A list of objects of type `T` decoded from the JSON string in the `data` property.
+ */
 @Suppress("unused")
 inline fun <reified T : Any> ListState<T>.getList(): List<T> {
     return Json.decodeFromString(data)
 }
 
+/**
+ * Updates the current `ListState` with the provided list and returns a new `ListState` instance.
+ *
+ * @param T The type of elements in the list.
+ * @param list The new list to set in the `ListState`.
+ * @return A new `ListState` instance with the updated list data.
+ */
 @Suppress("unused")
 inline fun <reified T : Any> ListState<T>.setList(list: List<T>): ListState<T> {
     return this.copy(data = Json.encodeToString(list))

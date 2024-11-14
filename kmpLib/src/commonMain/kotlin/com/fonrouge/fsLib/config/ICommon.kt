@@ -5,7 +5,13 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
-// TODO: integrate with IApiService
+/**
+ * Abstract class representing a common interface for handling filters and labels.
+ *
+ * @param FILT The type of the filter extending IApiFilter.
+ * @property label A string label associated with this instance.
+ * @property apiFilterSerializer Serializer for the filter type.
+ */
 abstract class ICommon<FILT : IApiFilter<*>>(
     var label: String = "",
     open val apiFilterSerializer: KSerializer<FILT>,

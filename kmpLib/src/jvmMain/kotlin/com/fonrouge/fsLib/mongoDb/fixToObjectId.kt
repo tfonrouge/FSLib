@@ -15,6 +15,14 @@ import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
+/**
+ * Converts string IDs in documents to ObjectId format if applicable,
+ * creates a new collection with modified documents, and renames the new collection to the original name.
+ *
+ * @param baseDocKClass KClass of the document type extending BaseDoc<*>.
+ * @param fields List of pairs where each pair consists of a KProperty1 reference of the document and an optional transformation function that takes a Document and returns Unit.
+ * @return Boolean indicating whether the operation was successful.
+ */
 @Suppress("unused")
 suspend fun <T : BaseDoc<*>> fixToObjectId(
     baseDocKClass: KClass<T>,

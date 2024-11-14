@@ -7,6 +7,13 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 
+/**
+ * A sealed class representing an API item with generic parameters.
+ *
+ * @param T The type of the Base Document.
+ * @param ID The type of the Identifier for the Base Document.
+ * @param FILT The type of the API Filter.
+ */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonClassDiscriminator("#type")

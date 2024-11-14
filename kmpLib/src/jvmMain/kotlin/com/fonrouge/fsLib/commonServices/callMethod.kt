@@ -9,6 +9,13 @@ import kotlin.reflect.*
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.functions
 
+/**
+ * Calls a specified method on the given API service and handles the response.
+ *
+ * @param API The type of the API service that implements `IApiCommonService`.
+ * @param api The instance of the API service where the method should be called.
+ * @param methodName The name of the method to be called on the API service.
+ */
 @Suppress("UNCHECKED_CAST", "unused")
 suspend fun <API : IApiCommonService> callMethod(api: API, methodName: String?) {
     val f1 = api::class.functions.find { it.name == methodName } ?: return

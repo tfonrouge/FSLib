@@ -5,9 +5,16 @@ import io.kvision.remote.RemoteSorter
 import kotlinx.serialization.Serializable
 
 /**
- * Data structure passed to backend which contains parameters from tabulator (frontEnd)
+ * Represents a list of API items with various pagination, filtering, and sorting options.
  *
- * @param FILT [IApiFilter] type param
+ * @param tabPage the current page number.
+ * @param tabSize the number of items per page.
+ * @param tabFilter a list of filters to apply to the API items.
+ * @param tabSorter a list of sorters to apply to the API items.
+ * @param sorter a string representation of the sorter to apply.
+ * @param params additional parameters for the API request.
+ * @param contentHashCode a hash code representing the content for cache purposes.
+ * @param apiFilter the filter criteria used for the API.
  */
 @Serializable
 data class ApiList<FILT : IApiFilter<*>>(

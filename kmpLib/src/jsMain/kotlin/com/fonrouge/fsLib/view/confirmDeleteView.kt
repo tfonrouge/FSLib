@@ -12,6 +12,16 @@ import io.kvision.modal.Confirm
 import io.kvision.modal.ModalSize
 import io.kvision.toast.Toast
 
+/**
+ * Initiates the process to confirm the deletion of an item. Displays a confirmation modal to the user
+ * and handles the deletion action based on the user's input.
+ *
+ * @param tag item The item to be deleted which extends BaseDoc.
+ * @param tag configViewItem The configuration view item containing necessary details for performing the delete action.
+ * @param tag apiFilter The API filter used for querying.
+ * @param tag onFail Optional callback to be executed if the deletion fails. Receives the current item state.
+ * @param tag onSuccess Optional callback to be executed if the deletion is successful.
+ */
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> confirmDeleteView(
     item: T,
     configViewItem: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, *, FILT>,

@@ -10,6 +10,20 @@ import org.litote.kmongo.unwind
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
+/**
+ * Constructs a lookup pipeline between two collections based on the specified fields.
+ *
+ * @param coll The collection to perform the lookup on.
+ * @param localField The local field used for the join condition.
+ * @param foreignField The foreign field used for the join condition.
+ * @param let Additional variables to use in the operation, or null.
+ * @param pipeline Optional aggregation pipeline to apply to the foreign collection before the join.
+ * @param resultField The property in the result document where the joined documents will be stored.
+ * @param limit The maximum number of matching documents to include for each input document, defaults to 1.
+ * @param preserveNullAndEmptyArrays Whether to include documents in the output array that do not have matching documents,
+ *     defaults to true.
+ * @return A configured `LookupPipelineBuilder` to execute the lookup operation.
+ */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *>,
@@ -34,6 +48,19 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     ) {}
 }
 
+/**
+ * Constructs and returns a `LookupPipelineBuilder` with the specified parameters to facilitate MongoDB lookup aggregation.
+ *
+ * @param coll The collection on which the lookup operation is to be performed.
+ * @param localField The field in the input documents to match against the `foreignField`.
+ * @param foreignField The field in the documents in the `from` collection.
+ * @param let Optional variables that can be accessed within the aggregation pipeline.
+ * @param pipeline Optional aggregation pipeline to apply to the documents in the `from` collection.
+ * @param resultFieldArray The field in the input documents where the results of the lookup will be stored.
+ * @param preserveNullAndEmptyArrays If true, the join will include documents with null and empty arrays.
+ * @param limit Optional limit on the number of results to return.
+ * @return A `LookupPipelineBuilder` configured with the provided parameters.
+ */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
@@ -58,6 +85,19 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     ) {}
 }
 
+/**
+ * Abstract class that builds a MongoDB lookup pipeline for aggregating documents.
+ *
+ * @param coll The collection containing common container documents.
+ * @param localField The field from the local collection to match values against.
+ * @param foreignField The field from the foreign collection to match values against.
+ * @param let Optional list of variables to use in the $lookup stage.
+ * @param pipeline Optional list of BSON operations for the pipeline stage.
+ * @param resultProperty The property of the result to project.
+ * @param preserveNullAndEmptyArrays Flag to control whether to preserve null and empty array values.
+ * @param limit Optional limit to the number of documents in the aggregation stage.
+ * @param resultUnit Specifies the result unit type for the lookup aggregation.
+ */
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
     private val localField: KProperty<*>,

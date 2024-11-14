@@ -16,6 +16,11 @@ import kotlinx.coroutines.asCoroutineDispatcher
 
 val AppScope = CoroutineScope(window.asCoroutineDispatcher())
 
+/**
+ * Singleton object that manages the web application's configuration, routing, and other global settings.
+ *
+ * Inherits from CoroutineScope to provide structured concurrency with default background dispatcher and a supervisor job.
+ */
 object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
 
     lateinit var frontEndVersion: String

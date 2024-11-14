@@ -4,6 +4,11 @@ import com.fonrouge.fsLib.enums.XEnum
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Enum class that defines the possible CRUD operations in an application.
+ *
+ * @param encoded A string representation of the CRUD operation.
+ */
 @Serializable
 enum class CrudTask(override val encoded: String) : XEnum {
     @SerialName("C")
@@ -19,6 +24,9 @@ enum class CrudTask(override val encoded: String) : XEnum {
     Delete("D")
 }
 
+/**
+ * Indicates whether the CRUD task is either Create, Update, or Delete.
+ */
 @Suppress("unused")
 val CrudTask.isUpsertDelete: Boolean
     get() = this in listOf(

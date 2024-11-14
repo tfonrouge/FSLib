@@ -12,8 +12,15 @@ import kotlin.reflect.KClass
 
 private const val navigoPrefix = "#/"
 
-/*
-    TODO: encode/decode baseUrl to be url compliant
+/**
+ * Abstract class representing a configuration view.
+ *
+ * @param CC A type parameter representing the common container implementing ICommon interface.
+ * @param V A type parameter representing the view tied to this configuration view.
+ * @param FILT A type parameter representing the API filter extending IApiFilter.
+ * @property viewKClass The KClass of the view.
+ * @property commonContainer The common container instance associated with this view.
+ * @property _baseUrl The base URL for the view, default is null.
  */
 abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter<*>>(
     val viewKClass: KClass<out V>,

@@ -7,6 +7,15 @@ import com.fonrouge.fsLib.model.base.IRoleInGroup
 import com.fonrouge.fsLib.serializers.OId
 import org.litote.kmongo.coroutine.CoroutineCollection
 
+/**
+ * Abstract class representing a collection that manages roles within groups.
+ *
+ * @param GR The type of role in group.
+ * @param T The type parameter for the identifier.
+ * @param GOU The type of group of user.
+ * @param FILT The type of API filter.
+ * @param commonContainer The common container to be used in the collection.
+ */
 abstract class IRoleInGroupColl<GR : IRoleInGroup<T, GOU>, T : Any, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<GR, OId<T>, FILT>
 ) : Coll<ICommonContainer<GR, OId<T>, FILT>, GR, OId<T>, FILT>(
