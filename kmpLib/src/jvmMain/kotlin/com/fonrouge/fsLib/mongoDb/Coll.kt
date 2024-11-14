@@ -993,10 +993,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         onPermissionUpsert(apiItem).also { if (it.hasError) return it }
         onPermissionUpsertCreate(apiItem).also { if (it.hasError) return it }
-        onBeforeUpsertAction(apiItem).also { if (it.hasError) return it }
-        onBeforeUpsertCreateAction(apiItem).also { if (it.hasError) return it }
+        var item = apiItem.item
+        onBeforeUpsertAction(apiItem).also {
+            if (it.hasError) return it
+            it.item?.let { item = it }
+        }
+        onBeforeUpsertCreateAction(apiItem).also {
+            if (it.hasError) return it
+            it.item?.let { item = it }
+        }
         var result: Boolean? = null
-        val item = apiItem.item
         return try {
             val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
             result = insertOneResult.insertedId != null
@@ -1147,7 +1153,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         result: Boolean
     ) = Unit
 
-    open suspend fun onBeforeDeleteAction(apiItem: ApiItem.Delete.Action<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
+    open suspend fun onBeforeDeleteAction(apiItem: ApiItem.Delete.Action<T, ID, FILT>): ItemState<T> =
+        ItemState(isOk = true)
 
     /**
      * Perform custom actions before upserting an item.
@@ -1164,7 +1171,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return an instance of `ItemState` indicating the state of the item before the action is performed.
      */
     open suspend fun onBeforeUpsertCreateAction(apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>): ItemState<T> =
-        ItemState(isOk = true)
+        ItemState(item = apiItem.item)
 
     /**
      * Executes actions before an upsert update operation is performed.
@@ -1173,7 +1180,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return An ItemState representing the result of the pre-update action, indicating whether the operation is allowed to proceed.
      */
     open suspend fun onBeforeUpsertUpdateAction(apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>): ItemState<T> =
-        ItemState(isOk = true)
+        ItemState(item = apiItem.item)
 
     /**
      * Handles the logic to execute when a delete permission is triggered for a specific item.
@@ -1287,13 +1294,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         onPermissionUpsert(apiItem).also { if (it.hasError) return it }
         onPermissionUpsertUpdate(apiItem = apiItem, item = apiItem.item).also { if (it.hasError) return it }
-        onBeforeUpsertAction(apiItem = apiItem).also { if (it.hasError) return it }
-        onBeforeUpsertUpdateAction(apiItem = apiItem).also { if (it.hasError) return it }
+        var item = apiItem.item
+        onBeforeUpsertAction(apiItem = apiItem).also {
+            if (it.hasError) return it
+            it.item?.let { item = it }
+        }
+        onBeforeUpsertUpdateAction(apiItem = apiItem).also {
+            if (it.hasError) return it
+            it.item?.let { item = it }
+        }
         val filter1 = and(BaseDoc<ID>::_id eq apiItem.item._id, filter ?: EMPTY_BSON)
         val updateResult = try {
             mongoColl.coroutine.updateOne(
                 filter = filter1,
-                target = apiItem.item,
+                target = item,
                 options = updateOptions
             )
         } catch (e: Exception) {
