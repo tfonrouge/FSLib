@@ -1147,7 +1147,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         result: Boolean
     ) = Unit
 
-    open suspend fun onBeforeDeleteAction(apiItem: ApiItem.Delete<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
+    open suspend fun onBeforeDeleteAction(apiItem: ApiItem.Delete.Action<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
 
     /**
      * Perform custom actions before upserting an item.
