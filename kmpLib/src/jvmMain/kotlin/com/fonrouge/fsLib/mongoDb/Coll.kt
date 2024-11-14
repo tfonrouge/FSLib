@@ -1157,27 +1157,35 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         ItemState(isOk = true)
 
     /**
-     * Perform custom actions before upserting an item.
+     * Executes actions before upserting an item.
      *
-     * @param apiItem The upsert action carrying the item, its ID, and filter information.
-     * @return The resulting state of the item after the pre-upsert action.
+     * @param apiItem The upsert action details, including the item to be upserted.
+     * @return The state of the item after processing the upsert action.
      */
-    open suspend fun onBeforeUpsertAction(apiItem: ApiItem.Upsert<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
+    open suspend fun onBeforeUpsertAction(apiItem: ApiItem.Upsert<T, ID, FILT>): ItemState<T> = ItemState(
+        item = when (apiItem) {
+            is ApiItem.Upsert.Create.Action -> apiItem.item
+            is ApiItem.Upsert.Update.Action -> apiItem.item
+            else -> null
+        }
+    )
 
     /**
-     * This method is called before executing the upsert create action.
+     * This method is called before the upsert create action.
+     * It allows for custom pre-processing of the upsert create action.
      *
-     * @param apiItem an instance of `ApiItem.Upsert.Create.Action` that represents the create action to be executed.
-     * @return an instance of `ItemState` indicating the state of the item before the action is performed.
+     * @param apiItem The ApiItem containing the upsert create action details, including the item and its associated metadata.
+     * @return The resulting state of the item after any necessary transformations or validations.
      */
     open suspend fun onBeforeUpsertCreateAction(apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>): ItemState<T> =
         ItemState(item = apiItem.item)
 
     /**
-     * Executes actions before an upsert update operation is performed.
+     * This method is called before performing an upsert update action. It allows
+     * for any necessary preprocessing or validation of the update action.
      *
-     * @param apiItem The ApiItem containing the update action and the necessary identifiers and filters.
-     * @return An ItemState representing the result of the pre-update action, indicating whether the operation is allowed to proceed.
+     * @param apiItem The update action item containing the item to be updated and related metadata.
+     * @return The state of the item after the preprocessing or validation step.
      */
     open suspend fun onBeforeUpsertUpdateAction(apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>): ItemState<T> =
         ItemState(item = apiItem.item)
