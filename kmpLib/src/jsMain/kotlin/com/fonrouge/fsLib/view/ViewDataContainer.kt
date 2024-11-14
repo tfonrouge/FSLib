@@ -8,12 +8,20 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlin.js.Date
 
+/**
+ * An abstract class `ViewDataContainer` which extends from the `View`. This class is designed
+ * to manage the configuration and periodic update of a view container.
+ *
+ * @param CC The type of the common container, must extend from `ICommonContainer`.
+ * @param T The type of the data item, must extend from `BaseDoc`.
+ * @param ID The type of the ID of data item, which must be a non-nullable type.
+ * @param FILT The type of the API filter used for querying, must extend `IApiFilter`.
+ * @property configViewContainer The configuration object for the view container.
+ */
 abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val configViewContainer: ConfigViewContainer<CC, T, ID, *, FILT>,
-    editable: (() -> Boolean) = { true },
 ) : View<CC, FILT>(
     configView = configViewContainer,
-    editable = editable,
 ) {
     companion object {
         var startTime = 0L

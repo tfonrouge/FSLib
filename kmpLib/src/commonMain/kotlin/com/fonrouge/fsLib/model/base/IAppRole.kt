@@ -5,6 +5,11 @@ import com.fonrouge.fsLib.model.apiData.CrudTask
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Interface representing an application role with specific properties and permissions.
+ *
+ * @param ID The type of the identifier.
+ */
 @Suppress("unused")
 interface IAppRole<ID : Any> : BaseDoc<ID> {
     val classOwner: String

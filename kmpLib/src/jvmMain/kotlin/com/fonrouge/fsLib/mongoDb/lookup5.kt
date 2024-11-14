@@ -7,9 +7,15 @@ import org.litote.kmongo.*
 import kotlin.reflect.KProperty
 
 /**
- * Correlated Subqueries with Concise Syntax (MongoDB 5.0)
+ * Performs a correlated subquery with concise syntax in MongoDB 5.0.
  *
- * @param `as` is a [KProperty] reference field
+ * @param from The collection from which to perform the lookup.
+ * @param localField The field from the local collection.
+ * @param foreignField The field from the foreign collection.
+ * @param let Optional variables to use in the lookup pipeline.
+ * @param resultField The field in the output document to store the results.
+ * @param pipeline A list of aggregation stages to apply to the foreign collection.
+ * @return A Bson object representing the lookup operation.
  */
 fun lookup5(
     from: String,
@@ -28,9 +34,15 @@ fun lookup5(
 )
 
 /**
- * Correlated Subqueries with Concise Syntax (MongoDB 5.0)
+ * Performs a lookup operation for MongoDB aggregation framework.
  *
- * @param `as` is a [String] field name
+ * @param from the collection to join with.
+ * @param localField the field from the input documents, usually the foreign key.
+ * @param foreignField the field from the documents of the `from` collection.
+ * @param let the optional variables used in the `pipeline` stages.
+ * @param resultField the name of the new array field to add to the input documents.
+ * @param pipeline the list of aggregation stages to apply to the `from` collection.
+ * @return a `Bson` object representing the lookup operation.
  */
 fun lookup5(
     from: String,
@@ -71,6 +83,15 @@ fun lookup5(
     )
 }
 
+/**
+ * Performs a lookup operation to join data from two collections.
+ *
+ * @param from the name of the foreign collection to join with.
+ * @param localField the field from the local document to match values against.
+ * @param foreignField the field from the foreign collection to match values with.
+ * @param resultField the field to hold the result of the join operation.
+ * @return a Bson object representing the lookup operation.
+ */
 fun lookup(
     from: String,
     localField: KProperty<Any?>,

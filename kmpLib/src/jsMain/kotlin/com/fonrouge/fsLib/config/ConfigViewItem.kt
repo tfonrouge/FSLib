@@ -24,6 +24,22 @@ import kotlinx.serialization.json.decodeFromDynamic
 import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
+/**
+ * Abstract class representing a configuration view item that supports various CRUD operations
+ * and interacts with services to perform these actions.
+ *
+ * @param CC Type parameter representing a common container that implements ICommonContainer.
+ * @param T Type parameter representing a base document that inherits from BaseDoc.
+ * @param ID Type parameter representing the ID of the base document.
+ * @param V Type parameter representing the view item that this configuration view item corresponds to.
+ * @param AIS Type parameter representing the API common service that aids in performing CRUD operations.
+ * @param FILT Type parameter representing the API filter used in service calls.
+ * @param serviceManager Manager that handles services of the type AIS.
+ * @param commonContainer Common container that holds items of the type T.
+ * @param apiItemFun Suspend function representing the API item and its state.
+ * @param viewKClass KClass of the view item.
+ * @param baseUrl Optional base URL for the configuration view item.
+ */
 abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiCommonService, FILT : IApiFilter<*>>(
     private val serviceManager: KVServiceManager<AIS>,
     override val commonContainer: CC,

@@ -20,6 +20,18 @@ import kotlin.jvm.internal.FunctionReferenceImpl
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
+/**
+ * Abstract class `IRoleInUserColl` that represents a collection of user roles.
+ *
+ * @param UR The type of the user role.
+ * @param U The type of the user.
+ * @param UID The type of the user ID.
+ * @param GR The type of the group role.
+ * @param GOU The type of the group of users.
+ * @param FILT The type of the API filter.
+ * @param commonContainer A common container object.
+ * @param userKClass The KClass instance representing the user type.
+ */
 @Suppress("unused")
 abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID : Any, GR : IRoleInGroup<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<UR, OId<IRoleInUser<U, UID>>, FILT>,

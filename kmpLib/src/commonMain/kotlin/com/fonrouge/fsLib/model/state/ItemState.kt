@@ -5,6 +5,20 @@ import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
 import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.Serializable
 
+/**
+ * Represents the state of an item, including its data and associated status information.
+ *
+ * @param T The type of the item.
+ * @param item The item data.
+ * @param itemAlreadyOn A flag indicating if the item is already active or present.
+ * @param noDataModified Optional flag indicating if no data has been modified.
+ * @param state Indicates the current state, defaulting to `State.Ok` if item is present, otherwise `State.Error`.
+ * @param msgOk A message indicating a successful operation.
+ * @param msgError A message indicating a failed operation.
+ * @param cargo Optional additional information or payload.
+ * @param dateTime A timestamp representing when the state was set.
+ * @param hasError A boolean indicating if the current state is an error state.
+ */
 @Serializable
 data class ItemState<T>(
     val item: T? = null,

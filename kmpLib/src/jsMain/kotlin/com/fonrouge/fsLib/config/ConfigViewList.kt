@@ -10,6 +10,22 @@ import kotlinx.browser.window
 import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
+/**
+ * Represents an abstract configuration view list with a generic setup.
+ *
+ * @param CC Type of the common container implementing [ICommonContainer].
+ * @param T Type of the item extending [BaseDoc].
+ * @param ID Type of the ID field of the items, which must be a non-nullable type.
+ * @param V Type of the view list extending [ViewList].
+ * @param E Type of the service manager entity.
+ * @param FILT Type of the API filter used for querying, must extend [IApiFilter].
+ * @param MID Type of the filter's meta information.
+ * @property serviceManager The service manager used to manage services.
+ * @property apiListFun Suspend function that lists items matching the API filter.
+ * @property commonContainer Common container holding shared configurations.
+ * @param viewKClass Kotlin's KClass instance for the view list type.
+ * @param baseUrl Optional base URL for the view list.
+ */
 abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, E : Any, FILT : IApiFilter<MID>, MID : Any>(
     val serviceManager: KVServiceManager<E>,
     val apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,

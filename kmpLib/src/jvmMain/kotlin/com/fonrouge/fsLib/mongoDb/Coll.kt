@@ -494,16 +494,18 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Retrieves a list of container items based on the provided parameters.
+     * Processes a list for an API call, applying various stages, lookups, filters, and post-processing steps.
      *
-     * @param listFirstStage The first stage of the pipeline for aggregating the items.
-     * @param lookupWrappers The list of lookup wrappers to perform lookups on the items.
-     * @param postProcessPipeline The pipeline to post-process the MongoDB aggregation pipeline.
-     * @param apiFilter The API filter for filtering the items.
-     * @param countType The type of count to perform on the items.
-     * @param debug Indicates whether debugging should be enabled.
-     * @param postProcessList The function to post-process the retrieved list of items.
-     * @return The resulting list state containing the serialized items and pagination information.
+     * @param call Optional ApplicationCall that might be used to fetch user session information.
+     * @param iUser Optional IUser instance that represents the user performing the operation.
+     * @param listFirstStage The initial stage of the list processing pipeline.
+     * @param lookupWrappers A list of LookupWrapper instances for performing lookup operations in the pipeline.
+     * @param postProcessPipeline An optional pipeline function that allows for modifying the list of Bson operations.
+     * @param apiFilter An instance of a filter to be applied to the API list.
+     * @param countType Specifies the type of count operation to be performed.
+     * @param debug Optional debug flag to control debug output.
+     * @param postProcessList Optional function to further process the list after retrieval.
+     * @return ListState containing the processed list data, pagination information, and state status.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun apiListProcess(
@@ -945,6 +947,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
+    /**
+     * Inserts a single item into the database or dataset.
+     *
+     * @param item The item to be inserted.
+     * @param apiFilter The filter to be applied during the insertion process. Defaults to a common container filter instance.
+     * @return The state of the item after the insertion, encapsulated in an ItemState object.
+     */
     @Suppress("unused")
     suspend fun insertOne(
         item: T,
@@ -957,11 +966,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     )
 
     /**
-     * Inserts a single item into the database on a Query state
+     * Inserts a single item into the data store.
      *
-     * @param apiItem the API item representing the request to upsert the item
-     * @param item the item to be inserted
-     * @return the [ItemState] representing the state of the operation
+     * @param apiItem The API item containing the query and filter information for the insert operation.
+     * @param item The item to be inserted.
+     * @return The state of the item after the insert operation, with a flag indicating if the item was already present.
      */
     @Suppress("unused")
     suspend fun insertOne(
@@ -975,10 +984,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Inserts a single item into the database.
+     * Inserts a single item into the collection.
      *
-     * @param apiItem The API item containing the item to be inserted.
-     * @return The state of the item after insertion.
+     * @param apiItem The item to be inserted, wrapped in an Upsert.Create.Action object.
+     * @return An ItemState indicating the result of the insertion.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun insertOne(

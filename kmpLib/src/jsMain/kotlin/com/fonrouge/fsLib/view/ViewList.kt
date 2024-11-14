@@ -24,16 +24,24 @@ import io.kvision.toast.Toast
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 
+/**
+ * Abstract class representing a list view with various properties and methods to manage and display collections of data items.
+ *
+ * @param CC Type of the common container.
+ * @param T Type of the data item.
+ * @param ID Type representing the identifier of the data item.
+ * @param FILT Type of the API filter used.
+ * @param MID Type representing the master item identifier.
+ */
 @Suppress("unused")
 abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
     final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, *, FILT, MID>,
     configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
-    editable: (() -> Boolean) = { true },
+    var editable: (() -> Boolean) = { true },
     icon: String? = null,
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
-    editable = editable,
 ) {
     var allowInstallUpdate: Boolean = true
 

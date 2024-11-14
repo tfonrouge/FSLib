@@ -2,6 +2,13 @@ package com.fonrouge.fsLib.model.apiData
 
 import com.fonrouge.fsLib.model.base.BaseDoc
 
+/**
+ * A sealed class representing different types of API operations.
+ *
+ * @param T The type of the document extending [BaseDoc].
+ * @param ID The type of the identifier for the documents.
+ * @param FILT The type of filter extending [IApiFilter].
+ */
 sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract val callType: CallType
     abstract val crudTask: CrudTask

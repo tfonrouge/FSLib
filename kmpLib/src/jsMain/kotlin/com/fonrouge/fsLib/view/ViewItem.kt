@@ -36,15 +36,24 @@ import kotlinx.serialization.json.Json
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
+/**
+ * Abstract class representing a view item within a common container.
+ *
+ * @param CC The common container type.
+ * @param T The item type.
+ * @param ID The item ID type.
+ * @param FILT The filter type.
+ * @param configView The configuration for the view item.
+ * @param periodicUpdateDataView Flag to enable or disable periodic updates.
+ * @param icon The icon representation for the view item.
+ */
 @Suppress("unused")
 abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, *, FILT>,
     periodicUpdateDataView: Boolean? = null,
-    editable: (() -> Boolean) = { true },
     icon: String? = null,
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
-    editable = editable,
 ) {
     /**
      * Observable that holds the [ItemState] for the [ViewItem]
