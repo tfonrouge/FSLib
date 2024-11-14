@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.ItemState
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -146,10 +145,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
-
-    open fun validateItem(item: T, apiFilter: FILT = apiFilterInstance()): ItemState<T> {
-        return ItemState(isOk = true)
-    }
 }
 
 @Suppress("unused")

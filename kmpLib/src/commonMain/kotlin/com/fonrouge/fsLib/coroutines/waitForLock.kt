@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.flow
 
 @Suppress("unused")
 suspend fun <T, R : Any> waitForLock(
-    lockList: MutableList<T>,
+    lockList: MutableCollection<T>,
     lockValue: T,
     attempts: Int = 10,
     delay: Int = 100,
