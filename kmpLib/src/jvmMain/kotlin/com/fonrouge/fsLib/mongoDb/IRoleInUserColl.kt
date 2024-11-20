@@ -67,11 +67,11 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
      * @return A pair containing the user (if valid) and the permission state.
      */
     suspend fun getSingleActionPermission(
-        call: ApplicationCall,
+        call: ApplicationCall?,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): Pair<U?, SimpleState> {
-        val user = call.sessions.get(klass = userKClass) ?: return null to SimpleState(
+        val user = call?.sessions?.get(klass = userKClass) ?: return null to SimpleState(
             isOk = false,
             msgError = "User not valid"
         )
