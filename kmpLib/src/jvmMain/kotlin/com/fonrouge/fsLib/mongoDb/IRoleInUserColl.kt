@@ -59,12 +59,12 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
     open fun rootUser(iUser: IUser<*>?): Boolean? = null
 
     /**
-     * Retrieves the single action permission for the current user session.
+     * Retrieves the single action permission for a user based on the provided `ApplicationCall` and an optional `KCallable` or `StackTraceElement`.
      *
-     * @param call The current application call containing the user session.
-     * @param kCallable An optional callable reference for logging or permission purposes.
-     * @param stackTraceElement The stack trace element for logging or debugging purposes.
-     * @return A pair containing the user (if valid) and the permission state.
+     * @param call The application call containing user session details. Can be null.
+     * @param kCallable An optional callable reference for the function whose permission is being checked. Defaults to null.
+     * @param stackTraceElement The stack trace element from which the calling method's information is derived. Defaults to the caller's context.
+     * @return A pair consisting of the user object (if valid) and a `SimpleState` object representing the permission state.
      */
     suspend fun getSingleActionPermission(
         call: ApplicationCall?,
@@ -83,15 +83,15 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
     }
 
     /**
-     * Retrieves the single action permission for a user based on a callable reference or stack trace element.
+     * Suspends and retrieves the single action permission for a user based on the provided `user` object and an optional `KCallable` or `StackTraceElement`.
      *
-     * @param user The user for whom the permission is being validated.
-     * @param kCallable An optional callable reference for the function whose permission is being checked. Defaults to null.
+     * @param user The user for whom the permission is being checked.
+     * @param kCallable An optional callable reference for the method whose permission is being checked. Defaults to null.
      * @param stackTraceElement The stack trace element from which the calling method's information is derived. Defaults to the caller's context.
      * @return A SimpleState object representing the permission state for the user.
      */
     suspend fun getSingleActionPermission(
-        user: U,
+        user: U?,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
@@ -112,19 +112,20 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
     }
 
     /**
-     * Retrieves the permission state for a specified user regarding a specific action.
+     * Retrieves the single action permission for a user based on the provided class owner and function name.
      *
-     * @param user The user for whom the permission is being checked.
-     * @param classOwner The name of the class owning the function whose permission is being checked.
-     * @param funcName The name of the function whose permission is being checked.
+     * @param user The user for whom the permission is being checked. Can be null.
+     * @param classOwner The name of the class that owns the function for which permission is being checked.
+     * @param funcName The name of the function for which permission is being checked.
      * @return A SimpleState object representing the permission state for the user.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun getSingleActionPermission(
-        user: U,
+        user: U?,
         classOwner: String,
         funcName: String,
     ): SimpleState {
+        user ?: return SimpleState(isOk = false, msgError = "User not valid")
         val (matchLabel, matchAppRole) = "${classOwner}::${funcName}" to and(
             IAppRole<*>::roleType eq RoleType.SingleAction,
             IAppRole<*>::classOwner eq classOwner,
