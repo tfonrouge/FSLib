@@ -19,6 +19,7 @@ import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
 import com.mongodb.client.result.InsertOneResult
+import com.mongodb.client.result.UpdateResult
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import io.ktor.server.application.*
@@ -39,6 +40,7 @@ import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import org.litote.kmongo.property.KPropertyPath
 import java.util.*
+import kotlin.internal.OnlyInputTypes
 import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -1254,6 +1256,44 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         resultUnit: ResultUnit,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> = pipeline
+
+    /**
+     * Updates a specified field of an entity by its ID.
+     *
+     * @param call An optional ApplicationCall context.
+     * @param id The ID of the entity to update.
+     * @param kProperty1 The property reference to the field that needs to be updated.
+     * @param value The new value to set for the specified field. If the field is non-nullable, a non-null value must be provided.
+     * @return The state of the item after the update operation which includes the status and any error or warning messages.
+     */
+    @Suppress("unused")
+    suspend fun <@OnlyInputTypes V> updateFieldById(
+        call: ApplicationCall?,
+        id: ID,
+        kProperty1: KProperty1<T, V>,
+        value: V?
+    ): ItemState<T> {
+        if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
+        if (kProperty1.returnType.isMarkedNullable.not() && value == null) {
+            return ItemState(
+                isOk = false,
+                msgError = "Null value not valid"
+            )
+        }
+        call?.let {
+            val s: SimpleState = getCrudPermission(call = it, crudTask = CrudTask.Update)
+            if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
+        }
+        val result: UpdateResult = coroutine.updateById(
+            id = id,
+            update = set(kProperty1 setTo value),
+        )
+        return when (result.modifiedCount) {
+            1L -> findItemStateById(id = id)
+            0L -> ItemState(state = State.Warn, msgError = "Field not modified")
+            else -> ItemState(isOk = false)
+        }
+    }
 
     /**
      * Updates a single item in the database.

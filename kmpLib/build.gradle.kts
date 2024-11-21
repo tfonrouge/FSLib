@@ -30,7 +30,10 @@ kotlin {
     jvm {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
+            freeCompilerArgs = listOf(
+                "-Xjsr305=strict",
+                "-Xallow-kotlin-package",
+            )
         }
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
