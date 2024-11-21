@@ -88,10 +88,10 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         )
     */
 
-    open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
-    val columnList: List<ColumnDefinition<T>> get() = listOfNotNull(rowSelectedColumn) + columnDefinitionList()
-    var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? =
-        null
+    open suspend fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
+
+//    val columnList: List<ColumnDefinition<T>> get() = listOfNotNull(rowSelectedColumn) + columnDefinitionList()
+    var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
         set(value) {
             apiFilter.masterItemId = value?.item?._id
             editable = { value?.urlParams?.actionUpsert == true }
@@ -260,7 +260,8 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * load the column definitions from [columnDefinitionList] to the [tabulator]
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    fun loadColumnDefinitions() {
+    suspend fun loadColumnDefinitions() {
+        val columnList = columnDefinitionList()
         tabulator?.let { tabulator ->
             tabulator.jsTabulator?.setColumns(
                 columnList.map {
