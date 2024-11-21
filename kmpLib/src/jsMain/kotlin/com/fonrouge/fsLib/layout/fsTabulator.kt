@@ -27,6 +27,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     tabulatorOptions: TabulatorOptions<T>,
     viewList: ViewList<*, T, *, *, *>
 ): TabulatorOptions<T> {
+    val index = tabulatorOptions.index ?: "_id"
     val autoResize = tabulatorOptions.autoResize != false
     val columns = tabulatorOptions.columns ?: viewList.columnList
     val columnDefaults = tabulatorOptions.columnDefaults ?: viewList.columnDefaults
@@ -46,6 +47,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val selectableRows = tabulatorOptions.selectableRows ?: 1
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
     return tabulatorOptions.copy(
+        index = index,
         autoResize = autoResize,
         columns = columns,
         columnDefaults = columnDefaults,
