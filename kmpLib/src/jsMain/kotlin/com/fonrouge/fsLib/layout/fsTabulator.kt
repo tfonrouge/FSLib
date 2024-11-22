@@ -159,11 +159,13 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                         jsTabulator?.on("menuClosed") {
                             viewList.menuOpenedState = false
                         }
-                        jsTabulator?.on("tableBuilt") {
-                            viewList.jsTabulatorBuilt = true
+                        jsTabulator?.on("pageLoaded") {
                             AppScope.launch {
                                 viewList.loadColumnDefinitions()
                             }
+                        }
+                        jsTabulator?.on("tableBuilt") {
+                            viewList.jsTabulatorBuilt = true
                         }
                         jsTabulator?.on("dataProcessing") {
                             window.setTimeout(
