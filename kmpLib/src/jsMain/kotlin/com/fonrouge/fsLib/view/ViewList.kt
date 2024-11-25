@@ -283,13 +283,12 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     /**
-     * Gets an [T] item from a [Tabulator.CellComponent]
+     * Retrieves the item associated with the current cell component.
      *
-     * @param cell
-     * @return [T] item
+     * @return The item associated with the current cell, or null if no item is found.
      */
-    fun getItem(cell: Tabulator.CellComponent): T? {
-        return tabulator?.toKotlinObj(cell.getData())
+    fun Tabulator.CellComponent.getItem(): T? {
+        return tabulator?.toKotlinObj(this.getData())
     }
 
     override val label: String get() = configView.commonContainer.labelList

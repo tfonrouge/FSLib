@@ -10,7 +10,7 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.20"
 }
 
-val libVersion = "1.2.1"
+val libVersion = "1.2.2"
 
 group = "com.fonrouge.kmpLib"
 version = libVersion
