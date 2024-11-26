@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.serializers
 
 import io.kvision.types.OffsetDateTime
-import io.kvision.types.toStringF
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -23,6 +22,6 @@ actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     }
 
     actual override fun serialize(encoder: Encoder, value: OffsetDateTime) {
-        encoder.encodeString(value.toStringF())
+        encoder.encodeString(value.toISOString())
     }
 }
