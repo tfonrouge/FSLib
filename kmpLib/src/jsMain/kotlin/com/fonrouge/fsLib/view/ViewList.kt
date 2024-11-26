@@ -283,13 +283,16 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     /**
-     * Retrieves the item associated with this `CellComponent` as a Kotlin object.
+     * Retrieves the item associated with the current cell in the Tabulator.
      *
-     * The `item` property fetches the data stored in the cell and attempts to convert
-     * it to a Kotlin object of type `T`. If the conversion is not possible or if there is
-     * no associated `tabulator`, it returns `null`.
+     * This property gets the data of the current cell and converts it to
+     * a Kotlin object. If the `tabulator` is null, an exception is thrown.
+     *
+     * @throws Throwable If the `tabulator` is null, the method will throw an exception.
+     * @return The data item represented by the current cell, converted to a Kotlin object.
      */
-    val Tabulator.CellComponent.item: T? get() = tabulator?.toKotlinObj(this.getData())
+    val Tabulator.CellComponent.item: T
+        get() = tabulator?.toKotlinObj(this.getData()) ?: throw Throwable("tabulator is null")
 
     override val label: String get() = configView.commonContainer.labelList
 
