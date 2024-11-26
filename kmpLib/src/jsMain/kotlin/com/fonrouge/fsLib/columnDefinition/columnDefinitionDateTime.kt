@@ -14,7 +14,7 @@ import kotlin.reflect.KProperty1
 fun <T : BaseDoc<*>> ViewList<*, T, *, *, *>.columnDefinitionDateTime(
     kProperty1: KProperty1<T, OffsetDateTime>,
     title: String = kProperty1.name,
-    cellEdited: ((T?) -> Unit)? = null
+    cellEdited: ((T) -> Unit)? = null
 ): ColumnDefinition<T> {
     return ColumnDefinition(
         title = title,
@@ -22,10 +22,15 @@ fun <T : BaseDoc<*>> ViewList<*, T, *, *, *>.columnDefinitionDateTime(
         formatter = Formatter.DATETIME,
         formatterParams = json(
             "inputFormat" to "iso",
-            "outputFormat" to "EEE dd MMM y",
+            "outputFormat" to "EEE dd MMM y HH:mm",
             "invalidPlaceholder" to "(invalid date)",
         ),
         editor = cellEdited?.let { Editor.DATETIME },
-        cellEdited = cellEdited?.let { { cell -> cellEdited(cell.item) } }
+        editorParams = json(
+            "format" to "iso"
+        ),
+        cellEdited = cellEdited?.let {
+            { cell -> cellEdited(cell.item) }
+        }
     )
 }
