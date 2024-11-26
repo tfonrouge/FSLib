@@ -117,17 +117,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open val readOnly = false
 
     /**
-     * Determines the permission state for a given user and CRUD task within an application context.
+     * Determines the CRUD (Create, Read, Update, Delete) permission for a given user.
      *
-     * @param call The ApplicationCall context which may contain session information.
-     * @param user The user for whom the permission is being checked, defaults to the session user if not explicitly provided.
-     * @param crudTask The CRUD task to be performed, influencing the permission state.
-     * @return A SimpleState indicating whether the permission is granted (isOk = true) or denied (isOk = false) along with an optional error message.
+     * @param call The ApplicationCall associated with the request, which may contain session information.
+     * @param crudTask The specific CRUD task for which permission is being checked.
+     * @param user The user for whom the permission is being checked. Defaults to fetching from session if not provided.
+     * @return A SimpleState indicating whether the permission check was successful, including an error message if not.
      */
     suspend fun getCrudPermission(
         call: ApplicationCall?,
-        user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
         crudTask: CrudTask,
+        user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
     ): SimpleState {
         user ?: return SimpleState(isOk = false, msgError = "Empty user")
         val roleInUserColl =
@@ -179,8 +179,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         getCrudPermission(
             call = null,
-            user = user,
-            crudTask = apiItem.crudTask
+            crudTask = apiItem.crudTask,
+            user = user
         ).also {
             if (it.state == State.Error) return ItemState(it)
         }
@@ -524,8 +524,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         iUser?.let {
             getCrudPermission(
                 call = null,
-                user = it,
                 crudTask = CrudTask.Read,
+                user = it,
             ).also {
                 if (it.hasError) return ListState(state = State.Error, msgError = "User not authorized")
             }

@@ -90,7 +90,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     open suspend fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
 
-//    val columnList: List<ColumnDefinition<T>> get() = listOfNotNull(rowSelectedColumn) + columnDefinitionList()
+    //    val columnList: List<ColumnDefinition<T>> get() = listOfNotNull(rowSelectedColumn) + columnDefinitionList()
     var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
         set(value) {
             apiFilter.masterItemId = value?.item?._id
@@ -283,13 +283,13 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     /**
-     * Retrieves the item associated with the current cell component.
+     * Retrieves the item associated with this `CellComponent` as a Kotlin object.
      *
-     * @return The item associated with the current cell, or null if no item is found.
+     * The `item` property fetches the data stored in the cell and attempts to convert
+     * it to a Kotlin object of type `T`. If the conversion is not possible or if there is
+     * no associated `tabulator`, it returns `null`.
      */
-    fun Tabulator.CellComponent.getItem(): T? {
-        return tabulator?.toKotlinObj(this.getData())
-    }
+    val Tabulator.CellComponent.item: T? get() = tabulator?.toKotlinObj(this.getData())
 
     override val label: String get() = configView.commonContainer.labelList
 
