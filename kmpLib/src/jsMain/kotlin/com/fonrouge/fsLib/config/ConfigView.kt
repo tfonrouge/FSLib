@@ -29,10 +29,7 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
 ) {
     open val baseUrl: String
         get() {
-            val result =
-                _baseUrl
-                    ?: if (commonContainer == undefined) "error: commonContainer undefined" else ("View" + commonContainer.name)
-            return result
+            return _baseUrl ?: "View${commonContainer.name}"
         }
 
     companion object {
@@ -53,6 +50,7 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
     /**
      * builds a single pair of key=value url parameter
      */
+    @Suppress("unused")
     inline fun <reified T> pairParam(key: String, obj: T): Pair<String, String> =
         key to Json.encodeToString(obj)
 
