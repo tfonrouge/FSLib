@@ -28,10 +28,7 @@ class BasePagingSource<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID :
             val listState = vmList.listStateGetter(nextPage)
             vmList.refreshingList.value = false
             LoadResult.Page(
-                data = Json.decodeFromString(
-                    ListSerializer(vmList.commonContainer.itemSerializer),
-                    listState.data
-                ),
+                data = listState.data,
                 prevKey = if (nextPage == 1) null else nextPage - 1,
                 nextKey = listState.last_page?.let { if (nextPage < it) nextPage + 1 else null }
             )

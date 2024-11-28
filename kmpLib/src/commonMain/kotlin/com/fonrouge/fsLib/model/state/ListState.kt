@@ -4,8 +4,6 @@ import com.fonrouge.fsLib.offsetDateTimeNow
 import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
 import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
  * This data class represents the state of a list.
@@ -23,7 +21,7 @@ import kotlinx.serialization.json.Json
  */
 @Serializable
 data class ListState<@Suppress("unused") T : Any>(
-    val data: String = "[]",
+    val data: List<T> = emptyList(),
     val last_page: Int? = null,
     val last_row: Int? = null,
     override val state: State = State.Ok,
@@ -56,7 +54,7 @@ inline fun <reified T : Any> listState(
     cargo: String? = null,
 ): ListState<T> {
     return ListState(
-        data = Json.encodeToString(data),
+        data = data,
         last_page = last_page,
         last_row = last_row,
         state = state,
@@ -67,16 +65,6 @@ inline fun <reified T : Any> listState(
 }
 
 /**
- * Decodes the JSON string stored in the `data` property of the `ListState` object into a list of objects of type `T`.
- *
- * @return A list of objects of type `T` decoded from the JSON string in the `data` property.
- */
-@Suppress("unused")
-inline fun <reified T : Any> ListState<T>.getList(): List<T> {
-    return Json.decodeFromString(data)
-}
-
-/**
  * Updates the current `ListState` with the provided list and returns a new `ListState` instance.
  *
  * @param T The type of elements in the list.
@@ -84,6 +72,4 @@ inline fun <reified T : Any> ListState<T>.getList(): List<T> {
  * @return A new `ListState` instance with the updated list data.
  */
 @Suppress("unused")
-inline fun <reified T : Any> ListState<T>.setList(list: List<T>): ListState<T> {
-    return this.copy(data = Json.encodeToString(list))
-}
+inline fun <reified T : Any> ListState<T>.setList(list: List<T>): ListState<T> = this.copy(data = list)

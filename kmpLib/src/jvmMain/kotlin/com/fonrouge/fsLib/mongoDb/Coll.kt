@@ -30,8 +30,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -60,7 +58,7 @@ import kotlin.reflect.full.superclasses
 val KClass<out BaseDoc<*>>.collectionName: String
     get() {
         var self: KClass<*>? = this
-        var name: String? = null
+        var name: String?
         do {
             name = self?.findAnnotation<Collection>()?.name
             if (name == null) {
@@ -563,12 +561,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (debug ?: globalDebug) {
             println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
         }
-        val data = Json.encodeToString(
-            serializer = ListSerializer(elementSerializer = commonContainer.itemSerializer),
-            value = postProcessList?.let { it(list) } ?: list
-        )
         return ListState(
-            data = data,
+            data = postProcessList?.let { it(list) } ?: list,
             last_page = pageCountInfo?.lastPage,
             last_row = pageCountInfo?.lastRow,
             state = State.Ok,

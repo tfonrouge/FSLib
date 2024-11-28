@@ -132,7 +132,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
                 if (result.data == undefined) {
                     result.data = "[]"
                 }
-                result.contentHashCode = (result.data as String).hashCode()
+                result.contentHashCode = JSON.stringify(result.data).hashCode()
                 if (result.contentHashCode != undefined) {
                     diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
                     contentHashCode = result.contentHashCode as? Int
@@ -150,8 +150,6 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
                         )
                     }
                 }
-
-                result.data = js("eval(result.data)")
 
 //                console.warn("result received", result)
 //                val list = Json.decodeFromDynamic(
