@@ -130,7 +130,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
             if (r.result != undefined) {
                 val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
                 if (result.data == undefined) {
-                    result.data = "[]"
+                    result.data = js("[]")
                 }
                 result.contentHashCode = JSON.stringify(result.data).hashCode()
                 if (result.contentHashCode != undefined) {
