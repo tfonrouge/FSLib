@@ -65,7 +65,8 @@ val KClass<out BaseDoc<*>>.collectionName: String
                 self = self?.superclasses?.firstOrNull()
             }
         } while (name == null && self != Any::class)
-        return name ?: simpleName ?: ""
+        name ?: run { name = simpleName?.let { it.first().lowercase() + it.substring(1) } }
+        return name ?: ""
     }
 
 /**
