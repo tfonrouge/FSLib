@@ -238,7 +238,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
                 when (apiItem) {
                     is ApiItem.Delete.Query -> {
-                        val itemState = findChildrenNot(apiItem.id)
+                        val itemState = findItemStateById(apiItem.id)
                         val item = itemState.item
                         if (itemState.hasError || item == null) return itemState
                         onPermissionDelete(apiItem = apiItem, item = item).also { if (it.hasError) return it }
