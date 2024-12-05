@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.flow
  * @return The result of the action performed by the `onCollect` function.
  */
 @Suppress("unused")
-suspend fun <T, R : Any> waitForLock(
+suspend fun <T, R : Any> waitForLockList(
     lockList: MutableCollection<T>,
     lockValue: T,
     attempts: Int = 10,
@@ -43,3 +43,4 @@ suspend fun <T, R : Any> waitForLock(
     }
     return result
 }
+
