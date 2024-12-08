@@ -29,7 +29,12 @@ import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.serializer
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -89,7 +94,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
     }
 
-    private val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
+    val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
 
     /**
      * A lambda function that, when invoked, returns a list of KProperty1 instances representing
@@ -1252,19 +1257,21 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): MutableList<Bson> = pipeline
 
     /**
-     * Updates a specified field of an entity by its ID.
+     * Updates a specified field of an item identified by its ID.
      *
-     * @param call An optional ApplicationCall context.
-     * @param id The ID of the entity to update.
-     * @param kProperty1 The property reference to the field that needs to be updated.
-     * @param value The new value to set for the specified field. If the field is non-nullable, a non-null value must be provided.
-     * @return The state of the item after the update operation which includes the status and any error or warning messages.
+     * @param call Optional parameter representing the application call.
+     * @param id The identifier of the item to be updated.
+     * @param kProperty1 The property reference indicating which field to update.
+     * @param value The new value to assign to the specified field.
+     * @return The state of the item after attempting the update, which includes whether
+     *         the operation was successful and any error messages if applicable.
      */
+    @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
-    suspend fun <@OnlyInputTypes V> updateFieldById(
+    suspend fun <@OnlyInputTypes V : Any> updateFieldById(
         call: ApplicationCall?,
         id: ID,
-        kProperty1: KProperty1<T, V>,
+        kProperty1: KProperty1<T, V?>,
         value: V?
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
@@ -1278,15 +1285,49 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             val s: SimpleState = getCrudPermission(call = it, crudTask = CrudTask.Update)
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
-        val result: UpdateResult = coroutine.updateById(
-            id = id,
-            update = set(kProperty1 setTo value),
+        val item = findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
+        val json: JsonObject =
+            Json.encodeToJsonElement(serializer = commonContainer.itemKClass.serializer(), item) as JsonObject
+        val v1 = value?.let {
+            Json.encodeToJsonElement(
+                serializer = (kProperty1.returnType.classifier as KClass<V>).serializer(),
+                value = value
+            )
+        }
+        var newItem: T = Json.decodeFromJsonElement(
+            deserializer = commonContainer.itemKClass.serializer(),
+            element = v1?.let { JsonObject(json.plus(kProperty1.name to v1)) } as? JsonElement ?: json
         )
-        return when (result.modifiedCount) {
+        val apiItem =
+            ApiItem.Upsert.Update.Action(item = newItem, apiFilter = commonContainer.apiFilterInstance(), orig = item)
+        onPermissionUpsert(apiItem).also { if (it.hasError) return it }
+        onPermissionUpsertUpdate(apiItem, apiItem.item).also { if (it.hasError) return it }
+        onBeforeUpsertAction(apiItem = apiItem).also {
+            if (it.hasError) return it
+            it.item?.let { newItem = it }
+        }
+        onBeforeUpsertUpdateAction(apiItem = apiItem).also {
+            if (it.hasError) return it
+            it.item?.let { newItem = it }
+        }
+        val result: UpdateResult = try {
+            coroutine.updateById(
+                id = id,
+                update = set(kProperty1 setTo kProperty1.get(newItem)),
+            )
+        } catch (e: Exception) {
+            onAfterUpsertUpdateAction(apiItem = apiItem, result = false)
+            onAfterUpsertAction(apiItem = apiItem, result = false)
+            return ItemState(isOk = false, msgError = e.message)
+        }
+        val itemState = when (result.modifiedCount) {
             1L -> findItemStateById(id = id)
             0L -> ItemState(state = State.Warn, msgError = "Field not modified")
             else -> ItemState(isOk = false)
         }
+        onAfterUpsertUpdateAction(apiItem = apiItem, result = itemState.hasError.not())
+        onAfterUpsertAction(apiItem = apiItem, result = itemState.hasError.not())
+        return itemState
     }
 
     /**
