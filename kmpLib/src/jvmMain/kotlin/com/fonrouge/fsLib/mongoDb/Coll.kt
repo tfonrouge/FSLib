@@ -728,6 +728,27 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
+     * Deletes a single item from the collection based on the specified ID and an optional filter.
+     *
+     * @param id The unique identifier for the item to be deleted.
+     * @param filter An optional BSON filter to further specify which item to delete.
+     * @return The state of the item after the delete operation, encapsulated in an ItemState object.
+     */
+    @Suppress("unused")
+    suspend fun deleteOne(
+        id: ID,
+        filter: Bson? = null,
+    ): ItemState<T> {
+        return deleteOne(
+            apiItem = ApiItem.Delete.Action(
+                item = coroutine.findOneById(id) ?: return ItemState(),
+                apiFilter = commonContainer.apiFilterInstance(),
+            ),
+            filter = filter
+        )
+    }
+
+    /**
      * Deletes a single item from the database based on the provided filter.
      *
      * @param apiItem The API item representing the action to perform the delete operation.
@@ -1288,6 +1309,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val item = findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
         val json: JsonObject =
             Json.encodeToJsonElement(serializer = commonContainer.itemKClass.serializer(), item) as JsonObject
+
+        @Suppress("UNCHECKED_CAST")
         val v1 = value?.let {
             Json.encodeToJsonElement(
                 serializer = (kProperty1.returnType.classifier as KClass<V>).serializer(),
