@@ -12,9 +12,7 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
-import com.fonrouge.fsLib.serializers.IntId
-import com.fonrouge.fsLib.serializers.LongId
-import com.fonrouge.fsLib.serializers.StringId
+import com.fonrouge.fsLib.serializers.*
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
@@ -34,6 +32,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.serializer
 import org.bson.*
 import org.bson.conversions.Bson
@@ -42,6 +42,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import org.litote.kmongo.property.KPropertyPath
+import org.litote.kmongo.serialization.registerSerializer
 import java.util.*
 import kotlin.internal.OnlyInputTypes
 import kotlin.jvm.internal.PropertyReference1Impl
@@ -1307,19 +1308,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
         val item = findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
-        val json: JsonObject =
-            Json.encodeToJsonElement(serializer = commonContainer.itemKClass.serializer(), item) as JsonObject
-
-        @Suppress("UNCHECKED_CAST")
+        val json = Json {
+            serializersModule = SerializersModule {
+                contextual(OIdSerializer)
+                contextual(StringIdSerializer)
+                contextual(IntIdSerializer)
+                contextual(LongIdSerializer)
+                contextual(FSOffsetDateTimeSerializer)
+                contextual(FSLocalDateSerializer)
+                contextual(FSLocalDateTimeSerializer)
+            }
+        }
+        val jsonObject = json.encodeToJsonElement(commonContainer.itemKClass.serializer(), item) as JsonObject
         val v1 = value?.let {
-            Json.encodeToJsonElement(
-                serializer = (kProperty1.returnType.classifier as KClass<V>).serializer(),
-                value = value
-            )
+            json.encodeToJsonElement(json.serializersModule.serializer(kProperty1.returnType), value)
         }
         var newItem: T = Json.decodeFromJsonElement(
             deserializer = commonContainer.itemKClass.serializer(),
-            element = v1?.let { JsonObject(json.plus(kProperty1.name to v1)) } as? JsonElement ?: json
+            element = v1?.let { JsonObject(jsonObject.plus(kProperty1.name to v1)) } as? JsonElement ?: jsonObject
         )
         val apiItem =
             ApiItem.Upsert.Update.Action(item = newItem, apiFilter = commonContainer.apiFilterInstance(), orig = item)
