@@ -6,11 +6,7 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.IApiFilter
-import io.kvision.core.AlignItems
-import io.kvision.core.BsBgColor
-import io.kvision.core.Container
-import io.kvision.core.Cursor
-import io.kvision.core.onClick
+import io.kvision.core.*
 import io.kvision.html.*
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
@@ -123,11 +119,18 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     var hasOffCanvasFilterView: Boolean = false
 
     /**
-     * Allows to insert the whole view to the current DSL container
+     * Adds a view to the container and renders its main content.
+     *
+     * This method invokes the `displayPage` function of the provided view, which
+     * is responsible for rendering the content within the container.
+     *
+     * @param view The view to be added and displayed within the container.
+     * @return The container itself, allowing for method chaining.
      */
-    fun Container.add(view: View<*, *>): Container {
+    @Suppress("unused")
+    fun Container.addView(view: View<*, *>): Container {
         view.apply {
-            displayPage()
+            startDisplayPage()
         }
         return this
     }
@@ -140,10 +143,10 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             .let { pair ->
                 urlParams?.params?.set(pair.first, pair.second)
             }
-        @Suppress("UNUSED_VARIABLE")
+        @Suppress("unused", "UnusedVariable")
         val url = (configView.url + urlParams.toEncodedUrlString()).asDynamic()
 
-        @Suppress("UNUSED_VARIABLE")
+        @Suppress("UNUSED_VARIABLE", "unused")
         val stateObj =
             "{apiFilter: toUrl}".asDynamic()
         js("""history.replaceState(stateObj,"createToUpdate",url)""")
@@ -172,6 +175,38 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * @return The label used for the banner.
      */
     open suspend fun labelBanner(apiFilter: FILT): String = label
+
+    /**
+     * Initiates the display of a page within the container.
+     *
+     * The method sets up the necessary hooks and bindings to ensure the page is properly rendered
+     * and updated. It begins by attaching a pre-dispose hook using `addBeforeDisposeHook` to call
+     * `onBeforeDispose` for cleanup tasks. The `onBeforeDisplayPage` method is called to allow
+     * any pre-rendering logic or UI configuration. It then invokes the `displayPage` method
+     * to render the main content of the page.
+     *
+     * A binding to `apiFilterObservable` is established to monitor changes in the API filter.
+     * This triggers the `onApiFilterUpdate` method, which can be used to handle any updates,
+     * and `apiFilterToUrl` to update the browser's URL appropriately. After the initial rendering
+     * and setup, the `onAfterDisplayPage` method is called to perform any post-rendering actions.
+     *
+     * @param mainView A boolean indicating whether the current view should be treated as the main view.
+     *                 If true, the API filter will be added to the URL parameters upon changes.
+     */
+    fun Container.startDisplayPage(mainView: Boolean = false) {
+        div {
+            addBeforeDisposeHook {
+                onBeforeDispose()
+            }
+            onBeforeDisplayPage(this@startDisplayPage)
+            this@startDisplayPage.displayPage()
+            bind(apiFilterObservable) {
+                onApiFilterUpdate()
+                if (mainView) apiFilterToUrl()
+            }
+            onAfterDisplayPage()
+        }
+    }
 
     /**
      * Updates the label of the link banner.
