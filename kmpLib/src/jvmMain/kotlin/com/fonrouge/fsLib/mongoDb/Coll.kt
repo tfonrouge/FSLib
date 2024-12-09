@@ -42,7 +42,6 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import org.litote.kmongo.property.KPropertyPath
-import org.litote.kmongo.serialization.registerSerializer
 import java.util.*
 import kotlin.internal.OnlyInputTypes
 import kotlin.jvm.internal.PropertyReference1Impl
@@ -1308,20 +1307,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
         val item = findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
-        val json = Json {
-            serializersModule = SerializersModule {
-                contextual(OIdSerializer)
-                contextual(StringIdSerializer)
-                contextual(IntIdSerializer)
-                contextual(LongIdSerializer)
-                contextual(FSOffsetDateTimeSerializer)
-                contextual(FSLocalDateSerializer)
-                contextual(FSLocalDateTimeSerializer)
-            }
-        }
-        val jsonObject = json.encodeToJsonElement(commonContainer.itemKClass.serializer(), item) as JsonObject
+        val jsonObject = Json.encodeToJsonElement(commonContainer.itemKClass.serializer(), item) as JsonObject
         val v1 = value?.let {
-            json.encodeToJsonElement(json.serializersModule.serializer(kProperty1.returnType), value)
+            Json.encodeToJsonElement(serializersModule.serializer(kProperty1.returnType), value)
         }
         var newItem: T = Json.decodeFromJsonElement(
             deserializer = commonContainer.itemKClass.serializer(),

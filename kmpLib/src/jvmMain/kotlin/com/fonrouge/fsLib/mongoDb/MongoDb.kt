@@ -5,6 +5,8 @@ import com.mongodb.client.model.Collation
 import com.mongodb.client.model.CollationStrength
 import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import org.litote.kmongo.reactivestreams.KMongo
 import org.litote.kmongo.serialization.registerSerializer
 import java.util.*
@@ -65,6 +67,17 @@ val MongoDbPlugin = createApplicationPlugin(
 ) {
     mongoDbPluginConfiguration = pluginConfig
     println("MongoDbPlugin is installed: host=${mongoDbPluginConfiguration.serverUrl}, database=${mongoDbPluginConfiguration.database}")
+}
+
+// TODO: remove declaration redundancy by add this to KMongo
+val serializersModule = SerializersModule {
+    contextual(OIdSerializer)
+    contextual(StringIdSerializer)
+    contextual(IntIdSerializer)
+    contextual(LongIdSerializer)
+    contextual(FSOffsetDateTimeSerializer)
+    contextual(FSLocalDateSerializer)
+    contextual(FSLocalDateTimeSerializer)
 }
 
 /**
