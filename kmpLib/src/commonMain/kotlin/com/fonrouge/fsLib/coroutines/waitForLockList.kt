@@ -4,25 +4,24 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 
 /**
- * Suspends execution while waiting for a lock to be released from a specified lock list, and then performs an action.
+ * Attempts to acquire a lock by adding a specified value to a collection, retrying if necessary until the lock is acquired or the attempt count is exhausted.
  *
- * @param lockList The collection of locks to check against.
- * @param lockValue The specific lock value to wait for.
- * @param attempts The number of attempts to check for the lock release before giving up. Default is 10.
- * @param delay The time to wait between attempts in milliseconds. Default is 100.
- * @param onCollect The action to perform once the lock is either acquired or the attempts are exhausted.
- *
- * @return The result of the action performed by the `onCollect` function.
+ * @param lockList The mutable collection representing the current locks.
+ * @param lockValue The value to be added to the lockList to acquire the lock.
+ * @param attempts The number of attempts to acquire the lock before giving up. Defaults to 10.
+ * @param delay The delay in milliseconds between attempts to acquire the lock. Defaults to 100.
+ * @param onLock An optional suspend function to execute once the lock is acquired.
+ * @return A Boolean indicating whether the lock was successfully acquired. Returns `true` if the lock was acquired, otherwise `false`.
  */
 @Suppress("unused")
-suspend fun <T, R : Any> waitForLockList(
+suspend fun <T> waitForLockList(
     lockList: MutableCollection<T>,
     lockValue: T,
     attempts: Int = 10,
     delay: Int = 100,
-    onCollect: suspend (Boolean) -> R
-): R {
-    lateinit var result: R
+    onLock: (suspend () -> Unit)? = null,
+): Boolean {
+    var result = false
     flow<Boolean> {
         var counter = attempts
         while (lockList.contains(lockValue) && counter > 0) {
@@ -39,8 +38,11 @@ suspend fun <T, R : Any> waitForLockList(
             emit(true)
         }
     }.collect {
-        result = onCollect(it)
+        result = it
+        onLock?.let {
+            it()
+            lockList.remove(lockValue)
+        }
     }
     return result
 }
-
