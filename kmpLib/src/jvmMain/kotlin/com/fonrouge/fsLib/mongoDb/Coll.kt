@@ -32,8 +32,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.serializer
 import org.bson.*
 import org.bson.conversions.Bson
@@ -164,16 +162,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * @param iApiItem The API item to be processed.
      * @param call The ApplicationCall context (nullable).
-     * @param user The user performing the operation (nullable).
+     * @param iUser The user performing the operation (nullable).
      * @return The resulting state of the item after processing.
      */
     @Suppress("unused")
     suspend fun apiItemProcess(
         iApiItem: IApiItem<T, ID, FILT>,
         call: ApplicationCall?,
-        user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
+        iUser: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
     ): ItemState<T> {
-        val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer), iUser = user).let {
+        val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer, iUser), iUser = iUser).let {
             if (it.hasError || it.item == null) {
                 return ItemState(isOk = false, msgError = it.msgError)
             } else {
@@ -183,7 +181,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         getCrudPermission(
             call = null,
             crudTask = apiItem.crudTask,
-            user = user
+            user = iUser
         ).also {
             if (it.state == State.Error) return ItemState(it)
         }
@@ -197,13 +195,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                             onPermissionUpsertCreate(apiItem = apiItem).also { if (it.hasError) return it }
                             queryCreate(
                                 apiItem = apiItem,
-                                iUser = user
+                                iUser = iUser
                             )
                         }
 
                         is ApiItem.Upsert.Create.Action -> actionCreate(
                             apiItem = apiItem,
-                            iUser = user
+                            iUser = iUser
                         )
                     }
 
@@ -216,13 +214,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                             queryUpdate(
                                 apiItem = apiItem,
                                 itemState = itemState,
-                                iUser = user
+                                iUser = iUser
                             )
                         }
 
                         is ApiItem.Upsert.Update.Action -> actionUpdate(
                             apiItem = apiItem,
-                            iUser = user
+                            iUser = iUser
                         )
                     }
                 }
@@ -235,7 +233,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 queryRead(
                     apiItem = apiItem,
                     itemState = itemState,
-                    iUser = user
+                    iUser = iUser
                 )
             }
 
@@ -247,10 +245,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         val item = itemState.item
                         if (itemState.hasError || item == null) return itemState
                         onPermissionDelete(apiItem = apiItem, item = item).also { if (it.hasError) return it }
-                        queryDelete(apiItem = apiItem, itemState = itemState, iUser = user)
+                        queryDelete(apiItem = apiItem, itemState = itemState, iUser = iUser)
                     }
 
-                    is ApiItem.Delete.Action -> actionDelete(apiItem = apiItem, iUser = user)
+                    is ApiItem.Delete.Action -> actionDelete(apiItem = apiItem, iUser = iUser)
                 }
             }
         }
