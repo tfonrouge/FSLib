@@ -290,9 +290,15 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      *
      * @throws Throwable If the `tabulator` is null, the method will throw an exception.
      * @return The data item represented by the current cell, converted to a Kotlin object.
+     *
+     * TODO: try/catch needed because tabulator column 'editable' property can send wrong T structure and it throws error on deserialization
      */
-    val Tabulator.CellComponent.item: T
-        get() = tabulator?.toKotlinObj(this.getData()) ?: throw Throwable("tabulator is null")
+    val Tabulator.CellComponent.item: T?
+        get() = try {
+            tabulator?.toKotlinObj(this.getData())
+        } catch (e: Exception) {
+            null
+        }
 
     override val label: String get() = configView.commonContainer.labelList
 
