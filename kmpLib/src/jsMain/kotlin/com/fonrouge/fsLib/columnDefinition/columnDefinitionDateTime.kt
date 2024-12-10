@@ -30,7 +30,7 @@ fun <T : BaseDoc<*>> ViewList<*, T, *, *, *>.columnDefinitionDateTime(
             "format" to "iso"
         ),
         cellEdited = cellEdited?.let {
-            { cell -> cellEdited(cell.item) }
+            { cell -> cell.item?.let { cellEdited(it) } }
         }
     )
 }
