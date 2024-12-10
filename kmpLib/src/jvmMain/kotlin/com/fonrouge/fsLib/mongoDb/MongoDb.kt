@@ -8,7 +8,7 @@ import io.ktor.server.application.*
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import org.litote.kmongo.reactivestreams.KMongo
-import org.litote.kmongo.serialization.registerSerializer
+import org.litote.kmongo.serialization.registerModule
 import java.util.*
 
 internal var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
@@ -70,15 +70,16 @@ val MongoDbPlugin = createApplicationPlugin(
 }
 
 // TODO: remove declaration redundancy by add this to KMongo
-val serializersModule = SerializersModule {
-    contextual(OIdSerializer)
-    contextual(StringIdSerializer)
-    contextual(IntIdSerializer)
-    contextual(LongIdSerializer)
-    contextual(FSOffsetDateTimeSerializer)
-    contextual(FSLocalDateSerializer)
-    contextual(FSLocalDateTimeSerializer)
-}
+val serializersModule
+    get() = SerializersModule {
+        contextual(OIdSerializer)
+        contextual(StringIdSerializer)
+        contextual(IntIdSerializer)
+        contextual(LongIdSerializer)
+        contextual(FSOffsetDateTimeSerializer)
+        contextual(FSLocalDateSerializer)
+        contextual(FSLocalDateTimeSerializer)
+    }
 
 /**
  * This class provides configuration settings for the MongoDB plugin.
@@ -113,12 +114,6 @@ class MongoDbPluginConfiguration {
         }
 
     init {
-        registerSerializer(OIdSerializer)
-        registerSerializer(StringIdSerializer)
-        registerSerializer(IntIdSerializer)
-        registerSerializer(LongIdSerializer)
-        registerSerializer(FSOffsetDateTimeSerializer)
-        registerSerializer(FSLocalDateSerializer)
-        registerSerializer(FSLocalDateTimeSerializer)
+        registerModule(serializersModule)
     }
 }
