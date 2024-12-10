@@ -291,7 +291,9 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * @throws Throwable If the `tabulator` is null, the method will throw an exception.
      * @return The data item represented by the current cell, converted to a Kotlin object.
      *
-     * TODO: try/catch needed because tabulator column 'editable' property can send wrong T structure and it throws error on deserialization
+     * TODO: try/catch needed because tabulator column 'editable' property
+     * can send wrong T structure and it throws error on deserialization
+     * combined with using the bottomCalcFun ColumnDefinition property
      */
     val Tabulator.CellComponent.item: T?
         get() = try {
