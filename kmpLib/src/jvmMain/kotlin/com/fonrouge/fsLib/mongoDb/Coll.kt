@@ -12,7 +12,9 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
-import com.fonrouge.fsLib.serializers.*
+import com.fonrouge.fsLib.serializers.IntId
+import com.fonrouge.fsLib.serializers.LongId
+import com.fonrouge.fsLib.serializers.StringId
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
@@ -1182,13 +1184,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The upsert action details, including the item to be upserted.
      * @return The state of the item after processing the upsert action.
      */
-    open suspend fun onBeforeUpsertAction(apiItem: ApiItem.Upsert<T, ID, FILT>): ItemState<T> = ItemState(
-        item = when (apiItem) {
-            is ApiItem.Upsert.Create.Action -> apiItem.item
-            is ApiItem.Upsert.Update.Action -> apiItem.item
-            else -> null
-        }
-    )
+    open suspend fun onBeforeUpsertAction(apiItem: ApiItem.Upsert<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
 
     /**
      * This method is called before the upsert create action.
@@ -1198,7 +1194,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The resulting state of the item after any necessary transformations or validations.
      */
     open suspend fun onBeforeUpsertCreateAction(apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>): ItemState<T> =
-        ItemState(item = apiItem.item)
+        ItemState(isOk = true)
 
     /**
      * This method is called before performing an upsert update action. It allows
@@ -1208,7 +1204,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the item after the preprocessing or validation step.
      */
     open suspend fun onBeforeUpsertUpdateAction(apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>): ItemState<T> =
-        ItemState(item = apiItem.item)
+        ItemState(isOk = true)
 
     /**
      * Handles the logic to execute when a delete permission is triggered for a specific item.
@@ -1309,26 +1305,32 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val v1 = value?.let {
             Json.encodeToJsonElement(serializersModule.serializer(kProperty1.returnType), value)
         }
-        var newItem: T = Json.decodeFromJsonElement(
-            deserializer = commonContainer.itemKClass.serializer(),
-            element = v1?.let { JsonObject(jsonObject.plus(kProperty1.name to v1)) } as? JsonElement ?: jsonObject
+        var apiItem = ApiItem.Upsert.Update.Action(
+            item = Json.decodeFromJsonElement(
+                deserializer = commonContainer.itemKClass.serializer(),
+                element = v1?.let { JsonObject(jsonObject.plus(kProperty1.name to v1)) } as? JsonElement ?: jsonObject
+            ),
+            apiFilter = commonContainer.apiFilterInstance(),
+            orig = item
         )
-        val apiItem =
-            ApiItem.Upsert.Update.Action(item = newItem, apiFilter = commonContainer.apiFilterInstance(), orig = item)
         onPermissionUpsert(apiItem).also { if (it.hasError) return it }
         onPermissionUpsertUpdate(apiItem, apiItem.item).also { if (it.hasError) return it }
         onBeforeUpsertAction(apiItem = apiItem).also {
             if (it.hasError) return it
-            it.item?.let { newItem = it }
+            it.item?.let {
+                apiItem = apiItem.copy(item = it)
+            }
         }
         onBeforeUpsertUpdateAction(apiItem = apiItem).also {
             if (it.hasError) return it
-            it.item?.let { newItem = it }
+            it.item?.let {
+                apiItem = apiItem.copy(item = it)
+            }
         }
         val result: UpdateResult = try {
-            coroutine.updateById(
-                id = id,
-                update = set(kProperty1 setTo kProperty1.get(newItem)),
+            coroutine.updateOne(
+                filter = BaseDoc<*>::_id eq id,
+                target = apiItem.item,
             )
         } catch (e: Exception) {
             onAfterUpsertUpdateAction(apiItem = apiItem, result = false)
@@ -1392,25 +1394,29 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         onPermissionUpsert(apiItem).also { if (it.hasError) return it }
         onPermissionUpsertUpdate(apiItem = apiItem, item = apiItem.item).also { if (it.hasError) return it }
-        var item = apiItem.item
-        onBeforeUpsertAction(apiItem = apiItem).also {
+        var apiItem1 = apiItem.copy()
+        onBeforeUpsertAction(apiItem = apiItem1).also {
             if (it.hasError) return it
-            it.item?.let { item = it }
+            it.item?.let {
+                apiItem1 = apiItem1.copy(item = it)
+            }
         }
-        onBeforeUpsertUpdateAction(apiItem = apiItem).also {
+        onBeforeUpsertUpdateAction(apiItem = apiItem1).also {
             if (it.hasError) return it
-            it.item?.let { item = it }
+            it.item?.let {
+                apiItem1 = apiItem1.copy(item = it)
+            }
         }
-        val filter1 = and(BaseDoc<ID>::_id eq apiItem.item._id, filter ?: EMPTY_BSON)
+        val filter1 = and(BaseDoc<ID>::_id eq apiItem1.item._id, filter ?: EMPTY_BSON)
         val updateResult = try {
             mongoColl.coroutine.updateOne(
                 filter = filter1,
-                target = item,
+                target = apiItem1.item,
                 options = updateOptions
             )
         } catch (e: Exception) {
-            onAfterUpsertUpdateAction(apiItem = apiItem, result = false)
-            onAfterUpsertAction(apiItem = apiItem, result = false)
+            onAfterUpsertUpdateAction(apiItem = apiItem1, result = false)
+            onAfterUpsertAction(apiItem = apiItem1, result = false)
             return ItemState(isOk = false, msgError = e.message)
         }
         val state: State
@@ -1432,11 +1438,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 noDataModified = true
             }
         }
-        onAfterUpsertUpdateAction(apiItem = apiItem, result = state != State.Error)
-        onAfterUpsertAction(apiItem = apiItem, result = state != State.Error)
+        onAfterUpsertUpdateAction(apiItem = apiItem1, result = state != State.Error)
+        onAfterUpsertAction(apiItem = apiItem1, result = state != State.Error)
         return if (state != State.Error) {
             ItemState(
-                item = apiItem.item,
+                item = apiItem1.item,
                 state = state,
                 noDataModified = noDataModified,
                 msgError = "No data was modified ..."
@@ -1444,7 +1450,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } else {
             ItemState(
                 isOk = false,
-                msgError = "${commonContainer.labelItemId(apiItem.item)} not found with [ ${filter1.json} ]"
+                msgError = "${commonContainer.labelItemId(apiItem1.item)} not found with [ ${filter1.json} ]"
             )
         }
     }
