@@ -70,6 +70,48 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
     private val kvUrlPrefix = window["kv_remote_url_prefix"]
     private val urlPrefix: String = if (kvUrlPrefix != undefined) "$kvUrlPrefix/" else ""
 
+    /**
+     * Converts a dynamic data object into a Kotlin List of type [T].
+     *
+     * @param data The dynamic data object to be converted into a Kotlin List.
+     * The data is expected to be in a JSON-compatible format.
+     *
+     * @return A Kotlin List of type [T] generated from the input data.
+     * If an error occurs during the conversion, an empty list is returned.
+     */
+    fun toKotlinList(data: dynamic): List<T> =
+        try {
+            Json.decodeFromDynamic(
+                ListSerializer(viewList.configView.commonContainer.itemSerializer),
+                data
+            )
+        } catch (e: Exception) {
+            console.error(e)
+            emptyList()
+        }
+
+    /**
+     * Executes an API call to fetch and process paginated data with filters and sorters applied.
+     *
+     * The method retrieves the current page number, page size, header filters, and sorters
+     * from the associated jsTabulator instance. These parameters are then used to invoke a
+     * promise that interacts with the server to fetch data. Upon receiving the data,
+     * the method determines whether the content has changed by comparing hash codes.
+     *
+     * If the data differs from the current content, it replaces the existing content by
+     * transforming the retrieved data into a Kotlin List using the `toKotlinList` method.
+     *
+     * The method relies on the following components:
+     * - `jsTabulator`: An external tabulator instance to fetch page, filters, and sorters data.
+     * - `promise`: A private function that handles the server call with the specified parameters
+     *   including pagination, filters, and sorters.
+     * - `diffContentHashCode`: A flag indicating whether the content has changed based on hash codes.
+     * - `replaceData()`: Called to update the data if changes are detected.
+     *
+     * This function is designed to handle dynamic data efficiently and integrate with the
+     * server-side logic to ensure the data displayed reflects the latest state based on the
+     * applied filters and sorting.
+     */
     internal fun apiCall() {
         val page: Int = jsTabulator?.getPage() as? Int ?: 1
         val size: Int = jsTabulator?.getPageSize()?.toInt() ?: 50
@@ -87,12 +129,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
         ).then { result: dynamic ->
 //            console.warn("RESULT ->", result, "CONTENT_HASHCODE ->", contentHashCode, "diffContentHashCode", diffContentHashCode)
             if (diffContentHashCode) {
-                replaceData(
-                    Json.decodeFromDynamic(
-                        ListSerializer(viewList.configView.commonContainer.itemSerializer),
-                        result.data
-                    ).toTypedArray()
-                )
+                replaceData(toKotlinList(result.data).toTypedArray())
 //                jsTabulator?.replaceData(result.data, null, null)
             }
         }
@@ -150,14 +187,6 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
                         )
                     }
                 }
-
-//                console.warn("result received", result)
-//                val list = Json.decodeFromDynamic(
-//                    ListSerializer(viewList.configView.commonContainer.itemSerializer),
-//                    result.data
-//                )
-//                console.warn("decoded list", list)
-
                 viewList.onReceivingData(result.data)
                 result
             } else {

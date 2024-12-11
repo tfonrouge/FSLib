@@ -250,7 +250,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         queryDelete(apiItem = apiItem, itemState = itemState, iUser = iUser)
                     }
 
-                    is ApiItem.Delete.Action -> actionDelete(apiItem = apiItem, iUser = iUser)
+                    is ApiItem.Delete.Action -> {
+                        onPermissionDelete(apiItem = apiItem, item = apiItem.item).also { if (it.hasError) return it }
+                        actionDelete(apiItem = apiItem, iUser = iUser)
+                    }
                 }
             }
         }
