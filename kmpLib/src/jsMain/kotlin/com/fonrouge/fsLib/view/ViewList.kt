@@ -331,11 +331,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     /**
-     * open function that fires when a row is selected in the tabulator
-     */
-    var onRowSelected: ((T?) -> Unit)? = null
-
-    /**
      * the main display for the viewList tabulator area
      */
     abstract fun Container.pageListBody()

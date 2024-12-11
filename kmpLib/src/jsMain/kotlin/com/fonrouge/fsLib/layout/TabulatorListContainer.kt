@@ -71,6 +71,11 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
     private val urlPrefix: String = if (kvUrlPrefix != undefined) "$kvUrlPrefix/" else ""
 
     /**
+     * open function that fires when a row is selected in the tabulator
+     */
+    var onRowSelected: ((T?) -> Unit)? = null
+
+    /**
      * Converts a dynamic data object into a Kotlin List of type [T].
      *
      * @param data The dynamic data object to be converted into a Kotlin List.

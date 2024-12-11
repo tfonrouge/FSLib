@@ -1289,7 +1289,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
     suspend fun <@OnlyInputTypes V : Any> updateFieldById(
-        call: ApplicationCall?,
+        call: ApplicationCall? = null,
         id: ID,
         kProperty1: KProperty1<T, V?>,
         value: V?
