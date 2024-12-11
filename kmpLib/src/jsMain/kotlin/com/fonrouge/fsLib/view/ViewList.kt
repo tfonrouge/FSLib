@@ -161,7 +161,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         val callBlock = {
             if (crudTask == CrudTask.Delete) {
                 item?.let {
-                    confirmDeleteView(item, configViewItem, apiFilter = apiFilter) {
+                    configViewItem.confirmDeleteView(item, apiFilter = apiFilter) {
                         AppScope.launch { dataUpdate() }
                     }
                 }

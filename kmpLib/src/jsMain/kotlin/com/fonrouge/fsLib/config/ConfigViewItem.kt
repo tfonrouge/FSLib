@@ -3,11 +3,13 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.toEncodedUrlString
+import com.fonrouge.fsLib.lib.toast
 import com.fonrouge.fsLib.model.apiData.*
-import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
+import io.kvision.modal.Confirm
+import io.kvision.modal.ModalSize
 import io.kvision.remote.CallAgent
 import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
@@ -75,6 +77,74 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             val urlParams = UrlParams("action" to CrudTask.Create.name)
             return url + urlParams.toEncodedUrlString()
         }
+
+    /**
+     * Confirms deletion of a specific item by presenting a modal dialog to the user.
+     * If the user confirms the action, the item is deleted via a service call.
+     * Handles success and failure cases with appropriate callbacks.
+     *
+     * @param item The item to be deleted.
+     * @param apiFilter The API filter used for the deletion call. Defaults to an instance from the common container.
+     * @param onFail An optional callback invoked when the delete operation fails. Receives the item state as a parameter.
+     * @param onSuccess An optional callback invoked when the delete operation is successful.
+     */
+    fun confirmDeleteView(
+        item: T,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        onFail: ((ItemState<T>) -> Unit)? = null,
+        onSuccess: (() -> Unit)? = null,
+    ) {
+        callItemService(
+            crudTask = CrudTask.Delete,
+            callType = CallType.Query,
+            id = item._id,
+            item = item,
+            apiFilter = apiFilter,
+        ) { itemState ->
+            if (itemState.hasError.not()) {
+                val modal = Confirm(
+                    caption = "Please Confirm",
+                    text = "<b>Delete</b> '<i>${label}</i>', id: <b>${
+                        commonContainer.labelIdFunc(item)
+                    }</b> ?",
+                    rich = true,
+                    size = ModalSize.XLARGE,
+                    centered = true,
+                    noTitle = "Cancel",
+                    noCallback = {
+                        Toast.warning("Delete canceled")
+                    },
+                    yesCallback = {
+                        callItemService(
+                            crudTask = CrudTask.Delete,
+                            callType = CallType.Action,
+                            id = item._id,
+                            item = item,
+                            apiFilter = apiFilter,
+                        ) { itemState1 ->
+                            if (itemState1.hasError.not()) {
+                                Toast.success(
+                                    message = itemState1.msgOk ?: "Delete action successful ...",
+                                )
+                                onSuccess?.invoke()
+                            } else {
+                                Toast.warning(
+                                    message = itemState1.msgError ?: "Delete action failed ...",
+                                )
+                                onFail?.invoke(itemState1)
+                            }
+                            itemState1
+                        }
+                    }
+                )
+                modal.show()
+            } else {
+                itemState.toast()
+                onFail?.invoke(itemState)
+            }
+            itemState
+        }
+    }
 
     /**
      * Opens a new browser window or tab with the URL corresponding to the given ApiItem.

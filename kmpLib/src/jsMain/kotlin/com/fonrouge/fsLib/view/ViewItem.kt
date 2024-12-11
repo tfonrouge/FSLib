@@ -13,11 +13,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
-import io.kvision.core.AlignContent
-import io.kvision.core.AlignItems
-import io.kvision.core.Container
-import io.kvision.core.FlexDirection
-import io.kvision.core.JustifyContent
+import io.kvision.core.*
 import io.kvision.form.FormPanel
 import io.kvision.html.Button
 import io.kvision.html.ButtonStyle
@@ -318,7 +314,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 urlParams?.crudTask?.let { crudAction ->
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
-                            confirmDeleteView(item, configView, apiFilter = apiFilter)
+                            configView.confirmDeleteView(item, apiFilter = apiFilter)
                         } ?: Toast.danger("${configView.commonContainer.labelItem} not valid ...")
                     } else {
                         configView.callItemService(

@@ -140,7 +140,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                             viewList.selectedItemObs.value = tList.let {
                                 if (it.isEmpty()) null else it[0]
                             }
-                            viewList.onRowSelected?.invoke(viewList.selectedItemObs.value)
+                            viewList.tabulator?.onRowSelected?.invoke(viewList.selectedItemObs.value)
                         }
                         viewList.onDataLoadedTabulator?.let { func ->
                             dataLoadedTabulator = { func(it.detail.unsafeCast<List<T>>()) }
