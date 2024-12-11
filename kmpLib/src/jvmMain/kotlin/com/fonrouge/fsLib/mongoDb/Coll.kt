@@ -706,8 +706,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             children?.invoke()?.forEach { kProperty1: KProperty1<out BaseDoc<*>, ID?> ->
                 when (kProperty1) {
                     is FieldPath -> kProperty1.path to kProperty1.owner.collectionName
-                    is PropertyReference1Impl -> (kProperty1.owner as KClass<*>)
-                        .findAnnotation<Collection>()?.name?.let { kProperty1.name to it }
+                    is PropertyReference1Impl -> {
+                        @Suppress("UNCHECKED_CAST")
+                        kProperty1.name to (kProperty1.owner as KClass<out BaseDoc<*>>).collectionName
+                    }
 
                     is KPropertyPath<*, ID?> -> return ItemState(
                         state = State.Error,
