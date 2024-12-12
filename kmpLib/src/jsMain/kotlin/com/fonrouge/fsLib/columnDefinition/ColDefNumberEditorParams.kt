@@ -17,6 +17,8 @@ import kotlinx.serialization.json.encodeToDynamic
  * @property mask A string representing an input mask for the editor.
  * @property selectContents A flag indicating whether the editor should select the contents upon activation.
  * @property verticalNavigation Specifies the navigation behavior in the vertical direction, using the `VerticalNavigation` enum.
+ *
+ * Reference: https://tabulator.info/docs/6.3/edit#editor-number
  */
 @Serializable
 data class ColDefNumberEditorParams(
