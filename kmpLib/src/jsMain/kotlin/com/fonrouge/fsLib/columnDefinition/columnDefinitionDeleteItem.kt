@@ -5,6 +5,7 @@ import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.tabulator.Align
 import io.kvision.tabulator.ColumnDefinition
+import io.kvision.toast.Toast
 import kotlinx.coroutines.launch
 
 /**
@@ -23,9 +24,11 @@ fun <T : BaseDoc<*>> ViewList<*, T, *, *, *>.columnDefinitionDeleteItem(): Colum
             "<i class=\"fa-solid fa-trash\"></i>"
         },
         cellClick = { evt, cell ->
-            console.warn("cellClick", cell.item)
             cell.item?.let { item ->
-                configViewItem?.confirmDeleteView(item = item, onSuccess = { AppScope.launch { dataUpdate() } })
+                configViewItem?.confirmDeleteView(
+                    item = item,
+                    onSuccess = { AppScope.launch { dataUpdate() } }
+                ) ?: Toast.warning("No 'ViewItem${configView.commonContainer.itemKClass.simpleName}' defined")
             }
         }
     )
