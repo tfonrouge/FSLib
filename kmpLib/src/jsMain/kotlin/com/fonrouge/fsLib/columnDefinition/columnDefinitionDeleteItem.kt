@@ -1,7 +1,5 @@
 package com.fonrouge.fsLib.columnDefinition
 
-import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
@@ -16,8 +14,7 @@ import kotlinx.coroutines.launch
  * @return A ColumnDefinition instance configured for handling item deletion, including UI rendering and click event logic.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ViewList<CC, T, ID, FILT, *>.columnDefinitionDeleteItem(
-): ColumnDefinition<T> {
+fun <T : BaseDoc<*>> ViewList<*, T, *, *, *>.columnDefinitionDeleteItem(): ColumnDefinition<T> {
     return ColumnDefinition(
         title = "",
         field = "deleteItem",
