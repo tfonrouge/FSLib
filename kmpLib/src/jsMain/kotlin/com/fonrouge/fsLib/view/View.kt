@@ -34,6 +34,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     abstract var urlParams: UrlParams?
     open val label: String get() = configView.label
     var linkBanner: Link? = null
+    var mainView: Boolean = false
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
     var navButtonBack: Button? = null
@@ -194,6 +195,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      *                 If true, the API filter will be added to the URL parameters upon changes.
      */
     fun Container.startDisplayPage(mainView: Boolean = false) {
+        this@View.mainView = mainView
         div {
             addBeforeDisposeHook {
                 onBeforeDispose()

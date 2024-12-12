@@ -191,7 +191,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
             }
         }
     }
-    if (viewList.allowInstallUpdate) {
+    if (viewList.mainView && viewList.allowInstallUpdate) {
         viewList.installUpdate(true)
     }
     return viewList

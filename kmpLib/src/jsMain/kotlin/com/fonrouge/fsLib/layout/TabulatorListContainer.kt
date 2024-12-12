@@ -179,7 +179,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
                     diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
                     contentHashCode = result.contentHashCode as? Int
                 }
-//                console.warn("result", result)
+//                console.warn("${viewList.configView.viewKClass.simpleName} result", result)
                 ((result.state as? String) == State.Error.name).also { errorState ->
                     if (viewList.errorStateObs.value != errorState) {
                         viewList.errorStateObs.value = errorState
