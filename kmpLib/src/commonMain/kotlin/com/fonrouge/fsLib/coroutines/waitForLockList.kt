@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.coroutines
 
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 
@@ -40,7 +41,9 @@ suspend fun <T> waitForLockList(
     }.collect {
         result = it
         onLock?.let {
-            it()
+            coroutineScope {
+                it()
+            }
             lockList.remove(lockValue)
         }
     }
