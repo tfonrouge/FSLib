@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.serializers
 
+import com.fonrouge.fsLib.types.OId
 import com.github.jershell.kbson.BsonEncoder
 import com.github.jershell.kbson.FlexibleDecoder
 import kotlinx.serialization.KSerializer

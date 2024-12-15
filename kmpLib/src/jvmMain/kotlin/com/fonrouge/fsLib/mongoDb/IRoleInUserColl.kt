@@ -8,7 +8,7 @@ import com.fonrouge.fsLib.model.base.IAppRole.BaseRolePermission
 import com.fonrouge.fsLib.model.base.IAppRole.RoleType
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.serializers.OId
+import com.fonrouge.fsLib.types.OId
 import com.mongodb.client.model.UnwindOptions
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
@@ -296,7 +296,7 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
         val groupRoleList = userGroupColl.coroutine.aggregate<RoleInGroup>(
             pipeline = pipeline
         ).toList()
-        val permissionTypes = when(appRole.roleType) {
+        val permissionTypes = when (appRole.roleType) {
             RoleType.SingleAction -> groupRoleList
             RoleType.CrudTask -> groupRoleList.filter { roleInGroup ->
                 crudTask?.let { roleInGroup.crudTaskSet?.contains(it) == true } != false

@@ -3,12 +3,7 @@ package com.fonrouge.fsLib
 import com.fonrouge.fsLib.model.base.BaseDoc
 import org.litote.kmongo.path
 import kotlin.jvm.internal.PropertyReference1Impl
-import kotlin.reflect.KClass
-import kotlin.reflect.KParameter
-import kotlin.reflect.KProperty1
-import kotlin.reflect.KType
-import kotlin.reflect.KTypeParameter
-import kotlin.reflect.KVisibility
+import kotlin.reflect.*
 
 /**
  * Represents a path of fields in a document, supporting nested properties.

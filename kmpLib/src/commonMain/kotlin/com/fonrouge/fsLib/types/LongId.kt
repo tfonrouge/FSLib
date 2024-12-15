@@ -1,5 +1,6 @@
-package com.fonrouge.fsLib.serializers
+package com.fonrouge.fsLib.types
 
+import com.fonrouge.fsLib.serializers.LongIdSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable(with = LongIdSerializer::class)

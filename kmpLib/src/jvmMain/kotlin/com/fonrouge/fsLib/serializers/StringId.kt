@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.serializers
 
+import com.fonrouge.fsLib.types.StringId
 import com.mongodb.client.model.Filters
 import org.bson.conversions.Bson
 import org.litote.kmongo.path

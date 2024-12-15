@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.serializers
 
+import com.fonrouge.fsLib.types.IntId
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor

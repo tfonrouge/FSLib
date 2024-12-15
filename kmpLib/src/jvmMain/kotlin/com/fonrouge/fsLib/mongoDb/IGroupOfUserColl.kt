@@ -3,7 +3,7 @@ package com.fonrouge.fsLib.mongoDb
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.IGroupOfUser
-import com.fonrouge.fsLib.serializers.OId
+import com.fonrouge.fsLib.types.OId
 import org.litote.kmongo.coroutine.CoroutineCollection
 
 /**

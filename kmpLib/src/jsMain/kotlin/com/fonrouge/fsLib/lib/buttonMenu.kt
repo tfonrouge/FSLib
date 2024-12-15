@@ -1,10 +1,6 @@
 package com.fonrouge.fsLib.lib
 
-import io.kvision.core.AlignItems
-import io.kvision.core.Color
-import io.kvision.core.Container
-import io.kvision.core.Cursor
-import io.kvision.core.onClick
+import io.kvision.core.*
 import io.kvision.html.*
 import io.kvision.panel.vPanel
 import io.kvision.state.ObservableValue

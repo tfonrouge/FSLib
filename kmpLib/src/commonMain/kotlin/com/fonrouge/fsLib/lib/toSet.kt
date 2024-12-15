@@ -1,10 +1,10 @@
 package com.fonrouge.fsLib.lib
 
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.serializers.IntId
-import com.fonrouge.fsLib.serializers.LongId
-import com.fonrouge.fsLib.serializers.OId
-import com.fonrouge.fsLib.serializers.StringId
+import com.fonrouge.fsLib.types.IntId
+import com.fonrouge.fsLib.types.LongId
+import com.fonrouge.fsLib.types.OId
+import com.fonrouge.fsLib.types.StringId
 
 /**
  * Converts a comma-separated string into a set of `StringId` instances for a specified type.

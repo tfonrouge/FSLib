@@ -12,9 +12,9 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
-import com.fonrouge.fsLib.serializers.IntId
-import com.fonrouge.fsLib.serializers.LongId
-import com.fonrouge.fsLib.serializers.StringId
+import com.fonrouge.fsLib.types.IntId
+import com.fonrouge.fsLib.types.LongId
+import com.fonrouge.fsLib.types.StringId
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
@@ -173,7 +173,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         call: ApplicationCall?,
         iUser: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
     ): ItemState<T> {
-        val apiItem: ApiItem<T, ID, FILT> = asApiItem(iApiItem.asApiItem(commonContainer, iUser), iUser = iUser).let {
+        val apiItem: ApiItem<T, ID, FILT> = asApiItem(
+            apiItem = iApiItem.asApiItem(commonContainer, call, iUser),
+            iUser = iUser
+        ).let {
             if (it.hasError || it.item == null) {
                 return ItemState(isOk = false, msgError = it.msgError)
             } else {
@@ -266,7 +269,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param iUser The user information associated with the API call.
      * @return The state of the `ApiItem` after conversion, wrapped in an `ItemState`.
      */
-    open suspend fun asApiItem(apiItem: ApiItem<T, ID, FILT>, iUser: IUser<*>?): ItemState<ApiItem<T, ID, FILT>> =
+    open suspend fun asApiItem(
+        apiItem: ApiItem<T, ID, FILT>,
+        iUser: IUser<*>?
+    ): ItemState<ApiItem<T, ID, FILT>> =
         ItemState<ApiItem<T, ID, FILT>>(item = apiItem)
 
     /**

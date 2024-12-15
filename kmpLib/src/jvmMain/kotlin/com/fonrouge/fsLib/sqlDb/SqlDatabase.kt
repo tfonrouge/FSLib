@@ -5,10 +5,10 @@ import com.fonrouge.fsLib.annotations.SqlIgnoreField
 import com.fonrouge.fsLib.annotations.SqlOneToOne
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.serializers.IntId
 import com.fonrouge.fsLib.serializers.KV_DEFAULT_DATETIME_FORMAT
-import com.fonrouge.fsLib.serializers.LongId
-import com.fonrouge.fsLib.serializers.StringId
+import com.fonrouge.fsLib.types.IntId
+import com.fonrouge.fsLib.types.LongId
+import com.fonrouge.fsLib.types.StringId
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -27,7 +27,10 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.full.*
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.memberProperties
 
 @OptIn(ExperimentalSerializationApi::class)
 @Suppress("unused")

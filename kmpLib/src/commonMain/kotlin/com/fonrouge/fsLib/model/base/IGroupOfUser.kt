@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.model.base
 
-import com.fonrouge.fsLib.serializers.OId
+import com.fonrouge.fsLib.types.OId
 
 /**
  * Interface representing a group of users.

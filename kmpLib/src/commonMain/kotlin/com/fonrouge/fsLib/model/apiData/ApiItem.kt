@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.model.apiData
 
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.base.IUser
+import com.fonrouge.fsLib.types.ApplicationCall
 
 /**
  * A sealed class representing different types of API operations.
@@ -15,6 +16,8 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract val crudTask: CrudTask
     abstract val apiFilter: FILT
     abstract val iUser: IUser<*>?
+
+    var applicationCall: ApplicationCall? = null
 
     sealed class Upsert<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : ApiItem<T, ID, FILT>() {
         sealed class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : Upsert<T, ID, FILT>() {

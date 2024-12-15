@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib
 
-import com.fonrouge.fsLib.serializers.OId
+import com.fonrouge.fsLib.types.OId
 
 /**
  * Generates a new `OId` instance with an ID composed of 24 zero characters.
