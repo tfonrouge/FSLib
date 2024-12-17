@@ -3,54 +3,40 @@ package com.fonrouge.fsLib.config
 import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.toEncodedUrlString
-import com.fonrouge.fsLib.lib.toast
-import com.fonrouge.fsLib.model.apiData.*
+import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CrudTask
+import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.ViewItem
-import io.kvision.modal.Confirm
-import io.kvision.modal.ModalSize
-import io.kvision.remote.CallAgent
-import io.kvision.remote.HttpMethod
-import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.KVServiceManager
-import io.kvision.toast.Toast
-import io.kvision.toast.ToastOptions
-import io.kvision.toast.ToastPosition
-import io.kvision.utils.Serialization
 import kotlinx.browser.window
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromDynamic
 import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
 /**
- * Abstract class representing a configuration view item that supports various CRUD operations
- * and interacts with services to perform these actions.
+ * An abstract class representing a configuration view item. This class manages the configuration
+ * details, URL generation, and view item interactions for a specific type of data container.
  *
- * @param CC Type parameter representing a common container that implements ICommonContainer.
- * @param T Type parameter representing a base document that inherits from BaseDoc.
- * @param ID Type parameter representing the ID of the base document.
- * @param V Type parameter representing the view item that this configuration view item corresponds to.
- * @param AIS Type parameter representing the API common service that aids in performing CRUD operations.
- * @param FILT Type parameter representing the API filter used in service calls.
- * @param serviceManager Manager that handles services of the type AIS.
- * @param commonContainer Common container that holds items of the type T.
- * @param apiItemFun Suspend function representing the API item and its state.
- * @param viewKClass KClass of the view item.
- * @param baseUrl Optional base URL for the configuration view item.
+ * @param CC The type of the common container associated with this configuration view item.
+ * @param T The type of document this view item is working with.
+ * @param ID The type of unique identifier used for the document.
+ * @param V The type of the child view item class associated with this configuration view item.
+ * @param AIS The API service type used for handling data operations.
+ * @param FILT The type of filter used for querying the API.
+ * @param configData The configuration data item, which holds core container information.
+ * @param viewKClass The KClass of the view item.
+ * @param baseUrl The base URL for the configuration view item, can be null.
  */
 abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiCommonService, FILT : IApiFilter<*>>(
-    private val serviceManager: KVServiceManager<AIS>,
-    override val commonContainer: CC,
-    private val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+    override val configData: ConfigDataItem<CC, T, ID, FILT, AIS>,
     viewKClass: KClass<out V>,
     baseUrl: String? = null
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
+    configData = configData,
     viewKClass = viewKClass,
-    commonContainer = commonContainer,
     baseUrl = baseUrl,
 ) {
     override val baseUrl: String
@@ -62,89 +48,21 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
     }
 
-    override val label: String get() = commonContainer.labelItem
+    override val label: String get() = configData.commonContainer.labelItem
 
-    override val labelUrl: Pair<String, String> by lazy { commonContainer.labelItem to url }
-
-    @Suppress("unused")
-    fun labelUrlRead(id: ID) = commonContainer.labelItem to urlRead(id)
+    override val labelUrl: Pair<String, String> by lazy { configData.commonContainer.labelItem to url }
 
     @Suppress("unused")
-    fun labelUrlUpdate(id: ID) = commonContainer.labelItem to urlUpdate(id)
+    fun labelUrlRead(id: ID) = configData.commonContainer.labelItem to urlRead(id)
+
+    @Suppress("unused")
+    fun labelUrlUpdate(id: ID) = configData.commonContainer.labelItem to urlUpdate(id)
 
     val urlCreate: String
         get() {
             val urlParams = UrlParams("action" to CrudTask.Create.name)
             return url + urlParams.toEncodedUrlString()
         }
-
-    /**
-     * Confirms deletion of a specific item by presenting a modal dialog to the user.
-     * If the user confirms the action, the item is deleted via a service call.
-     * Handles success and failure cases with appropriate callbacks.
-     *
-     * @param item The item to be deleted.
-     * @param apiFilter The API filter used for the deletion call. Defaults to an instance from the common container.
-     * @param onFail An optional callback invoked when the delete operation fails. Receives the item state as a parameter.
-     * @param onSuccess An optional callback invoked when the delete operation is successful.
-     */
-    fun confirmDeleteView(
-        item: T,
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        onFail: ((ItemState<T>) -> Unit)? = null,
-        onSuccess: (() -> Unit)? = null,
-    ) {
-        callItemService(
-            crudTask = CrudTask.Delete,
-            callType = CallType.Query,
-            id = item._id,
-            item = item,
-            apiFilter = apiFilter,
-        ) { itemState ->
-            if (itemState.hasError.not()) {
-                val modal = Confirm(
-                    caption = "Please Confirm",
-                    text = "<b>Delete</b> '<i>${label}</i>', id: <b>${
-                        commonContainer.labelIdFunc(item)
-                    }</b> ?",
-                    rich = true,
-                    size = ModalSize.XLARGE,
-                    centered = true,
-                    noTitle = "Cancel",
-                    noCallback = {
-                        Toast.warning("Delete canceled")
-                    },
-                    yesCallback = {
-                        callItemService(
-                            crudTask = CrudTask.Delete,
-                            callType = CallType.Action,
-                            id = item._id,
-                            item = item,
-                            apiFilter = apiFilter,
-                        ) { itemState1 ->
-                            if (itemState1.hasError.not()) {
-                                Toast.success(
-                                    message = itemState1.msgOk ?: "Delete action successful ...",
-                                )
-                                onSuccess?.invoke()
-                            } else {
-                                Toast.warning(
-                                    message = itemState1.msgError ?: "Delete action failed ...",
-                                )
-                                onFail?.invoke(itemState1)
-                            }
-                            itemState1
-                        }
-                    }
-                )
-                modal.show()
-            } else {
-                itemState.toast()
-                onFail?.invoke(itemState)
-            }
-            itemState
-        }
-    }
 
     /**
      * Opens a new browser window or tab with the URL corresponding to the given ApiItem.
@@ -166,7 +84,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     fun urlRead(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to Json.encodeToString(commonContainer.idSerializer, id),
+                "id" to Json.encodeToString(configData.commonContainer.idSerializer, id),
                 "action" to CrudTask.Read.name
             )
         return url + urlParams.toEncodedUrlString()
@@ -176,7 +94,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     fun urlDelete(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to Json.encodeToString(commonContainer.idSerializer, id),
+                "id" to Json.encodeToString(configData.commonContainer.idSerializer, id),
                 "action" to CrudTask.Delete.name
             )
         return url + urlParams.toEncodedUrlString()
@@ -185,7 +103,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     fun urlUpdate(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to Json.encodeToString(commonContainer.idSerializer, id),
+                "id" to Json.encodeToString(configData.commonContainer.idSerializer, id),
                 "action" to CrudTask.Update.name
             )
         return url + urlParams.toEncodedUrlString()
@@ -196,17 +114,17 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             is ApiItem.Upsert.Create.Query -> listOf("action" to CrudTask.Create.name)
             is ApiItem.Read -> listOf(
                 "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+                "id" to Json.encodeToString(configData.commonContainer.idSerializer, apiItem.id)
             )
 
             is ApiItem.Upsert.Update.Query -> listOf(
                 "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+                "id" to Json.encodeToString(configData.commonContainer.idSerializer, apiItem.id)
             )
 
             is ApiItem.Delete.Query -> listOf(
                 "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+                "id" to Json.encodeToString(configData.commonContainer.idSerializer, apiItem.id)
             )
 
             else -> null
@@ -214,7 +132,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             val urlParams = UrlParams(*params.toTypedArray())
             urlParams.pushParam(
                 "apiFilter" to Json.encodeToString(
-                    commonContainer.apiFilterSerializer,
+                    configData.commonContainer.apiFilterSerializer,
                     apiItem.apiFilter
                 )
             )
@@ -223,121 +141,34 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         return url
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
-    fun callItemService(
-        crudTask: CrudTask,
-        callType: CallType,
-        id: ID? = null,
-        item: T? = null,
-        orig: T? = null,
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        block: (ItemState<T>) -> ItemState<T>,
-    ) {
-        val (url, method) = serviceManager.requireCall(apiItemFun)
-        val callAgent = CallAgent()
-        val iApiItem = when (callType) {
-            CallType.Query -> when (crudTask) {
-                CrudTask.Create -> commonContainer.iApiItemQueryCreate(apiFilter)
-                CrudTask.Read -> id?.let { commonContainer.iApiItemQueryRead(id, apiFilter) }
-                CrudTask.Update -> id?.let { commonContainer.iApiItemQueryUpdate(id, apiFilter) }
-                CrudTask.Delete -> id?.let { commonContainer.iApiItemQueryDelete(id, apiFilter) }
-            }
-
-            CallType.Action -> when (crudTask) {
-                CrudTask.Create -> item?.let {
-                    commonContainer.iApiItemActionCreate(
-                        item,
-                        apiFilter
-                    )
-                }
-
-                CrudTask.Read -> null
-                CrudTask.Update -> item?.let {
-                    commonContainer.iApiItemActionUpdate(
-                        item,
-                        apiFilter,
-                        orig
-                    )
-                }
-
-                CrudTask.Delete -> item?.let {
-                    commonContainer.iApiItemActionDelete(
-                        item,
-                        apiFilter
-                    )
-                }
-            }
-        } ?: return
-        val paramList = listOf(
-            Json.encodeToString(
-                serializer = IApiItem.serializer(
-                    commonContainer.itemSerializer,
-                    commonContainer.idSerializer,
-                    commonContainer.apiFilterSerializer
-                ),
-                value = iApiItem
-            ),
-        )
-        val data = Serialization.plain.encodeToString(
-            JsonRpcRequest(
-                id = 0,
-                method = url,
-                params = paramList
-            )
-        )
-        callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
-            .then { r: dynamic ->
-                val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-                if (r.error != null) {
-                    console.error("Server error:", r.error)
-                    Toast.danger(
-                        message = "Server error ${r.error}",
-                        options = ToastOptions(
-                            position = ToastPosition.BOTTOMRIGHT,
-                            escapeHtml = true,
-                            duration = 10000,
-                            stopOnFocus = true,
-                            newWindow = true
-                        )
-                    )
-                }
-                try {
-                    val itemResponse: ItemState<T> =
-                        Json.decodeFromDynamic(
-                            ItemState.serializer(commonContainer.itemSerializer),
-                            result
-                        )
-                    block(itemResponse)
-                } catch (e: Exception) {
-                    console.error(
-                        "Error decoding KClass",
-                        commonContainer.itemSerializer,
-                        "with serialized value",
-                        result,
-                        "exception:",
-                        e
-                    )
-                    e.printStackTrace()
-                }
-            }
-    }
-
     init {
         configViewItemMap[this.baseUrl] = this
     }
 }
 
+/**
+ * Configures a view item by associating it with a container, service manager, and relevant API logic.
+ *
+ * @param viewKClass The Kotlin class of the view item to be configured.
+ * @param commonContainer The common container instance managing the items.
+ * @param serviceManager The service manager that provides API services for the operation.
+ * @param apiItemFun A suspend function defining API-based operations for an item. Takes an API Item and returns the item's state.
+ * @param baseUrl An optional base URL to be used for constructing routes or API endpoints.
+ * @return A `ConfigViewItem` instance associating the specified view with its data, services, and configuration.
+ */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiCommonService, FILT : IApiFilter<*>> configViewItem(
     viewKClass: KClass<out V>,
-    serviceManager: KVServiceManager<AIS>,
     commonContainer: CC,
+    serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     baseUrl: String? = null
 ): ConfigViewItem<CC, T, ID, V, AIS, FILT> = object : ConfigViewItem<CC, T, ID, V, AIS, FILT>(
+    configData = configDataItem<CC, T, ID, FILT, AIS>(
+        commonContainer = commonContainer,
+        serviceManager = serviceManager,
+        apiItemFun = apiItemFun,
+    ),
     viewKClass = viewKClass,
-    serviceManager = serviceManager,
-    commonContainer = commonContainer,
-    apiItemFun = apiItemFun,
     baseUrl = baseUrl
 ) {}

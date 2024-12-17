@@ -25,10 +25,11 @@ fun <T : BaseDoc<*>> ViewList<*, T, *, *, *>.columnDefinitionDeleteItem(): Colum
         },
         cellClick = { evt, cell ->
             cell.item?.let { item ->
-                configViewItem?.confirmDeleteView(
+                configDataItem?.confirmDeleteView(
                     item = item,
                     onSuccess = { AppScope.launch { dataUpdate() } }
-                ) ?: Toast.warning("No 'ViewItem${configView.commonContainer.itemKClass.simpleName}' defined")
+                )
+                    ?: Toast.warning("No 'ConfigDataItem${configView.configData.commonContainer.itemKClass.simpleName}' defined")
             }
         }
     )

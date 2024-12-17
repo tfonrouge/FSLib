@@ -25,7 +25,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> MutableList<TabulatorMenuItem>.menuItem(
     configViewList: ConfigViewList<CC, T, ID, *, *, FILT, *>,
-    apiFilter: FILT = configViewList.commonContainer.apiFilterInstance(),
+    apiFilter: FILT = configViewList.configData.commonContainer.apiFilterInstance(),
 ) {
     menuItem(
         label = configViewList.label,

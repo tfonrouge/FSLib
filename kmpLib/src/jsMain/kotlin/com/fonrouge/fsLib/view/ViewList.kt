@@ -1,5 +1,7 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.config.ConfigDataItem
+import com.fonrouge.fsLib.config.ConfigDataItem.Companion.configDataItemMap
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
@@ -36,6 +38,7 @@ import kotlinx.coroutines.launch
 @Suppress("unused")
 abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
     final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, *, FILT, MID>,
+    configDataItem: ConfigDataItem<ICommonContainer<T, ID, *>, T, ID, *, *>? = null,
     configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     var editable: (() -> Boolean) = { true },
@@ -46,18 +49,60 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var allowInstallUpdate: Boolean = true
 
     /**
-     * contains the configViewItem descriptor, it can be assigned programmatically or calculated from configViewItem map
-     * matching by name
+     * Represents a potentially nullable configuration data item used within a `ViewList`.
+     * This variable encapsulates an instance of the `ConfigDataItem` class, which manages
+     * the relationship between the front-end view and the back-end service calls for a
+     * specific container type.
+     *
+     * When accessed, this variable lazily resolves its value based on the current
+     * configuration's common container type and its corresponding entry in the
+     * `configDataItemMap`. The mapping uses dynamically resolved names derived from the
+     * common container's class, enabling the reuse of configuration items across the application.
+     *
+     * The type parameters specify the structure and constraints of the data, including:
+     *
+     * - The type of the container handling the data (`ICommonContainer`).
+     * - The type of individual data items (`T`).
+     * - The type of identifiers used for these items (`ID`).
+     *
+     * This property is managed with custom getter logic to allow dynamic resolution and
+     * extensibility for various container configurations. If not already initialized, it
+     * attempts a lookup in `configDataItemMap` using a name derived from the `commonContainer`
+     * type. The result is cast to the appropriate type for use.
+     */
+    var configDataItem: ConfigDataItem<ICommonContainer<T, ID, *>, T, ID, *, *>? =
+        configDataItem
+        get() {
+            if (field != null) return field
+            val commonClassName = configView.configData.commonContainer::class.simpleName
+            val name = if (commonClassName?.startsWith("Common") == true) {
+                commonClassName.replaceFirst("Common", "ConfigDataItem")
+            } else {
+                "ConfigDataItem${configView.configData.commonContainer.itemKClass.js.name}"
+            }
+            return configDataItemMap[name]?.unsafeCast<ConfigDataItem<ICommonContainer<T, ID, *>, T, ID, *, *>>()
+        }
+
+    /**
+     * Represents a configuration view item associated with the current `ViewList`.
+     *
+     * This variable is used to retrieve or lazily initialize the appropriate `ConfigViewItem` for a specific
+     * type of data container. When accessed, it attempts to derive the corresponding view item class name
+     * based on the current `configView`, and matches it with a preloaded configuration from the
+     * `configViewItemMap`. If no configuration is found, it defaults to null.
+     *
+     * Specific logic is used to adapt names between "ViewList" and "ViewItem" conventions, ensuring compatibility
+     * with the associated `ConfigViewItem`.
      */
     var configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? =
         configViewItem
         get() {
             if (field != null) return field
             val viewClassName = configView.viewKClass.simpleName!!
-            val name = if (viewClassName.contains("ViewList")) {
-                viewClassName.replace("ViewList", "ViewItem")
+            val name = if (viewClassName.startsWith("ViewList")) {
+                viewClassName.replaceFirst("ViewList", "ViewItem")
             } else {
-                "ViewItem${configView.commonContainer.itemKClass.js.name}"
+                "ViewItem${configView.configData.commonContainer.itemKClass.js.name}"
             }
             return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>>()
         }
@@ -161,7 +206,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         val callBlock = {
             if (crudTask == CrudTask.Delete) {
                 item?.let {
-                    configViewItem.confirmDeleteView(item, apiFilter = apiFilter) {
+                    configViewItem.configData.confirmDeleteView(item, apiFilter = apiFilter) {
                         AppScope.launch { dataUpdate() }
                     }
                 }
@@ -197,7 +242,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         val configViewItem = configViewItem
         val menu = mutableListOf<TabulatorMenuItem>()
         with(menu) {
-            val labelId = configViewItem?.commonContainer?.labelIdFunc?.invoke(item) ?: ""
+            val labelId = configViewItem?.configData?.commonContainer?.labelIdFunc?.invoke(item) ?: ""
             menuItem(
                 label = " <font size=\"+1\">${configViewItem?.label ?: ""}</font>: <b>$labelId</b>",
                 disabled = false,
@@ -265,7 +310,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         tabulator?.let { tabulator ->
             tabulator.jsTabulator?.setColumns(
                 columnList.map {
-                    it.toJs(tabulator, tabulator::translate, configView.commonContainer.itemKClass)
+                    it.toJs(tabulator, tabulator::translate, configView.configData.commonContainer.itemKClass)
                 }.toTypedArray()
             )
             //columnDefinitionList()
@@ -303,7 +348,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             null
         }
 
-    override val label: String get() = configView.commonContainer.labelList
+    override val label: String get() = configView.configData.commonContainer.labelList
 
     open fun NavbarTabulator.navBarOptions() {}
 

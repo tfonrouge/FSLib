@@ -84,7 +84,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     val apiFilterObservable: ObservableValue<FILT> by lazy {
         ObservableValue(
-            apiFilterInstance(apiFilterFromUrl) ?: configView.commonContainer.apiFilterInstance()
+            apiFilterInstance(apiFilterFromUrl) ?: configView.configData.commonContainer.apiFilterInstance()
         )
     }
 
@@ -104,7 +104,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
 
     protected val apiFilterFromUrl: FILT?
         get() = urlParams?.pullUrlParam(
-            serializer = configView.commonContainer.apiFilterSerializer,
+            serializer = configView.configData.commonContainer.apiFilterSerializer,
             key = "apiFilter"
         )
 
@@ -140,7 +140,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * Sets the current browser url with an [apiFilterObservable] url parameter
      */
     fun apiFilterToUrl() {
-        configView.pairParam("apiFilter", configView.commonContainer.apiFilterSerializer, apiFilter)
+        configView.pairParam("apiFilter", configView.configData.commonContainer.apiFilterSerializer, apiFilter)
             .let { pair ->
                 urlParams?.params?.set(pair.first, pair.second)
             }

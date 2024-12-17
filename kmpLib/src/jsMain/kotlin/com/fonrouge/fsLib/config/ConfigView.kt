@@ -10,35 +10,36 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
-private const val navigoPrefix = "#/"
-
 /**
- * Abstract class representing a configuration view.
+ * Abstract class representing a configuration view within the application.
+ * A generic base for defining a view that is associated with a specific configuration
+ * and common container. It provides utilities for managing URLs, parameters,
+ * and creating new instances of the associated view.
  *
- * @param CC A type parameter representing the common container implementing ICommon interface.
- * @param V A type parameter representing the view tied to this configuration view.
- * @param FILT A type parameter representing the API filter extending IApiFilter.
- * @property viewKClass The KClass of the view.
- * @property commonContainer The common container instance associated with this view.
- * @property _baseUrl The base URL for the view, default is null.
+ * @param CC The common container type that extends `ICommon`.
+ * @param V The specific type of the `View` associated with this configuration view.
+ * @param FILT The filter type utilized in the configuration, extending `IApiFilter`.
+ * @property configData Contains configuration-related data including the common container and filters.
+ * @property viewKClass The Kotlin class instance representing the associated view.
+ * @property _baseUrl Optional base URL for the view, defaulting to null.
  */
 abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter<*>>(
+    open val configData: ConfigData<CC, FILT>,
     val viewKClass: KClass<out V>,
-    open val commonContainer: CC,
     internal val _baseUrl: String? = null,
 ) {
     open val baseUrl: String
         get() {
-            return _baseUrl ?: "View${commonContainer.name}"
+            return _baseUrl ?: "View${configData.commonContainer.name}"
         }
 
     companion object {
         val configViewMap = mutableMapOf<String, ConfigView<*, *, *>>()
     }
 
-    val url: String get() = navigoPrefix + this.baseUrl
-    open val label: String get() = commonContainer.label
-    open val labelUrl: Pair<String, String> by lazy { commonContainer.label to url }
+    val url: String get() = "#/" + this.baseUrl
+    open val label: String get() = configData.commonContainer.label
+    open val labelUrl: Pair<String, String> by lazy { configData.commonContainer.label to url }
 
     /**
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservable] from the [UrlParams]
@@ -77,7 +78,7 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
      * helper to build an api filter parameter in the url string
      */
     fun apiFilterParam(obj: FILT): Pair<String, String> =
-        pairParam(key = "apiFilter", serializer = commonContainer.apiFilterSerializer, obj = obj)
+        pairParam(key = "apiFilter", serializer = configData.commonContainer.apiFilterSerializer, obj = obj)
 
     init {
         if (this !is ConfigViewContainer<*, *, *, *, *>) {
@@ -86,13 +87,24 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
     }
 }
 
+/**
+ * Configures a view instance of the provided type `V` tied to a common container of type `CC` and
+ * optionally a base URL. The configuration supports filters of type `FILT`.
+ *
+ * @param viewKClass The [KClass] representing the type of the view to be configured.
+ * @param commonContainer The common container instance of type `CC` which implements [ICommon].
+ * @param baseUrl An optional base URL as a string utilized for configuration. Defaults to `null`.
+ * @return An instance of [ConfigView] parameterized with the types `CC`, `V`, and `FILT`, which encapsulates the setup.
+ */
 @Suppress("unused")
 inline fun <CC : ICommon<FILT>, V : View<CC, FILT>, reified FILT : IApiFilter<*>> configView(
     viewKClass: KClass<out V>,
     commonContainer: CC,
     baseUrl: String? = null,
 ): ConfigView<CC, V, FILT> = object : ConfigView<CC, V, FILT>(
+    configData = configData<CC, FILT>(
+        commonContainer = commonContainer,
+    ),
     viewKClass = viewKClass,
-    commonContainer = commonContainer,
     _baseUrl = baseUrl,
 ) {}

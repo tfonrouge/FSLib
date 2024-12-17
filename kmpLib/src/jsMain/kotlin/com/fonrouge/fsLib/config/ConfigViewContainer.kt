@@ -17,11 +17,11 @@ import kotlin.reflect.KClass
  * @constructor Initializes the ConfigViewContainer with the specified parameters.
  */
 abstract class ConfigViewContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewDataContainer<CC, T, ID, FILT>, FILT : IApiFilter<*>>(
-    override val commonContainer: CC,
+    configData: ConfigData<CC, FILT>,
     viewKClass: KClass<out V>,
     baseUrl: String? = null,
 ) : ConfigView<CC, V, FILT>(
+    configData = configData,
     viewKClass = viewKClass,
-    commonContainer = commonContainer,
     _baseUrl = baseUrl,
 )

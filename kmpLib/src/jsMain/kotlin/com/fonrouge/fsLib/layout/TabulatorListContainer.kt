@@ -87,7 +87,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
     fun toKotlinList(data: dynamic): List<T> =
         try {
             Json.decodeFromDynamic(
-                ListSerializer(viewList.configView.commonContainer.itemSerializer),
+                ListSerializer(viewList.configView.configData.commonContainer.itemSerializer),
                 data
             )
         } catch (e: Exception) {
@@ -208,7 +208,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
     }
 
     init {
-        viewList.configView.serviceManager.requireCall(viewList.configView.apiListFun).let {
+        viewList.configView.configData.serviceManager.requireCall(viewList.configView.configData.apiListFun).let {
             url = it.first
             method = it.second
         }
