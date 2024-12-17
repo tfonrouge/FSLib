@@ -290,7 +290,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             transformData(it)
                         )
                     }
-                    console.warn("origSerialized", origSerialized)
                 }
             }
 

@@ -38,8 +38,6 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
         }
     }
 
-    var displayBlock: (() -> Unit)? = null
-
     @Suppress("MemberVisibilityCanBePrivate")
     var suspendPeriodicUpdate = false
     abstract suspend fun dataUpdate()
@@ -53,6 +51,9 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
             AppScope.launch {
                 try {
                     onDataUpdate()
+                    if (this@ViewDataContainer is ViewList<*, *, *, *, *>) {
+                        (this@ViewDataContainer as ViewList<*, *, *, *, *>).tabulator?.onIntervalUpdate?.invoke()
+                    }
                 } catch (e: Exception) {
                     console.error("Error on interval =", e)
                 }

@@ -71,9 +71,33 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
     private val urlPrefix: String = if (kvUrlPrefix != undefined) "$kvUrlPrefix/" else ""
 
     /**
-     * open function that fires when a row is selected in the tabulator
+     * A callback function that is triggered when a row in the list is selected.
+     *
+     * The lambda receives the selected item of type [T] or `null` if no row is selected.
+     * This property can be used to handle specific actions or behaviors when a row is selected
+     * in the user interface.
+     *
+     * Setting this property to `null` will disable the callback.
      */
     var onRowSelected: ((T?) -> Unit)? = null
+
+    /**
+     * A nullable callback function that is executed at regular intervals.
+     *
+     * This property allows for defining a custom behavior to be triggered periodically
+     * during the lifecycle of the `TabulatorListContainer` instance. The interval duration
+     * and logic to trigger the callback are managed within the containing class.
+     *
+     * When set, the callback function will be invoked with no parameters. If the value
+     * is `null`, no action is performed on the interval.
+     *
+     * Typical use cases may include updating UI components, refreshing data, or
+     * performing asynchronous tasks at a defined frequency.
+     *
+     * Set this property to a lambda or function reference to enable the interval updates,
+     * or set it to `null` to disable the functionality.
+     */
+    var onIntervalUpdate: (() -> Unit)? = null
 
     /**
      * Converts a dynamic data object into a Kotlin List of type [T].
