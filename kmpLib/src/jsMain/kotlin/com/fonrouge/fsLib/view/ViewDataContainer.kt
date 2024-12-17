@@ -25,7 +25,7 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
 ) {
     companion object {
         var startTime = 0L
-        internal var handleInterval: Int? = null
+        var handleInterval: Int? = null
             set(value) {
                 field?.let {
                     window.clearInterval(it)

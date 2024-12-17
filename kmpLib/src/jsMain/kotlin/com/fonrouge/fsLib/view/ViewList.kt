@@ -343,8 +343,8 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     val Tabulator.CellComponent.item: T?
         get() = try {
             tabulator?.toKotlinObj(this.getData())
-        } catch (e: Exception) {
-            console.error(e)
+        } catch (_: Exception) {
+//            console.error(e)
             null
         }
 

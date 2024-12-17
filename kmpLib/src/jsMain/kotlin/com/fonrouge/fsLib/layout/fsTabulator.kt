@@ -9,6 +9,7 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewDataContainer
+import com.fonrouge.fsLib.view.ViewDataContainer.Companion.handleInterval
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.*
@@ -191,7 +192,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
             }
         }
     }
-    if (viewList.allowInstallUpdate) {
+    if (viewList.allowInstallUpdate && handleInterval == null) {
         viewList.installUpdate(true)
     }
     return viewList

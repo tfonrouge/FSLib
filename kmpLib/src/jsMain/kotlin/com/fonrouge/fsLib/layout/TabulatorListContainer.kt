@@ -114,8 +114,8 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
                 ListSerializer(viewList.configView.configData.commonContainer.itemSerializer),
                 data
             )
-        } catch (e: Exception) {
-            console.error(e)
+        } catch (_: Exception) {
+//            console.error(e)
             emptyList()
         }
 
