@@ -171,7 +171,7 @@ abstract class ConfigDataItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             if (itemState.hasError.not()) {
                 val modal = Confirm(
                     caption = "Please Confirm",
-                    text = "<b>Delete</b> '<i>${commonContainer.label}</i>', id: <b>${
+                    text = "<b>Delete</b> '<i>${commonContainer.labelItem}</i>', id: <b>${
                         commonContainer.labelIdFunc(item)
                     }</b> ?",
                     rich = true,
