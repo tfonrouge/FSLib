@@ -175,7 +175,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         val apiItem: ApiItem<T, ID, FILT> = asApiItem(
             apiItem = iApiItem.asApiItem(commonContainer, call, iUser),
-            iUser = iUser
         ).let {
             if (it.hasError || it.item == null) {
                 return ItemState(isOk = false, msgError = it.msgError)
@@ -198,16 +197,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     is ApiItem.Upsert.Create -> when (apiItem) {
                         is ApiItem.Upsert.Create.Query -> {
                             onPermissionUpsertCreate(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
-                            queryCreate(
-                                apiItem = apiItem,
-                                iUser = iUser
-                            )
+                            queryCreate(apiItem = apiItem)
                         }
 
-                        is ApiItem.Upsert.Create.Action -> actionCreate(
-                            apiItem = apiItem,
-                            iUser = iUser
-                        )
+                        is ApiItem.Upsert.Create.Action -> actionCreate(apiItem = apiItem)
                     }
 
                     is ApiItem.Upsert.Update -> when (apiItem) {
@@ -219,16 +212,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                                 apiItem = apiItem,
                                 item = item
                             ).also { if (it.hasError) return it.asItemState() }
-                            queryUpdate(
-                                apiItem = apiItem,
-                                itemState = itemState,
-                                iUser = iUser
-                            )
+                            queryUpdate(apiItem = apiItem, item = item)
                         }
 
                         is ApiItem.Upsert.Update.Action -> actionUpdate(
                             apiItem = apiItem,
-                            iUser = iUser
                         )
                     }
                 }
@@ -239,11 +227,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 onPermissionRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
                 val item = itemState.item
                 if (itemState.hasError || item == null) return itemState
-                queryRead(
-                    apiItem = apiItem,
-                    itemState = itemState,
-                    iUser = iUser
-                )
+                queryRead(apiItem = apiItem, item = item)
             }
 
             is ApiItem.Delete -> {
@@ -258,7 +242,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                             apiItem = apiItem,
                             item = item
                         ).also { if (it.hasError) return it.asItemState() }
-                        queryDelete(apiItem = apiItem, itemState = itemState, iUser = iUser)
+                        queryDelete(apiItem = apiItem, item = item)
                     }
 
                     is ApiItem.Delete.Action -> {
@@ -267,7 +251,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                             apiItem = apiItem,
                             item = apiItem.item
                         ).also { if (it.hasError) return it.asItemState() }
-                        actionDelete(apiItem = apiItem, iUser = iUser)
+                        actionDelete(apiItem = apiItem)
                     }
                 }
             }
@@ -275,106 +259,90 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Converts the current item to an `ApiItem`.
+     * Converts the provided `ApiItem` into an `ItemState` containing the given `ApiItem` instance.
      *
-     * @param apiItem The API item to be processed.
-     * @param iUser The user information associated with the API call.
-     * @return The state of the `ApiItem` after conversion, wrapped in an `ItemState`.
+     * @param apiItem The API item to be wrapped in an ItemState.
+     * @return An ItemState object that contains the given ApiItem.
      */
     open suspend fun asApiItem(
         apiItem: ApiItem<T, ID, FILT>,
-        iUser: IUser<*>?
-    ): ItemState<ApiItem<T, ID, FILT>> =
-        ItemState<ApiItem<T, ID, FILT>>(item = apiItem)
+    ): ItemState<ApiItem<T, ID, FILT>> = ItemState<ApiItem<T, ID, FILT>>(item = apiItem)
 
     /**
-     * Executes a query to create an item represented by the provided API item.
+     * Executes the creation query and returns the resulting item state.
      *
-     * @param apiItem The API item containing the creation details, of type ApiItem.Query.Upsert.Create.
-     * @param iUser Optional parameter representing the user performing the operation, of type IUser.
-     * @return The state of the item after the creation operation, encapsulated in an ItemState object.
+     * @param apiItem The query object containing the necessary data for creation.
+     * @return An instance of [ItemState] representing the result of the creation operation.
      */
     protected open suspend fun queryCreate(
         apiItem: ApiItem.Upsert.Create.Query<T, ID, FILT>,
-        iUser: IUser<*>? = null,
     ): ItemState<T> = ItemState(isOk = true)
 
     /**
-     * Executes a read query for the specified API item.
+     * Executes a read query for the given API item and returns the resulting item state.
      *
-     * @param apiItem The API item containing read query details.
-     * @param itemState The current state of the item being queried.
-     * @param iUser The user performing the query, optional.
-     * @return The updated state of the item after the query is executed.
+     * @param apiItem The API item used to perform the read query.
+     * @param item The item to be processed with the read query.
+     * @return The resulting item state containing the processed item.
      */
     protected open suspend fun queryRead(
         apiItem: ApiItem.Read<T, ID, FILT>,
-        itemState: ItemState<T>,
-        iUser: IUser<*>? = null,
-    ): ItemState<T> = itemState
+        item: T,
+    ): ItemState<T> = ItemState(item = item)
 
     /**
-     * Handles the update operation for the provided API query item.
+     * Executes a query-based update operation on the given item.
      *
-     * @param apiItem The API item representing the update query.
-     * @param itemState The current state of the item to be updated.
-     * @param iUser The user performing the update operation, can be null.
-     * @return The updated state of the item.
+     * @param apiItem An instance of ApiItem.Upsert.Update.Query containing information about the update query.
+     * @param item The item to be updated.
+     * @return The updated state of the item wrapped in an ItemState.
      */
     protected open suspend fun queryUpdate(
         apiItem: ApiItem.Upsert.Update.Query<T, ID, FILT>,
-        itemState: ItemState<T>,
-        iUser: IUser<*>? = null,
-    ): ItemState<T> = itemState
+        item: T,
+    ): ItemState<T> = ItemState(item = item)
 
     /**
-     * Executes a delete query on the specified item and returns the resulting state.
+     * Handles the process of querying and deleting an item within the specified context.
      *
-     * @param apiItem The API item representing the delete query.
-     * @param itemState The current state of the item to be deleted.
-     * @param iUser The user performing the delete operation, optional.
-     * @return The new state of the item after the delete operation.
+     * @param apiItem The API query item configuration containing information for the delete operation.
+     * @param item The item to be deleted.
+     * @return The resulting state of the item after the delete operation.
      */
     protected open suspend fun queryDelete(
         apiItem: ApiItem.Delete.Query<T, ID, FILT>,
-        itemState: ItemState<T>,
-        iUser: IUser<*>? = null,
-    ): ItemState<T> = itemState
+        item: T,
+    ): ItemState<T> = ItemState(item = item)
 
     /**
-     * Handles the creation action for an API item.
+     * Handles the creation action for a given API item and inserts it into the data store.
      *
-     * @param apiItem the item to be created, encapsulated in an ApiItem.Action.Upsert.Create object.
-     * @param iUser optional user information associated with the action.
-     * @return the state of the item after the creation process.
+     * @param apiItem The API item containing the data and parameters required for the creation action.
+     * @return The state of the created item after the insertion, encapsulated in an ItemState object.
      */
     protected open suspend fun actionCreate(
-        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
-        iUser: IUser<*>? = null,
+        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>
     ): ItemState<T> = insertOne(apiItem)
 
     /**
-     * Performs the update action on the given API item.
+     * Executes an update action on the given API item and returns the updated item state.
      *
-     * @param apiItem The API item encapsulating the details required for the update.
-     * @param iUser The user initiating the action, can be null.
-     * @return The state of the item after the update has been performed.
+     * @param apiItem The update action containing the necessary data and filters to perform the update operation.
+     * @return The state of the updated item after the operation is completed.
      */
     protected open suspend fun actionUpdate(
         apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
-        iUser: IUser<*>? = null,
     ): ItemState<T> = updateOne(apiItem)
 
     /**
-     * Handles the deletion of an item based on the provided ApiItem.Action.Delete instance.
+     * Executes the delete action for a specific item and returns the resulting state of the item.
      *
-     * @param apiItem The ApiItem.Action.Delete instance containing details for the deletion.
-     * @param iUser The user performing the deletion, nullable.
-     * @return The state of the item after the deletion.
+     * @param apiItem The configuration object containing the delete action,
+     *                including the item to be deleted and related information.
+     * @return The state of the item after the delete action has been performed.
      */
     protected open suspend fun actionDelete(
         apiItem: ApiItem.Delete.Action<T, ID, FILT>,
-        iUser: IUser<*>? = null,
     ): ItemState<T> = deleteOne(apiItem)
 
     /**

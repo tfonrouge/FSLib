@@ -51,6 +51,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                             cc.apiFilterSerializer,
                             serializedApiFilter
                         ),
+                        call = call,
                         iUser = iUser
                     )
                 }
@@ -73,6 +74,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                             cc.apiFilterSerializer,
                             serializedApiFilter
                         ),
+                        call = call,
                         iUser = iUser
                     )
                 }
@@ -101,6 +103,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                             cc.apiFilterSerializer,
                             serializedApiFilter
                         ),
+                        call = call,
                         iUser = iUser
                     )
                 }
@@ -130,6 +133,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                                 serializedOrig
                             )
                         },
+                        call = call,
                         iUser = iUser
                     )
                 }
@@ -152,6 +156,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             return ApiItem.Read(
                 id = Json.decodeFromString(cc.idSerializer, serializedId),
                 apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter),
+                call = call,
                 iUser = iUser
             )
         }
@@ -175,6 +180,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 return ApiItem.Delete.Query(
                     id = Json.decodeFromString(cc.idSerializer, serializedId),
                     apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter),
+                    call = call,
                     iUser = iUser
                 )
             }
@@ -194,6 +200,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 return ApiItem.Delete.Action(
                     item = Json.decodeFromString(cc.itemSerializer, serializedItem),
                     apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter),
+                    call = call,
                     iUser = iUser
                 )
             }

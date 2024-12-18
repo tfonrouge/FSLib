@@ -108,7 +108,7 @@ abstract class VMList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
         itemStateFun?.let { itemStateFun ->
             val apiItem = ApiItem.Delete.Query<T, ID, FILT>(
                 id = item._id,
-                apiFilter = apiFilter
+                apiFilter = apiFilter,
             )
             var itemState: ItemState<T> = itemStateFun(commonContainer.toIApiItem(apiItem))
             if (itemState.hasError.not()) {
@@ -116,7 +116,7 @@ abstract class VMList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
                     commonContainer.toIApiItem(
                         ApiItem.Delete.Action(
                             item = item,
-                            apiFilter = apiFilter
+                            apiFilter = apiFilter,
                         )
                     ),
                 )

@@ -43,7 +43,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun apiItemQueryCreate(
         apiFilter: FILT = apiFilterInstance()
     ): ApiItem.Upsert.Create.Query<T, ID, FILT> = ApiItem.Upsert.Create.Query(
-        apiFilter = apiFilter
+        apiFilter = apiFilter,
     )
 
     @Suppress("unused")
@@ -52,7 +52,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter: FILT = apiFilterInstance()
     ): ApiItem.Read<T, ID, FILT> = ApiItem.Read(
         id = id,
-        apiFilter = apiFilter
+        apiFilter = apiFilter,
     )
 
     @Suppress("unused")
@@ -61,7 +61,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter: FILT = apiFilterInstance()
     ): ApiItem.Upsert.Update.Query<T, ID, FILT> = ApiItem.Upsert.Update.Query(
         id = id,
-        apiFilter = apiFilter
+        apiFilter = apiFilter,
     )
 
     @Suppress("unused")
@@ -70,7 +70,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter: FILT = apiFilterInstance()
     ): ApiItem.Delete.Query<T, ID, FILT> = ApiItem.Delete.Query(
         id = id,
-        apiFilter = apiFilter
+        apiFilter = apiFilter,
     )
 
     @Suppress("unused")
@@ -79,7 +79,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter: FILT = apiFilterInstance()
     ): ApiItem.Upsert.Create.Action<T, ID, FILT> = ApiItem.Upsert.Create.Action(
         item = item,
-        apiFilter = apiFilter
+        apiFilter = apiFilter,
     )
 
     @Suppress("unused")
@@ -90,7 +90,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     ): ApiItem.Upsert.Update.Action<T, ID, FILT> = ApiItem.Upsert.Update.Action(
         item = item,
         apiFilter = apiFilter,
-        orig = orig
+        orig = orig,
     )
 
     @Suppress("unused")
@@ -99,7 +99,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter: FILT = apiFilterInstance()
     ): ApiItem.Delete.Action<T, ID, FILT> = ApiItem.Delete.Action(
         item = item,
-        apiFilter = apiFilter
+        apiFilter = apiFilter,
     )
 
     /* IApiItem */
