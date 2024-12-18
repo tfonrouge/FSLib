@@ -215,9 +215,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                             queryUpdate(apiItem = apiItem, item = item)
                         }
 
-                        is ApiItem.Upsert.Update.Action -> actionUpdate(
-                            apiItem = apiItem,
-                        )
+                        is ApiItem.Upsert.Update.Action -> actionUpdate(apiItem = apiItem)
                     }
                 }
             }
