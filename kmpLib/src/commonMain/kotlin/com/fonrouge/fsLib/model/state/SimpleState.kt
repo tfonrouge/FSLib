@@ -55,4 +55,6 @@ data class SimpleState(
         msgOk = msgOk,
         msgError = msgError
     )
+
+    fun <T> asItemState() = ItemState<T>(this)
 }
