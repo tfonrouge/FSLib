@@ -18,7 +18,9 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.State
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
+import io.kvision.tabulator.Align
 import io.kvision.tabulator.ColumnDefinition
+import io.kvision.tabulator.Formatter
 import io.kvision.tabulator.RowRangeLookup
 import io.kvision.tabulator.js.Tabulator
 import io.kvision.tabulator.toJs
@@ -123,15 +125,13 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     /* dynamic content only used to get _id */
     var overItem: Any? = null
-    open val rowSelectedColumn: ColumnDefinition<T>? = null
 
-    /* TODO: Implement this default value
-        open val rowSelectedColumn: ColumnDefinition<T>? = ColumnDefinition<T>(
-            title = "<i class=\"fa-regular fa-square\"></i>",
-            field = "rowSelected",
-            formatter = Formatter.ROWSELECTION
-        )
-    */
+    open val rowSelectedColumn: ColumnDefinition<T> = ColumnDefinition<T>(
+        title = "<i class=\"fa-regular fa-square\"></i>",
+        field = "rowSelected",
+        hozAlign = Align.CENTER,
+        formatter = Formatter.ROWSELECTION
+    )
 
     open suspend fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
 
