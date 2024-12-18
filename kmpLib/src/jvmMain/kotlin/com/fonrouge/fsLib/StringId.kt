@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.serializers
+package com.fonrouge.fsLib
 
 import com.fonrouge.fsLib.types.StringId
 import com.mongodb.client.model.Filters

@@ -10,7 +10,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.bson.types.ObjectId
-import java.time.OffsetDateTime
 
 @Suppress("unused")
 const val EMPTY_OID = "000000000000000000000000"
@@ -36,12 +35,3 @@ actual object OIdSerializer : KSerializer<OId<Any>> {
         }
     }
 }
-
-@Suppress("unused")
-fun OId<Any>?.toObjectId(): ObjectId? {
-    return this?.id?.let { ObjectId(it) }
-}
-
-@Suppress("unused")
-fun <T> OId(offsetDateTime: OffsetDateTime): OId<T> =
-    OId(offsetDateTime.toEpochSecond().toString(16).padStart(8, ' ') + "0000000000000000")
