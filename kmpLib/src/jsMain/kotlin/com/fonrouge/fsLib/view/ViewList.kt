@@ -18,12 +18,8 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.State
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
-import io.kvision.tabulator.Align
-import io.kvision.tabulator.ColumnDefinition
-import io.kvision.tabulator.Formatter
-import io.kvision.tabulator.RowRangeLookup
+import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator
-import io.kvision.tabulator.toJs
 import io.kvision.toast.Toast
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -192,14 +188,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 )
             }
         } ?: return
-        /*
-                val apiItem = ApiItem.Query.build(
-                    commonContainer = configViewItem.commonContainer,
-                    id = item?._id,
-                    crudTask = crudTask,
-                    apiFilter = apiFilter
-                ) ?: return
-        */
         val url = configViewItem.viewItemUrl(
             apiItem = apiItem
         )
