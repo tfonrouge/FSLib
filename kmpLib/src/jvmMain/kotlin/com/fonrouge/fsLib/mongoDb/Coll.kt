@@ -1190,10 +1190,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         ItemState(isOk = true)
 
     /**
-     * Executes actions before upserting an item.
+     * This method is invoked before an upsert operation is performed. It allows for custom processing
+     * or validation on the input item and provides a mechanism to prevent the upsert operation if necessary.
      *
-     * @param apiItem The upsert action details, including the item to be upserted.
-     * @return The state of the item after processing the upsert action.
+     * @param apiItem The upsert operation request containing the item data, its ID, and any applied filters.
+     * @return An instance of [ItemState] indicating whether the upsert operation should proceed (`isOk` set to true)
+     *         or be halted (`isOk` set to false).
      */
     open suspend fun onBeforeUpsertAction(apiItem: ApiItem.Upsert<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
 
