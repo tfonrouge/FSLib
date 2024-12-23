@@ -8,7 +8,7 @@ import io.ktor.server.application.*
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import org.litote.kmongo.reactivestreams.KMongo
-import org.litote.kmongo.serialization.registerModule
+import org.litote.kmongo.serialization.registerSerializer
 import java.util.*
 
 internal var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
@@ -24,14 +24,12 @@ val mongoClient by lazy {
 }
 
 /**
- * A lazily initialized instance of [MongoDatabase] that represents the MongoDB database
- * specified in the MongoDB plugin configuration.
+ * Represents a lazily initialized instance of the MongoDatabase.
+ * This variable is used to interact with the MongoDB database specified
+ * by the configuration.
  *
- * This database instance is obtained from the [mongoClient] using the database name
- * provided by [mongoDbPluginConfiguration.database].
- *
- * The [MongoDatabase] instance is initialized only once when accessed for the first time,
- * and subsequent accesses return the same instance.
+ * The database instance is retrieved using the MongoClient and the database name
+ * configured in the mongoDbPluginConfiguration.
  */
 val mongoDatabase: MongoDatabase by lazy {
     mongoClient.getDatabase(mongoDbPluginConfiguration.database)
@@ -114,6 +112,18 @@ class MongoDbPluginConfiguration {
         }
 
     init {
-        registerModule(serializersModule)
+        //
+        // TODO: using registerModule doesn't encode LocalDate to 'YYYY-MM-YY' as per FSLocalDateSerializer
+        // val d1: java.time.LocalDate
+        // d1.json -> { "$date" : "2024-09-01T00:00:00Z" }
+        //
+        // registerModule(serializersModule)
+        registerSerializer(OIdSerializer)
+        registerSerializer(StringIdSerializer)
+        registerSerializer(IntIdSerializer)
+        registerSerializer(LongIdSerializer)
+        registerSerializer(FSOffsetDateTimeSerializer)
+        registerSerializer(FSLocalDateSerializer)
+        registerSerializer(FSLocalDateTimeSerializer)
     }
 }
