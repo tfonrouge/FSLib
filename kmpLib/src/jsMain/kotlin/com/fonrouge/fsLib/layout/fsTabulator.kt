@@ -167,6 +167,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                         }
                         jsTabulator?.on("tableBuilt") {
                             viewList.jsTabulatorBuilt = true
+                            viewList.onTableBuilt()
                         }
                         jsTabulator?.on("dataProcessing") {
                             window.setTimeout(
