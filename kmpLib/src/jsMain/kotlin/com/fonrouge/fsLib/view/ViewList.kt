@@ -345,8 +345,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      */
     open fun onReceivingData(data: dynamic) {}
 
-    open fun onTableBuilt() {}
-
     /**
      * export to file download
      */

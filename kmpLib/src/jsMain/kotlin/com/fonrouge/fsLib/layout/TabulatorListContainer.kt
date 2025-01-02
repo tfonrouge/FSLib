@@ -71,6 +71,19 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
     private val urlPrefix: String = if (kvUrlPrefix != undefined) "$kvUrlPrefix/" else ""
 
     /**
+     * A callback that is triggered when a page is successfully loaded.
+     *
+     * The variable allows the assignment of a lambda function or a method reference,
+     * which will be invoked upon the completion of a page load event.
+     * The single `Int` parameter passed to the callback typically represents
+     * the page number or an identifier related to the loaded page.
+     *
+     * The callback is nullable, so it can remain `null` if no operation
+     * should be executed after a page is loaded.
+     */
+    var onPageLoaded: ((Int) -> Unit)? = null
+
+    /**
      * A callback function that is triggered when a row in the list is selected.
      *
      * The lambda receives the selected item of type [T] or `null` if no row is selected.
