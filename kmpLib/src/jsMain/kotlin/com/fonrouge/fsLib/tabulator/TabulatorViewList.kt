@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.layout
+package com.fonrouge.fsLib.tabulator
 
 import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiList
@@ -15,19 +15,22 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.utils.Serialization
 import kotlinx.browser.window
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
+import kotlinx.serialization.serializer
 import org.w3c.dom.get
 import org.w3c.fetch.RequestInit
 import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
+class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
     val viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListSerialize: (ApiList<FILT>) -> String?,
@@ -98,7 +101,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
      * A nullable callback function that is executed at regular intervals.
      *
      * This property allows for defining a custom behavior to be triggered periodically
-     * during the lifecycle of the `TabulatorListContainer` instance. The interval duration
+     * during the lifecycle of the `TabulatorViewList` instance. The interval duration
      * and logic to trigger the callback are managed within the containing class.
      *
      * When set, the callback function will be invoked with no parameters. If the value
@@ -188,7 +191,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
             tabSize = size
             tabFilter = filters
             tabSorter = sorters
-            contentHashCode = this@TabulatorListContainer.contentHashCode
+            contentHashCode = this@TabulatorViewList.contentHashCode
         }
         val data =
             Serialization.plain.encodeToString(
@@ -287,7 +290,7 @@ class TabulatorListContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, 
     }
 }
 
-inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorListContainer(
+inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
     viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     noinline apiListBlock: (() -> ApiList<FILT>),
     noinline apiListSerialize: (ApiList<FILT>) -> String?,
@@ -297,10 +300,10 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
     noinline requestFilter: (suspend RequestInit.() -> Unit)? = null,
-    noinline init: (TabulatorListContainer<T, ID, FILT, MID>.() -> Unit)? = null
-): TabulatorListContainer<T, ID, FILT, MID> {
-    val tabulatorListContainer: TabulatorListContainer<T, ID, FILT, MID> =
-        TabulatorListContainer(
+    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
+): TabulatorViewList<T, ID, FILT, MID> {
+    val tabulatorViewList: TabulatorViewList<T, ID, FILT, MID> =
+        TabulatorViewList(
             viewList = viewList,
             apiListBlock = apiListBlock,
             apiListSerialize = apiListSerialize,
@@ -312,7 +315,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
             module = module,
             requestFilter = requestFilter
         )
-    init?.invoke(tabulatorListContainer)
-    this.add(tabulatorListContainer)
-    return tabulatorListContainer
+    init?.invoke(tabulatorViewList)
+    this.add(tabulatorViewList)
+    return tabulatorViewList
 }

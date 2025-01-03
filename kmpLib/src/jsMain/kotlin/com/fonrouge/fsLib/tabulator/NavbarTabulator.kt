@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.layout
+package com.fonrouge.fsLib.tabulator
 
 import io.kvision.core.BsBgColor
 import io.kvision.core.Container

@@ -6,16 +6,16 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.layout.NavbarTabulator
-import com.fonrouge.fsLib.layout.TabulatorListContainer
-import com.fonrouge.fsLib.layout.TabulatorMenuItem
-import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.State
+import com.fonrouge.fsLib.tabulator.NavbarTabulator
+import com.fonrouge.fsLib.tabulator.TabulatorViewList
+import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
+import com.fonrouge.fsLib.tabulator.menuItem
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.*
@@ -158,7 +158,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * the tabulator list
      */
-    var tabulator: TabulatorListContainer<T, ID, FILT, MID>? = null
+    var tabulator: TabulatorViewList<T, ID, FILT, MID>? = null
 
     /**
      * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem

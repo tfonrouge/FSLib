@@ -3,6 +3,8 @@ package com.fonrouge.fsLib.layout
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.tabulator.NavbarTabulator
+import com.fonrouge.fsLib.tabulator.navbarTabulator
 import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container

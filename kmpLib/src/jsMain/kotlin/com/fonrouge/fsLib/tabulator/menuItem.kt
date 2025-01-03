@@ -1,10 +1,8 @@
-package com.fonrouge.fsLib.lib
+package com.fonrouge.fsLib.tabulator
 
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.layout.TabulatorMenuItem
-import com.fonrouge.fsLib.layout.menuItem
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc

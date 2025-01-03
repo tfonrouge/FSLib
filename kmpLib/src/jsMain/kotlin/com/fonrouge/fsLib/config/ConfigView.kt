@@ -6,7 +6,6 @@ import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewDataContainer
 import io.kvision.utils.createInstance
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 

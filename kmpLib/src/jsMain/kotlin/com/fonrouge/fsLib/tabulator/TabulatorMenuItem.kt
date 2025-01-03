@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.layout
+package com.fonrouge.fsLib.tabulator
 
 import kotlinx.browser.window
 import org.w3c.dom.events.Event

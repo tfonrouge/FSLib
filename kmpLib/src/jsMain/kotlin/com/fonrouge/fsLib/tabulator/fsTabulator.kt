@@ -1,9 +1,11 @@
 @file:Suppress("unused")
 
-package com.fonrouge.fsLib.layout
+package com.fonrouge.fsLib.tabulator
 
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.layout.centeredMessage
+import com.fonrouge.fsLib.layout.toolBarList
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -78,7 +80,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     types: Set<TableType> = setOf(),
     minToolbarSize: Boolean = true,
     noinline editable: (() -> Boolean)? = null,
-    noinline init: (TabulatorListContainer<T, ID, FILT, MID>.() -> Unit)? = null
+    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
 ): ViewList<CC, T, ID, FILT, MID> {
     val viewList: ViewList<CC, T, ID, FILT, MID> = configViewList.newViewInstance(null)
     viewList.masterViewItem = masterViewItem
@@ -103,7 +105,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
         TableType.SMALL
     ),
     minToolbarSize: Boolean = true,
-    noinline init: (TabulatorListContainer<T, ID, FILT, MID>.() -> Unit)? = null
+    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
 ): ViewList<CC, T, ID, FILT, MID> {
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
@@ -125,7 +127,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
         bind(viewList.errorStateObs) { errorState ->
             viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
             if (errorState == false) {
-                viewList.tabulator = tabulatorListContainer(
+                viewList.tabulator = tabulatorViewList(
                     viewList = viewList,
                     apiListBlock = apiListBlock,
                     apiListSerialize = apiListSerialize,
