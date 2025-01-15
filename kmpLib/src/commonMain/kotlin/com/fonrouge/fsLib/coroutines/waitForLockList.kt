@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.coroutines
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
 /**
@@ -24,7 +24,7 @@ suspend fun <T, R> waitForLockList(
     delay: Int = 100,
     onLock: (suspend () -> R),
 ): R? {
-    val lock = flow<Boolean> {
+    val locked: Boolean = flow<Boolean> {
         var counter = attempts
         while (lockList.contains(lockValue) && counter > 0) {
             --counter
@@ -39,11 +39,6 @@ suspend fun <T, R> waitForLockList(
             lockList.add(lockValue)
             emit(true)
         }
-    }.firstOrNull()
-    val result = if (lock == true) {
-        onLock().also {
-            lockList.remove(lockValue)
-        }
-    } else null
-    return result
+    }.first()
+    return if (locked) onLock().also { lockList.remove(lockValue) } else null
 }
