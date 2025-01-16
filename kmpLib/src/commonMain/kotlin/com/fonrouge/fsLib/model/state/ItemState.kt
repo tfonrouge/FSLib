@@ -39,6 +39,12 @@ data class ItemState<T>(
         msgError = simpleResponse.msgError,
     )
 
+    @Suppress("unused")
+    constructor(msgWarn: String) : this(
+        state = State.Warn,
+        msgError = msgWarn,
+    )
+
     constructor(
         isOk: Boolean,
         msgOk: String? = MSG_OK,
