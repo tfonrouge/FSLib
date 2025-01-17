@@ -1,29 +1,30 @@
 package com.fonrouge.fsLib.model.state
 
+import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.offsetDateTimeNow
 import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
 import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.Serializable
 
 /**
- * Represents a simple state model that provides detailed status information.
+ * A data class that represents a simple state with associated messages and additional information.
  *
- * @property state The current state of the object, which can be `State.Ok`, `State.Warn`, or `State.Error`.
- * @property msgOk An optional message indicating a successful operation.
- * @property msgError An optional message indicating a failed operation.
- * @property cargo Optional additional information or payload associated with the state.
- * @property dateTime Timestamp indicating when the state was set.
- * @property hasError A boolean indicating if the current state is an error state.
+ * This class provides a lightweight representation of state information, including:
+ * - The current state of type [State].
+ * - Optional success and error messages.
+ * - Optional cargo or payload.
+ * - A timestamp indicating when the state was created.
+ * - A boolean property indicating whether the state represents an error.
  *
- * @constructor Initializes a new instance of `SimpleState` with the provided parameters.
+ * The class includes utility constructors to facilitate initialization from various inputs
+ * and conversion methods to interoperate with related types like [ItemState].
  *
- * @constructor Creates a `SimpleState` based on the given `ItemState`.
- * @param itemState The `ItemState` to derive the new `SimpleState` from.
- *
- * @constructor Creates a `SimpleState` with the specified success or error state.
- * @param isOk Boolean flag to set the state as `Ok` if true, otherwise `Error`.
- * @param msgOk An optional message indicating a successful operation.
- * @param msgError An optional message indicating a failed operation.
+ * @property state The current state of this instance.
+ * @property msgOk An optional message indicating success.
+ * @property msgError An optional message indicating an error.
+ * @property cargo Optional additional information or payload.
+ * @property dateTime A timestamp representing when this instance was created.
+ * @property hasError A boolean indicating if the state represents an error condition.
  */
 @Serializable
 data class SimpleState(
@@ -40,6 +41,12 @@ data class SimpleState(
         state = itemState.state,
         msgOk = itemState.msgOk,
         msgError = itemState.msgError
+    )
+
+    @Suppress("unused")
+    constructor(msgWarn: String) : this(
+        state = State.Warn,
+        msgError = msgWarn,
     )
 
     constructor(
