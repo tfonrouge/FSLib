@@ -6,18 +6,36 @@ import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.Serializable
 
 /**
- * Represents the state of an item, including its data and associated status information.
+ * Represents the state of an item with additional information and status metadata.
  *
- * @param T The type of the item.
- * @param item The item data.
- * @param itemAlreadyOn A flag indicating if the item is already active or present.
- * @param noDataModified Optional flag indicating if no data has been modified.
- * @param state Indicates the current state, defaulting to `State.Ok` if item is present, otherwise `State.Error`.
- * @param msgOk A message indicating a successful operation.
- * @param msgError A message indicating a failed operation.
- * @param cargo Optional additional information or payload.
- * @param dateTime A timestamp representing when the state was set.
- * @param hasError A boolean indicating if the current state is an error state.
+ * This class encapsulates state information for a particular item, providing details such as:
+ * - The item itself, which may be null.
+ * - A flag to indicate whether the item is already present.
+ * - A flag to indicate whether any data has been modified.
+ * - The current state of the item, which defaults to `State.Ok` if the item is not null,
+ *   or `State.Error` otherwise.
+ * - Optional messages for success or error scenarios.
+ * - Optional metadata or cargo associated with the item's state.
+ * - A timestamp indicating when the state was created or last updated.
+ * - A boolean property indicating whether the state represents an error.
+ *
+ * This class also provides several constructors for convenient initialization:
+ * - From an existing simple state.
+ * - With a warning message.
+ * - With a boolean indicating success or failure, along with optional messages and cargo.
+ *
+ * Utility methods are available for converting to a `SimpleState` representation.
+ *
+ * @param T The type of the item this state represents.
+ * @property item The item associated with this state, or null if not present.
+ * @property itemAlreadyOn A flag indicating if the item is already active or present.
+ * @property noDataModified An optional flag indicating if no data has been modified.
+ * @property state The current state of the item, conforming to the `State` enum.
+ * @property msgOk An optional success message.
+ * @property msgError An optional error message.
+ * @property cargo Additional metadata or payload associated with the item state.
+ * @property dateTime A timestamp representing when this state was created or modified.
+ * @property hasError A boolean indicating if the state represents an error condition.
  */
 @Serializable
 data class ItemState<T>(
@@ -26,7 +44,7 @@ data class ItemState<T>(
     val noDataModified: Boolean? = null,
     override val state: State = if (item != null) State.Ok else State.Error,
     override val msgOk: String? = MSG_OK,
-    override val msgError: String? = MSG_ERROR,
+    override val msgError: String? = if (state != State.Ok) MSG_ERROR else null,
     override val cargo: String? = null
 ) : ISimpleState {
     @Serializable(with = FSOffsetDateTimeSerializer::class)
