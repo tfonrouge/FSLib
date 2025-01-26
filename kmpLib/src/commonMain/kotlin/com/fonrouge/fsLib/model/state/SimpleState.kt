@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.model.state
 
-import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.offsetDateTimeNow
 import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
 import io.kvision.types.OffsetDateTime

@@ -13,8 +13,8 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.tabulator.NavbarTabulator
-import com.fonrouge.fsLib.tabulator.TabulatorViewList
 import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
+import com.fonrouge.fsLib.tabulator.TabulatorViewList
 import com.fonrouge.fsLib.tabulator.menuItem
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
