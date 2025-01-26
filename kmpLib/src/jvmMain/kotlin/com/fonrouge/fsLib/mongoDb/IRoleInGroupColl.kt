@@ -21,7 +21,7 @@ abstract class IRoleInGroupColl<GR : IRoleInGroup<T, GOU>, T : Any, GOU : IGroup
 ) : Coll<ICommonContainer<GR, OId<T>, FILT>, GR, OId<T>, FILT>(
     commonContainer = commonContainer
 ) {
-    override suspend fun CoroutineCollection<GR>.ensureIndexes() {
+    override suspend fun CoroutineCollection<GR>.indexes() {
         ensureUniqueIndex(IRoleInGroup<T, GOU>::groupOfUserId, IRoleInGroup<T, GOU>::appRoleId)
     }
 }

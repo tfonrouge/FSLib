@@ -21,7 +21,7 @@ abstract class IGroupOfUserColl<CC : ICommonContainer<GOU, OId<T>, FILT>, GOU : 
 ) : Coll<CC, GOU, OId<T>, FILT>(
     commonContainer = commonContainer
 ) {
-    override suspend fun CoroutineCollection<GOU>.ensureIndexes() {
+    override suspend fun CoroutineCollection<GOU>.indexes() {
         ensureUniqueIndex(IGroupOfUser<T>::description)
     }
 }

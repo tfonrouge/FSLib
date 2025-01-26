@@ -39,7 +39,7 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
 ) : Coll<ICommonContainer<UR, OId<IRoleInUser<U, UID>>, FILT>, UR, OId<IRoleInUser<U, UID>>, FILT>(
     commonContainer = commonContainer
 ) {
-    override suspend fun CoroutineCollection<UR>.ensureIndexes() {
+    override suspend fun CoroutineCollection<UR>.indexes() {
         coroutine.ensureUniqueIndex(
             IRoleInUser<U, UID>::userId, IRoleInUser<U, UID>::appRoleId
         )

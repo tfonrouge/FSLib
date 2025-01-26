@@ -775,17 +775,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Ensures that the indexes for the collection are created and exist.
-     *
-     * This suspend function goes through the necessary steps to ensure that all required indexes on the collection are properly set up.
-     * It is intended to be used within a coroutine context to leverage Kotlin's asynchronous programming features.
-     *
-     * @receiver CoroutineCollection<T> The collection for which the indexes need to be ensured.
-     */
-    open suspend fun CoroutineCollection<T>.ensureIndexes() {
-    }
-
-    /**
      * Constructs and modifies the provided aggregation pipeline.
      *
      * @param pipeline The initial mutable list of Bson objects representing the pipeline stages.
@@ -955,6 +944,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             ItemState(isOk = false, msgError = e.message)
         }
     }
+
+    /**
+     * Retrieves the indexes of the documents within the collection.
+     *
+     * This function is a coroutine and should be called within a coroutine scope.
+     *
+     * @receiver CoroutineCollection<T> The collection from which indexes are obtained.
+     */
+    open suspend fun CoroutineCollection<T>.indexes() {}
 
     /**
      * Inserts a single item into the database or dataset.
@@ -1452,7 +1450,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         CoroutineScope(Dispatchers.IO).launch {
             with(coroutine) {
                 onAfterOpen()
-                ensureIndexes()
+                indexes()
             }
         }
     }

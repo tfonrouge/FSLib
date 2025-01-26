@@ -25,7 +25,7 @@ abstract class IUserGroupColl<UG : IUserGroup<U, UID, GOU, GR>, U : IUser<out UI
 ) : Coll<ICommonContainer<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>, UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>(
     commonContainer = commonContainer
 ) {
-    override suspend fun CoroutineCollection<UG>.ensureIndexes() {
+    override suspend fun CoroutineCollection<UG>.indexes() {
         ensureUniqueIndex(
             IUserGroup<U, UID, GOU, *>::userId,
             IUserGroup<U, UID, GOU, *>::groupOfUserId
