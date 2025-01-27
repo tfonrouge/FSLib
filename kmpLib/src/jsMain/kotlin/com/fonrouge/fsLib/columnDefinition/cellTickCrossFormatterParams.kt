@@ -40,7 +40,7 @@ external interface CellTickCrossFormatterParams {
  */
 @Suppress("unused")
 fun cellTickCrossFormatterParams(block: CellTickCrossFormatterParams.() -> Unit): CellTickCrossFormatterParams {
-     val formatterParams: CellTickCrossFormatterParams = jso(block)
+    val formatterParams: CellTickCrossFormatterParams = jso(block)
     formatterParams.tickElementAsString?.let { formatterParams.tickElement = it }
     formatterParams.tickElementAsBoolean?.let { formatterParams.tickElement = it }
     formatterParams.crossElementAsString?.let { formatterParams.crossElement = it }
