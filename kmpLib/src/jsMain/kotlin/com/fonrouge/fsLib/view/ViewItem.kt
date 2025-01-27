@@ -215,7 +215,8 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         centeredMessage("no CRUD action ...")
     }
 
-    private fun Container.displayForm(crudTask: CrudTask) {
+    private suspend fun Container.displayForm(crudTask: CrudTask) {
+        onBeforeDisplayForm(crudTask)
         formPanel = pageItemBody()
         if (urlParams?.actionUpsert != true) {
             formPanel?.form?.fields?.forEach { entry ->
@@ -300,9 +301,20 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     /**
-     * Calls after form panel is displayed and data is assigned (formPanel.setData)
+     * This method is triggered after the form associated with the given CRUD task has been displayed.
+     * It can be overridden to implement additional processing or actions specific to the form display context.
+     *
+     * @param crudTask The CRUD operation context (e.g., Create, Read, Update, Delete) for which the form is displayed.
      */
     open fun onAfterDisplayForm(crudTask: CrudTask) {}
+
+    /**
+     * This method is triggered before the form associated with the given CRUD task is displayed.
+     * It can be overridden to perform custom initialization or setup actions before the form display.
+     *
+     * @param crudTask The CRUD operation context (e.g., Create, Read, Update, Delete) for which the form is about to be displayed.
+     */
+    open suspend fun onBeforeDisplayForm(crudTask: CrudTask) {}
 
     override fun Container.displayPage() {
         vPanel(className = "showItem") {
@@ -362,7 +374,9 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             val crudAction1 = urlParams?.crudTask
                             if (itemResponse.hasError.not() && crudAction1 != null) {
                                 itemObservable.value = itemResponse.item
-                                displayForm(crudAction1)
+                                AppScope.launch {
+                                    displayForm(crudAction1)
+                                }
                             } else {
                                 flexPanel(
                                     direction = FlexDirection.COLUMN,
