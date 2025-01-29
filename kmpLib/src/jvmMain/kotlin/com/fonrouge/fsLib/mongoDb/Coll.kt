@@ -623,7 +623,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter A filter instance used to customize the lookup behavior.
      * @return A mutable list of BSON stages for the lookup pipeline.
      */
-    private suspend fun buildLookupList(
+    private fun buildLookupList(
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> {
@@ -783,7 +783,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter An instance of the FILT configuration for filtering the pipeline.
      * @return The modified list of Bson objects representing the complete pipeline.
      */
-    suspend fun buildPipeline(
+    fun buildPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: List<LookupWrapper<*, *>> = emptyList(),
         resultUnit: ResultUnit,
@@ -1246,6 +1246,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         SimpleState(isOk = true)
 
     /**
+     * Constructs a MongoDB aggregation pipeline using the provided filter and optional field list.
+     *
+     * @param apiFilter The filter defining the criteria for the lookup operation.
+     * @param fields An optional list of properties determining which result fields to include in the pipeline.
+     * @return A list of BSON objects representing the constructed aggregation pipeline.
+     */
+    @Suppress("unused")
+    fun pipelineFromLookupFun(apiFilter: FILT, fields: List<KProperty1<in T, *>>? = null): List<Bson> {
+        val pipeline: MutableList<Bson> = mutableListOf()
+        lookupFun(apiFilter)
+            .filter { fields.isNullOrEmpty() || it.resultProperty in fields }
+            .forEach { lookupWrapper ->
+                pipeline += lookupWrapper.pipelineList()
+            }
+        return pipeline
+    }
+
+    /**
      * Refactors the given pipeline by applying a result unit and an API filter.
      *
      * @param pipeline a mutable list of Bson elements representing the data pipeline
@@ -1253,7 +1271,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter an instance of FILT filter to apply to the pipeline, with a default of commonContainer.apiFilterInstance()
      * @return the refactored pipeline as a mutable list of Bson elements
      */
-    open suspend fun refactorPipeline(
+    open fun refactorPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
         resultUnit: ResultUnit,
         apiFilter: FILT = commonContainer.apiFilterInstance(),

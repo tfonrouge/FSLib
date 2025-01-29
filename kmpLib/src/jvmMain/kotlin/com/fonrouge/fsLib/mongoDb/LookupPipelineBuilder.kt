@@ -104,16 +104,36 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val foreignField: KProperty<*>,
     private val let: List<Variable<out Any>>? = null,
     private val pipeline: List<Bson>?,
-    internal val resultProperty: KProperty1<in T, *>,
+    val resultProperty: KProperty1<in T, *>,
     internal val preserveNullAndEmptyArrays: Boolean,
     internal val limit: Int?,
     val resultUnit: Coll.ResultUnit,
 ) {
-    suspend fun <U : BaseDoc<*>, V : BaseDoc<*>> pipelineList(
+    /**
+     * Builds a list of BSON pipeline stages using the provided list of lookup wrappers.
+     * The method creates a MongoDB aggregation pipeline by processing the nested `LookupWrapper` instances.
+     *
+     * @param lookupWrappers A list of `LookupWrapper` instances that define the lookup and pipeline details
+     *                       for generating the aggregation stages.
+     * @return A list of `Bson` objects representing the aggregation pipeline stages.
+     */
+    @Suppress("unused")
+    fun <U : BaseDoc<*>, V : BaseDoc<*>> pipelineList(
         lookupWrappers: List<LookupWrapper<V, U>>
     ): List<Bson> = pipelineList(LookupWrapper<U, V>(lookupWrappers))
 
-    suspend fun pipelineList(
+    /**
+     * Constructs a MongoDB aggregation pipeline based on the provided lookup wrapper and class fields.
+     *
+     * The method combines predefined pipelines, lookup configurations, and conditional stages into a single
+     * list of BSON objects representing the aggregation pipeline. It ensures that the pipeline is dynamically
+     * adapted based on the input and context-specific parameters.
+     *
+     * @param lookup A lookup wrapper instance containing nested lookup definitions and pipeline details.
+     *               Defaults to null if no additional lookups are required.
+     * @return A list of BSON objects representing the final aggregation pipeline stages.
+     */
+    fun pipelineList(
         lookup: LookupWrapper<*, *>? = null
     ): List<Bson> {
         val pip2 = mutableListOf<Bson>()
