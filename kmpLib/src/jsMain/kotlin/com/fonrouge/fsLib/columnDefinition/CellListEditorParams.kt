@@ -4,7 +4,7 @@ import io.kvision.tabulator.js.Tabulator
 import js.objects.jso
 import kotlin.js.Json
 
-external interface ColDefListEditorParams {
+external interface CellListEditorParams {
     var values: Array<Any>?
     var valuesUrl: String?
     var valuesLookup: Any?
@@ -49,5 +49,5 @@ enum class Sort {
     asc, desc
 }
 
-fun colDefListEditorParams(block: ColDefListEditorParams.() -> Unit): ColDefListEditorParams =
+fun cellListEditorParams(block: CellListEditorParams.() -> Unit): CellListEditorParams =
     jso(block)

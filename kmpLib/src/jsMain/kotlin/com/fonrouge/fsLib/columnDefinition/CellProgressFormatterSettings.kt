@@ -23,7 +23,7 @@ import js.objects.jso
  * @property legendColorAsFunction (unused) A function that determines the legend color based on a numeric value.
  * @property legendAlign Specifies the alignment of the legend using the `LegendAlign` enum.
  */
-external interface ColDefProgressFormatterSettings {
+external interface CellProgressFormatterSettings {
     var min: Int
     var max: Int
     var color: Any
@@ -46,11 +46,11 @@ enum class LegendAlign {
 /**
  * Defines settings for the progress formatter in a column definition.
  *
- * This function provides an instance of [ColDefProgressFormatterSettings] which can be
+ * This function provides an instance of [CellProgressFormatterSettings] which can be
  * used to customize the display of progress bars in a table column, including properties
  * such as minimum/maximum values, color settings, legends, and alignment options.
  *
- * @return An instance of [ColDefProgressFormatterSettings] for configuring progress formatter settings.
+ * @return An instance of [CellProgressFormatterSettings] for configuring progress formatter settings.
  */
 @Suppress("unused")
-fun colDefProgressFormatterSettings(block: ColDefProgressFormatterSettings.() -> Unit) = jso(block)
+fun cellProgressFormatterSettings(block: CellProgressFormatterSettings.() -> Unit) = jso(block)

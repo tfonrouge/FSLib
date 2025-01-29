@@ -21,7 +21,7 @@ import kotlinx.serialization.json.encodeToDynamic
  * Reference: https://tabulator.info/docs/6.3/edit#editor-number
  */
 @Serializable
-data class ColDefNumberEditorParams(
+data class CellNumberEditorParams(
     var min: Int? = null,
     var max: Int? = null,
     var step: Int? = null,
@@ -47,5 +47,5 @@ data class ColDefNumberEditorParams(
  * @return A dynamic object representing the serialized JSON configuration for the number editor parameters.
  */
 @Suppress("unused")
-fun colDefNumberEditorParams(block: ColDefNumberEditorParams.() -> Unit): dynamic =
-    ColDefNumberEditorParams().apply(block).asJson()
+fun cellNumberEditorParams(block: CellNumberEditorParams.() -> Unit): dynamic =
+    CellNumberEditorParams().apply(block).asJson()

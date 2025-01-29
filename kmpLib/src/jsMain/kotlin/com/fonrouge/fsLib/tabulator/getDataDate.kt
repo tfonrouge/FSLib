@@ -19,5 +19,5 @@ import kotlin.reflect.KProperty1
 fun Tabulator.CellComponent.getDataDate(vararg path: KProperty1<*, *>): OffsetDateTime? =
     Json.decodeFromString(
         deserializer = FSOffsetDateTimeSerializer,
-        string = JSON.stringify(getDataD<dynamic>(path = path))
+        string = JSON.stringify(getDataValue<dynamic>(path = path))
     )

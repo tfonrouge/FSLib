@@ -18,7 +18,7 @@ import kotlinx.serialization.json.encodeToDynamic
  * @property elementAttributes A map of key-value pairs representing attributes to customize the input element.
  */
 @Serializable
-data class ColDefInputEditorParams(
+data class CellInputEditorParams(
     var search: Boolean? = null,
     var mask: String? = null,
     var selectContents: Boolean? = null,
@@ -47,5 +47,5 @@ data class ColDefInputEditorParams(
  * @return A `dynamic` object representing the serialized JSON configuration for the input editor parameters.
  */
 @Suppress("unused")
-fun colDefInputEditorParams(block: ColDefInputEditorParams.() -> Unit): dynamic =
-    ColDefInputEditorParams().apply(block).asJson()
+fun cellInputEditorParams(block: CellInputEditorParams.() -> Unit): dynamic =
+    CellInputEditorParams().apply(block).asJson()

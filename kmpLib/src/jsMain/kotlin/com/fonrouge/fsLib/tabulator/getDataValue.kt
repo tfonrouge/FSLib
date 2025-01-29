@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty1
  *         or null if the data does not exist or cannot be cast to [R].
  */
 @Suppress("unused")
-fun <R> Tabulator.CellComponent.getDataD(vararg path: KProperty1<*, *>): R? {
+fun <R> Tabulator.CellComponent.getDataValue(vararg path: KProperty1<*, *>): R? {
     var d = getData().asDynamic()
     path.forEach { k ->
         d = d[k.name]
