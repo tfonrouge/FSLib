@@ -3,19 +3,19 @@ package com.fonrouge.fsLib.columnDefinition
 import js.objects.jso
 
 /**
- * Represents the configuration parameters for a number editor in a column definition.
+ * Represents configuration parameters for a number editor in a table cell.
  *
- * This class is used to specify constraints and behavior for a numeric editor in a table column.
+ * This interface is utilized in column definitions to customize the behavior of a numeric cell editor,
+ * allowing for control over value boundaries, step increments, input formatting, content selection,
+ * and navigation behavior.
  *
- * @property min The minimum allowed value for the editor.
- * @property max The maximum allowed value for the editor.
- * @property step The step size for incrementing or decrementing the value.
- * @property elementAttributes A map of attributes to set on the input element.
- * @property mask A string representing an input mask for the editor.
- * @property selectContents A flag indicating whether the editor should select the contents upon activation.
- * @property verticalNavigation Specifies the navigation behavior in the vertical direction, using the `VerticalNavigation` enum.
- *
- * Reference: https://tabulator.info/docs/6.3/edit#editor-number
+ * @property min Specifies the minimum value that the numeric editor can accept.
+ * @property max Specifies the maximum value that the numeric editor can accept.
+ * @property step Defines the incremental value by which the numeric editor increases or decreases.
+ * @property elementAttributes Allows specifying additional dynamic attributes for the editor elements.
+ * @property mask Specifies a string-based mask to control the input format.
+ * @property selectContents Indicates whether the editor should select all content when activated.
+ * @property verticalNavigation Determines the navigation behavior for vertical direction, either to the editor or table.
  */
 external interface CellNumberEditorParams {
     var min: Number?
@@ -33,11 +33,18 @@ enum class VerticalNavigationNumber {
 }
 
 /**
- * Defines configuration parameters for a number editor in a column definition.
+ * Configures and returns the parameters for a number editor in a column definition.
  *
- * @param block A lambda function used to configure the properties of the ColDefNumberEditorParams object, such as minimum value, maximum value, step size, input mask, and additional
- *  attributes.
- * @return A dynamic object representing the serialized JSON configuration for the number editor parameters.
+ * This function creates a `CellNumberEditorParams` object, which represents the configuration
+ * needed for a numeric editor in a table column. The properties of this object, such as minimum
+ * or maximum values, input masks, and navigation behavior, can be customized using the provided
+ * lambda function.
+ *
+ * @param block A lambda function used to configure the properties of the `CellNumberEditorParams` object.
+ * The lambda can define properties such as `min` (minimum value), `max` (maximum value), `step` (increment step size),
+ * `elementAttributes` (custom attributes for the input element), `mask` (for input masking),
+ * `selectContents` (to select contents upon activation), and `verticalNavigation` (to specify vertical navigation behavior).
+ * @return A `CellNumberEditorParams` object containing the customized configuration for the number editor.
  */
 @Suppress("unused")
 fun cellNumberEditorParams(block: CellNumberEditorParams.() -> Unit): CellNumberEditorParams = jso(block)
