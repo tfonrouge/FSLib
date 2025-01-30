@@ -49,5 +49,4 @@ enum class Sort {
     asc, desc
 }
 
-fun cellListEditorParams(block: CellListEditorParams.() -> Unit): CellListEditorParams =
-    jso(block)
+fun cellListEditorParams(block: CellListEditorParams.() -> Unit): CellListEditorParams = jso(block)

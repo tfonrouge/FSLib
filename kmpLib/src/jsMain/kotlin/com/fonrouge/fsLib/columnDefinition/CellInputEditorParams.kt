@@ -1,9 +1,6 @@
 package com.fonrouge.fsLib.columnDefinition
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToDynamic
+import js.objects.jso
 
 /**
  * Encapsulates configuration parameters for an input editor in a column definition.
@@ -17,20 +14,11 @@ import kotlinx.serialization.json.encodeToDynamic
  * @property selectContents Specifies whether the editor should select all contents upon activation.
  * @property elementAttributes A map of key-value pairs representing attributes to customize the input element.
  */
-@Serializable
-data class CellInputEditorParams(
-    var search: Boolean? = null,
-    var mask: String? = null,
-    var selectContents: Boolean? = null,
-    var elementAttributes: Map<String, String>? = null,
-) {
-    @Serializable
-    enum class VerticalNavigation {
-        editor, table
-    }
-
-    @OptIn(ExperimentalSerializationApi::class)
-    fun asJson(): dynamic = Json.encodeToDynamic(this)
+external interface CellInputEditorParams {
+    var search: Boolean?
+    var mask: String?
+    var selectContents: Boolean?
+    var elementAttributes: Map<String, String>?
 }
 
 /**
@@ -47,5 +35,4 @@ data class CellInputEditorParams(
  * @return A `dynamic` object representing the serialized JSON configuration for the input editor parameters.
  */
 @Suppress("unused")
-fun cellInputEditorParams(block: CellInputEditorParams.() -> Unit): dynamic =
-    CellInputEditorParams().apply(block).asJson()
+fun cellInputEditorParams(block: CellInputEditorParams.() -> Unit): CellInputEditorParams = jso(block)
