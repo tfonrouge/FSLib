@@ -31,6 +31,9 @@ external interface CellProgressFormatterParams {
     var colorAsArray: Array<String>?
     var colorAsFunction: ((Double) -> String)?
     var legend: Any?
+    var legendAsString: String?
+    var legendAsArray: Array<String>?
+    var legendAsFunction: ((Double) -> String)?
     var legendColor: Any?
     var legendColorAsString: String?
     var legendColorAsArray: Array<String>?
@@ -64,6 +67,9 @@ fun cellProgressFormatterParams(block: CellProgressFormatterParams.() -> Unit): 
     r.colorAsString?.let { r.color = it }
     r.colorAsArray?.let { r.color = it }
     r.colorAsFunction?.let { r.color = it }
+    r.legendAsString?.let { r.legend = it }
+    r.legendAsArray?.let { r.legend = it }
+    r.legendAsFunction?.let { r.legend = it }
     r.legendColorAsString?.let { r.legendColor = it }
     r.legendColorAsArray?.let { r.legendColor = it }
     r.legendColorAsFunction?.let { r.legendColor = it }
