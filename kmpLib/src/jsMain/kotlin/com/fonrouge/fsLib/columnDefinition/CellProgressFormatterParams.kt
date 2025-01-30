@@ -24,18 +24,18 @@ import js.objects.jso
  * @property legendAlign Specifies the alignment of the legend text. Options include `center`, `left`, `right`, or `justify`.
  */
 external interface CellProgressFormatterParams {
-    var min: Number
-    var max: Number
-    var color: Any
+    var min: Number?
+    var max: Number?
+    var color: Any?
     var colorAsString: String?
     var colorAsArray: Array<String>?
     var colorAsFunction: ((Double) -> String)?
-    var legend: Any
-    var legendColor: Any
+    var legend: Any?
+    var legendColor: Any?
     var legendColorAsString: String?
     var legendColorAsArray: Array<String>?
     var legendColorAsFunction: ((Double) -> String)?
-    var legendAlign: LegendAlign
+    var legendAlign: LegendAlign?
 }
 
 @Suppress("unused", "EnumEntryName")
