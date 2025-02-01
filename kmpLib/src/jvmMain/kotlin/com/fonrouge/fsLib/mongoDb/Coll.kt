@@ -1246,14 +1246,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         SimpleState(isOk = true)
 
     /**
-     * Constructs a MongoDB aggregation pipeline using the provided filter and optional field list.
+     * Generates a pipeline of BSON operations based on a lookup function and optional filtering fields.
      *
-     * @param apiFilter The filter defining the criteria for the lookup operation.
-     * @param fields An optional list of properties determining which result fields to include in the pipeline.
-     * @return A list of BSON objects representing the constructed aggregation pipeline.
+     * @param apiFilter A filter instance to be applied in the lookup function. Defaults to `commonContainer.apiFilterInstance()`.
+     * @param fields An optional list of properties to filter the results. If null or empty, no filtering is applied.
+     * @return A list of BSON operations representing the generated pipeline.
      */
     @Suppress("unused")
-    fun pipelineFromLookupFun(apiFilter: FILT, fields: List<KProperty1<in T, *>>? = null): List<Bson> {
+    fun pipelineFromLookupFun(
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        fields: List<KProperty1<in T, *>>? = null
+    ): List<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
         lookupFun(apiFilter)
             .filter { fields.isNullOrEmpty() || it.resultProperty in fields }
