@@ -1,5 +1,3 @@
 package com.fonrouge.fsLib.columnDefinition
 
-external interface CellLookupFormatterParams {
-
-}
+external interface CellLookupFormatterParams

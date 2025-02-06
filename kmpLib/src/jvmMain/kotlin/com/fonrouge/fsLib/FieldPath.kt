@@ -75,7 +75,7 @@ data class FieldPath<T : BaseDoc<*>, R>(
         get() = TODO("Not yet implemented")
     override val typeParameters: List<KTypeParameter>
         get() = TODO("Not yet implemented")
-    override val visibility: KVisibility?
+    override val visibility: KVisibility
         get() = TODO("Not yet implemented")
 
     override fun call(vararg args: Any?): R {
