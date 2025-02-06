@@ -30,7 +30,7 @@ private fun Navigo.onViewPage(): Navigo {
             configViewItemMap[route as? String]?.let { configViewItem ->
                 viewStateObservableValue.value = ViewState(configViewItem, UrlParams(match = match))
             }
-            configViewListMap[match.data.viewClass as String]?.let { configViewList ->
+            configViewListMap[route as? String]?.let { configViewList ->
                 viewStateObservableValue.value = ViewState(configViewList, UrlParams(match = match))
             }
         }
