@@ -10,7 +10,7 @@ plugins {
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-val libVersion = "1.3.3"
+val libVersion = "1.3.4"
 
 group = "com.fonrouge.kmpLib"
 version = libVersion
@@ -26,9 +26,8 @@ repositories {
 val mainClassName = "io.ktor.server.netty.EngineMain"
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
     jvm {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             freeCompilerArgs = listOf(
                 "-Xjsr305=strict",
@@ -129,8 +128,8 @@ android {
         minSdk = 28
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     dependencies {
         implementation(libs.core.ktx)
