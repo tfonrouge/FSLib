@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.config
 
+import com.fonrouge.fsLib.common.ICommon
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 
 /**

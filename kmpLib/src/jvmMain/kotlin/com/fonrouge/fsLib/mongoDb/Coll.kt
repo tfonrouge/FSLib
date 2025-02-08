@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.mongoDb
 
 import com.fonrouge.fsLib.FieldPath
 import com.fonrouge.fsLib.annotations.Collection
-import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.base.IAppRole

@@ -1,11 +1,11 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.config.ConfigDataItem
 import com.fonrouge.fsLib.config.ConfigDataItem.Companion.configDataItemMap
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
-import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask

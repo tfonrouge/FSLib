@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
-import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.mongodb.client.model.UnwindOptions
 import com.mongodb.client.model.Variable

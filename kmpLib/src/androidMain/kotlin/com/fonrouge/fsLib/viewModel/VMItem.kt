@@ -3,8 +3,8 @@ package com.fonrouge.fsLib.viewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.config.toIApiItem
+import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.common.toIApiItem
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter

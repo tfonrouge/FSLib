@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.tabulator
 
-import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc

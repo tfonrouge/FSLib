@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.config
+package com.fonrouge.fsLib.common
 
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import kotlinx.serialization.KSerializer

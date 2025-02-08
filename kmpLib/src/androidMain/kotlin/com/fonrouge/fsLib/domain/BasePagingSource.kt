@@ -2,7 +2,7 @@ package com.fonrouge.fsLib.domain
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.SimpleState

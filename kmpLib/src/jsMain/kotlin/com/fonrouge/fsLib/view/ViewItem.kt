@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.config.ConfigViewItem
-import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.toEncodedUrlString

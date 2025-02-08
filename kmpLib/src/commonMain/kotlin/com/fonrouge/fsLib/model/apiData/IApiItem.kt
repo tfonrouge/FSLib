@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.model.apiData
 
-import com.fonrouge.fsLib.config.ICommonContainer
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.base.IUser
 import com.fonrouge.fsLib.types.ApplicationCall

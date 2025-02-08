@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.common.ICommon
 import com.fonrouge.fsLib.config.ConfigView
-import com.fonrouge.fsLib.config.ICommon
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.lib.toEncodedUrlString

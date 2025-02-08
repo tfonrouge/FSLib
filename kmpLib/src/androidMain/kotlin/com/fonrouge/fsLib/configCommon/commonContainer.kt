@@ -7,8 +7,8 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.fonrouge.fsLib.config.ICommonContainer
-import com.fonrouge.fsLib.config.toIApiItem
+import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.common.toIApiItem
 import com.fonrouge.fsLib.model.apiData.*
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc

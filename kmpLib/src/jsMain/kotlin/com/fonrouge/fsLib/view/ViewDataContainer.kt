@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.view
 
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.config.ConfigViewContainer
-import com.fonrouge.fsLib.config.ICommonContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.browser.window
