@@ -179,20 +179,4 @@ android {
         debugImplementation(libs.ui.tooling)
         debugImplementation(libs.ui.test.manifest)
     }
-    /*
-        buildTypes {
-            getByName("release") {
-                isMinifyEnabled = false
-            }
-            getByName("debug") {
-                isMinifyEnabled = false
-            }
-        }
-    */
-    buildFeatures {
-//        compose = true
-    }
-    composeOptions {
-//        kotlinCompilerExtensionVersion = "1.5.14"
-    }
 }
