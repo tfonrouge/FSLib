@@ -40,9 +40,9 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
 
     @Suppress("MemberVisibilityCanBePrivate")
     var suspendPeriodicUpdate = false
-    abstract suspend fun dataUpdate()
+    abstract fun dataUpdate()
 
-    open suspend fun onDataUpdate() {
+    open fun onDataUpdate() {
         dataUpdate()
     }
 

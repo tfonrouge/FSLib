@@ -40,7 +40,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, *, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     var editable: (() -> Boolean) = { true },
-    icon: String? = null,
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
 ) {
@@ -129,7 +128,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         formatter = Formatter.ROWSELECTION
     )
 
-    open suspend fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
+    open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
 
     //    val columnList: List<ColumnDefinition<T>> get() = listOfNotNull(rowSelectedColumn) + columnDefinitionList()
     var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
@@ -276,7 +275,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * forces an update for the tabulator data
      */
-    final override suspend fun dataUpdate() {
+    final override fun dataUpdate() {
         if (jsTabulatorBuilt) {
             if (markReloadColumnDefinitions) {
                 markReloadColumnDefinitions = false
@@ -293,9 +292,10 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * load the column definitions from [columnDefinitionList] to the [tabulator]
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun loadColumnDefinitions() {
+    fun loadColumnDefinitions() {
         val columnList = columnDefinitionList()
         tabulator?.let { tabulator ->
+            console.warn("loading column definitions ...")
             tabulator.jsTabulator?.setColumns(
                 columnList.map {
                     it.toJs(tabulator, tabulator::translate, configView.configData.commonContainer.itemKClass)

@@ -108,41 +108,40 @@ abstract class ConfigDataItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                 params = paramList
             )
         )
-        callAgent.remoteCall(url, data, method = HttpMethod.valueOf(method.name))
-            .then { r: dynamic ->
-                val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-                if (r.error != null) {
-                    console.error("Server error:", r.error)
-                    Toast.danger(
-                        message = "Server error ${r.error}",
-                        options = ToastOptions(
-                            position = ToastPosition.BOTTOMRIGHT,
-                            escapeHtml = true,
-                            duration = 10000,
-                            stopOnFocus = true,
-                            newWindow = true
-                        )
+        callAgent.remoteCall(url = url, data = data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
+            val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+            if (r.error != null) {
+                console.error("Server error:", r.error)
+                Toast.danger(
+                    message = "Server error ${r.error}",
+                    options = ToastOptions(
+                        position = ToastPosition.BOTTOMRIGHT,
+                        escapeHtml = true,
+                        duration = 10000,
+                        stopOnFocus = true,
+                        newWindow = true
                     )
-                }
-                try {
-                    val itemResponse: ItemState<T> =
-                        Json.decodeFromDynamic(
-                            ItemState.serializer(commonContainer.itemSerializer),
-                            result
-                        )
-                    block(itemResponse)
-                } catch (e: Exception) {
-                    console.error(
-                        "Error decoding KClass",
-                        commonContainer.itemSerializer,
-                        "with serialized value",
-                        result,
-                        "exception:",
-                        e
-                    )
-                    e.printStackTrace()
-                }
+                )
             }
+            try {
+                val itemResponse: ItemState<T> =
+                    Json.decodeFromDynamic(
+                        ItemState.serializer(commonContainer.itemSerializer),
+                        result
+                    )
+                block(itemResponse)
+            } catch (e: Exception) {
+                console.error(
+                    "Error decoding KClass",
+                    commonContainer.itemSerializer,
+                    "with serialized value",
+                    result,
+                    "exception:",
+                    e
+                )
+                e.printStackTrace()
+            }
+        }
     }
 
     /**

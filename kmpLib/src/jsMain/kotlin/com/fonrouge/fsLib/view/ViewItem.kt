@@ -444,7 +444,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
-    final override suspend fun dataUpdate() {
+    final override fun dataUpdate() {
         /*
                 urlParams?.crudTask?.let { crudAction ->
                     configView.callItemService(
