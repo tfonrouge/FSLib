@@ -12,9 +12,7 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.js.Promise
@@ -30,7 +28,7 @@ import kotlin.js.Promise
  * @return A promise that resolves to the transformed data.
  */
 @Suppress("unused")
-@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalSerializationApi::class)
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommonContainer<T, ID, FILT>.getDataList(
     serviceManager: KVServiceManager<AIS>,
     apiListFun: suspend AIS.(ApiList<FILT>) -> ListState<T>,

@@ -105,7 +105,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(title = "", headerSort = false)
 
-    val errorStateObs = ObservableValue<Boolean>(false)
+    val errorStateObs = ObservableValue(false)
     var errorMessage: String? = null
 
     /**
@@ -120,7 +120,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /* dynamic content only used to get _id */
     var overItem: Any? = null
 
-    open val rowSelectedColumn: ColumnDefinition<T> = ColumnDefinition<T>(
+    open val rowSelectedColumn: ColumnDefinition<T> = ColumnDefinition(
         title = "<i class=\"fa-regular fa-square\"></i>",
         field = "rowSelected",
         hozAlign = Align.CENTER,
@@ -146,6 +146,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * Set to true to reload column definitions on next [dataUpdate]
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     var markReloadColumnDefinitions = false
 
     /**
@@ -170,7 +171,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     ) {
         configViewItem ?: return
         val apiItem = when (crudTask) {
-            CrudTask.Create -> ApiItem.Upsert.Create.Query<T, ID, FILT>(apiFilter = apiFilter)
+            CrudTask.Create -> ApiItem.Upsert.Create.Query(apiFilter = apiFilter)
             CrudTask.Read -> item?._id?.let { ApiItem.Read<T, ID, FILT>(id = item._id, apiFilter = apiFilter) }
             CrudTask.Update -> item?._id?.let {
                 ApiItem.Upsert.Update.Query<T, ID, FILT>(

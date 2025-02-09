@@ -124,6 +124,7 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
      * @return A Kotlin List of type [T] generated from the input data.
      * If an error occurs during the conversion, an empty list is returned.
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun toKotlinList(data: dynamic): List<T> =
         try {
             Json.decodeFromDynamic(

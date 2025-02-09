@@ -18,10 +18,10 @@ fun <T : BaseDoc<*>> ViewList<*, T, *, *, *>.columnDefinitionDeleteItem(): Colum
         title = "",
         field = "deleteItem",
         hozAlign = Align.CENTER,
-        formatterFunction = { cell, _, _ ->
+        formatterFunction = { _, _, _ ->
             "<i class=\"fa-solid fa-trash\"></i>"
         },
-        cellClick = { evt, cell ->
+        cellClick = { _, cell ->
             cell.item?.let { item ->
                 configDataItem?.confirmDeleteView(
                     item = item,

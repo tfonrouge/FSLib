@@ -124,7 +124,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     vPanel {
         bind(viewList.errorStateObs) { errorState ->
             viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
-            if (errorState == false) {
+            if (!errorState) {
                 viewList.tabulator = tabulatorViewList(
                     viewList = viewList,
                     apiListBlock = apiListBlock,
