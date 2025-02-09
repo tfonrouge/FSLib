@@ -22,7 +22,6 @@ import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator
 import io.kvision.toast.Toast
 import kotlinx.browser.window
-import kotlinx.coroutines.launch
 
 /**
  * Abstract class representing a list view with various properties and methods to manage and display collections of data items.
@@ -194,7 +193,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             if (crudTask == CrudTask.Delete) {
                 item?.let {
                     configViewItem.configData.confirmDeleteView(item, apiFilter = apiFilter) {
-                        AppScope.launch { dataUpdate() }
+                        dataUpdate()
                     }
                 }
             } else {
@@ -295,13 +294,9 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     fun loadColumnDefinitions() {
         val columnList = columnDefinitionList()
         tabulator?.let { tabulator ->
-            console.warn("loading column definitions ...")
-            tabulator.jsTabulator?.setColumns(
-                columnList.map {
-                    it.toJs(tabulator, tabulator::translate, configView.configData.commonContainer.itemKClass)
-                }.toTypedArray()
-            )
-            //columnDefinitionList()
+            tabulator.jsTabulator?.setColumns(columnList.map {
+                it.toJs(tabulator, tabulator::translate, configView.configData.commonContainer.itemKClass)
+            }.toTypedArray())
         }
     }
 

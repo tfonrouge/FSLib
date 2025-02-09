@@ -9,7 +9,6 @@ import com.fonrouge.fsLib.layout.toolBarList
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewDataContainer
 import com.fonrouge.fsLib.view.ViewDataContainer.Companion.handleInterval
 import com.fonrouge.fsLib.view.ViewItem
@@ -22,7 +21,6 @@ import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.utils.px
 import io.kvision.utils.vh
 import kotlinx.browser.window
-import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -34,7 +32,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
 ): TabulatorOptions<T> {
     val index = tabulatorOptions.index ?: "_id"
     val autoResize = tabulatorOptions.autoResize != false
-    val columns = tabulatorOptions.columns //?: viewList.columnList
+    val columns = tabulatorOptions.columns ?: viewList.columnDefinitionList()
     val columnDefaults = tabulatorOptions.columnDefaults ?: viewList.columnDefaults
     val dataLoader = tabulatorOptions.dataLoader == true
     val filterMode = tabulatorOptions.filterMode ?: FilterMode.REMOTE
@@ -167,9 +165,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                         }
                         jsTabulator?.on("tableBuilt") {
                             viewList.jsTabulatorBuilt = true
-                            AppScope.launch {
-                                viewList.loadColumnDefinitions()
-                            }
+//                            viewList.loadColumnDefinitions()
                         }
                         jsTabulator?.on("dataProcessing") {
                             window.setTimeout(

@@ -5,7 +5,6 @@ import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.browser.window
-import kotlinx.coroutines.launch
 import kotlin.js.Date
 
 /**
@@ -48,15 +47,13 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
 
     fun installUpdate(first: Boolean) {
         val callBlock = {
-            AppScope.launch {
-                try {
-                    onDataUpdate()
-                    if (this@ViewDataContainer is ViewList<*, *, *, *, *>) {
-                        (this@ViewDataContainer as ViewList<*, *, *, *, *>).tabulator?.onIntervalUpdate?.invoke()
-                    }
-                } catch (e: Exception) {
-                    console.error("Error on interval =", e)
+            try {
+                onDataUpdate()
+                if (this@ViewDataContainer is ViewList<*, *, *, *, *>) {
+                    (this@ViewDataContainer as ViewList<*, *, *, *, *>).tabulator?.onIntervalUpdate?.invoke()
                 }
+            } catch (e: Exception) {
+                console.error("Error on interval =", e)
             }
         }
         if (periodicUpdateDataView == true && !suspendPeriodicUpdate) {
@@ -87,7 +84,7 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
      */
     override fun onApiFilterUpdate() {
         super.onApiFilterUpdate()
-        AppScope.launch { dataUpdate() }
+        dataUpdate()
     }
 
     override fun onBeforeDispose() {

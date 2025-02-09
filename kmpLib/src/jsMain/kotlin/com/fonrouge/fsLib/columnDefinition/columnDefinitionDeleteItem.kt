@@ -1,12 +1,10 @@
 package com.fonrouge.fsLib.columnDefinition
 
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.tabulator.Align
 import io.kvision.tabulator.ColumnDefinition
 import io.kvision.toast.Toast
-import kotlinx.coroutines.launch
 
 /**
  * Configures a column definition for a "delete item" action in a table view.
@@ -27,9 +25,10 @@ fun <T : BaseDoc<*>> ViewList<*, T, *, *, *>.columnDefinitionDeleteItem(): Colum
             cell.item?.let { item ->
                 configDataItem?.confirmDeleteView(
                     item = item,
-                    onSuccess = { AppScope.launch { dataUpdate() } }
+                    onSuccess = { dataUpdate() }
+                ) ?: Toast.warning(
+                    message = "No 'ConfigDataItem${configView.configData.commonContainer.itemKClass.simpleName}' defined"
                 )
-                    ?: Toast.warning("No 'ConfigDataItem${configView.configData.commonContainer.itemKClass.simpleName}' defined")
             }
         }
     )

@@ -5,7 +5,6 @@ import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.tabulator.NavbarTabulator
 import com.fonrouge.fsLib.tabulator.navbarTabulator
-import com.fonrouge.fsLib.view.AppScope
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
@@ -17,7 +16,6 @@ import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
 import io.kvision.state.bind
-import kotlinx.coroutines.launch
 
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
     viewList: ViewList<*, T, ID, *, *>,
@@ -154,9 +152,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
         }
         nav(rightAlign = true) {
             navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
-                AppScope.launch {
-                    viewList.dataUpdate()
-                }
+                viewList.dataUpdate()
             }
             navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print").onClick {
                 viewList.outPrint()
