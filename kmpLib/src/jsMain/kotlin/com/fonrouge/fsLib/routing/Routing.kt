@@ -9,6 +9,14 @@ import com.fonrouge.fsLib.view.KVWebManager.viewStateObservableValue
 import com.fonrouge.fsLib.view.ViewState
 import io.kvision.navigo.Navigo
 
+/**
+ * Initializes the `Navigo` instance and sets up routes, including the home route and view-specific routes.
+ *
+ * This method configures the navigator to handle specific paths and their associated actions. When invoked,
+ * it sets up a state for the view, updating the `viewStateObservableValue` based on the matched route configuration.
+ *
+ * @return The `Navigo` instance after initialization, allowing for method chaining.
+ */
 fun Navigo.initialize(): Navigo {
     return this
         .onViewPage()
@@ -19,6 +27,16 @@ fun Navigo.initialize(): Navigo {
         })
 }
 
+/**
+ * Registers a route in the `Navigo` instance to handle dynamic view-specific paths.
+ * Updates the `viewStateObservableValue` with a new `ViewState` that contains the appropriate
+ * configuration and URL parameters based on the matched route.
+ *
+ * The method dynamically identifies the configuration type (view, item, or list)
+ * for the given route and initializes the state accordingly.
+ *
+ * @return The modified `Navigo` instance to allow method chaining.
+ */
 private fun Navigo.onViewPage(): Navigo {
     on(
         path = ":viewClass",

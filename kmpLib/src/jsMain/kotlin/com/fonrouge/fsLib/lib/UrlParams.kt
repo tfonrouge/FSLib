@@ -9,6 +9,13 @@ import kotlinx.serialization.serializer
 import kotlin.js.Json
 import kotlin.js.json
 
+/**
+ * Represents URL parameters that can be manipulated and used for various CRUD operations.
+ * This data class includes functionality for initializing, updating, and retrieving specific parameters.
+ *
+ * @property match Optional match object to initialize default parameters.
+ * @property params A mutable JSON object holding URL parameters as key-value pairs.
+ */
 data class UrlParams(
     val match: Match? = null,
     var params: Json = json()

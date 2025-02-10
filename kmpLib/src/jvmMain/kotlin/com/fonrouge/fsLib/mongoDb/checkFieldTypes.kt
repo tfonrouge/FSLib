@@ -23,6 +23,18 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
+/**
+ * Utility class for validating and potentially fixing field types in a MongoDB collection based on a given Kotlin class
+ * definition. The class ensures fields are stored with the correct type in the database by identifying discrepancies
+ * and applying necessary transformations or validations.
+ *
+ * @param K The Kotlin class type that defines the structure and type of fields for the collection.
+ * @param T The base document type that implements the [BaseDoc] interface.
+ * @param ID The type of the unique identifier field for the collection documents.
+ * @param baseDocKClass The KClass instance representing the document type `T` for type-checking.
+ * @param includeFields A list of specific fields to include in the validation process. If null, all fields are included.
+ * @param excludeFields A list of specific fields to exclude from the validation process. If null, no fields are excluded.
+ */
 @Suppress("unused")
 class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
     private val baseDocKClass: K,
@@ -146,6 +158,24 @@ class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
         return ItemState(isOk = true)
     }
 
+    /**
+     * Validates and processes the fields of a MongoDB collection based on their types,
+     * ensuring that fields conform to expected constraints and data types.
+     *
+     * This method iterates over the fields of the associated data class, checking for:
+     * - Null values in non-nullable fields.
+     * - Invalid or mismatched MongoDB data types for specific field types like `String`,
+     *   `OffsetDateTime`, `ObjectId`, `Boolean`, and numeric types (`Double`, `Float`, `Int`,
+     *   `Long`, etc.).
+     * - Unsupported or unknown field types.
+     *
+     * The method performs updates and corrections on fields with invalid values when necessary,
+     * and returns the overall validation state.
+     *
+     * @return A [SimpleState] representing the result of the run operation:
+     * - `State.Ok` if all validations pass without errors.
+     * - `State.Error` if any issues are detected and cannot be resolved.
+     */
     suspend fun run(): SimpleState {
         val collection: MongoCollection<Document> = mongoDatabase.getCollection(baseDocKClass.collectionName)
         baseDocKClass.memberProperties

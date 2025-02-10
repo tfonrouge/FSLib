@@ -17,6 +17,13 @@ import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
 import io.kvision.state.bind
 
+/**
+ * Generates a toolbar navigation list for a given `ViewList` and integrates it into a container's navigation bar.
+ *
+ * @param viewList The `ViewList` instance containing configuration, actions, and state for generating the toolbar.
+ * @param minToolbarSize A flag indicating whether to minimize the toolbar size. Defaults to true.
+ * @return A `NavbarTabulator` instance containing the configured toolbar navigation.
+ */
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
     viewList: ViewList<*, T, ID, *, *>,
     minToolbarSize: Boolean = true,

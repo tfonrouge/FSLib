@@ -4,7 +4,15 @@ import com.fonrouge.fsLib.types.OId
 import kotlin.js.Date
 
 /**
- * Get a [Date] from [OId] value
+ * Extension property to extract the creation date from an `OId` instance.
+ *
+ * Converts the first 8 characters of the `id` property (assumed to be in hexadecimal
+ * format) into a timestamp, representing the number of seconds since the Unix epoch.
+ * This timestamp is then multiplied by 1000 to convert it to milliseconds, and
+ * subsequently used to create a `Date` object.
+ *
+ * @receiver The nullable `OId` instance from which the date will be extracted.
+ * @return The `Date` object representing the creation time of the `OId`, or `null` if the `OId` is `null`.
  */
 val OId<out Any>?.date: Date?
     get() {

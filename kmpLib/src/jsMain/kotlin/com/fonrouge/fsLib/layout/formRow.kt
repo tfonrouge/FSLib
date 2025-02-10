@@ -6,6 +6,17 @@ import io.kvision.html.Div
 import io.kvision.html.div
 import io.kvision.utils.em
 
+/**
+ * Creates a row-style form group within the container.
+ *
+ * This method generates a `Div` element with predefined styles and allows
+ * customization through an optional text label and initialization block.
+ * The returned `Div` is aligned centrally by default.
+ *
+ * @param text Optional label text to be displayed above the row.
+ * @param init An optional lambda function to further configure the created `Div`.
+ * @return The created `Div` element representing the form row.
+ */
 @Suppress("unused")
 fun Container.formRow(
     text: String? = null,

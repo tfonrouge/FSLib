@@ -6,7 +6,10 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 
 /**
- * https://github.com/CodeSeven/toastr
+ * Displays a toast notification based on the current state of the object implementing `ISimpleState`.
+ *
+ * - If the state is `State.Ok`, a success toast is shown with a default or provided message and avatar.
+ * - If the state is `State.Warn`, a warning toast is shown with a default or provided error message and avatar.
  */
 fun ISimpleState.toast() {
     when (state) {

@@ -51,18 +51,42 @@ data class ItemState<T>(
     override val dateTime: OffsetDateTime = offsetDateTimeNow()
     override val hasError: Boolean get() = state == State.Error
 
+    /**
+     * Secondary constructor for the `ItemState` class that initializes its properties
+     * based on a `SimpleState` instance.
+     *
+     * This constructor extracts the `state`, `msgOk`, and `msgError` properties from the provided
+     * `SimpleState` instance and uses them to initialize an `ItemState` instance.
+     *
+     * @param simpleResponse An instance of `SimpleState` that provides the values for initializing the `ItemState` instance.
+     */
     constructor(simpleResponse: SimpleState) : this(
         state = simpleResponse.state,
         msgOk = simpleResponse.msgOk,
         msgError = simpleResponse.msgError,
     )
 
+    /**
+     * Secondary constructor for initializing the `ItemState` with a warning state and corresponding message.
+     *
+     * This constructor sets the `state` property to `State.Warn` and uses the provided `msgWarn` as the `msgError` value.
+     *
+     * @param msgWarn The warning message to be associated with this state.
+     */
     @Suppress("unused")
     constructor(msgWarn: String) : this(
         state = State.Warn,
         msgError = msgWarn,
     )
 
+    /**
+     * Constructs an `ItemState` instance with a state determined by the provided `isOk` value.
+     *
+     * @param isOk A boolean indicating whether the state should be `State.Ok` or `State.Error`.
+     * @param msgOk An optional message for a successful state. Defaults to `MSG_OK`.
+     * @param msgError An optional message for an error state. Defaults to `MSG_ERROR`.
+     * @param cargo Optional additional data or metadata for the state.
+     */
     constructor(
         isOk: Boolean,
         msgOk: String? = MSG_OK,
@@ -79,5 +103,11 @@ data class ItemState<T>(
         cargo = cargo
     )
 
+    /**
+     * A property that provides a simplified representation of the current item state.
+     *
+     * This property returns an instance of [SimpleState], encapsulating the state,
+     * optional success and error messages, and other relevant details from the parent [ItemState].
+     */
     val asSimpleState get() = SimpleState(this)
 }

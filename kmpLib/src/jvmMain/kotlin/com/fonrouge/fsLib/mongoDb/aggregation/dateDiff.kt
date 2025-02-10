@@ -11,7 +11,13 @@ import java.time.temporal.TemporalAccessor
 import kotlin.reflect.KProperty
 
 /**
- * $dateToString aggregator operator support.
+ * Calculates the difference between two dates based on the specified unit.
+ *
+ * @param endDate The end date as an OffsetDateTime object.
+ * @param unit The unit of time to calculate the difference in. Defaults to seconds.
+ * @param zoneId The time zone to use when calculating the time difference. Optional.
+ * @param startOfWeek The starting day of the week, if required. Optional.
+ * @return A Bson object representing the calculation of the date difference.
  */
 @Suppress("unused")
 fun KProperty<TemporalAccessor?>.dateDiff(

@@ -12,6 +12,23 @@ import io.kvision.table.table
 import io.kvision.utils.rem
 import kotlinx.browser.window
 
+/**
+ * Creates a button menu component that toggles a dropdown menu and can be configured
+ * with various styles, options, and behaviors.
+ *
+ * @param text The text displayed on the button.
+ * @param icon The optional icon displayed on the button.
+ * @param openStyle The button style applied when the menu is open.
+ * @param closedStyle The button style applied when the menu is closed.
+ * @param type The type of the button (default is `ButtonType.BUTTON`).
+ * @param disabled Specifies whether the button is disabled.
+ * @param separator Separator text or character to use between button components.
+ * @param labelFirst Determines if the label should appear before or after the icon.
+ * @param className Additional custom CSS class name for the button.
+ * @param menuOpen An observable value that determines the current open/close state of the menu.
+ * @param options A list of pairs, where each pair represents a dropdown menu item with a label (first) and a url (second).
+ * @param init An optional initialization block for additional button configuration.
+ */
 @Suppress("unused")
 fun Container.buttonMenu(
     text: String,

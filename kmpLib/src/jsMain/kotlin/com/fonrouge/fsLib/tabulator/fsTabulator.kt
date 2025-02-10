@@ -26,6 +26,13 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 
+/**
+ * Configures and returns a default `TabulatorOptions` instance based on the provided parameters and sensible defaults.
+ *
+ * @param tabulatorOptions The initial `TabulatorOptions` object to be configured.
+ * @param viewList The `ViewList` object used for deriving additional configurations, such as column definitions and defaults.
+ * @return A configured `TabulatorOptions` instance with default values applied wherever the input options are null or not specified.
+ */
 fun <T : BaseDoc<*>> defaultTabulatorOptions(
     tabulatorOptions: TabulatorOptions<T>,
     viewList: ViewList<*, T, *, *, *>
@@ -71,6 +78,20 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     )
 }
 
+/**
+ * Creates and configures a Tabulator-based view list for managing items within the specified container.
+ *
+ * @param configViewList The configuration for creating the view list instance.
+ * @param masterViewItem An optional view item representing the master item context for the Tabulator.
+ *                       Defaults to `null`.
+ * @param options Tabulator options for customizing the behavior of the table. Defaults to a new instance
+ *                of `TabulatorOptions`.
+ * @param types The set of table types used for building the Tabulator. Defaults to an empty set.
+ * @param minToolbarSize A flag to determine whether to configure the minimum toolbar size. Defaults to `true`.
+ * @param editable A lambda function returning whether or not the table should be editable. Defaults to `null`.
+ * @param init An optional initialization block to further customize the Tabulator view list. Defaults to `null`.
+ * @return A configured `ViewList` instance for managing the items within the specified container.
+ */
 inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
     configViewList: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, E, FILT, MID>,
     masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
@@ -92,6 +113,21 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     )
 }
 
+/**
+ * Configures a Tabulator table for the given [ViewList] and integrates it into a container.
+ *
+ * @param CC The type of the common container implementing [ICommonContainer].
+ * @param T The type of the document extending [BaseDoc].
+ * @param ID The type of the ID used for the document.
+ * @param FILT The type of the API filter implementing [IApiFilter].
+ * @param MID The type of the master ID used in the API filter.
+ * @param viewList The [ViewList] object containing the data and configurations required to set up the Tabulator.
+ * @param options Optional parameter for specifying additional [TabulatorOptions] for the table.
+ * @param types Optional parameter defining the [TableType] styles to be applied, such as STRIPED, BORDERED, HOVER, SMALL.
+ * @param minToolbarSize If true, renders a compact toolbar size; defaults to true.
+ * @param init Optional lambda function for additional initialization of the [TabulatorViewList].
+ * @return An updated [ViewList] instance with the configured Tabulator table and its associated settings.
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
     viewList: ViewList<CC, T, ID, FILT, MID>,

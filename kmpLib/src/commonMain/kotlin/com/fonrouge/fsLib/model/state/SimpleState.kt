@@ -36,18 +36,51 @@ data class SimpleState(
     override val dateTime: OffsetDateTime = offsetDateTimeNow()
     override val hasError: Boolean get() = state == State.Error
 
+    /**
+     * Secondary constructor for the `SimpleState` class that initializes its properties
+     * based on an `ItemState` instance.
+     *
+     * This constructor extracts the `state`, `msgOk`, and `msgError` properties from the provided
+     * `ItemState` instance and uses them to initialize a `SimpleState` instance.
+     *
+     * @param itemState An instance of `ItemState` that provides the values for initializing the `SimpleState` instance.
+     */
     constructor(itemState: ItemState<*>) : this(
         state = itemState.state,
         msgOk = itemState.msgOk,
         msgError = itemState.msgError
     )
 
+    /**
+     * Secondary constructor for initializing a `SimpleState` instance with a warning state.
+     *
+     * This constructor sets the `state` property to `State.Warn` and assigns the provided `msgWarn`
+     * value to the `msgError` property. It is used to represent a non-critical condition that requires
+     * attention or action.
+     *
+     * @param msgWarn A string containing the warning message to be associated with the state.
+     */
     @Suppress("unused")
     constructor(msgWarn: String) : this(
         state = State.Warn,
         msgError = msgWarn,
     )
 
+    /**
+     * Secondary constructor for initializing a `SimpleState` instance based on a boolean condition.
+     *
+     * This constructor determines the `state` property of the `SimpleState` instance based on the value
+     * of the `isOk` parameter:
+     * - If `isOk` is `true`, the `state` is set to `State.Ok`.
+     * - Otherwise, the `state` is set to `State.Error`.
+     *
+     * Additionally, optional success and error messages can be provided through the `msgOk` and `msgError`
+     * parameters, defaulting to predefined constants `MSG_OK` and `MSG_ERROR`, respectively.
+     *
+     * @param isOk A boolean indicating whether the state should be `State.Ok` or `State.Error`.
+     * @param msgOk An optional success message. Defaults to `MSG_OK`.
+     * @param msgError An optional error message. Defaults to `MSG_ERROR`.
+     */
     constructor(
         isOk: Boolean,
         msgOk: String? = MSG_OK,
@@ -62,5 +95,16 @@ data class SimpleState(
         msgError = msgError
     )
 
+    /**
+     * Transforms the current `SimpleState` instance into an `ItemState` instance.
+     *
+     * This method provides a convenient way to convert a `SimpleState` object
+     * into an `ItemState` object. The properties from the `SimpleState` instance,
+     * such as `state`, `msgOk`, and `msgError`, are used to initialize the
+     * corresponding properties in the resulting `ItemState` object.
+     *
+     * @param T The type parameter corresponding to the type of the item in `ItemState`.
+     * @return A new instance of `ItemState` initialized from the current `SimpleState`.
+     */
     fun <T> asItemState() = ItemState<T>(this)
 }
