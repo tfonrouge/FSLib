@@ -10,6 +10,4 @@ import org.bson.types.ObjectId
  *
  * @return A hexadecimal string representation of a newly generated ObjectId.
  */
-actual fun objectIdHexString(): String {
-    return ObjectId().toHexString()
-}
+actual fun objectIdHexString(): String = ObjectId().toHexString()

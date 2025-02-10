@@ -8,6 +8,4 @@ package com.fonrouge.fsLib
  *
  * @return A `String` containing 24 zero characters, representing a default ObjectId value.
  */
-actual fun objectIdHexString(): String {
-    return "0".repeat(24)
-}
+actual fun objectIdHexString(): String = "0".repeat(24)
