@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.common.getItemState
 import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.lib.toast
 import com.fonrouge.fsLib.model.apiData.CallType
@@ -12,13 +13,13 @@ import com.fonrouge.fsLib.model.state.ItemState
 import io.kvision.modal.Confirm
 import io.kvision.modal.ModalSize
 import io.kvision.remote.CallAgent
-import io.kvision.remote.HttpMethod
 import io.kvision.remote.JsonRpcRequest
 import io.kvision.remote.KVServiceManager
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
+import kotlinx.coroutines.await
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
@@ -108,7 +109,7 @@ abstract class ConfigDataItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
                 params = paramList
             )
         )
-        callAgent.remoteCall(url = url, data = data, method = HttpMethod.valueOf(method.name)).then { r: dynamic ->
+        callAgent.remoteCall(url = url, data = data, method = method).then { r: dynamic ->
             val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
             if (r.error != null) {
                 console.error("Server error:", r.error)
@@ -211,6 +212,9 @@ abstract class ConfigDataItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             itemState
         }
     }
+
+    suspend fun getItemState(id: ID, apiFilter: FILT = commonContainer.apiFilterInstance()): ItemState<T> =
+        commonContainer.getItemState(serviceManager, apiItemFun, id, apiFilter) { it }.await()
 
     init {
         val name = commonContainer::class.simpleName?.let {
