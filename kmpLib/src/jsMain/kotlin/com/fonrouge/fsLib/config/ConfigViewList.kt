@@ -12,25 +12,32 @@ import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
 /**
- * Abstract class representing a configuration for a view list.
+ * ConfigViewList is an abstract class that provides configuration and utilities for managing
+ * a list view of items associated with a specific container. It facilitates interaction with
+ * APIs, URL construction, and navigation for views.
  *
- * @param CC The type of the common container managing the related API items.
- * @param T The type of items managed in the list, which extends BaseDoc.
- * @param ID The type of the unique identifier for the items, which must be non-nullable.
- * @param V The type of the view list representation.
- * @param E The type of additional configuration data or extension.
- * @param FILT The type of the API filter used for querying the items, extending IApiFilter.
- * @param MID The type of metadata identifier used for filtering.
- * @property configData Configuration data specific to list views.
- * @property viewKClass The KClass reference of the specific view list type.
- * @property baseUrl Optional base URL, falling back to the name of the view class if not provided.
+ * @param CC The type of the common container, which must extend ICommonContainer.
+ * @param T The type of items managed by the view, which must extend BaseDoc.
+ * @param ID The type of the ID of the items in the view, which must be a non-nullable type.
+ * @param V The type of the view class associated with the container.
+ * @param E The type of the service manager that provides services for API interaction.
+ * @param FILT The type of API filter used for querying, must extend IApiFilter.
+ * @param MID The type of the filter metadata used by the API filter.
+ * @param commonContainer The common container instance managing the configured items.
+ * @param serviceManager The service manager that enables communication with API services.
+ * @param apiListFun A suspend function provided by the service manager to fetch a list of items
+ *                   corresponding to a specific filter.
+ * @param viewKClass The KClass instance of the view associated with the configuration.
+ * @param baseUrl Optional base URL for the view; defaults to the simple name of the view class.
  */
 abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, E : Any, FILT : IApiFilter<MID>, MID : Any>(
-    override val configData: ConfigDataList<CC, T, ID, E, FILT, MID>,
+    commonContainer: CC,
+    val serviceManager: KVServiceManager<E>,
+    val apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,
     viewKClass: KClass<out V>,
     baseUrl: String? = null
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
-    configData = configData,
+    commonContainer = commonContainer,
     viewKClass = viewKClass,
     baseUrl = baseUrl
 ) {
@@ -43,8 +50,8 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
     }
 
-    override val label: String get() = configData.commonContainer.labelList
-    override val labelUrl: Pair<String, String> by lazy { configData.commonContainer.labelList to url }
+    override val label: String get() = commonContainer.labelList
+    override val labelUrl: Pair<String, String> by lazy { commonContainer.labelList to url }
 
     /**
      * builds an url string with optional [IApiFilter] parameter
@@ -53,13 +60,13 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         return baseUrl + (apiFilter?.let {
             "?" + pairParam(
                 key = "apiFilter",
-                serializer = configData.commonContainer.apiFilterSerializer,
+                serializer = commonContainer.apiFilterSerializer,
                 obj = apiFilter
             )
         } ?: "")
     }
 
-    fun viewListUrl(apiFilter: FILT = configData.commonContainer.apiFilterInstance()): String {
+    fun viewListUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String {
         val params = mutableListOf<Pair<String, String>>()
         apiFilterParam(apiFilter).let { params.add(it) }
         return urlWithParams(*params.toTypedArray())
@@ -74,7 +81,7 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
      */
     @Suppress("unused")
     fun navigateTo(
-        apiFilter: FILT = configData.commonContainer.apiFilterInstance(),
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
         target: String = "_blank"
     ): Window? {
         return window.open(
@@ -89,16 +96,15 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 /**
- * Configures a view list with the specified parameters, linking a view class, a common container,
- * a service manager, an API function for fetching the list, and an optional base URL.
+ * Configures a view list component for managing and rendering a collection of items, where the component is tied to
+ * a specific container, API service manager, and filtering logic.
  *
- * @param viewKClass The Kotlin class of the view that needs configuration.
- * @param commonContainer An instance of the common container that manages the data model.
- * @param serviceManager The service manager responsible for handling the service logic and API interaction.
- * @param apiListFun A suspend function defining the API call for fetching a list of items,
- *                   which takes an API filter and returns a list state.
- * @param baseUrl An optional parameter specifying the base URL for API requests. Defaults to null.
- * @return A configured instance of ConfigViewList with the provided parameters.
+ * @param viewKClass The KClass type of the view list component.
+ * @param commonContainer The container managing the items and their lifecycle.
+ * @param serviceManager The service manager responsible for backend interactions.
+ * @param apiListFun The API function for fetching a filtered list of items.
+ * @param baseUrl An optional base URL for API requests. Defaults to null.
+ * @return A configured instance of ConfigViewList.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CC, T, ID, FILT, MID>, E : Any, ID : Any, FILT : IApiFilter<MID>, MID : Any> configViewList(
@@ -108,11 +114,9 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CC, T, ID
     apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,
     baseUrl: String? = null,
 ): ConfigViewList<CC, T, ID, V, E, FILT, MID> = object : ConfigViewList<CC, T, ID, V, E, FILT, MID>(
-    configData = configDataList<CC, T, ID, E, FILT, MID>(
-        commonContainer = commonContainer,
-        serviceManager = serviceManager,
-        apiListFun = apiListFun,
-    ),
+    commonContainer = commonContainer,
+    serviceManager = serviceManager,
+    apiListFun = apiListFun,
     viewKClass = viewKClass,
     baseUrl = baseUrl
 ) {}

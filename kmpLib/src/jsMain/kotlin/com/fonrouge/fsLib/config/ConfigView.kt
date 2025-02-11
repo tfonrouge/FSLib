@@ -11,26 +11,24 @@ import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
 /**
- * Abstract class representing a configuration view within the application.
- * A generic base for defining a view that is associated with a specific configuration
- * and common container. It provides utilities for managing URLs, parameters,
- * and creating new instances of the associated view.
+ * Abstract class that represents a configuration view for managing connections between common containers,
+ * views, and API filters. This class provides utility methods for URL management and API filter handling.
  *
- * @param CC The common container type that extends `ICommon`.
- * @param V The specific type of the `View` associated with this configuration view.
- * @param FILT The filter type utilized in the configuration, extending `IApiFilter`.
- * @property configData Contains configuration-related data including the common container and filters.
- * @property viewKClass The Kotlin class instance representing the associated view.
- * @property _baseUrl Optional base URL for the view, defaulting to null.
+ * @param CC The type of the common container implementing ICommon.
+ * @param V The type of the associated view.
+ * @param FILT The type of the API filter.
+ * @property commonContainer The common container defining shared data, filter serializers, and properties such as labels.
+ * @property viewKClass The Kotlin class reference for the associated view.
+ * @property _baseUrl The optional base URL for this configuration view.
  */
 abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter<*>>(
-    open val configData: ConfigData<CC, FILT>,
+    val commonContainer: CC,
     val viewKClass: KClass<out V>,
     internal val _baseUrl: String? = null,
 ) {
     open val baseUrl: String
         get() {
-            return _baseUrl ?: "View${configData.commonContainer.name}"
+            return _baseUrl ?: "View${commonContainer.name}"
         }
 
     companion object {
@@ -38,8 +36,8 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
     }
 
     val url: String get() = "#/" + this.baseUrl
-    open val label: String get() = configData.commonContainer.label
-    open val labelUrl: Pair<String, String> by lazy { configData.commonContainer.label to url }
+    open val label: String get() = commonContainer.label
+    open val labelUrl: Pair<String, String> by lazy { commonContainer.label to url }
 
     /**
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservable] from the [UrlParams]
@@ -78,7 +76,7 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
      * helper to build an api filter parameter in the url string
      */
     fun apiFilterParam(obj: FILT): Pair<String, String> =
-        pairParam(key = "apiFilter", serializer = configData.commonContainer.apiFilterSerializer, obj = obj)
+        pairParam(key = "apiFilter", serializer = commonContainer.apiFilterSerializer, obj = obj)
 
     init {
         if (this !is ConfigViewContainer<*, *, *, *, *>) {
@@ -88,13 +86,12 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
 }
 
 /**
- * Configures a view instance of the provided type `V` tied to a common container of type `CC` and
- * optionally a base URL. The configuration supports filters of type `FILT`.
+ * Configures and returns a `ConfigView` instance using the provided view class, common container, and optional base URL.
  *
- * @param viewKClass The [KClass] representing the type of the view to be configured.
- * @param commonContainer The common container instance of type `CC` which implements [ICommon].
- * @param baseUrl An optional base URL as a string utilized for configuration. Defaults to `null`.
- * @return An instance of [ConfigView] parameterized with the types `CC`, `V`, and `FILT`, which encapsulates the setup.
+ * @param viewKClass The `KClass` reference of the View class to be configured.
+ * @param commonContainer The instance of the `ICommon` implementation containing shared parameters and logic.
+ * @param baseUrl An optional base URL for the configuration. This is nullable and defaults to `null` if not provided.
+ * @return A `ConfigView` instance configured with the specified parameters and types.
  */
 @Suppress("unused")
 inline fun <CC : ICommon<FILT>, V : View<CC, FILT>, reified FILT : IApiFilter<*>> configView(
@@ -102,9 +99,7 @@ inline fun <CC : ICommon<FILT>, V : View<CC, FILT>, reified FILT : IApiFilter<*>
     commonContainer: CC,
     baseUrl: String? = null,
 ): ConfigView<CC, V, FILT> = object : ConfigView<CC, V, FILT>(
-    configData = configData<CC, FILT>(
-        commonContainer = commonContainer,
-    ),
+    commonContainer = commonContainer,
     viewKClass = viewKClass,
     _baseUrl = baseUrl,
 ) {}

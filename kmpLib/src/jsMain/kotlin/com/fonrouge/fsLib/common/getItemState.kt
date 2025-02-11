@@ -36,14 +36,6 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommo
     )
     return callAgent.remoteCall(url = url, data = data, method = method).then { r: dynamic ->
         val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-//        Promise.resolve(
-//            transform(
-//                Json.decodeFromDynamic(
-//                    ItemState.serializer(itemSerializer),
-//                    result
-//                )
-//            )
-//        )
         transform(
             Json.decodeFromDynamic(
                 ItemState.serializer(itemSerializer),

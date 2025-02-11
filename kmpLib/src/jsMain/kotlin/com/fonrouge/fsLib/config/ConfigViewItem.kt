@@ -18,25 +18,29 @@ import org.w3c.dom.Window
 import kotlin.reflect.KClass
 
 /**
- * An abstract class representing a configuration view item. This class manages the configuration
- * details, URL generation, and view item interactions for a specific type of data container.
+ * Represents an abstract base class for configuring a view item in the system.
+ * This class provides utility functions for creating, reading, updating, deleting,
+ * and navigating to specific URLs associated with the items it manages.
  *
- * @param CC The type of the common container associated with this configuration view item.
- * @param T The type of document this view item is working with.
- * @param ID The type of unique identifier used for the document.
- * @param V The type of the child view item class associated with this configuration view item.
- * @param AIS The API service type used for handling data operations.
- * @param FILT The type of filter used for querying the API.
- * @param configData The configuration data item, which holds core container information.
- * @param viewKClass The KClass of the view item.
- * @param baseUrl The base URL for the configuration view item, can be null.
+ * @param CC The type representing the common container that manages the shared configurations and properties.
+ * @param T The type representing the document or data model managed by the view item.
+ * @param ID The type representing the unique identifier for the document or data model.
+ * @param V The type representing the specific view item class to be used.
+ * @param AIS The type representing the API service used for backend interactions.
+ * @param FILT The type representing the filter applicable to API calls.
+ * @property serviceManager Manages API service interactions for this view item.
+ * @property apiItemFun A suspendable function that performs API operations on the given API item and returns its state.
+ * @constructor Initializes the class with necessary parameters for managing view items, including the common container,
+ *              service manager, API interaction function, and additional configurations such as the base URL.
  */
 abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiCommonService, FILT : IApiFilter<*>>(
-    override val configData: ConfigDataItem<CC, T, ID, FILT, AIS>,
+    commonContainer: CC,
+    val serviceManager: KVServiceManager<AIS>,
+    val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     viewKClass: KClass<out V>,
     baseUrl: String? = null
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
-    configData = configData,
+    commonContainer = commonContainer,
     viewKClass = viewKClass,
     baseUrl = baseUrl,
 ) {
@@ -49,15 +53,15 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
     }
 
-    override val label: String get() = configData.commonContainer.labelItem
+    override val label: String get() = commonContainer.labelItem
 
-    override val labelUrl: Pair<String, String> by lazy { configData.commonContainer.labelItem to url }
-
-    @Suppress("unused")
-    fun labelUrlRead(id: ID) = configData.commonContainer.labelItem to urlRead(id)
+    override val labelUrl: Pair<String, String> by lazy { commonContainer.labelItem to url }
 
     @Suppress("unused")
-    fun labelUrlUpdate(id: ID) = configData.commonContainer.labelItem to urlUpdate(id)
+    fun labelUrlRead(id: ID) = commonContainer.labelItem to urlRead(id)
+
+    @Suppress("unused")
+    fun labelUrlUpdate(id: ID) = commonContainer.labelItem to urlUpdate(id)
 
     val urlCreate: String
         get() {
@@ -85,7 +89,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     fun urlRead(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to Json.encodeToString(configData.commonContainer.idSerializer, id),
+                "id" to Json.encodeToString(commonContainer.idSerializer, id),
                 "action" to CrudTask.Read.name
             )
         return url + urlParams.toEncodedUrlString()
@@ -95,7 +99,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     fun urlDelete(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to Json.encodeToString(configData.commonContainer.idSerializer, id),
+                "id" to Json.encodeToString(commonContainer.idSerializer, id),
                 "action" to CrudTask.Delete.name
             )
         return url + urlParams.toEncodedUrlString()
@@ -104,7 +108,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     fun urlUpdate(id: ID): String {
         val urlParams =
             UrlParams(
-                "id" to Json.encodeToString(configData.commonContainer.idSerializer, id),
+                "id" to Json.encodeToString(commonContainer.idSerializer, id),
                 "action" to CrudTask.Update.name
             )
         return url + urlParams.toEncodedUrlString()
@@ -115,17 +119,17 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             is ApiItem.Upsert.Create.Query -> listOf("action" to CrudTask.Create.name)
             is ApiItem.Read -> listOf(
                 "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(configData.commonContainer.idSerializer, apiItem.id)
+                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
             )
 
             is ApiItem.Upsert.Update.Query -> listOf(
                 "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(configData.commonContainer.idSerializer, apiItem.id)
+                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
             )
 
             is ApiItem.Delete.Query -> listOf(
                 "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(configData.commonContainer.idSerializer, apiItem.id)
+                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
             )
 
             else -> null
@@ -133,7 +137,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             val urlParams = UrlParams(*params.toTypedArray())
             urlParams.pushParam(
                 "apiFilter" to Json.encodeToString(
-                    configData.commonContainer.apiFilterSerializer,
+                    commonContainer.apiFilterSerializer,
                     apiItem.apiFilter
                 )
             )
@@ -148,14 +152,14 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 /**
- * Configures a view item by associating it with a container, service manager, and relevant API logic.
+ * Configures a view item with the necessary dependencies and returns its configuration instance.
  *
- * @param viewKClass The Kotlin class of the view item to be configured.
- * @param commonContainer The common container instance managing the items.
- * @param serviceManager The service manager that provides API services for the operation.
- * @param apiItemFun A suspend function defining API-based operations for an item. Takes an API Item and returns the item's state.
- * @param baseUrl An optional base URL to be used for constructing routes or API endpoints.
- * @return A `ConfigViewItem` instance associating the specified view with its data, services, and configuration.
+ * @param viewKClass The Kotlin class reference for the view item of type `V`.
+ * @param commonContainer The common container instance responsible for handling the API items.
+ * @param serviceManager The service manager instance managing API services of type `AIS`.
+ * @param apiItemFun The suspend function defining the action on API items, executed in the context of `AIS`.
+ * @param baseUrl An optional base URL for the API endpoint associated with the configuration.
+ * @return A configuration instance of `ConfigViewItem` with the provided parameters.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiCommonService, FILT : IApiFilter<*>> configViewItem(
@@ -165,11 +169,9 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     baseUrl: String? = null
 ): ConfigViewItem<CC, T, ID, V, AIS, FILT> = object : ConfigViewItem<CC, T, ID, V, AIS, FILT>(
-    configData = configDataItem<CC, T, ID, FILT, AIS>(
-        commonContainer = commonContainer,
-        serviceManager = serviceManager,
-        apiItemFun = apiItemFun,
-    ),
+    commonContainer = commonContainer,
+    serviceManager = serviceManager,
+    apiItemFun = apiItemFun,
     viewKClass = viewKClass,
     baseUrl = baseUrl
 ) {}

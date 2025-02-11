@@ -60,7 +60,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                             show()
                             enableTooltip(
                                 TooltipOptions(
-                                    title = "Detail of " + configViewItem.configData.commonContainer.labelIdFunc(
+                                    title = "Detail of " + configViewItem.commonContainer.labelIdFunc(
                                         item
                                     ),
                                     animation = true,
@@ -91,7 +91,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                             }
                             enableTooltip(
                                 TooltipOptions(
-                                    title = "Create " + configViewItem.configData.commonContainer.labelItem,
+                                    title = "Create " + configViewItem.commonContainer.labelItem,
                                     animation = true,
                                     delay = delay
                                 )
@@ -113,7 +113,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                     show()
                                     enableTooltip(
                                         TooltipOptions(
-                                            title = "Update " + configViewItem.configData.commonContainer.labelIdFunc(
+                                            title = "Update " + configViewItem.commonContainer.labelIdFunc(
                                                 item
                                             ),
                                             animation = true,
@@ -140,7 +140,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                     show()
                                     enableTooltip(
                                         TooltipOptions(
-                                            title = "Delete " + configViewItem.configData.commonContainer.labelIdFunc(
+                                            title = "Delete " + configViewItem.commonContainer.labelIdFunc(
                                                 item
                                             ),
                                             animation = true,

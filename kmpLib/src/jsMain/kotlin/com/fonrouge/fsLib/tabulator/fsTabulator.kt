@@ -52,7 +52,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val paginationSize = tabulatorOptions.paginationSize ?: 50
     val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100)
     val persistenceID =
-        tabulatorOptions.persistenceID ?: viewList.configView.configData.commonContainer.itemKClass.simpleName
+        tabulatorOptions.persistenceID ?: viewList.configView.commonContainer.itemKClass.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
     val selectableRows = tabulatorOptions.selectableRows ?: 1
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
@@ -152,7 +152,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
 
     val apiListSerialize: (ApiList<FILT>) -> String = { apiList: ApiList<FILT> ->
         Json.encodeToString(
-            serializer = ApiList.serializer(viewList.configView.configData.commonContainer.apiFilterSerializer),
+            serializer = ApiList.serializer(viewList.configView.commonContainer.apiFilterSerializer),
             value = apiList
         )
     }

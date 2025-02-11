@@ -1,6 +1,9 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.common.callItemService
+import com.fonrouge.fsLib.common.confirmDeleteView
+import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
@@ -45,7 +48,7 @@ import web.prompts.confirm
  */
 @Suppress("unused")
 abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, *, FILT>,
+    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, IApiCommonService, FILT>,
     periodicUpdateDataView: Boolean? = null,
     icon: String? = null,
 ) : ViewDataContainer<CC, T, ID, FILT>(
@@ -84,7 +87,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
 
-    val labelId get() = configView.configData.commonContainer.labelIdFunc(item)
+    val labelId get() = configView.commonContainer.labelIdFunc(item)
 
     //    var itemId: U? = null
     var noBackButton = false
@@ -137,14 +140,16 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     val data = transformData(formPanel.getData())
                     val simpleState = formPanelValidate(data)
                     if (simpleState.state != State.Error) {
-                        configView.configData.callItemService(
+                        configView.commonContainer.callItemService<T, ID, FILT, IApiCommonService>(
+                            serviceManager = configView.serviceManager,
+                            apiItemFun = configView.apiItemFun,
                             crudTask = crudAction,
                             callType = CallType.Action,
                             id = item?._id,
                             item = data,
                             orig = origSerialized?.let {
                                 Json.decodeFromString(
-                                    deserializer = configView.configData.commonContainer.itemSerializer,
+                                    deserializer = configView.commonContainer.itemSerializer,
                                     string = it
                                 )
                             },
@@ -153,7 +158,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             block?.invoke(itemResponse)
                             if (crudAction == CrudTask.Update && itemResponse.hasError.not()) {
                                 origSerialized = Json.encodeToString(
-                                    serializer = configView.configData.commonContainer.itemSerializer,
+                                    serializer = configView.commonContainer.itemSerializer,
                                     value = data
                                 )
                             }
@@ -181,12 +186,12 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             try {
                 val s1 = formPanel?.getData()?.let {
                     Json.encodeToString(
-                        configView.configData.commonContainer.itemSerializer,
+                        configView.commonContainer.itemSerializer,
                         transformData(it)
                     )
                 }
                 val s2 =
-                    item?.let { Json.encodeToString(configView.configData.commonContainer.itemSerializer, it) }
+                    item?.let { Json.encodeToString(configView.commonContainer.itemSerializer, it) }
                 if (s1 != s2) {
                     proceedClose = confirm("Cancel and forget current changes ?")
                 }
@@ -287,7 +292,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     formPanel?.setData(it)
                     origSerialized = formPanel?.getData()?.let {
                         Json.encodeToString(
-                            configView.configData.commonContainer.itemSerializer,
+                            configView.commonContainer.itemSerializer,
                             transformData(it)
                         )
                     }
@@ -325,15 +330,22 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 urlParams?.crudTask?.let { crudAction ->
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
-                            configView.configData.confirmDeleteView(item, apiFilter = apiFilter)
-                        } ?: Toast.danger("${configView.configData.commonContainer.labelItem} not valid ...")
+                            configView.commonContainer.confirmDeleteView(
+                                serviceManager = configView.serviceManager,
+                                apiItemFun = configView.apiItemFun,
+                                item = item,
+                                apiFilter = apiFilter
+                            )
+                        } ?: Toast.danger("${configView.commonContainer.labelItem} not valid ...")
                     } else {
-                        configView.configData.callItemService(
+                        configView.commonContainer.callItemService(
+                            serviceManager = configView.serviceManager,
+                            apiItemFun = configView.apiItemFun,
                             crudTask = crudAction,
                             callType = CallType.Query,
                             id = urlParams?.id?.let {
                                 Json.decodeFromString(
-                                    configView.configData.commonContainer.idSerializer,
+                                    configView.commonContainer.idSerializer,
                                     it
                                 )
                             },
@@ -345,7 +357,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                     urlParams?.params?.set(
                                         propertyName = "id",
                                         value = Json.encodeToString(
-                                            configView.configData.commonContainer.idSerializer,
+                                            configView.commonContainer.idSerializer,
                                             it
                                         )
                                     )
@@ -419,10 +431,10 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     override val label: String
-        get() = "${configView.label}: ${configView.configData.commonContainer.labelIdFunc(item)}"
+        get() = "${configView.label}: ${configView.commonContainer.labelIdFunc(item)}"
 
     fun encodeId(id: ID? = item?._id): String? {
-        return id?.let { Json.encodeToString(configView.configData.commonContainer.idSerializer, id) }
+        return id?.let { Json.encodeToString(configView.commonContainer.idSerializer, id) }
     }
 
     /**
@@ -434,7 +446,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun formPanelValidate(data: T?): SimpleState =
         SimpleState(
             isOk = data != null,
-            msgError = "${configView.configData.commonContainer.labelItem} is null"
+            msgError = "${configView.commonContainer.labelItem} is null"
         )
 
     /**
