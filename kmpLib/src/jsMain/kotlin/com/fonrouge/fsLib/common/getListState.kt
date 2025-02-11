@@ -29,7 +29,7 @@ import kotlin.js.Promise
  */
 @Suppress("unused")
 @OptIn(ExperimentalSerializationApi::class)
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommonContainer<T, ID, FILT>.getDataList(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommonContainer<T, ID, FILT>.getListState(
     serviceManager: KVServiceManager<AIS>,
     apiListFun: suspend AIS.(ApiList<FILT>) -> ListState<T>,
     apiFilter: FILT = apiFilterInstance(),

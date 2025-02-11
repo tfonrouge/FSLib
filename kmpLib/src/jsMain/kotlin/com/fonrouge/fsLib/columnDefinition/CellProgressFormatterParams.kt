@@ -14,13 +14,13 @@ import js.objects.jso
  * or a function to dynamically determine the color based on the progress value.
  * @property colorAsString Represents the color as a string value, if applicable.
  * @property colorAsArray Represents the color as an array of string values, if applicable.
- * @property colorAsFunction A function that calculates the color of the progress bar based on a progress value.
+ * @property colorAsFun A function that calculates the color of the progress bar based on a progress value.
  * @property legend Represents the legend associated with the progress bar, providing contextual information.
  * @property legendColor Defines the color used for the legend. This can be a single color, an array of colors,
  * or a function to dynamically determine the color based on the associated value.
  * @property legendColorAsString Represents the legend color as a string value, if applicable.
  * @property legendColorAsArray Represents the legend color as an array of string values, if applicable.
- * @property legendColorAsFunction A function that determines the legend color dynamically based on a value.
+ * @property legendColorAsFun A function that determines the legend color dynamically based on a value.
  * @property legendAlign Specifies the alignment of the legend text. Options include `center`, `left`, `right`, or `justify`.
  */
 external interface CellProgressFormatterParams {
@@ -29,15 +29,15 @@ external interface CellProgressFormatterParams {
     var color: Any?
     var colorAsString: String?
     var colorAsArray: Array<String>?
-    var colorAsFunction: ((Double) -> String)?
+    var colorAsFun: ((Double) -> String)?
     var legend: Any?
     var legendAsString: String?
     var legendAsArray: Array<String>?
-    var legendAsFunction: ((Double) -> String)?
+    var legendAsFun: ((Double) -> String)?
     var legendColor: Any?
     var legendColorAsString: String?
     var legendColorAsArray: Array<String>?
-    var legendColorAsFunction: ((Double) -> String)?
+    var legendColorAsFun: ((Double) -> String)?
     var legendAlign: LegendAlign?
 }
 
@@ -66,12 +66,12 @@ fun cellProgressFormatterParams(block: CellProgressFormatterParams.() -> Unit): 
     val r: CellProgressFormatterParams = jso(block)
     r.colorAsString?.let { r.color = it }
     r.colorAsArray?.let { r.color = it }
-    r.colorAsFunction?.let { r.color = it }
+    r.colorAsFun?.let { r.color = it }
     r.legendAsString?.let { r.legend = it }
     r.legendAsArray?.let { r.legend = it }
-    r.legendAsFunction?.let { r.legend = it }
+    r.legendAsFun?.let { r.legend = it }
     r.legendColorAsString?.let { r.legendColor = it }
     r.legendColorAsArray?.let { r.legendColor = it }
-    r.legendColorAsFunction?.let { r.legendColor = it }
+    r.legendColorAsFun?.let { r.legendColor = it }
     return r
 }
