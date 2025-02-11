@@ -310,7 +310,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 }
             }
             nav(rightAlign = true) {
-                if (this@View is ViewItem<*, *, *, *>) {
+                if (this@View is ViewItem<*, *, *, *, *>) {
                     if (urlParams?.actionUpsert == true) {
                         navButtonBack = button(
                             text = " ",

@@ -36,19 +36,23 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 /**
- * Abstract class representing a view item within a common container.
+ * Represents an abstract class that serves as the base for handling view items in the application.
  *
- * @param CC The common container type.
- * @param T The item type.
- * @param ID The item ID type.
- * @param FILT The filter type.
- * @param configView The configuration for the view item.
- * @param periodicUpdateDataView Flag to enable or disable periodic updates.
- * @param icon The icon representation for the view item.
+ * It provides core functionalities for defining, manipulating, and interacting with view components,
+ * particularly those that involve CRUD operations and item state management.
+ *
+ * @param CC The type of the common container implementation which extends [ICommonContainer].
+ * @param T The type of the base document used within the view item.
+ * @param ID The type of the identifier for the base document.
+ * @param FILT The type of the API filter associated with the view item.
+ * @param AIS The type of the API common service used during operations.
+ * @param configView The configuration for the view item defining its behavior, display, and handling.
+ * @param periodicUpdateDataView Indicates whether periodic updates of the view's data are allowed.
+ * @param icon An optional icon to be associated with the view item.
  */
 @Suppress("unused")
-abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, IApiCommonService, FILT>,
+abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService>(
+    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT, AIS>, AIS, FILT>,
     periodicUpdateDataView: Boolean? = null,
     icon: String? = null,
 ) : ViewDataContainer<CC, T, ID, FILT>(
@@ -140,7 +144,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     val data = transformData(formPanel.getData())
                     val simpleState = formPanelValidate(data)
                     if (simpleState.state != State.Error) {
-                        configView.commonContainer.callItemService<T, ID, FILT, IApiCommonService>(
+                        configView.commonContainer.callItemService(
                             serviceManager = configView.serviceManager,
                             apiItemFun = configView.apiItemFun,
                             crudTask = crudAction,

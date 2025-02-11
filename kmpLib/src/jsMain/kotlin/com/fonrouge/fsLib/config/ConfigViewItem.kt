@@ -33,7 +33,7 @@ import kotlin.reflect.KClass
  * @constructor Initializes the class with necessary parameters for managing view items, including the common container,
  *              service manager, API interaction function, and additional configurations such as the base URL.
  */
-abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiCommonService, FILT : IApiFilter<*>>(
+abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT, AIS>, AIS : IApiCommonService, FILT : IApiFilter<*>>(
     commonContainer: CC,
     val serviceManager: KVServiceManager<AIS>,
     val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
@@ -152,17 +152,18 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 /**
- * Configures a view item with the necessary dependencies and returns its configuration instance.
+ * Configures a view item with the specified parameters, establishing interactions
+ * between the front-end view and the underlying service, container, and API logic.
  *
- * @param viewKClass The Kotlin class reference for the view item of type `V`.
- * @param commonContainer The common container instance responsible for handling the API items.
- * @param serviceManager The service manager instance managing API services of type `AIS`.
- * @param apiItemFun The suspend function defining the action on API items, executed in the context of `AIS`.
- * @param baseUrl An optional base URL for the API endpoint associated with the configuration.
- * @return A configuration instance of `ConfigViewItem` with the provided parameters.
+ * @param viewKClass The KClass instance of the view item being configured.
+ * @param commonContainer The common container responsible for managing items of the specified type.
+ * @param serviceManager The service manager providing access to the API common service.
+ * @param apiItemFun A suspend function defining the API interaction for processing items.
+ * @param baseUrl An optional base URL used as part of the configuration.
+ * @return A ConfigViewItem instance configured with the provided parameters.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, AIS : IApiCommonService, FILT : IApiFilter<*>> configViewItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT, AIS>, AIS : IApiCommonService, FILT : IApiFilter<*>> configViewItem(
     viewKClass: KClass<out V>,
     commonContainer: CC,
     serviceManager: KVServiceManager<AIS>,
