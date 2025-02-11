@@ -187,7 +187,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * to render the main content of the page.
      *
      * A binding to `apiFilterObservable` is established to monitor changes in the API filter.
-     * This triggers the `onApiFilterUpdate` method, which can be used to handle any updates,
+     * This triggers the `onApiFilterChange` method, which can be used to handle any updates,
      * and `apiFilterToUrl` to update the browser's URL appropriately. After the initial rendering
      * and setup, the `onAfterDisplayPage` method is called to perform any post-rendering actions.
      *
@@ -203,7 +203,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             onBeforeDisplayPage(this@startDisplayPage)
             this@startDisplayPage.displayPage()
             bind(apiFilterObservable) {
-                onApiFilterUpdate()
+                onApiFilterChange()
                 if (mainView) apiFilterToUrl()
             }
             onAfterDisplayPage()
@@ -248,7 +248,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * Override this method to implement additional logic that should be executed
      * when the API filter is updated.
      */
-    open fun onApiFilterUpdate() {
+    open fun onApiFilterChange() {
         updateBanner()
     }
 
