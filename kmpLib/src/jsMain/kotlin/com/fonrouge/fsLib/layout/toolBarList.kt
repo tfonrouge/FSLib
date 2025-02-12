@@ -43,7 +43,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
                 }
             }
-            viewList.configViewItem?.let { configViewItem ->
+            viewList.configViewItem()?.let { configViewItem ->
                 navLink(
                     label = if (minToolbarSize) "" else "Detail",
                     icon = iconCrud(CrudTask.Read),
@@ -73,7 +73,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             }
         }
         nav {
-            viewList.configViewItem?.let { configViewItem ->
+            viewList.configViewItem()?.let { configViewItem ->
                 if (viewList.editable()) {
                     dropDown(
                         text = "Edit",

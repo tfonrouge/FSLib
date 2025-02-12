@@ -55,18 +55,18 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * configuring CRUD-related operations, backend API interactions, and other functionalities tied to
      * the view item.
      */
-    var configViewItem: ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>? =
-        configViewItem
-        get() {
-            if (field != null) return field
-            val viewClassName = configView.viewKClass.simpleName!!
-            val name = if (viewClassName.startsWith("ViewList")) {
-                viewClassName.replaceFirst("ViewList", "ViewItem")
-            } else {
-                "ViewItem${configView.commonContainer.itemKClass.js.name}"
-            }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>>()
+    private var _configViewItem: ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>? = configViewItem
+    fun configViewItem(): ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>? {
+        if (_configViewItem != null) return _configViewItem
+        val viewClassName = configView.viewKClass.simpleName!!
+        val name = if (viewClassName.startsWith("ViewList")) {
+            viewClassName.replaceFirst("ViewList", "ViewItem")
+        } else {
+            "ViewItem${configView.commonContainer.itemKClass.js.name}"
         }
+        _configViewItem = configViewItemMap[name]?.unsafeCast<ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>>()
+        return _configViewItem
+    }
 
     open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(title = "", headerSort = false)
 
@@ -132,7 +132,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItemObs.value,
-        configViewItem: ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>? = this.configViewItem,
+        configViewItem: ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>? = this.configViewItem(),
     ) {
         configViewItem ?: return
         val apiItem = when (crudTask) {
@@ -196,7 +196,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 null
             }
         }
-        val configViewItem = configViewItem
+        val configViewItem = configViewItem()
         val menu = mutableListOf<TabulatorMenuItem>()
         with(menu) {
             val labelId = configViewItem?.commonContainer?.labelIdFunc?.invoke(item) ?: ""

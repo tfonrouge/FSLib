@@ -25,8 +25,8 @@ import io.kvision.tabulator.ColumnDefinition
  */
 @Suppress("unused")
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> ViewList<*, T, ID, FILT, *>.columnDefinitionDeleteItem(
-    serviceManager: KVServiceManager<AIS>,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+    serviceManager: KVServiceManager<AIS>? = null,
+    apiItemFun: (suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>)? = null,
 ): ColumnDefinition<T> {
     return ColumnDefinition<T>(
         title = "",
@@ -37,12 +37,22 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> V
         },
         cellClick = { _, cell ->
             cell.item?.let { item ->
-                configView.commonContainer.confirmDeleteView(
-                    serviceManager = serviceManager,
-                    apiItemFun = apiItemFun,
-                    item = item,
-                    onSuccess = { dataUpdate() }
-                )
+                if (serviceManager != null && apiItemFun != null) {
+                    configView.commonContainer.confirmDeleteView(
+                        serviceManager = serviceManager,
+                        apiItemFun = apiItemFun,
+                        item = item,
+                        onSuccess = { dataUpdate() }
+                    )
+                } else {
+                    configViewItem()?.let { configViewItem ->
+                        configViewItem.commonContainer.confirmDeleteView(
+                            serviceManager = configViewItem.serviceManager,
+                            apiItemFun = configViewItem.apiItemFun,
+                            item = item
+                        )
+                    }
+                }
             }
         }
     )
