@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.common.callItemService
 import com.fonrouge.fsLib.common.confirmDeleteView
+import com.fonrouge.fsLib.common.getItemState
 import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
@@ -461,18 +462,17 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
     final override fun dataUpdate() {
-        /*
-                urlParams?.crudTask?.let { crudAction ->
-                    configView.callItemService(
-                        crudTask = crudAction,
-                        callType = ApiItem.CallType.Query,
-                        id = item?._id,
-                        apiFilter = apiFilter.value
-                    ) { itemResponse ->
-                        data.value = itemResponse
-                        itemResponse
-                    }
+        if (urlParams?.crudTask == CrudTask.Read) {
+            item?._id?.let { id ->
+                configView.commonContainer.getItemState(
+                    serviceManager = configView.serviceManager,
+                    apiItemFun = configView.apiItemFun,
+                    id = id,
+                    apiFilter = apiFilter,
+                ) {
+                    itemObservable.value = it.item
                 }
-        */
+            }
+        }
     }
 }

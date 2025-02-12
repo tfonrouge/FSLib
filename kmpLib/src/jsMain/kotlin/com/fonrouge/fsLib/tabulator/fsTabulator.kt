@@ -10,7 +10,6 @@ import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewDataContainer
-import com.fonrouge.fsLib.view.ViewDataContainer.Companion.handleInterval
 import com.fonrouge.fsLib.view.ViewItem
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.*
@@ -227,7 +226,8 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
             }
         }
     }
-    if (viewList.allowInstallUpdate && handleInterval == null) {
+    if (viewList.allowInstallUpdate) {
+//        console.warn("installUpdate", viewList)
         viewList.installUpdate(true)
     }
     return viewList

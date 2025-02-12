@@ -5,6 +5,7 @@ import com.fonrouge.fsLib.config.ConfigViewContainer
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import kotlinx.browser.window
+import kotlinx.coroutines.launch
 import kotlin.js.Date
 
 /**
@@ -24,10 +25,12 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
 ) {
     companion object {
         var startTime = 0L
+        val dataUpdateFuncs = HashMap<Pair<Int, String>, () -> Unit>()
         var handleInterval: Int? = null
             set(value) {
                 field?.let {
                     window.clearInterval(it)
+                    dataUpdateFuncs.clear()
                 }
                 field = value
             }
@@ -41,36 +44,45 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
     var suspendPeriodicUpdate = false
     abstract fun dataUpdate()
 
-    open fun onDataUpdate() {
+    open val onPeriodicDataUpdate: (() -> Unit)? = {
         dataUpdate()
     }
 
     fun installUpdate(first: Boolean) {
+        onPeriodicDataUpdate?.let {
+            dataUpdateFuncs[this.hashCode() to (this::class.simpleName ?: "?")] = it
+        }
         val callBlock = {
             try {
-                onDataUpdate()
-                if (this@ViewDataContainer is ViewList<*, *, *, *, *>) {
-                    (this@ViewDataContainer as ViewList<*, *, *, *, *>).tabulator?.onIntervalUpdate?.invoke()
+//                console.warn("dataUpdateFuncs", dataUpdateFuncs.map { it.key }.toObj())
+                AppScope.launch {
+                    dataUpdateFuncs.forEach {
+//                        console.warn("callBlock", it.key, it.value.toString().substringBefore("("))
+                        launch { it.value.invoke() }
+                    }
                 }
+                onPeriodicDataUpdate?.invoke()
             } catch (e: Exception) {
                 console.error("Error on interval =", e)
             }
         }
-        if (periodicUpdateDataView == true && !suspendPeriodicUpdate) {
+        if (handleInterval == null && periodicUpdateDataView == true) {
             var lock = false
             handleInterval = window.setInterval(
                 handler = {
-                    val curTime = (Date().getTime() / 1000).toLong()
-                    if ((curTime - startTime) > periodicUpdateViewInterval) {
-                        if (!lock) {
-                            startTime = curTime
-                            lock = true
-                            callBlock()
-                            lock = false
+                    if (!suspendPeriodicUpdate) {
+                        val curTime = (Date().getTime() / 1000).toLong()
+                        if ((curTime - startTime) > periodicUpdateViewInterval) {
+                            if (!lock) {
+                                startTime = curTime
+                                lock = true
+                                callBlock()
+                                lock = false
+                            }
                         }
                     }
                 },
-                timeout = 250
+                timeout = 250,
             )
         }
         if (first) {
