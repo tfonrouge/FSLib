@@ -35,7 +35,7 @@ import kotlinx.browser.window
 @Suppress("unused")
 abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
     final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, *, FILT, MID>,
-    configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, IApiCommonService, FILT>? = null,
+    configViewItem: ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>? = null,
     periodicUpdateDataView: Boolean? = null,
     var editable: (() -> Boolean) = { true },
 ) : ViewDataContainer<CC, T, ID, FILT>(
@@ -55,7 +55,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * configuring CRUD-related operations, backend API interactions, and other functionalities tied to
      * the view item.
      */
-    var configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, IApiCommonService, FILT>? =
+    var configViewItem: ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>? =
         configViewItem
         get() {
             if (field != null) return field
@@ -65,7 +65,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             } else {
                 "ViewItem${configView.commonContainer.itemKClass.js.name}"
             }
-            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, IApiCommonService, FILT>>()
+            return configViewItemMap[name]?.unsafeCast<ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>>()
         }
 
     open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(title = "", headerSort = false)
@@ -132,7 +132,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItemObs.value,
-        configViewItem: ConfigViewItem<ICommonContainer<T, ID, FILT>, T, ID, *, IApiCommonService, FILT>? = this.configViewItem,
+        configViewItem: ConfigViewItem<CC, T, ID, *, IApiCommonService, FILT>? = this.configViewItem,
     ) {
         configViewItem ?: return
         val apiItem = when (crudTask) {
