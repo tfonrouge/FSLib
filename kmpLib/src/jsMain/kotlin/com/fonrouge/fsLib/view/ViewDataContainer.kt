@@ -40,6 +40,13 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
         }
     }
 
+    /**
+     * Determines whether the installation of periodic updates is allowed.
+     * This variable can be toggled to enable or disable periodic updates,
+     * influencing the behavior of update-related operations within the system.
+     */
+    var allowInstallPeriodicUpdate: Boolean = true
+
     @Suppress("MemberVisibilityCanBePrivate")
     var suspendPeriodicUpdate = false
     abstract fun dataUpdate()
@@ -49,6 +56,7 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
     }
 
     fun installUpdate(first: Boolean) {
+//        console.warn("installUpdate", this.hashCode(), this::class.simpleName, periodicUpdateDataView)
         onPeriodicDataUpdate?.let {
             dataUpdateFuncs[this.hashCode() to (this::class.simpleName ?: "?")] = it
         }

@@ -226,8 +226,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
             }
         }
     }
-    if (viewList.allowInstallUpdate) {
-//        console.warn("installUpdate", viewList)
+    if (viewList.allowInstallPeriodicUpdate) {
         viewList.installUpdate(true)
     }
     return viewList

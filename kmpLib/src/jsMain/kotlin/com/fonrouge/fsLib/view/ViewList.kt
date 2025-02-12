@@ -41,8 +41,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
 ) {
-    var allowInstallUpdate: Boolean = true
-
     /**
      * Represents a configuration holder for a view item in a ViewList.
      *
