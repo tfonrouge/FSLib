@@ -5,11 +5,11 @@ import com.fonrouge.fsLib.model.base.IUser
 import com.fonrouge.fsLib.types.ApplicationCall
 
 /**
- * A sealed class representing different types of API operations.
+ * Sealed class representing various API items used to perform CRUD operations.
  *
- * @param T The type of the document extending [BaseDoc].
- * @param ID The type of the identifier for the documents.
- * @param FILT The type of filter extending [IApiFilter].
+ * @param T The type of the specific document being processed.
+ * @param ID The type of the identifier for the specific document.
+ * @param FILT The type of filter applied during API operations.
  */
 sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract val callType: CallType
