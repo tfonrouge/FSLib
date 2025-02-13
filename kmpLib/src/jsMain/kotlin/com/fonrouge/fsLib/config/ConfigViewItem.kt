@@ -63,12 +63,6 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     @Suppress("unused")
     fun labelUrlUpdate(id: ID) = commonContainer.labelItem to urlUpdate(id)
 
-    val urlCreate: String
-        get() {
-            val urlParams = UrlParams("action" to CrudTask.Create.name)
-            return url + urlParams.toEncodedUrlString()
-        }
-
     /**
      * Opens a new browser window or tab with the URL corresponding to the given ApiItem.
      *
@@ -85,6 +79,13 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             )
         }
     }
+
+    @Suppress("unused")
+    val urlCreate: String
+        get() {
+            val urlParams = UrlParams("action" to CrudTask.Create.name)
+            return url + urlParams.toEncodedUrlString()
+        }
 
     fun urlRead(id: ID): String {
         val urlParams =
