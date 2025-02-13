@@ -10,13 +10,16 @@ import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.tabulator.NavbarTabulator
 import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
 import com.fonrouge.fsLib.tabulator.TabulatorViewList
 import com.fonrouge.fsLib.tabulator.menuItem
 import io.kvision.core.Container
+import io.kvision.remote.KVServiceManager
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator
@@ -91,6 +94,68 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         hozAlign = Align.CENTER,
         formatter = Formatter.ROWSELECTION
     )
+
+    private fun buildColumnDefinitionDeleteItem(
+        cellClick: ((e: Any?, cell: Tabulator.CellComponent) -> Unit)
+    ): ColumnDefinition<T> = ColumnDefinition<T>(
+        title = "",
+        field = "deleteItem",
+        hozAlign = Align.CENTER,
+        formatterFunction = { _, _, _ ->
+            "<i class=\"fa-solid fa-trash\"></i>"
+        },
+        cellClick = cellClick
+    )
+
+    /**
+     * Defines a column for deleting items in a tabular view. Upon interaction with this column,
+     * a confirmation dialog is displayed to confirm the deletion of the selected item. If confirmed,
+     * the related delete operation is executed.
+     *
+     * The function utilizes a configuration provided by the `configViewItem` property to determine
+     * the behavior of the confirmation dialog and the deletion process, allowing for specific
+     * implementations of delete actions via the `serviceManager` and `apiItemFun`.
+     *
+     * @param AIS The type of the API service, extending `IApiCommonService`.
+     * @return A `ColumnDefinition` for the delete column, with preconfigured behavior for deletion.
+     */
+    fun <AIS : IApiCommonService> columnDefinitionDeleteItem(): ColumnDefinition<T> =
+        buildColumnDefinitionDeleteItem { _, cell ->
+            cell.item?.let { item ->
+                configViewItem()?.let { configViewItem ->
+                    configViewItem.commonContainer.confirmDeleteView(
+                        serviceManager = configViewItem.serviceManager,
+                        apiItemFun = configViewItem.apiItemFun,
+                        item = item
+                    )
+                } ?: console.error("No configViewItem found")
+            }
+        }
+
+    /**
+     * Defines a column for deleting items in a tabular view. When a user interacts with this column,
+     * a confirmation dialog is displayed to confirm the deletion of the selected item. Upon confirmation,
+     * the delete operation is executed, and the view updates accordingly.
+     *
+     * @param AIS The type of the API service, extending `IApiCommonService`.
+     * @param serviceManager Manages API services, providing access to perform API operations.
+     * @param apiItemFun A suspendable function invoked on the API service to handle the deletion process.
+     * This function takes an API item and performs the corresponding delete operation.
+     * @return A `ColumnDefinition` configured for the delete column, enabling item deletion functionality within the tabular view.
+     */
+    fun <AIS : IApiCommonService> columnDefinitionDeleteItem(
+        serviceManager: KVServiceManager<AIS>,
+        apiItemFun: (suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>),
+    ): ColumnDefinition<T> = buildColumnDefinitionDeleteItem { _, cell ->
+        cell.item?.let { item ->
+            configView.commonContainer.confirmDeleteView(
+                serviceManager = serviceManager,
+                apiItemFun = apiItemFun,
+                item = item,
+                onSuccess = { dataUpdate() }
+            )
+        }
+    }
 
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
 
