@@ -26,14 +26,14 @@ import kotlin.reflect.KClass
  * @param T The type representing the document or data model managed by the view item.
  * @param ID The type representing the unique identifier for the document or data model.
  * @param V The type representing the specific view item class to be used.
- * @param AIS The type representing the API service used for backend interactions.
  * @param FILT The type representing the filter applicable to API calls.
+ * @param AIS The type representing the API service used for backend interactions.
  * @property serviceManager Manages API service interactions for this view item.
  * @property apiItemFun A suspendable function that performs API operations on the given API item and returns its state.
  * @constructor Initializes the class with necessary parameters for managing view items, including the common container,
  *              service manager, API interaction function, and additional configurations such as the base URL.
  */
-abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT, AIS>, AIS : IApiCommonService, FILT : IApiFilter<*>>(
+abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT, AIS>, FILT : IApiFilter<*>, AIS : IApiCommonService>(
     commonContainer: CC,
     val serviceManager: KVServiceManager<AIS>,
     val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
@@ -164,13 +164,13 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
  * @return A ConfigViewItem instance configured with the provided parameters.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT, AIS>, AIS : IApiCommonService, FILT : IApiFilter<*>> configViewItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT, AIS>, FILT : IApiFilter<*>, AIS : IApiCommonService> configViewItem(
     viewKClass: KClass<out V>,
     commonContainer: CC,
     serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     baseUrl: String? = null
-): ConfigViewItem<CC, T, ID, V, AIS, FILT> = object : ConfigViewItem<CC, T, ID, V, AIS, FILT>(
+): ConfigViewItem<CC, T, ID, V, FILT, AIS> = object : ConfigViewItem<CC, T, ID, V, FILT, AIS>(
     commonContainer = commonContainer,
     serviceManager = serviceManager,
     apiItemFun = apiItemFun,

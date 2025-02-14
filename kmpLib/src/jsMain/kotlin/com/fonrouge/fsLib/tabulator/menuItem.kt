@@ -15,7 +15,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> MutableList<TabulatorMenuItem>.menuItem(
-    configViewItem: ConfigViewItem<CC, T, ID, *, *, FILT>,
+    configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>,
     apiItem: ApiItem<T, ID, FILT>,
 ) {
     menuItem(

@@ -53,7 +53,7 @@ import web.prompts.confirm
  */
 @Suppress("unused")
 abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService>(
-    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT, AIS>, AIS, FILT>,
+    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT, AIS>, FILT, AIS>,
     periodicUpdateDataView: Boolean? = null,
     icon: String? = null,
 ) : ViewDataContainer<CC, T, ID, FILT>(
