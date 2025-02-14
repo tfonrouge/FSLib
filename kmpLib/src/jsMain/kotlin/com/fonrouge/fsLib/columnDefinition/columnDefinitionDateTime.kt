@@ -16,21 +16,19 @@ fun <T : BaseDoc<*>> columnDefinitionDateTime(
     kProperty1: KProperty1<T, OffsetDateTime>,
     title: String = kProperty1.name,
     cellEdited: ((Tabulator.CellComponent) -> Unit)? = null
-): ColumnDefinition<T> {
-    return ColumnDefinition(
-        title = title,
-        headerHozAlign = Align.CENTER,
-        field = fieldName(kProperty1),
-        formatter = Formatter.DATETIME,
-        formatterParams = json(
-            "inputFormat" to "iso",
-            "outputFormat" to "EEE dd MMM y HH:mm",
-            "invalidPlaceholder" to "(invalid date)",
-        ),
-        editor = cellEdited?.let { Editor.DATETIME },
-        editorParams = json(
-            "format" to "iso"
-        ),
-        cellEdited = cellEdited
-    )
-}
+): ColumnDefinition<T> = ColumnDefinition(
+    title = "<i class=\"fa-solid fa-calendar\"></i> $title",
+    headerHozAlign = Align.CENTER,
+    field = fieldName(kProperty1),
+    formatter = Formatter.DATETIME,
+    formatterParams = json(
+        "inputFormat" to "iso",
+        "outputFormat" to "EEE dd MMM y HH:mm",
+        "invalidPlaceholder" to "(invalid date)",
+    ),
+    editor = cellEdited?.let { Editor.DATETIME },
+    editorParams = json(
+        "format" to "iso"
+    ),
+    cellEdited = cellEdited
+)
