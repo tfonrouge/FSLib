@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.lib
 
-import com.fonrouge.fsLib.model.apiData.CrudTask
 import io.kvision.navigo.Match
 import js.uri.decodeURIComponent
 import kotlinx.serialization.DeserializationStrategy

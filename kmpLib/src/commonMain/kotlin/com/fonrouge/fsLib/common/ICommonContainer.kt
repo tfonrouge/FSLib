@@ -101,64 +101,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         item = item,
         apiFilter = apiFilter,
     )
-
-    /* IApiItem */
-    fun iApiItemQueryCreate(
-        apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Upsert.Create.Query<T, ID, FILT> = IApiItem.Upsert.Create.Query(
-        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
-    )
-
-    fun iApiItemQueryRead(
-        id: ID,
-        apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Read<T, ID, FILT> = IApiItem.Read(
-        serializedId = Json.encodeToString(idSerializer, id),
-        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
-    )
-
-    fun iApiItemQueryUpdate(
-        id: ID,
-        apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Upsert.Update.Query<T, ID, FILT> = IApiItem.Upsert.Update.Query(
-        serializedId = Json.encodeToString(idSerializer, id),
-        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
-    )
-
-    fun iApiItemQueryDelete(
-        id: ID,
-        apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Delete.Query<T, ID, FILT> = IApiItem.Delete.Query(
-        serializedId = Json.encodeToString(idSerializer, id),
-        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
-    )
-
-    fun iApiItemActionCreate(
-        item: T,
-        apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Upsert.Create.Action<T, ID, FILT> = IApiItem.Upsert.Create.Action(
-        serializedItem = Json.encodeToString(itemSerializer, item),
-        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
-    )
-
-
-    fun iApiItemActionUpdate(
-        item: T,
-        apiFilter: FILT = apiFilterInstance(),
-        orig: T?
-    ): IApiItem.Upsert.Update.Action<T, ID, FILT> = IApiItem.Upsert.Update.Action(
-        serializedItem = Json.encodeToString(itemSerializer, item),
-        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter),
-        serializedOrig = orig?.let { Json.encodeToString(itemSerializer, orig) }
-    )
-
-    fun iApiItemActionDelete(
-        item: T,
-        apiFilter: FILT = apiFilterInstance()
-    ): IApiItem.Delete.Action<T, ID, FILT> = IApiItem.Delete.Action(
-        serializedItem = Json.encodeToString(itemSerializer, item),
-        serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
-    )
 }
 
 /**

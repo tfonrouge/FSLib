@@ -52,15 +52,15 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> I
     val callAgent = CallAgent()
     val iApiItem = when (callType) {
         CallType.Query -> when (crudTask) {
-            CrudTask.Create -> iApiItemQueryCreate(apiFilter)
-            CrudTask.Read -> id?.let { iApiItemQueryRead(id, apiFilter) }
-            CrudTask.Update -> id?.let { iApiItemQueryUpdate(id, apiFilter) }
-            CrudTask.Delete -> id?.let { iApiItemQueryDelete(id, apiFilter) }
+            CrudTask.Create -> apiItemQueryCreate(apiFilter)
+            CrudTask.Read -> id?.let { apiItemQueryRead(id, apiFilter) }
+            CrudTask.Update -> id?.let { apiItemQueryUpdate(id, apiFilter) }
+            CrudTask.Delete -> id?.let { apiItemQueryDelete(id, apiFilter) }
         }
 
         CallType.Action -> when (crudTask) {
             CrudTask.Create -> item?.let {
-                iApiItemActionCreate(
+                apiItemActionCreate(
                     item,
                     apiFilter
                 )
@@ -68,7 +68,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> I
 
             CrudTask.Read -> null
             CrudTask.Update -> item?.let {
-                iApiItemActionUpdate(
+                apiItemActionUpdate(
                     item,
                     apiFilter,
                     orig
@@ -76,7 +76,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> I
             }
 
             CrudTask.Delete -> item?.let {
-                iApiItemActionDelete(
+                apiItemActionDelete(
                     item,
                     apiFilter
                 )
@@ -90,7 +90,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> I
                 idSerializer,
                 apiFilterSerializer
             ),
-            value = iApiItem
+            value = toIApiItem(iApiItem)
         ),
     )
     val data = Serialization.plain.encodeToString(

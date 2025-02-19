@@ -25,7 +25,7 @@ import kotlin.js.Promise
  * @return A promise representing the transformed item state resulting from the API call.
  */
 @OptIn(ExperimentalSerializationApi::class)
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any> ICommonContainer<T, ID, FILT>.getItemState(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> ICommonContainer<T, ID, FILT>.getItemState(
     serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     apiItem: ApiItem<T, ID, FILT>,
