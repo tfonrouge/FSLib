@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.common
 
+import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
@@ -25,7 +26,7 @@ import kotlin.js.Promise
  * @return A promise containing the transformed item state.
  */
 @OptIn(ExperimentalSerializationApi::class)
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommonContainer<T, ID, FILT>.getItemState(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any> ICommonContainer<T, ID, FILT>.getItemState(
     serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     apiItem: ApiItem<T, ID, FILT>,
