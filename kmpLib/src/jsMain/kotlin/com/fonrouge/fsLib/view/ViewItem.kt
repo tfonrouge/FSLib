@@ -467,8 +467,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 configView.commonContainer.getItemState(
                     serviceManager = configView.serviceManager,
                     apiItemFun = configView.apiItemFun,
-                    id = id,
-                    apiFilter = apiFilter,
+                    apiItem = configView.commonContainer.apiItemQueryRead(id = id, apiFilter = apiFilter),
                 ) {
                     itemObservable.value = it.item
                 }

@@ -18,26 +18,25 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.js.Promise
 
 /**
- * Retrieves a data list from the server based on the provided filter, applies a transformation
- * to the data, and returns it as a promise.
+ * Retrieves the state of a list based on the provided API filter, using a specified API function and transformer.
  *
- * @param serviceManager The service manager responsible for making the API call.
- * @param apiListFun The suspend function that defines the API call to be made.
- * @param apiFilter The filter to be applied to the API call.
- * @param transform A function to transform the retrieved data into the desired result type.
- * @return A promise that resolves to the transformed data.
+ * @param serviceManager The service manager instance that provides a connection to the backend services.
+ * @param apiListFun A suspend function executed in the API service, which takes an `ApiList` filter
+ *                   and returns a `ListState` containing the desired data.
+ * @param apiList The `ApiList` containing the API filter criteria; defaults to a newly created instance with a default filter.
+ * @param transform A function to transform the returned `ListState<T>` into a desired result of type `R`.
+ * @return A promise containing another promise of the transformed result of type `R`.
  */
 @Suppress("unused")
 @OptIn(ExperimentalSerializationApi::class)
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommonContainer<T, ID, FILT>.getListState(
     serviceManager: KVServiceManager<AIS>,
     apiListFun: suspend AIS.(ApiList<FILT>) -> ListState<T>,
-    apiFilter: FILT = apiFilterInstance(),
+    apiList: ApiList<FILT> = ApiList(apiFilter = apiFilterInstance()),
     transform: (ListState<T>) -> R,
 ): Promise<Promise<R>> {
     val (url, method) = serviceManager.requireCall(apiListFun)
     val callAgent = CallAgent()
-    val apiList = ApiList(apiFilter = apiFilter)
     val apiListSerialized = Json.encodeToString(ApiList.serializer(apiFilterSerializer), apiList)
     val paramList = listOf(apiListSerialized)
     val data = Serialization.plain.encodeToString(
