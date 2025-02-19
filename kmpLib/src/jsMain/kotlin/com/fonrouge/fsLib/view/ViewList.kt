@@ -104,6 +104,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         formatterFunction = { _, _, _ ->
             "<i class=\"fa-solid fa-trash\"></i>"
         },
+        visible = editable(),
         cellClick = cellClick
     )
 
