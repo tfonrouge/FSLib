@@ -16,14 +16,13 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.js.Promise
 
 /**
- * Retrieves the state of a specified API item from a remote service, transforms it,
- * and returns the transformed result as a promise.
+ * Retrieves the state of a specific item using the provided API method and service manager.
  *
- * @param serviceManager The service manager used for managing remote calls.
- * @param apiItemFun A suspend function that retrieves the state of an API item.
- * @param apiItem The API item to retrieve the state for, containing necessary metadata.
- * @param transform A transformation function to apply to the retrieved item state before returning it.
- * @return A promise containing the transformed item state.
+ * @param serviceManager The service manager responsible for managing API calls.
+ * @param apiItemFun A suspend function to be executed on the API service for retrieving the item's state.
+ * @param apiItem The API item containing information about the item for which the state is being retrieved.
+ * @param transform A function to transform the resulting item state into the desired return type.
+ * @return A promise representing the transformed item state resulting from the API call.
  */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any> ICommonContainer<T, ID, FILT>.getItemState(
