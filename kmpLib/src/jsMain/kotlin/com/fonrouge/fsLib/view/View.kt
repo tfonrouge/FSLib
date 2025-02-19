@@ -340,7 +340,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                     label = this@View.label,
                     url = navigoUrlWithParams,
                     className = "navbar-brand",
-                    icon = iconCrud(crudTask)
+                    icon = if (this@View is ViewItem<*, *, *, *, *>) iconCrud(crudTask) else null,
                 ) {
                     AppScope.launch {
                         label = labelBanner(apiFilter)
