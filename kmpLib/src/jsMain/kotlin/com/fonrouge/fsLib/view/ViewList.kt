@@ -163,7 +163,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *, *>? = null
         set(value) {
             apiFilter.masterItemId = value?.item?._id
-            editable = { value?.urlParams?.actionUpsert == true }
+            editable = { value?.actionUpsert == true }
             field = value
         }
 
@@ -236,7 +236,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 url?.let { window.open(url = url, target = "_blank") }
             }
         }
-        if (masterViewItem?.urlParams?.crudTask == CrudTask.Update) {
+        if (masterViewItem?.crudTask == CrudTask.Update) {
             masterViewItem?.acceptUpsertAction { itemResponse ->
                 if (itemResponse.state != State.Error) {
                     callBlock()

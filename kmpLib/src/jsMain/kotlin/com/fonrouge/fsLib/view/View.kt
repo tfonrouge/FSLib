@@ -5,6 +5,7 @@ import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.lib.toEncodedUrlString
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import io.kvision.core.*
 import io.kvision.html.*
@@ -31,7 +32,50 @@ import kotlinx.coroutines.launch
 abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open val configView: ConfigView<CC, *, FILT>,
 ) {
-    abstract var urlParams: UrlParams?
+    /**
+     * Represents a set of URL parameters associated with the `View` class.
+     *
+     * This variable provides access to the `UrlParams` object, enabling the retrieval, management,
+     * and manipulation of query parameters within the associated view. The `UrlParams` object allows
+     * operations such as obtaining specific parameters, adding or updating parameters, and performing
+     * CRUD-related tasks (e.g., creating or updating an entry).
+     *
+     * It may also include logic for interpreting and handling parameters to determine specific actions
+     * or states related to the view, such as CRUD operations or entity identification.
+     *
+     * Nullable, as URL parameters might not always be initialized or required for a given view.
+     */
+    abstract val urlParams: UrlParams?
+
+    /**
+     * A computed property that determines whether the current CRUD task is either a creation or an update operation.
+     *
+     * This property evaluates to `true` if the assigned `crudTask` value is either `CrudTask.Create` or `CrudTask.Update`.
+     * It is specifically used to identify scenarios where modifications (creation or update) are being performed.
+     */
+    val actionUpsert: Boolean
+        get() {
+            return crudTask in listOf<CrudTask>(CrudTask.Create, CrudTask.Update)
+        }
+
+    /**
+     * A nullable property representing the current CRUD task for the view.
+     *
+     * This property lazily resolves a `CrudTask` value based on the `action` parameter
+     * obtained from `urlParams`. If the property is accessed for the first time and its value
+     * is null, it attempts to find a corresponding entry in the `CrudTask` enum class using
+     * the `action` parameter value and assigns it to the property.
+     *
+     * @see CrudTask
+     */
+    var crudTask: CrudTask? = null
+        get() {
+            if (field == null) {
+                field = CrudTask.entries.find { it.name == urlParams?.params["action"] }
+            }
+            return field
+        }
+
     open val label: String get() = configView.label
     var linkBanner: Link? = null
     var mainView: Boolean = false
@@ -296,7 +340,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                     label = this@View.label,
                     url = navigoUrlWithParams,
                     className = "navbar-brand",
-                    icon = iconCrud(urlParams?.crudTask)
+                    icon = iconCrud(crudTask)
                 ) {
                     AppScope.launch {
                         label = labelBanner(apiFilter)
@@ -311,7 +355,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             }
             nav(rightAlign = true) {
                 if (this@View is ViewItem<*, *, *, *, *>) {
-                    if (urlParams?.actionUpsert == true) {
+                    if (actionUpsert) {
                         navButtonBack = button(
                             text = " ",
                             icon = "fas fa-reply",

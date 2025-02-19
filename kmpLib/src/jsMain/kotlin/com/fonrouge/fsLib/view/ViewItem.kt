@@ -138,7 +138,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             }
         }
     ) {
-        val crudAction = urlParams?.crudTask
+        val crudAction = crudTask
         formPanel?.let { formPanel ->
             if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
                 if (formPanel.validate()) {
@@ -228,14 +228,14 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     private suspend fun Container.displayForm(crudTask: CrudTask) {
         onBeforeDisplayForm(crudTask)
         formPanel = pageItemBody()
-        if (urlParams?.actionUpsert != true) {
+        if (!actionUpsert) {
             formPanel?.form?.fields?.forEach { entry ->
                 entry.value.disabled = true
             }
         }
         flexPanel(direction = FlexDirection.ROW, justify = JustifyContent.CENTER, spacing = 20) {
             marginTop = 1.em
-            if (urlParams?.actionUpsert == true) {
+            if (actionUpsert) {
                 buttonBack =
                     button(
                         text = "Back",
@@ -332,7 +332,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 if (!noPageBanner) {
                     pageBanner()
                 }
-                urlParams?.crudTask?.let { crudAction ->
+                crudTask?.let { crudAction ->
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
                             configView.commonContainer.confirmDeleteView(
@@ -388,7 +388,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                                 },
                                 escapeHtml = true,
                             )
-                            val crudAction1 = urlParams?.crudTask
+                            val crudAction1 = crudTask
                             if (itemResponse.hasError.not() && crudAction1 != null) {
                                 itemObservable.value = itemResponse.item
                                 AppScope.launch {
@@ -462,7 +462,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     abstract fun Container.pageItemBody(): FormPanel<T>?
 
     final override fun dataUpdate() {
-        if (urlParams?.crudTask == CrudTask.Read) {
+        if (crudTask == CrudTask.Read) {
             item?._id?.let { id ->
                 configView.commonContainer.getItemState(
                     serviceManager = configView.serviceManager,
