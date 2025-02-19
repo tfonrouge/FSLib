@@ -101,7 +101,10 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
 ): ViewList<CC, T, ID, FILT, MID> {
     val viewList: ViewList<CC, T, ID, FILT, MID> = configViewList.newViewInstance(null)
-    viewList.masterViewItem = masterViewItem
+    masterViewItem?.let {
+        viewList.masterViewItem = it
+        viewList.crudTask = it.crudTask
+    }
     editable?.let { viewList.editable = it }
     return fsTabulator(
         viewList = viewList,
