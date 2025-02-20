@@ -8,25 +8,25 @@ import com.fonrouge.fsLib.model.state.ItemState
 import kotlinx.serialization.json.Json
 
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> CC.apiItemQueryCreateCall(
-    serviceManager: AIS,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemQueryCreateCall(
+    service: SRV,
+    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
-    serviceManager,
+    service,
     IApiItem.Upsert.Create.Query(
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 )
 
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> CC.apiItemQueryReadCall(
-    serviceManager: AIS,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemQueryReadCall(
+    service: SRV,
+    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
-    serviceManager,
+    service,
     IApiItem.Read(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
@@ -34,13 +34,13 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
 )
 
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> CC.apiItemQueryUpdateCall(
-    serviceManager: AIS,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemQueryUpdateCall(
+    service: SRV,
+    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
-    serviceManager,
+    service,
     IApiItem.Upsert.Update.Query(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
@@ -48,13 +48,13 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
 )
 
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> CC.apiItemQueryDeleteCall(
-    serviceManager: AIS,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemQueryDeleteCall(
+    service: SRV,
+    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
-    serviceManager,
+    service,
     IApiItem.Delete.Query(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
@@ -62,13 +62,13 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
 )
 
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> CC.apiItemActionCreateCall(
-    serviceManager: AIS,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemActionCreateCall(
+    service: SRV,
+    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
-    serviceManager,
+    service,
     IApiItem.Upsert.Create.Action(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
@@ -76,14 +76,14 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
 )
 
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> CC.apiItemActionUpdateCall(
-    serviceManager: AIS,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemActionUpdateCall(
+    service: SRV,
+    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
     orig: T?,
 ): ItemState<T> = apiItemFun(
-    serviceManager,
+    service,
     IApiItem.Upsert.Update.Action(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter),
@@ -92,13 +92,13 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
 )
 
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> CC.apiItemActionDeleteCall(
-    serviceManager: AIS,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemActionDeleteCall(
+    service: SRV,
+    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
-    serviceManager,
+    service,
     IApiItem.Delete.Action(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
