@@ -7,12 +7,14 @@ import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.lib.iconCrud
+import com.fonrouge.fsLib.lib.toast
 import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
+import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.tabulator.NavbarTabulator
 import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
@@ -129,7 +131,15 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                         apiItemFun = configViewItem.apiItemFun,
                         item = item
                     )
-                } ?: console.error("No configViewItem found")
+                } ?: run {
+                    "No configViewItem found".also {
+                        console.error(it)
+                        SimpleState(
+                            state = State.Error,
+                            msgError = it
+                        ).toast()
+                    }
+                }
             }
         }
 
