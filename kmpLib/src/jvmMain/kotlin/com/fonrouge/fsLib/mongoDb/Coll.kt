@@ -33,6 +33,7 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
 import org.bson.*
@@ -43,7 +44,6 @@ import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.coroutine.toList
 import org.litote.kmongo.property.KPropertyPath
 import java.util.*
-import kotlin.internal.OnlyInputTypes
 import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -1281,43 +1281,49 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): MutableList<Bson> = pipeline
 
     /**
-     * Updates a specified field of an item identified by its ID.
+     * Updates specific fields of an item identified by its ID with the given values.
+     * This method ensures permission checks, validates input, and performs the update operation against the database.
+     * Additional lifecycle hooks for pre and post-update actions are invoked where applicable.
      *
-     * @param call Optional parameter representing the application call.
-     * @param id The identifier of the item to be updated.
-     * @param kProperty1 The property reference indicating which field to update.
-     * @param value The new value to assign to the specified field.
-     * @return The state of the item after attempting the update, which includes whether
-     *         the operation was successful and any error messages if applicable.
+     * @param call Optional application call object used for permission validation.
+     * @param id The unique identifier of the item to update.
+     * @param assignTos A variable number of key-value pairs that represent the fields to update and their corresponding new values.
+     * @return The updated state of the item after the operation, containing success status, any errors, or warnings.
      */
     @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
-    suspend fun <@OnlyInputTypes V : Any> updateFieldById(
-        call: ApplicationCall? = null,
+    suspend fun updateFieldsById(
+        call: ApplicationCall?,
         id: ID,
-        kProperty1: KProperty1<T, V?>,
-        value: V?
+        vararg assignTos: AssignTo<T, *>,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        if (kProperty1.returnType.isMarkedNullable.not() && value == null) {
-            return ItemState(
-                isOk = false,
-                msgError = "Null value not valid"
-            )
+        assignTos.forEach { it ->
+            if (it.kField.returnType.isMarkedNullable.not() && it.value == null) {
+                return ItemState(
+                    isOk = false,
+                    msgError = "Field '${it.kField.name}' is marked as non-nullable, but null value provided."
+                )
+            }
         }
         call?.let {
             val s: SimpleState = getCrudPermission(call = it, crudTask = CrudTask.Update)
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
         val item = findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
-        val jsonObject = Json.encodeToJsonElement(commonContainer.itemKClass.serializer(), item) as JsonObject
-        val v1 = value?.let {
-            Json.encodeToJsonElement(serializersModule.serializer(kProperty1.returnType), value)
+        var jsonObject = Json.encodeToJsonElement(commonContainer.itemKClass.serializer(), item).let {
+            val newJsonObject = (it as JsonObject).toMutableMap()
+            assignTos.forEach { valTo ->
+                newJsonObject[valTo.kField.name] = valTo.value?.let { v ->
+                    Json.encodeToJsonElement(serializersModule.serializer(valTo.kField.returnType), v)
+                } ?: JsonNull
+            }
+            JsonObject(newJsonObject)
         }
         var apiItem = ApiItem.Upsert.Update.Action(
             item = Json.decodeFromJsonElement(
                 deserializer = commonContainer.itemKClass.serializer(),
-                element = v1?.let { JsonObject(jsonObject.plus(kProperty1.name to v1)) } as? JsonElement ?: jsonObject
+                element = jsonObject
             ),
             apiFilter = commonContainer.apiFilterInstance(),
             orig = item
