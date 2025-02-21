@@ -18,6 +18,22 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+/**
+ * Serializer for the `OffsetDateTime` type which supports encoding and decoding into multiple formats.
+ *
+ * This serializer is designed to handle various serialization scenarios,
+ * such as working with BSON readers and encoders, as well as text-based formats.
+ *
+ * The `deserialize` function supports:
+ * - BSON flexible decoders, extracting date-time from epoch milliseconds.
+ * - Map decoders by decoding a long value representing epoch milliseconds.
+ * - Text-based formats, interpreting strings either in an ISO-like format
+ *   or custom date-time formats when a 'T' character is absent.
+ *
+ * The `serialize` function handles:
+ * - BSON encoders by converting `OffsetDateTime` to epoch milliseconds.
+ * - String-based formats by converting `OffsetDateTime` to string representations.
+ */
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     actual override val descriptor: SerialDescriptor
