@@ -32,7 +32,6 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
@@ -1287,7 +1286,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * @param call Optional application call object used for permission validation.
      * @param id The unique identifier of the item to update.
-     * @param assignTos A variable number of key-value pairs that represent the fields to update and their corresponding new values.
+     * @param fieldAssignments A variable number of key-value pairs that represent the fields to update and their corresponding new values.
      * @return The updated state of the item after the operation, containing success status, any errors, or warnings.
      */
     @OptIn(InternalSerializationApi::class)
@@ -1295,10 +1294,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     suspend fun updateFieldsById(
         call: ApplicationCall?,
         id: ID,
-        vararg assignTos: AssignTo<T, *>,
+        filter: Bson? = null,
+        fieldAssignments: List<AssignTo<T, *>>,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        assignTos.forEach { it ->
+        fieldAssignments.forEach { it ->
             if (it.kField.returnType.isMarkedNullable.not() && it.value == null) {
                 return ItemState(
                     isOk = false,
@@ -1313,7 +1313,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val item = findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
         var jsonObject = Json.encodeToJsonElement(commonContainer.itemKClass.serializer(), item).let {
             val newJsonObject = (it as JsonObject).toMutableMap()
-            assignTos.forEach { valTo ->
+            fieldAssignments.forEach { valTo ->
                 newJsonObject[valTo.kField.name] = valTo.value?.let { v ->
                     Json.encodeToJsonElement(serializersModule.serializer(valTo.kField.returnType), v)
                 } ?: JsonNull
@@ -1344,7 +1344,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         val result: UpdateResult = try {
             coroutine.updateOne(
-                filter = BaseDoc<*>::_id eq id,
+                filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
                 target = apiItem.item,
             )
         } catch (e: Exception) {
