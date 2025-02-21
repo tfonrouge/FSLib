@@ -11,6 +11,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.bson.AbstractBsonReader
 import org.litote.kmongo.serialization.OffsetDateTimeSerializer
 import java.time.Instant
 import java.time.LocalDateTime
@@ -48,7 +49,11 @@ actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
             )
         } else {
             if (decoder is FlexibleDecoder) { // MapDecoder
-                val decoded = decoder.decodeLong()
+                val decoded = if (decoder.reader.state == AbstractBsonReader.State.NAME) {
+                    decoder.decodeLong()
+                } else {
+                    decoder.reader.readDateTime()
+                }
                 OffsetDateTime.ofInstant(
                     Instant.ofEpochMilli(decoded),
                     ZoneId.systemDefault()
