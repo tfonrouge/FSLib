@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.serializers
 
 import com.github.jershell.kbson.BsonEncoder
 import com.github.jershell.kbson.BsonFlexibleDecoder
+import com.github.jershell.kbson.FlexibleDecoder
 import io.kvision.types.toOffsetDateTimeF
 import io.kvision.types.toStringF
 import kotlinx.serialization.KSerializer
@@ -30,17 +31,25 @@ actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
                 ZoneId.systemDefault()
             )
         } else {
-            val decoded = decoder.decodeString()
-            if (decoded.contains('T')) {
-                decoded.toOffsetDateTimeF()
+            if (decoder is FlexibleDecoder) { // MapDecoder
+                val decoded = decoder.decodeLong()
+                OffsetDateTime.ofInstant(
+                    Instant.ofEpochMilli(decoded),
+                    ZoneId.systemDefault()
+                )
             } else {
-                val format = when {
-                    decoded.length > 19 -> "yyyy-MM-dd HH:mm:ss.S"
-                    else -> "yyyy-MM-dd HH:mm:ss"
+                val decoded = decoder.decodeString()
+                if (decoded.contains('T')) {
+                    decoded.toOffsetDateTimeF()
+                } else {
+                    val format = when {
+                        decoded.length > 19 -> "yyyy-MM-dd HH:mm:ss.S"
+                        else -> "yyyy-MM-dd HH:mm:ss"
+                    }
+                    LocalDateTime
+                        .parse(decoded.substring(0, format.length), DateTimeFormatter.ofPattern(format))
+                        .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                 }
-                LocalDateTime
-                    .parse(decoded.substring(0, format.length), DateTimeFormatter.ofPattern(format))
-                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
             }
         }
     }
