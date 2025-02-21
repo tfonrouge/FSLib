@@ -1280,14 +1280,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): MutableList<Bson> = pipeline
 
     /**
-     * Updates specific fields of an item identified by its ID with the given values.
-     * This method ensures permission checks, validates input, and performs the update operation against the database.
-     * Additional lifecycle hooks for pre and post-update actions are invoked where applicable.
+     * Updates specific fields of an item identified by its ID.
+     * Validates nullability constraints of fields being updated and performs pre-update and post-update actions,
+     * including permission checks and custom callbacks.
      *
-     * @param call Optional application call object used for permission validation.
-     * @param id The unique identifier of the item to update.
-     * @param fieldAssignments A variable number of key-value pairs that represent the fields to update and their corresponding new values.
-     * @return The updated state of the item after the operation, containing success status, any errors, or warnings.
+     * @param call the [ApplicationCall] object, which can be null, used for context-specific operations such as permission verification.
+     * @param id the unique identifier of the item to be updated.
+     * @param filter an optional BSON filter to further qualify the update operation.
+     * @param fieldAssignments a list of field assignments specifying the fields to update and their new values.
+     * @return an [ItemState] object indicating the result of the update operation, including success state and any error messages.
      */
     @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
