@@ -47,9 +47,7 @@ import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.superclasses
+import kotlin.reflect.full.*
 
 /**
  * Extension property that retrieves the collection name for a given class extending `BaseDoc`.
@@ -1280,6 +1278,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): MutableList<Bson> = pipeline
 
     /**
+     * Copies an item of type T by creating a new instance with the primary constructor parameters.
+     * The method uses the primary constructor parameters to create a copy and allows overriding
+     * specified fields using the provided list of field assignments.
+     *
+     * @param item The source item of type T to be copied.
+     * @param fieldAssignments A list of pairs defining fields and their new values to override in the copy. Defaults to an empty list.
+     * @return A new instance of type T that is a copy of the original item with optional modifications.
+     */
+    fun copyItemWithPrimaryConstructorParameters(item: T, fieldAssignments: List<AssignTo<T, *>> = emptyList()): T {
+        val mp = commonContainer.itemKClass.memberProperties.associateBy { it.name }
+        val cp = commonContainer.itemKClass.primaryConstructor?.parameters?.mapNotNull { it.name } ?: emptyList()
+        val o = fieldAssignments.associate { it.kField.name to it.value }
+        val values = cp.map { o.getOrElse(it) { mp[it]?.get(item) } }
+        return commonContainer.itemKClass.primaryConstructor?.call(*values.toTypedArray())
+            ?: commonContainer.itemKClass.createInstance() //throw Exception("Unable to copy item")
+    }
+
+    /**
      * Updates specific fields of an item identified by its ID.
      * Validates nullability constraints of fields being updated and performs pre-update and post-update actions,
      * including permission checks and custom callbacks.
@@ -1316,15 +1332,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             val newJsonObject = (it as JsonObject).toMutableMap()
             fieldAssignments.forEach { valTo ->
                 newJsonObject[valTo.kField.name] = valTo.value?.let { v ->
+//                    Json.encodeToJsonElement(serializersModule.serializer(valTo.kField.returnType), v)
                     Json.encodeToJsonElement(serializersModule.serializer(valTo.kField.returnType), v)
                 } ?: JsonNull
             }
             JsonObject(newJsonObject)
         }
+        val r = Json.decodeFromJsonElement(commonContainer.itemKClass.serializer(), jsonObject)
+        println("r = $r")
         var apiItem = ApiItem.Upsert.Update.Action(
-            item = Json.decodeFromJsonElement(
-                deserializer = commonContainer.itemKClass.serializer(),
-                element = jsonObject
+            item = copyItemWithPrimaryConstructorParameters(
+                Json.decodeFromJsonElement(
+                    deserializer = commonContainer.itemKClass.serializer(),
+                    element = jsonObject
+                )
+                /*
+                                item,
+                                fieldAssignments
+                */
             ),
             apiFilter = commonContainer.apiFilterInstance(),
             orig = item
