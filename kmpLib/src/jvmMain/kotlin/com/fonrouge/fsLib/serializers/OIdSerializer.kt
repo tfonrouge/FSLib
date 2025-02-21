@@ -11,9 +11,6 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.bson.types.ObjectId
 
-@Suppress("unused")
-const val EMPTY_OID = "000000000000000000000000"
-
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object OIdSerializer : KSerializer<OId<Any>> {
     actual override fun deserialize(decoder: Decoder): OId<Any> {

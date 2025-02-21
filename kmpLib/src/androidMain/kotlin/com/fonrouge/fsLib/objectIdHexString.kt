@@ -1,5 +1,7 @@
 package com.fonrouge.fsLib
 
+import com.fonrouge.fsLib.serializers.EMPTY_OID
+
 actual fun objectIdHexString(): String {
-    return "0".repeat(24)
+    return EMPTY_OID
 }

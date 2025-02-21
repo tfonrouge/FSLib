@@ -1,5 +1,7 @@
 package com.fonrouge.fsLib.types
 
+import com.fonrouge.fsLib.serializers.EMPTY_OID
+
 /**
  * Creates an empty `OId` instance with a default 24-character string of zeros as the identifier.
  *
@@ -9,4 +11,4 @@ package com.fonrouge.fsLib.types
  * @return An `OId` object with an identifier consisting of 24 zero characters.
  */
 @Suppress("unused")
-fun <T> emptyOId(): OId<T> = OId("0".repeat(24))
+fun <T> emptyOId(): OId<T> = OId(EMPTY_OID)
