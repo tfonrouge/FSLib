@@ -31,10 +31,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.serializer
 import org.bson.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -982,7 +978,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         item: T,
     ): ItemState<T> {
         val itemState = insertOne(
-            apiItem = ApiItem.Upsert.Create.Action(item, apiItem.apiFilter),
+            apiItem = ApiItem.Upsert.Create.Action(item = item, apiFilter = apiItem.apiFilter),
         )
         return itemState.copy(itemAlreadyOn = true)
     }
@@ -1011,7 +1007,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         var result: Boolean? = null
         return try {
-            val insertOneResult: InsertOneResult = mongoColl.insertOne(item).awaitSingle()
+            val insertOneResult: InsertOneResult = mongoColl.insertOne(
+                item.copyItemWithPrimaryConstructorParameters()
+            ).awaitSingle()
             result = insertOneResult.insertedId != null
             ItemState(item = item, state = if (result) State.Ok else State.Error)
         } catch (e: Exception) {
@@ -1278,19 +1276,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): MutableList<Bson> = pipeline
 
     /**
-     * Copies an item of type T by creating a new instance with the primary constructor parameters.
-     * The method uses the primary constructor parameters to create a copy and allows overriding
-     * specified fields using the provided list of field assignments.
+     * Creates a copy of the current item by invoking its primary constructor with the specified field assignments
+     * or the current values of the item's member properties.
      *
-     * @param item The source item of type T to be copied.
-     * @param fieldAssignments A list of pairs defining fields and their new values to override in the copy. Defaults to an empty list.
-     * @return A new instance of type T that is a copy of the original item with optional modifications.
+     * @param fieldAssignments A list of field assignments providing specific values to set for fields during copying.
+     *                          If not provided, defaults to an empty list, and the current values of the item's properties are used.
+     * @return A new instance of the item, created using its primary constructor with the specified or current values.
      */
-    fun copyItemWithPrimaryConstructorParameters(item: T, fieldAssignments: List<AssignTo<T, *>> = emptyList()): T {
+    fun T.copyItemWithPrimaryConstructorParameters(
+        fieldAssignments: List<AssignTo<T, *>> = emptyList()
+    ): T {
         val mp = commonContainer.itemKClass.memberProperties.associateBy { it.name }
         val cp = commonContainer.itemKClass.primaryConstructor?.parameters?.mapNotNull { it.name } ?: emptyList()
         val o = fieldAssignments.associate { it.kField.name to it.value }
-        val values = cp.map { o.getOrElse(it) { mp[it]?.get(item) } }
+        val values = cp.map { o.getOrElse(it) { mp[it]?.get(this) } }
         return commonContainer.itemKClass.primaryConstructor?.call(*values.toTypedArray())
             ?: commonContainer.itemKClass.createInstance() //throw Exception("Unable to copy item")
     }
@@ -1328,28 +1327,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
         val item = findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
-        var jsonObject = Json.encodeToJsonElement(commonContainer.itemKClass.serializer(), item).let {
-            val newJsonObject = (it as JsonObject).toMutableMap()
-            fieldAssignments.forEach { valTo ->
-                newJsonObject[valTo.kField.name] = valTo.value?.let { v ->
-//                    Json.encodeToJsonElement(serializersModule.serializer(valTo.kField.returnType), v)
-                    Json.encodeToJsonElement(serializersModule.serializer(valTo.kField.returnType), v)
-                } ?: JsonNull
-            }
-            JsonObject(newJsonObject)
-        }
-        val r = Json.decodeFromJsonElement(commonContainer.itemKClass.serializer(), jsonObject)
-        println("r = $r")
         var apiItem = ApiItem.Upsert.Update.Action(
-            item = copyItemWithPrimaryConstructorParameters(
-                Json.decodeFromJsonElement(
-                    deserializer = commonContainer.itemKClass.serializer(),
-                    element = jsonObject
-                )
-                /*
-                                item,
-                                fieldAssignments
-                */
+            item = item.copyItemWithPrimaryConstructorParameters(
+                fieldAssignments
             ),
             apiFilter = commonContainer.apiFilterInstance(),
             orig = item
@@ -1371,7 +1351,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val result: UpdateResult = try {
             coroutine.updateOne(
                 filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
-                target = apiItem.item,
+                target = apiItem.item.copyItemWithPrimaryConstructorParameters(),
             )
         } catch (e: Exception) {
             onAfterUpsertUpdateAction(apiItem = apiItem, result = false)
@@ -1408,7 +1388,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         return updateOne(
             apiItem = ApiItem.Upsert.Update.Action(
-                item = item,
+                item = item.copyItemWithPrimaryConstructorParameters(),
                 apiFilter = apiFilter,
                 orig
             ),
@@ -1455,7 +1435,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val updateResult = try {
             mongoColl.coroutine.updateOne(
                 filter = filter1,
-                target = apiItem1.item,
+                target = apiItem1.item.copyItemWithPrimaryConstructorParameters(),
                 options = updateOptions
             )
         } catch (e: Exception) {
