@@ -389,7 +389,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return An AggregatePublisher that executes the aggregation pipeline with the applied stages and lookups.
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun aggregateLookupPublisher(
+    fun aggregateLookupPublisher(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
@@ -458,7 +458,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return an AggregatePublisher that provides asynchronous access to the aggregated data.
      */
     @Suppress("unused")
-    suspend fun aggregateOneLookup(
+    fun aggregateOneLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
         lookups: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
@@ -802,7 +802,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return An instance of [AggregatePublisher] that runs the aggregate query with the given criteria.
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun findPublisher(
+    fun findPublisher(
         filter: Bson? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
@@ -1326,7 +1326,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             val s: SimpleState = getCrudPermission(call = it, crudTask = CrudTask.Update)
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
-        val item = findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
+        val item = coroutine.findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
         var apiItem = ApiItem.Upsert.Update.Action(
             item = item.copyItemWithPrimaryConstructorParameters(
                 fieldAssignments
