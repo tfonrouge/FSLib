@@ -34,7 +34,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommo
     apiListFun: suspend AIS.(ApiList<FILT>) -> ListState<T>,
     apiList: ApiList<FILT> = ApiList(apiFilter = apiFilterInstance()),
     transform: (ListState<T>) -> R,
-): Promise<Promise<R>> {
+): Promise<R> {
     val (url, method) = serviceManager.requireCall(apiListFun)
     val callAgent = CallAgent()
     val apiListSerialized = Json.encodeToString(ApiList.serializer(apiFilterSerializer), apiList)
@@ -75,14 +75,12 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommo
                 null
             }
         }
-        Promise.resolve(
-            transform(
-                listState ?: ListState(
-                    data = listOf(),
-                    last_page = null,
-                    last_row = null,
-                    state = State.Error
-                )
+        transform(
+            listState ?: ListState(
+                data = listOf(),
+                last_page = null,
+                last_row = null,
+                state = State.Error
             )
         )
     }
