@@ -5,6 +5,7 @@ package com.fonrouge.fsLib.columnDefinition
 import io.kvision.tabulator.js.Tabulator
 import js.objects.jso
 import kotlin.js.Json
+import kotlin.js.Promise
 
 /**
  * Represents the configuration parameters for a cell editor using a list lookup mechanism.
@@ -16,7 +17,7 @@ import kotlin.js.Json
  * @property values The source of values for the editor, which can be dynamic or static.
  * @property valuesAsArray The array of values provided as options for the editor.
  * @property valuesAsObject A JSON object representing the set of values for the editor.
- * @property valuesAsArrayValueObject An array of `ValueObject` instances, each containing properties for value and label.
+ * @property valuesAsValueLabelArray An array of `ValueObject` instances, each containing properties for value and label.
  * @property valuesUrl A URL source used to fetch the values for the editor.
  * @property valuesLookup Represents dynamic lookup configuration, which can be set to various types for customization.
  * @property valuesLookupAsBoolean A boolean indicating whether to utilize a lookup-based configuration.
@@ -54,13 +55,14 @@ external interface CellListEditorParams {
     var values: dynamic
     var valuesAsArray: Array<Any>?
     var valuesAsObject: Json?
-    var valuesAsArrayValueObject: Array<ValueObject>?
+    var valuesAsValueLabelArray: Array<ValueLabel>?
     var valuesUrl: String?
     var valuesLookup: Any?
     var valuesLookupAsBoolean: Boolean?
     var valuesLookupAsEnumValue: RowRangeLookupValue?
     var valuesLookupAsFunArray: ((cell: Tabulator.CellComponent, filterTerm: Any) -> Array<Any>)?
     var valuesLookupAsFunObject: ((cell: Tabulator.CellComponent, filterTerm: Any) -> Json)?
+    var valuesLookupAsPromise: ((cell: Tabulator.CellComponent, filterTerm: Any) -> Promise<Any>)?
     var valuesLookupField: String?
     var clearable: Boolean?
     var itemFormatter: ((label: String, value: Any, item: Any, element: Any) -> String)?
@@ -100,10 +102,10 @@ external interface CellListEditorParams {
  * @property options An array of nested `ValueObject` instances, representing hierarchical or grouped options.
  * @property elementAttributes A dynamic JSON object containing custom attributes for the associated UI element.
  */
-external interface ValueObject {
+external interface ValueLabel {
     var value: String?
     var label: String?
-    var options: Array<ValueObject>?
+    var options: Array<ValueLabel>?
     var elementAttributes: Json?
 }
 
@@ -120,7 +122,7 @@ external interface ValueObject {
  * `elementAttributes` (custom attributes for the UI element).
  * @return A configured `ValueObject` instance with the applied properties.
  */
-fun valueObject(block: ValueObject.() -> Unit): ValueObject = jso(block)
+fun valueLabel(block: ValueLabel.() -> Unit): ValueLabel = jso(block)
 
 /**
  * Represents the possible range lookup values for rows in a table or data grid.
@@ -180,11 +182,12 @@ fun cellListEditorParams(block: CellListEditorParams.() -> Unit): CellListEditor
     val result = jso(block)
     result.valuesAsArray?.let { result.values = it }
     result.valuesAsObject?.let { result.values = it }
-    result.valuesAsArrayValueObject?.let { result.values = it }
+    result.valuesAsValueLabelArray?.let { result.values = it }
     result.valuesLookupAsBoolean?.let { result.valuesLookup = it }
     result.valuesLookupAsEnumValue?.let { result.valuesLookup = it }
     result.valuesLookupAsFunArray?.let { result.valuesLookup = it }
     result.valuesLookupAsFunObject?.let { result.valuesLookup = it }
+    result.valuesLookupAsPromise?.let { result.valuesLookup = it }
     result.sortAsEnum?.let { result.sort = it.name }
     result.sortAsFun?.let { result.sort = it }
     result.maxWidthAsInt?.let { result.maxWidth = it }
