@@ -1,12 +1,14 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.common.ICommon
+import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.config.ConfigView
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.*
 import io.kvision.html.*
 import io.kvision.navbar.nav
@@ -178,6 +180,28 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             startDisplayPage()
         }
         return this
+    }
+
+    /**
+     * Adds a list of views to the container and initializes them.
+     *
+     * This method invokes the `startDisplayPage` function of the provided view list to prepare
+     * the content for display. Optionally, a master view item can be associated with the view
+     * list, and an initialization block can be applied to perform additional configuration.
+     *
+     * @param viewList The view list to be added and displayed within the container.
+     * @param masterViewItem An optional master view item associated with the view list. Defaults to null.
+     * @param init An optional initialization block to configure the view list. Defaults to null.
+     */
+    @Suppress("unused")
+    fun <MID : Any> Container.addViewList(
+        viewList: ViewList<*, *, *, *, MID>,
+        masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *, *>? = null,
+        init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
+    ) {
+        viewList.apply { startDisplayPage() }
+        masterViewItem?.let { viewList.masterViewItem = it }
+        init?.invoke(viewList)
     }
 
     /**
