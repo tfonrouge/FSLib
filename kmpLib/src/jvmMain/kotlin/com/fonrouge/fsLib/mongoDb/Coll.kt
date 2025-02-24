@@ -958,10 +958,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     suspend fun insertOne(
         item: T,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
+        call: ApplicationCall? = null,
+        iUser: IUser<*>? = call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } },
     ): ItemState<T> = insertOne(
         apiItem = ApiItem.Upsert.Create.Action(
             item = item,
-            apiFilter = apiFilter
+            apiFilter = apiFilter,
+            call = call,
+            iUser = iUser,
         ),
     )
 
