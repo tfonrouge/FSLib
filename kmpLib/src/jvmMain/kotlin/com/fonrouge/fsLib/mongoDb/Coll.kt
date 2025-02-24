@@ -87,8 +87,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
     }
 
-    val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
-
     /**
      * A lambda function that, when invoked, returns a list of KProperty1 instances representing
      * properties of type ID? within a subclass of BaseDoc. These properties are typically
@@ -97,12 +95,31 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open val children: (() -> List<KProperty1<out BaseDoc<*>, ID?>>)? = null
 
     /**
-     * Filters items based on the criteria specified in the given filter.
+     * A coroutine-based collection instance derived from a MongoDB collection.
+     * This variable provides coroutine support for asynchronous operations
+     * on the MongoDB collection, enabling more efficient and non-blocking database
+     * interactions.
      *
-     * @param apiFilter the filter criteria to apply when searching for items.
-     * @return a BSON object representing the filter to be applied, or null if no filter is specified.
+     * @param T The type of documents stored within the MongoDB collection.
      */
-    open fun findItemFilter(apiFilter: FILT): Bson? = null
+    val coroutine: CoroutineCollection<T> get() = mongoColl.coroutine
+
+    /**
+     * A function that takes a filter of type `FILT` and returns a list of `LookupPipelineBuilder` instances.
+     *
+     * This function is designed to perform lookups based on the provided filter and build a pipeline of
+     * lookup operations. By default, it returns an empty list, indicating no lookups.
+     *
+     * @param FILT the type of the filter used for lookups.
+     * @return a list of `LookupPipelineBuilder` instances based on the provided filter.
+     */
+    open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
+
+    val mongoColl: MongoCollection<T> =
+        mongoDatabase.getCollection(
+            commonContainer.itemKClass.collectionName,
+            commonContainer.itemKClass.java
+        )
 
     /**
      * Indicates if the current instance should be read-only.
@@ -113,42 +130,38 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     open val readOnly = false
 
+    val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
+
     /**
-     * Determines the CRUD (Create, Read, Update, Delete) permission for a given user.
+     * Handles the creation action for a given API item and inserts it into the data store.
      *
-     * @param call The ApplicationCall associated with the request, which may contain session information.
-     * @param crudTask The specific CRUD task for which permission is being checked.
-     * @return A SimpleState indicating whether the permission check was successful, including an error message if not.
+     * @param apiItem The API item containing the data and parameters required for the creation action.
+     * @return The state of the created item after the insertion, encapsulated in an ItemState object.
      */
-    suspend fun getCrudPermission(
-        call: ApplicationCall?,
-        crudTask: CrudTask,
-    ): SimpleState {
-        val user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) }
-        val roleInUserColl = privateRoleInUserColl ?: return SimpleState(isOk = true)
-        if (user == null) return SimpleState(isOk = false, msgError = "Empty user.")
-        val matchDoc = and(
-            IAppRole<*>::roleType eq RoleType.CrudTask,
-            IAppRole<*>::classOwner eq commonContainer.name
-        )
-        return roleInUserColl.permissionState(
-            roleType = RoleType.CrudTask,
-            user = user,
-            crudTask = crudTask
-        ) {
-            roleInUserColl.appRoleColl.findOne(matchDoc)?.let {
-                ItemState(item = it)
-            } ?: roleInUserColl.appRoleColl.insertCrudRole(
-                container = commonContainer,
-                crudTask = crudTask
-            ).item?.let {
-                ItemState(item = it)
-            } ?: ItemState(
-                isOk = false,
-                msgError = "App role doesn't exist '${commonContainer.name}' for ${commonContainer.labelItem} item."
-            )
-        }
-    }
+    protected open suspend fun actionCreate(
+        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>
+    ): ItemState<T> = insertOne(apiItem)
+
+    /**
+     * Executes an update action on the given API item and returns the updated item state.
+     *
+     * @param apiItem The update action containing the necessary data and filters to perform the update operation.
+     * @return The state of the updated item after the operation is completed.
+     */
+    protected open suspend fun actionUpdate(
+        apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
+    ): ItemState<T> = updateOne(apiItem)
+
+    /**
+     * Executes the delete action for a specific item and returns the resulting state of the item.
+     *
+     * @param apiItem The configuration object containing the delete action,
+     *                including the item to be deleted and related information.
+     * @return The state of the item after the delete action has been performed.
+     */
+    protected open suspend fun actionDelete(
+        apiItem: ApiItem.Delete.Action<T, ID, FILT>,
+    ): ItemState<T> = deleteOne(apiItem)
 
     /**
      * Processes the provided API item based on its type and performs the corresponding
@@ -254,122 +267,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun asApiItem(
         apiItem: ApiItem<T, ID, FILT>,
     ): ItemState<ApiItem<T, ID, FILT>> = ItemState<ApiItem<T, ID, FILT>>(item = apiItem)
-
-    /**
-     * Executes the creation query and returns the resulting item state.
-     *
-     * @param apiItem The query object containing the necessary data for creation.
-     * @return An instance of [ItemState] representing the result of the creation operation.
-     */
-    protected open suspend fun queryCreate(
-        apiItem: ApiItem.Upsert.Create.Query<T, ID, FILT>,
-    ): ItemState<T> = ItemState(isOk = true)
-
-    /**
-     * Executes a read query for the given API item and returns the resulting item state.
-     *
-     * @param apiItem The API item used to perform the read query.
-     * @param item The item to be processed with the read query.
-     * @return The resulting item state containing the processed item.
-     */
-    protected open suspend fun queryRead(
-        apiItem: ApiItem.Read<T, ID, FILT>,
-        item: T,
-    ): ItemState<T> = ItemState(item = item)
-
-    /**
-     * Executes a query-based update operation on the given item.
-     *
-     * @param apiItem An instance of ApiItem.Upsert.Update.Query containing information about the update query.
-     * @param item The item to be updated.
-     * @return The updated state of the item wrapped in an ItemState.
-     */
-    protected open suspend fun queryUpdate(
-        apiItem: ApiItem.Upsert.Update.Query<T, ID, FILT>,
-        item: T,
-    ): ItemState<T> = ItemState(item = item)
-
-    /**
-     * Handles the process of querying and deleting an item within the specified context.
-     *
-     * @param apiItem The API query item configuration containing information for the delete operation.
-     * @param item The item to be deleted.
-     * @return The resulting state of the item after the delete operation.
-     */
-    protected open suspend fun queryDelete(
-        apiItem: ApiItem.Delete.Query<T, ID, FILT>,
-        item: T,
-    ): ItemState<T> = ItemState(item = item)
-
-    /**
-     * Handles the creation action for a given API item and inserts it into the data store.
-     *
-     * @param apiItem The API item containing the data and parameters required for the creation action.
-     * @return The state of the created item after the insertion, encapsulated in an ItemState object.
-     */
-    protected open suspend fun actionCreate(
-        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>
-    ): ItemState<T> = insertOne(apiItem)
-
-    /**
-     * Executes an update action on the given API item and returns the updated item state.
-     *
-     * @param apiItem The update action containing the necessary data and filters to perform the update operation.
-     * @return The state of the updated item after the operation is completed.
-     */
-    protected open suspend fun actionUpdate(
-        apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
-    ): ItemState<T> = updateOne(apiItem)
-
-    /**
-     * Executes the delete action for a specific item and returns the resulting state of the item.
-     *
-     * @param apiItem The configuration object containing the delete action,
-     *                including the item to be deleted and related information.
-     * @return The state of the item after the delete action has been performed.
-     */
-    protected open suspend fun actionDelete(
-        apiItem: ApiItem.Delete.Action<T, ID, FILT>,
-    ): ItemState<T> = deleteOne(apiItem)
-
-    /**
-     * Generates a fixed lookup list based on the provided API filter.
-     *
-     * @param apiFilter An optional filter parameter used to control or refine the lookup process.
-     * By default, it retrieves the instance of the API filter from the common container.
-     * @return A list of KProperty1 instances or null, representing the properties of the type `T`
-     * that match the criteria defined by the provided API filter.
-     */
-    open fun fixedLookupList(
-        apiFilter: FILT = commonContainer.apiFilterInstance()
-    ): List<KProperty1<in T, *>>? = null
-
-    /**
-     * A function that takes a filter of type `FILT` and returns a list of `LookupPipelineBuilder` instances.
-     *
-     * This function is designed to perform lookups based on the provided filter and build a pipeline of
-     * lookup operations. By default, it returns an empty list, indicating no lookups.
-     *
-     * @param FILT the type of the filter used for lookups.
-     * @return a list of `LookupPipelineBuilder` instances based on the provided filter.
-     */
-    open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
-
-    val mongoColl: MongoCollection<T> =
-        mongoDatabase.getCollection(
-            commonContainer.itemKClass.collectionName,
-            commonContainer.itemKClass.java
-        )
-
-    /**
-     * A coroutine-based collection instance derived from a MongoDB collection.
-     * This variable provides coroutine support for asynchronous operations
-     * on the MongoDB collection, enabling more efficient and non-blocking database
-     * interactions.
-     *
-     * @param T The type of documents stored within the MongoDB collection.
-     */
-    val coroutine: CoroutineCollection<T> = mongoColl.coroutine
 
     /**
      * Aggregates a lookup publisher with a provided pipeline and lookups.
@@ -635,6 +532,31 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
+     * Constructs and modifies the provided aggregation pipeline.
+     *
+     * @param pipeline The initial mutable list of Bson objects representing the pipeline stages.
+     * @param lookups A list of LookupWrapper instances to build lookup stages.
+     * @param resultUnit The result unit used for refactoring the pipeline.
+     * @param apiFilter An instance of the FILT configuration for filtering the pipeline.
+     * @return The modified list of Bson objects representing the complete pipeline.
+     */
+    fun buildPipeline(
+        pipeline: MutableList<Bson> = mutableListOf(),
+        lookups: List<LookupWrapper<*, *>> = emptyList(),
+        resultUnit: ResultUnit,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+    ): MutableList<Bson> {
+        pipeline.addAll(
+            refactorPipeline(
+                pipeline = buildLookupList(lookupWrappers = lookups, apiFilter = apiFilter),
+                resultUnit = resultUnit,
+                apiFilter = apiFilter
+            )
+        )
+        return pipeline
+    }
+
+    /**
      * Performs a bulk write operation asynchronously on the provided list of write models.
      *
      * @param writeModels A mutable list of write models to be written in bulk.
@@ -734,28 +656,22 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Constructs and modifies the provided aggregation pipeline.
+     * Finds an entity by its ID with optional filters, API filter, and lookup wrappers.
      *
-     * @param pipeline The initial mutable list of Bson objects representing the pipeline stages.
-     * @param lookups A list of LookupWrapper instances to build lookup stages.
-     * @param resultUnit The result unit used for refactoring the pipeline.
-     * @param apiFilter An instance of the FILT configuration for filtering the pipeline.
-     * @return The modified list of Bson objects representing the complete pipeline.
+     * @param id The ID of the entity to find.
+     * @param filter Optional Bson filter to apply additional query conditions.
+     * @param apiFilter The API filter instance to apply to the query.
+     * @param lookupWrappers List of LookupWrapper instances to specify lookup conditions for related collections.
+     * @return The entity matching the provided ID and filters, or null if not found.
      */
-    fun buildPipeline(
-        pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: List<LookupWrapper<*, *>> = emptyList(),
-        resultUnit: ResultUnit,
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun findById(
+        id: ID?,
+        filter: Bson? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-    ): MutableList<Bson> {
-        pipeline.addAll(
-            refactorPipeline(
-                pipeline = buildLookupList(lookupWrappers = lookups, apiFilter = apiFilter),
-                resultUnit = resultUnit,
-                apiFilter = apiFilter
-            )
-        )
-        return pipeline
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+    ): T? {
+        return findOne(and(BaseDoc<*>::_id eq id, filter), apiFilter, lookupWrappers)
     }
 
     /**
@@ -801,96 +717,30 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Finds a publisher with the specified criteria.
+     * Finds the type of a specified field in the given Kotlin class, considering nested fields separated by dots.
      *
-     * @param filter Filter condition in BSON format. Defaults to null.
-     * @param lookupWrappers List of lookup wrappers to be applied. Defaults to an empty list.
-     * @param apiFilter An instance of the API filter. Defaults to `commonContainer.apiFilterInstance()`.
-     * @param debug Flag to enable or disable debug mode. Defaults to false.
-     * @return An instance of [AggregatePublisher] that runs the aggregate query with the given criteria.
+     * @param kClass The Kotlin class to inspect for the field.
+     * @param fieldName The name of the field whose type is to be found. Nested fields are specified using dot notation.
+     * @return The type of the specified field as a [KClassifier], or null if the field is not found.
      */
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun findPublisher(
-        filter: Bson? = null,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        debug: Boolean = false,
-    ): AggregatePublisher<T> {
-        return aggregateLookupPublisher(
-            pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
-            lookups = lookupWrappers,
-            apiFilter = apiFilter,
-            debug = debug,
-        )
+    private fun findFieldType(kClass: KClass<*>, fieldName: String): KClassifier? {
+        val k = kClass.memberProperties
+        return if (fieldName.contains('.')) {
+            k.firstOrNull { it.name == fieldName.substringBefore('.') }?.returnType?.classifier?.let {
+                findFieldType(it as KClass<*>, fieldName.substringAfter('.'))
+            }
+        } else {
+            k.firstOrNull { it.name == fieldName }?.returnType?.classifier
+        }
     }
 
     /**
-     * Suspends the current coroutine and performs a query to find a list of documents from the database
-     * based on the provided filter, lookup wrappers, and api filter.
+     * Filters items based on the criteria specified in the given filter.
      *
-     * @param filter Optional Bson filter to apply to the query. Defaults to null.
-     * @param lookupWrappers List of LookupWrapper instances to be used for lookups in the query. Defaults to an empty list.
-     * @param apiFilter Instance of FILT used for additional API-level filtering. Defaults to an instance from the commonContainer.
-     * @param debug Boolean flag to enable or disable debugging for the query. Defaults to false.
-     * @return A list of documents of type T matching the query criteria.
+     * @param apiFilter the filter criteria to apply when searching for items.
+     * @return a BSON object representing the filter to be applied, or null if no filter is specified.
      */
-    @Suppress("unused")
-    suspend fun findList(
-        filter: Bson? = null,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        debug: Boolean = false,
-    ): List<T> {
-        return findPublisher(
-            filter = filter,
-            lookupWrappers = lookupWrappers,
-            apiFilter = apiFilter,
-            debug = debug,
-        ).toList()
-    }
-
-    /**
-     * Finds a single document based on the provided filter criteria and lookup wrappers.
-     *
-     * @param filter BSON filter to narrow down the search.
-     * @param apiFilter An instance of FILT used to apply additional API-level filters.
-     * @param lookupWrappers List of LookupWrapper instances for join operations.
-     * @param debug Boolean flag to enable or disable debug mode.
-     * @return The first document matching the filter criteria or null if no match is found.
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun findOne(
-        filter: Bson? = null,
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        debug: Boolean = false,
-    ): T? {
-        return findPublisher(
-            filter = filter,
-            lookupWrappers = lookupWrappers,
-            apiFilter = apiFilter,
-            debug = debug,
-        ).awaitFirstOrNull()
-    }
-
-    /**
-     * Finds an entity by its ID with optional filters, API filter, and lookup wrappers.
-     *
-     * @param id The ID of the entity to find.
-     * @param filter Optional Bson filter to apply additional query conditions.
-     * @param apiFilter The API filter instance to apply to the query.
-     * @param lookupWrappers List of LookupWrapper instances to specify lookup conditions for related collections.
-     * @return The entity matching the provided ID and filters, or null if not found.
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun findById(
-        id: ID?,
-        filter: Bson? = null,
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-    ): T? {
-        return findOne(and(BaseDoc<*>::_id eq id, filter), apiFilter, lookupWrappers)
-    }
+    open fun findItemFilter(apiFilter: FILT): Bson? = null
 
     /**
      * Finds the state of an item based on the provided API query and lookup wrappers.
@@ -943,6 +793,128 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             )
         } catch (e: Exception) {
             ItemState(isOk = false, msgError = e.message)
+        }
+    }
+
+    /**
+     * Suspends the current coroutine and performs a query to find a list of documents from the database
+     * based on the provided filter, lookup wrappers, and api filter.
+     *
+     * @param filter Optional Bson filter to apply to the query. Defaults to null.
+     * @param lookupWrappers List of LookupWrapper instances to be used for lookups in the query. Defaults to an empty list.
+     * @param apiFilter Instance of FILT used for additional API-level filtering. Defaults to an instance from the commonContainer.
+     * @param debug Boolean flag to enable or disable debugging for the query. Defaults to false.
+     * @return A list of documents of type T matching the query criteria.
+     */
+    @Suppress("unused")
+    suspend fun findList(
+        filter: Bson? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        debug: Boolean = false,
+    ): List<T> {
+        return findPublisher(
+            filter = filter,
+            lookupWrappers = lookupWrappers,
+            apiFilter = apiFilter,
+            debug = debug,
+        ).toList()
+    }
+
+    /**
+     * Finds a single document based on the provided filter criteria and lookup wrappers.
+     *
+     * @param filter BSON filter to narrow down the search.
+     * @param apiFilter An instance of FILT used to apply additional API-level filters.
+     * @param lookupWrappers List of LookupWrapper instances for join operations.
+     * @param debug Boolean flag to enable or disable debug mode.
+     * @return The first document matching the filter criteria or null if no match is found.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun findOne(
+        filter: Bson? = null,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        debug: Boolean = false,
+    ): T? {
+        return findPublisher(
+            filter = filter,
+            lookupWrappers = lookupWrappers,
+            apiFilter = apiFilter,
+            debug = debug,
+        ).awaitFirstOrNull()
+    }
+
+    /**
+     * Finds a publisher with the specified criteria.
+     *
+     * @param filter Filter condition in BSON format. Defaults to null.
+     * @param lookupWrappers List of lookup wrappers to be applied. Defaults to an empty list.
+     * @param apiFilter An instance of the API filter. Defaults to `commonContainer.apiFilterInstance()`.
+     * @param debug Flag to enable or disable debug mode. Defaults to false.
+     * @return An instance of [AggregatePublisher] that runs the aggregate query with the given criteria.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun findPublisher(
+        filter: Bson? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        debug: Boolean = false,
+    ): AggregatePublisher<T> {
+        return aggregateLookupPublisher(
+            pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
+            lookups = lookupWrappers,
+            apiFilter = apiFilter,
+            debug = debug,
+        )
+    }
+
+    /**
+     * Generates a fixed lookup list based on the provided API filter.
+     *
+     * @param apiFilter An optional filter parameter used to control or refine the lookup process.
+     * By default, it retrieves the instance of the API filter from the common container.
+     * @return A list of KProperty1 instances or null, representing the properties of the type `T`
+     * that match the criteria defined by the provided API filter.
+     */
+    open fun fixedLookupList(
+        apiFilter: FILT = commonContainer.apiFilterInstance()
+    ): List<KProperty1<in T, *>>? = null
+
+    /**
+     * Determines the CRUD (Create, Read, Update, Delete) permission for a given user.
+     *
+     * @param call The ApplicationCall associated with the request, which may contain session information.
+     * @param crudTask The specific CRUD task for which permission is being checked.
+     * @return A SimpleState indicating whether the permission check was successful, including an error message if not.
+     */
+    suspend fun getCrudPermission(
+        call: ApplicationCall?,
+        crudTask: CrudTask,
+    ): SimpleState {
+        val user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) }
+        val roleInUserColl = privateRoleInUserColl ?: return SimpleState(isOk = true)
+        if (user == null) return SimpleState(isOk = false, msgError = "Empty user.")
+        val matchDoc = and(
+            IAppRole<*>::roleType eq RoleType.CrudTask,
+            IAppRole<*>::classOwner eq commonContainer.name
+        )
+        return roleInUserColl.permissionState(
+            roleType = RoleType.CrudTask,
+            user = user,
+            crudTask = crudTask
+        ) {
+            roleInUserColl.appRoleColl.findOne(matchDoc)?.let {
+                ItemState(item = it)
+            } ?: roleInUserColl.appRoleColl.insertCrudRole(
+                container = commonContainer,
+                crudTask = crudTask
+            ).item?.let {
+                ItemState(item = it)
+            } ?: ItemState(
+                isOk = false,
+                msgError = "App role doesn't exist '${commonContainer.name}' for ${commonContainer.labelItem} item."
+            )
         }
     }
 
@@ -1027,17 +999,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } finally {
             onAfterUpsertCreateAction(apiItem = apiItem, result = result == true)
             onAfterUpsertAction(apiItem = apiItem, result = result == true)
-        }
-    }
-
-    private fun findFieldType(kClass: KClass<*>, fieldName: String): KClassifier? {
-        val k = kClass.memberProperties
-        return if (fieldName.contains('.')) {
-            k.firstOrNull { it.name == fieldName.substringBefore('.') }?.returnType?.classifier?.let {
-                findFieldType(it as KClass<*>, fieldName.substringAfter('.'))
-            }
-        } else {
-            k.firstOrNull { it.name == fieldName }?.returnType?.classifier
         }
     }
 
@@ -1270,6 +1231,52 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
         return pipeline
     }
+
+    /**
+     * Executes the creation query and returns the resulting item state.
+     *
+     * @param apiItem The query object containing the necessary data for creation.
+     * @return An instance of [ItemState] representing the result of the creation operation.
+     */
+    protected open suspend fun queryCreate(
+        apiItem: ApiItem.Upsert.Create.Query<T, ID, FILT>,
+    ): ItemState<T> = ItemState(isOk = true)
+
+    /**
+     * Executes a read query for the given API item and returns the resulting item state.
+     *
+     * @param apiItem The API item used to perform the read query.
+     * @param item The item to be processed with the read query.
+     * @return The resulting item state containing the processed item.
+     */
+    protected open suspend fun queryRead(
+        apiItem: ApiItem.Read<T, ID, FILT>,
+        item: T,
+    ): ItemState<T> = ItemState(item = item)
+
+    /**
+     * Executes a query-based update operation on the given item.
+     *
+     * @param apiItem An instance of ApiItem.Upsert.Update.Query containing information about the update query.
+     * @param item The item to be updated.
+     * @return The updated state of the item wrapped in an ItemState.
+     */
+    protected open suspend fun queryUpdate(
+        apiItem: ApiItem.Upsert.Update.Query<T, ID, FILT>,
+        item: T,
+    ): ItemState<T> = ItemState(item = item)
+
+    /**
+     * Handles the process of querying and deleting an item within the specified context.
+     *
+     * @param apiItem The API query item configuration containing information for the delete operation.
+     * @param item The item to be deleted.
+     * @return The resulting state of the item after the delete operation.
+     */
+    protected open suspend fun queryDelete(
+        apiItem: ApiItem.Delete.Query<T, ID, FILT>,
+        item: T,
+    ): ItemState<T> = ItemState(item = item)
 
     /**
      * Refactors the given pipeline by applying a result unit and an API filter.
