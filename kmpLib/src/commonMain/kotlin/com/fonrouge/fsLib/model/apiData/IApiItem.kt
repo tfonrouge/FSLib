@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.model.apiData
 
 import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.base.IUser
 import com.fonrouge.fsLib.types.ApplicationCall
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -26,7 +25,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract fun asApiItem(
         cc: ICommonContainer<T, ID, FILT>,
         call: ApplicationCall?,
-        iUser: IUser<*>?
     ): ApiItem<T, ID, FILT>
 
     @Serializable
@@ -44,7 +42,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override fun asApiItem(
                     cc: ICommonContainer<T, ID, FILT>,
                     call: ApplicationCall?,
-                    iUser: IUser<*>?
                 ): ApiItem<T, ID, FILT> {
                     return ApiItem.Upsert.Create.Query(
                         apiFilter = Json.decodeFromString(
@@ -52,7 +49,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                             serializedApiFilter
                         ),
                         call = call,
-                        iUser = iUser
                     )
                 }
             }
@@ -66,7 +62,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override fun asApiItem(
                     cc: ICommonContainer<T, ID, FILT>,
                     call: ApplicationCall?,
-                    iUser: IUser<*>?
                 ): ApiItem<T, ID, FILT> {
                     return ApiItem.Upsert.Create.Action(
                         item = Json.decodeFromString(cc.itemSerializer, serializedItem),
@@ -75,7 +70,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                             serializedApiFilter
                         ),
                         call = call,
-                        iUser = iUser
                     )
                 }
             }
@@ -95,7 +89,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override fun asApiItem(
                     cc: ICommonContainer<T, ID, FILT>,
                     call: ApplicationCall?,
-                    iUser: IUser<*>?
                 ): ApiItem<T, ID, FILT> {
                     return ApiItem.Upsert.Update.Query(
                         id = Json.decodeFromString(cc.idSerializer, serializedId),
@@ -104,7 +97,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                             serializedApiFilter
                         ),
                         call = call,
-                        iUser = iUser
                     )
                 }
             }
@@ -119,7 +111,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override fun asApiItem(
                     cc: ICommonContainer<T, ID, FILT>,
                     call: ApplicationCall?,
-                    iUser: IUser<*>?
                 ): ApiItem<T, ID, FILT> {
                     return ApiItem.Upsert.Update.Action(
                         item = Json.decodeFromString(cc.itemSerializer, serializedItem),
@@ -134,7 +125,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                             )
                         },
                         call = call,
-                        iUser = iUser
                     )
                 }
             }
@@ -151,13 +141,11 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
         override fun asApiItem(
             cc: ICommonContainer<T, ID, FILT>,
             call: ApplicationCall?,
-            iUser: IUser<*>?
         ): ApiItem<T, ID, FILT> {
             return ApiItem.Read(
                 id = Json.decodeFromString(cc.idSerializer, serializedId),
                 apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter),
                 call = call,
-                iUser = iUser
             )
         }
     }
@@ -175,13 +163,11 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             override fun asApiItem(
                 cc: ICommonContainer<T, ID, FILT>,
                 call: ApplicationCall?,
-                iUser: IUser<*>?
             ): ApiItem<T, ID, FILT> {
                 return ApiItem.Delete.Query(
                     id = Json.decodeFromString(cc.idSerializer, serializedId),
                     apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter),
                     call = call,
-                    iUser = iUser
                 )
             }
         }
@@ -195,13 +181,11 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             override fun asApiItem(
                 cc: ICommonContainer<T, ID, FILT>,
                 call: ApplicationCall?,
-                iUser: IUser<*>?
             ): ApiItem<T, ID, FILT> {
                 return ApiItem.Delete.Action(
                     item = Json.decodeFromString(cc.itemSerializer, serializedItem),
                     apiFilter = Json.decodeFromString(cc.apiFilterSerializer, serializedApiFilter),
                     call = call,
-                    iUser = iUser
                 )
             }
         }

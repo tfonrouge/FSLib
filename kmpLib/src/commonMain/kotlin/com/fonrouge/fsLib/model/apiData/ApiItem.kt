@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.model.apiData
 
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.base.IUser
 import com.fonrouge.fsLib.types.ApplicationCall
 
 /**
@@ -15,7 +14,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract val callType: CallType
     abstract val crudTask: CrudTask
     abstract val apiFilter: FILT
-    abstract val iUser: IUser<*>?
 
     abstract val call: ApplicationCall?
 
@@ -26,7 +24,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 override val apiFilter: FILT,
                 override val call: ApplicationCall? = null,
-                override val iUser: IUser<*>? = null,
             ) : Create<T, ID, FILT>() {
                 override val callType: CallType = CallType.Query
             }
@@ -35,7 +32,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 val item: T,
                 override val apiFilter: FILT,
                 override val call: ApplicationCall? = null,
-                override val iUser: IUser<*>? = null
             ) : Create<T, ID, FILT>() {
                 override val callType: CallType = CallType.Action
             }
@@ -48,7 +44,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 val id: ID,
                 override val apiFilter: FILT,
                 override val call: ApplicationCall? = null,
-                override val iUser: IUser<*>? = null
             ) : Update<T, ID, FILT>() {
                 override val callType: CallType = CallType.Query
             }
@@ -58,7 +53,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                 override val apiFilter: FILT,
                 val orig: T?,
                 override val call: ApplicationCall? = null,
-                override val iUser: IUser<*>? = null
             ) : Update<T, ID, FILT>() {
                 override val callType: CallType = CallType.Action
             }
@@ -69,7 +63,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
         val id: ID,
         override val apiFilter: FILT,
         override val call: ApplicationCall? = null,
-        override val iUser: IUser<*>? = null
     ) : ApiItem<T, ID, FILT>() {
         override val crudTask: CrudTask = CrudTask.Read
         override val callType: CallType = CallType.Query
@@ -82,7 +75,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             val id: ID,
             override val apiFilter: FILT,
             override val call: ApplicationCall? = null,
-            override val iUser: IUser<*>? = null
         ) : Delete<T, ID, FILT>() {
             override val callType: CallType = CallType.Query
         }
@@ -91,7 +83,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             val item: T,
             override val apiFilter: FILT,
             override val call: ApplicationCall? = null,
-            override val iUser: IUser<*>? = null
         ) : Delete<T, ID, FILT>() {
             override val callType: CallType = CallType.Action
         }

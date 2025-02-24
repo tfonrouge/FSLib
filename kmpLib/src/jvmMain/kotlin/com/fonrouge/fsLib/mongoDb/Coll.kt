@@ -118,14 +118,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * @param call The ApplicationCall associated with the request, which may contain session information.
      * @param crudTask The specific CRUD task for which permission is being checked.
-     * @param user The user for whom the permission is being checked. Defaults to fetching from session if not provided.
      * @return A SimpleState indicating whether the permission check was successful, including an error message if not.
      */
     suspend fun getCrudPermission(
         call: ApplicationCall?,
         crudTask: CrudTask,
-        user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
     ): SimpleState {
+        val user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) }
         val roleInUserColl = privateRoleInUserColl ?: return SimpleState(isOk = true)
         if (user == null) return SimpleState(isOk = false, msgError = "Empty user.")
         val matchDoc = and(
@@ -157,17 +156,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * @param iApiItem The API item to be processed.
      * @param call The ApplicationCall context (nullable).
-     * @param iUser The user performing the operation (nullable).
      * @return The resulting state of the item after processing.
      */
     @Suppress("unused")
     suspend fun apiItemProcess(
         iApiItem: IApiItem<T, ID, FILT>,
         call: ApplicationCall?,
-        iUser: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) },
     ): ItemState<T> {
         val apiItem: ApiItem<T, ID, FILT> = asApiItem(
-            apiItem = iApiItem.asApiItem(commonContainer, call, iUser),
+            apiItem = iApiItem.asApiItem(commonContainer, call),
         ).let {
             if (it.hasError || it.item == null) {
                 return ItemState(isOk = false, msgError = it.msgError)
@@ -176,9 +173,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
         }
         getCrudPermission(
-            call = null,
+            call = call,
             crudTask = apiItem.crudTask,
-            user = iUser
         ).also {
             if (it.state == State.Error) return ItemState(it)
         }
@@ -482,7 +478,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Processes a list for an API call, applying various stages, lookups, filters, and post-processing steps.
      *
      * @param call Optional ApplicationCall that might be used to fetch user session information.
-     * @param iUser Optional IUser instance that represents the user performing the operation.
      * @param listFirstStage The initial stage of the list processing pipeline.
      * @param lookupWrappers A list of LookupWrapper instances for performing lookup operations in the pipeline.
      * @param postProcessPipeline An optional pipeline function that allows for modifying the list of Bson operations.
@@ -495,7 +490,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun apiListProcess(
         call: ApplicationCall? = null,
-        iUser: IUser<*>? = call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } },
         listFirstStage: ListFirstStage,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
@@ -504,11 +498,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean? = this.debug,
         postProcessList: ((List<T>) -> List<T>)? = null,
     ): ListState<T> {
-        iUser?.let {
+        call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } }?.let {
             getCrudPermission(
-                call = null,
+                call = call,
                 crudTask = CrudTask.Read,
-                user = it,
             ).also {
                 if (it.hasError) return ListState(state = State.Error, msgError = "User not authorized")
             }
@@ -555,27 +548,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Processes the given `ApiList` through a multistep pipeline which includes matching, sorting, and
-     * various transformations specified by the provided arguments. The main processing steps are
-     * executed before and after lookups are applied, with additional options for post-processing
-     * both the pipeline and the resulting list.
+     * Processes a list for API responses with configurable match, sort, filter, and post-process stages.
      *
-     * @param preLookupMatch the BSON filter to apply before performing lookups
-     * @param postLookupMatch the BSON filter to apply after performing lookups
-     * @param preLookupSort the BSON sort expression to apply before performing lookups
-     * @param postLookupSort the BSON sort expression to apply after performing lookups
-     * @param apiList the `ApiList` object containing pagination, filter, and sorting information
-     * @param countType the type of count operation to perform (before or after lookups)
-     * @param debug an optional flag to enable or disable debug mode
-     * @param lookupWrappers a list of `LookupWrapper` objects specifying the lookup stages to apply
-     * @param postProcessPipeline an optional lambda function to apply additional transformations to the pipeline
-     * @param postProcessList an optional lambda function to apply transformations to the final result list
-     * @return the processed `ListState` containing the final list and metadata such as count and pagination
+     * @param call Optional `ApplicationCall` context for the current API request, used for request details.
+     * @param preLookupMatch Optional BSON filter applied before any lookup operations in the pipeline.
+     * @param postLookupMatch Optional BSON filter applied after lookup operations in the pipeline.
+     * @param preLookupSort Optional BSON sorting applied before any lookup operations in the pipeline.
+     * @param postLookupSort Optional BSON sorting applied after lookup operations in the pipeline.
+     * @param apiList The `ApiList` object containing configuration for pagination, filtering, sorting, and API-specific filters.
+     * @param countType Specifies the type of count operation to be performed, either pre-lookup or post-lookup.
+     * @param debug Optional flag to enable or disable debug mode for logging or tracing the operation.
+     * @param lookupWrappers A list of `LookupWrapper` objects to be applied in the lookup pipeline.
+     * @param postProcessPipeline Optional lambda function to modify or extend the aggregation pipeline after its initial construction.
+     * @param postProcessList Optional lambda function to post-process the resulting list after fetching data.
+     * @return A `ListState` object containing the processed list along with related metadata such as pagination information.
      */
     @Suppress("unused")
     suspend fun apiListProcess(
         call: ApplicationCall? = null,
-        iUser: IUser<*>? = call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } },
         preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
         preLookupSort: Bson? = null,
@@ -589,7 +579,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ListState<T> {
         return apiListProcess(
             call = call,
-            iUser = iUser,
             listFirstStage = listFirstStage(
                 preLookupMatch = preLookupMatch,
                 postLookupMatch = postLookupMatch,
