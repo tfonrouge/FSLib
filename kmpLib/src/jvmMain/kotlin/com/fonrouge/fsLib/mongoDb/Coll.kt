@@ -668,45 +668,22 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Finds the children of an item specified by the given ID that do not match certain conditions.
+     * Creates a copy of the current item by invoking its primary constructor with the specified field assignments
+     * or the current values of the item's member properties.
      *
-     * @param id The ID of the item to find children for.
-     * @return An ItemState indicating the result of the find operation,
-     *         including potential errors or states.
+     * @param fieldAssignments A list of field assignments providing specific values to set for fields during copying.
+     *                          If not provided, defaults to an empty list, and the current values of the item's properties are used.
+     * @return A new instance of the item, created using its primary constructor with the specified or current values.
      */
-    @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun findChildrenNot(
-        id: ID,
-    ): ItemState<T> {
-        val itemState = findItemStateById(id)
-        if (itemState.hasError.not()) {
-            children?.invoke()?.forEach { kProperty1: KProperty1<out BaseDoc<*>, ID?> ->
-                when (kProperty1) {
-                    is FieldPath -> kProperty1.path to kProperty1.owner.collectionName
-                    is PropertyReference1Impl -> {
-                        @Suppress("UNCHECKED_CAST")
-                        kProperty1.name to (kProperty1.owner as KClass<out BaseDoc<*>>).collectionName
-                    }
-
-                    is KPropertyPath<*, ID?> -> return ItemState(
-                        state = State.Error,
-                        msgError = "Child field path '${commonContainer.itemKClass.simpleName}::${kProperty1.path()}' not valid (if you used '/' or '%' operators you must use '+' operator)"
-                    )
-
-                    else -> null
-                }?.let { (fieldName: String, collectionName) ->
-                    mongoDatabase.getCollection(collectionName).also { mongoCollection ->
-                        mongoCollection.coroutine.find(Document(fieldName, id)).first()?.let {
-                            return ItemState(
-                                state = State.Error,
-                                msgError = "'${commonContainer.labelItem}' has children in '$collectionName.$fieldName'"
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        return itemState
+    fun T.copyItemWithPrimaryConstructorParameters(
+        vararg fieldAssignments: AssignTo<T, *> = emptyArray()
+    ): T {
+        val mp = commonContainer.itemKClass.memberProperties.associateBy { it.name }
+        val cp = commonContainer.itemKClass.primaryConstructor?.parameters?.mapNotNull { it.name } ?: emptyList()
+        val o = fieldAssignments.associate { it.kField.name to it.value }
+        val values = cp.map { o.getOrElse(it) { mp[it]?.get(this) } }
+        return commonContainer.itemKClass.primaryConstructor?.call(*values.toTypedArray())
+            ?: commonContainer.itemKClass.createInstance() //throw Exception("Unable to copy item")
     }
 
     /**
@@ -790,6 +767,48 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             )
         )
         return pipeline
+    }
+
+    /**
+     * Finds the children of an item specified by the given ID that do not match certain conditions.
+     *
+     * @param id The ID of the item to find children for.
+     * @return An ItemState indicating the result of the find operation,
+     *         including potential errors or states.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun findChildrenNot(
+        id: ID,
+    ): ItemState<T> {
+        val itemState = findItemStateById(id)
+        if (itemState.hasError.not()) {
+            children?.invoke()?.forEach { kProperty1: KProperty1<out BaseDoc<*>, ID?> ->
+                when (kProperty1) {
+                    is FieldPath -> kProperty1.path to kProperty1.owner.collectionName
+                    is PropertyReference1Impl -> {
+                        @Suppress("UNCHECKED_CAST")
+                        kProperty1.name to (kProperty1.owner as KClass<out BaseDoc<*>>).collectionName
+                    }
+
+                    is KPropertyPath<*, ID?> -> return ItemState(
+                        state = State.Error,
+                        msgError = "Child field path '${commonContainer.itemKClass.simpleName}::${kProperty1.path()}' not valid (if you used '/' or '%' operators you must use '+' operator)"
+                    )
+
+                    else -> null
+                }?.let { (fieldName: String, collectionName) ->
+                    mongoDatabase.getCollection(collectionName).also { mongoCollection ->
+                        mongoCollection.coroutine.find(Document(fieldName, id)).first()?.let {
+                            return ItemState(
+                                state = State.Error,
+                                msgError = "'${commonContainer.labelItem}' has children in '$collectionName.$fieldName'"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        return itemState
     }
 
     /**
@@ -1278,25 +1297,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         resultUnit: ResultUnit,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> = pipeline
-
-    /**
-     * Creates a copy of the current item by invoking its primary constructor with the specified field assignments
-     * or the current values of the item's member properties.
-     *
-     * @param fieldAssignments A list of field assignments providing specific values to set for fields during copying.
-     *                          If not provided, defaults to an empty list, and the current values of the item's properties are used.
-     * @return A new instance of the item, created using its primary constructor with the specified or current values.
-     */
-    fun T.copyItemWithPrimaryConstructorParameters(
-        vararg fieldAssignments: AssignTo<T, *> = emptyArray()
-    ): T {
-        val mp = commonContainer.itemKClass.memberProperties.associateBy { it.name }
-        val cp = commonContainer.itemKClass.primaryConstructor?.parameters?.mapNotNull { it.name } ?: emptyList()
-        val o = fieldAssignments.associate { it.kField.name to it.value }
-        val values = cp.map { o.getOrElse(it) { mp[it]?.get(this) } }
-        return commonContainer.itemKClass.primaryConstructor?.call(*values.toTypedArray())
-            ?: commonContainer.itemKClass.createInstance() //throw Exception("Unable to copy item")
-    }
 
     /**
      * Updates specific fields of an item identified by its ID.
