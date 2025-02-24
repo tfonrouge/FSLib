@@ -978,13 +978,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         item: T,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         call: ApplicationCall? = null,
-        iUser: IUser<*>? = call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } },
     ): ItemState<T> = insertOne(
         apiItem = ApiItem.Upsert.Create.Action(
             item = item,
             apiFilter = apiFilter,
             call = call,
-            iUser = iUser,
         ),
     )
 
@@ -1336,7 +1334,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 *fieldAssignments
             ),
             apiFilter = commonContainer.apiFilterInstance(),
-            orig = item
+            orig = item,
+            call = call,
         )
         onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
         onPermissionUpsertUpdate(apiItem, apiItem.item).also { if (it.hasError) return it.asItemState() }
@@ -1388,13 +1387,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         orig: T? = null,
         filter: Bson? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        updateOptions: UpdateOptions = UpdateOptions()
+        updateOptions: UpdateOptions = UpdateOptions(),
+        call: ApplicationCall? = null,
     ): ItemState<T> {
         return updateOne(
             apiItem = ApiItem.Upsert.Update.Action(
                 item = item.copyItemWithPrimaryConstructorParameters(),
                 apiFilter = apiFilter,
-                orig
+                orig = orig,
+                call = call,
             ),
             filter = filter,
             updateOptions = updateOptions
