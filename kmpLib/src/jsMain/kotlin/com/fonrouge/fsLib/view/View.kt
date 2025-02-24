@@ -200,7 +200,9 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
     ) {
         viewList.apply { startDisplayPage() }
-        masterViewItem?.let { viewList.masterViewItem = it }
+        masterViewItem?.let {
+            viewList.masterViewItem = it
+        }
         init?.invoke(viewList)
     }
 

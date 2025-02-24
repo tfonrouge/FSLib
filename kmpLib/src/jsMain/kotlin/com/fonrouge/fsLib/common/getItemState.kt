@@ -33,7 +33,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R
 ): Promise<R> {
     val (url, method) = serviceManager.requireCall(apiItemFun)
     val callAgent = CallAgent()
-    val iApiItem = toIApiItem<T, ID, FILT>(apiItem)
+    val iApiItem = toIApiItem(apiItem)
     val apiItemSerialized =
         Json.encodeToString(IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer), iApiItem)
     val paramList = listOf(apiItemSerialized)

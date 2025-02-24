@@ -168,12 +168,13 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
     }
 
-    open fun columnDefinitionList(): List<ColumnDefinition<T>> = listOf()
+    open fun columnDefinitionList(): List<ColumnDefinition<T>> = emptyList()
 
     var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *, *>? = null
         set(value) {
             apiFilter.masterItemId = value?.item?._id
             editable = { value?.actionUpsert == true }
+            crudTask = value?.crudTask
             field = value
         }
 

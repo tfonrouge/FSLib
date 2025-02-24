@@ -1284,7 +1284,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return A new instance of the item, created using its primary constructor with the specified or current values.
      */
     fun T.copyItemWithPrimaryConstructorParameters(
-        fieldAssignments: List<AssignTo<T, *>> = emptyList()
+        vararg fieldAssignments: AssignTo<T, *> = emptyArray()
     ): T {
         val mp = commonContainer.itemKClass.memberProperties.associateBy { it.name }
         val cp = commonContainer.itemKClass.primaryConstructor?.parameters?.mapNotNull { it.name } ?: emptyList()
@@ -1308,10 +1308,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @OptIn(InternalSerializationApi::class)
     @Suppress("unused")
     suspend fun updateFieldsById(
-        call: ApplicationCall?,
+        call: ApplicationCall? = null,
         id: ID,
+        vararg fieldAssignments: AssignTo<T, *>,
         filter: Bson? = null,
-        fieldAssignments: List<AssignTo<T, *>>,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         fieldAssignments.forEach { it ->
@@ -1329,7 +1329,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val item = coroutine.findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
         var apiItem = ApiItem.Upsert.Update.Action(
             item = item.copyItemWithPrimaryConstructorParameters(
-                fieldAssignments
+                *fieldAssignments
             ),
             apiFilter = commonContainer.apiFilterInstance(),
             orig = item
