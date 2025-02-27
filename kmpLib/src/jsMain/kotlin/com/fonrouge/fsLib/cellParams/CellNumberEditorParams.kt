@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.columnDefinition
+package com.fonrouge.fsLib.cellParams
 
 import js.objects.jso
 

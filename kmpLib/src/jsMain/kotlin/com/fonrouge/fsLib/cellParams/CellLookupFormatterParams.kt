@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.columnDefinition
+package com.fonrouge.fsLib.cellParams
 
 import io.kvision.tabulator.js.Tabulator
 import js.objects.jso

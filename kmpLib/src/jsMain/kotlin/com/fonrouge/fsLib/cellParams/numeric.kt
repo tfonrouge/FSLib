@@ -1,4 +1,4 @@
-package com.fonrouge.fsLib.cellEditor
+package com.fonrouge.fsLib.cellParams
 
 import io.kvision.core.onEvent
 import io.kvision.form.InputSize

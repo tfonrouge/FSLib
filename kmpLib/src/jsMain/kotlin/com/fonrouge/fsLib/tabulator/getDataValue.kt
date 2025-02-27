@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.tabulator
 
 import io.kvision.tabulator.js.Tabulator
+import js.objects.Object
 import kotlin.reflect.KProperty1
 
 /**
@@ -12,9 +13,13 @@ import kotlin.reflect.KProperty1
  */
 @Suppress("unused")
 fun <R> Tabulator.CellComponent.getDataValue(vararg path: KProperty1<*, *>): R? {
-    var d = getData().asDynamic()
+    var d: Object = getData() as Object
     path.forEach { k ->
-        d = d[k.name]
+        if (!d.hasOwnProperty(k.name)) return null
+        val x = d.asDynamic()[k.name]
+        if (x is Object) {
+            d = x
+        } else return x as R?
     }
-    return d as? R
+    return (d.asDynamic()) as R?
 }
