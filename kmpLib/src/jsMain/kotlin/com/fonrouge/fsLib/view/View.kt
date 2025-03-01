@@ -195,7 +195,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     @Suppress("unused")
     fun <MID : Any> Container.addViewList(
-        viewList: ViewList<*, *, *, *, MID>,
+        viewList: ViewList<out ICommonContainer<*, *, out IApiFilter<MID>>, *, *, out IApiFilter<MID>, MID>,
         masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *, *>? = null,
         init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
     ) {
@@ -207,7 +207,20 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     }
 
     /**
-     * Sets the current browser url with an [apiFilterObservable] url parameter
+     * Updates the current browser URL and history state based on the provided API filter.
+     *
+     * This method serializes the `apiFilter` object and adds it as a parameter to the `urlParams`.
+     * Then, the updated `urlParams` are appended to the base URL, and the browser's history
+     * state is updated with the new URL, preserving the navigation state.
+     *
+     * Key actions:
+     * - Serializes the `apiFilter` object using a configured serializer from `configView`.
+     * - Adds the serialized `apiFilter` value to the URL parameters.
+     * - Updates the browser's URL and history via the `replaceState` function.
+     *
+     * Note:
+     * This function relies on global objects like `history` and uses a string-based state
+     * object for integration with the browser's history API.
      */
     fun apiFilterToUrl() {
         configView.pairParam("apiFilter", configView.commonContainer.apiFilterSerializer, apiFilter)

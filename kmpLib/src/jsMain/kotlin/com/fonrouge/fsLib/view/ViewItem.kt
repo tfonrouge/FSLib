@@ -89,7 +89,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
     }
 
-    var disableEdit: Boolean = false
     var formPanel: FormPanel<T>? = null
 
     val labelId get() = configView.commonContainer.labelIdFunc(item)
