@@ -11,5 +11,4 @@ import kotlin.reflect.KProperty1
  * @param fields A variable number of `KProperty1` objects representing the properties whose names are to be combined.
  * @return A `String` containing the concatenated names of the provided properties, separated by dots.
  */
-@Suppress("unused")
 fun fieldName(vararg fields: KProperty1<*, *>): String = fields.joinToString(".") { it.name }

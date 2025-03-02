@@ -15,6 +15,6 @@ import kotlinx.serialization.Serializable
  * @property id The string value of the ObjectId. Defaults to a newly generated ObjectId string.
  */
 @Serializable(with = OIdSerializer::class)
-data class OId<@Suppress("unused") T>(
+data class OId<T>(
     val id: String = objectIdHexString(),
 )

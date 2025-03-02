@@ -17,7 +17,7 @@ import kotlinx.serialization.Serializable
  * @property id The string value of the identifier.
  */
 @Serializable(with = StringIdSerializer::class)
-data class StringId<@Suppress("unused") T>(
+data class StringId<T>(
     val id: String,
 ) {
     override fun toString(): String {

@@ -73,7 +73,6 @@ data class ItemState<T>(
      *
      * @param msgWarn The warning message to be associated with this state.
      */
-    @Suppress("unused")
     constructor(msgWarn: String) : this(
         state = State.Warn,
         msgError = msgWarn,

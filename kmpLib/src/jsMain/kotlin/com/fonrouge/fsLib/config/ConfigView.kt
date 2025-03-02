@@ -24,7 +24,7 @@ import kotlin.reflect.KClass
 abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter<*>>(
     val commonContainer: CC,
     val viewKClass: KClass<out V>,
-    internal val _baseUrl: String? = null,
+    @Suppress("PropertyName") internal val _baseUrl: String? = null,
 ) {
     open val baseUrl: String
         get() {
@@ -43,7 +43,7 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservable] from the [UrlParams]
      */
     fun newViewInstance(urlParams: UrlParams?): V {
-        return viewKClass.js.createInstance(urlParams)
+        return viewKClass.js.createInstance(urlParams ?: UrlParams())
     }
 
     /**

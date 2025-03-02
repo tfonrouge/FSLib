@@ -16,7 +16,6 @@ import org.w3c.dom.events.Event
  * @property action A lambda function called when the menu item is clicked. It receives the click `Event` and an additional context parameter.
  * @param label The caption or text displayed for this menu item. For non-header items, the label's content will be enhanced, incorporating the icon if specified.
  */
-@Suppress("unused")
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class TabulatorMenuItem(

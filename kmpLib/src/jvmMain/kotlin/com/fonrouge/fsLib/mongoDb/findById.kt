@@ -9,7 +9,6 @@ import org.litote.kmongo.coroutine.CoroutineCollection
  * @param id The identifier of the document to find.
  * @return The document if found, otherwise null.
  */
-@Suppress("unused")
 suspend fun <T : BaseDoc<ID>, ID : Any> CoroutineCollection<T>.findById(id: ID): T? {
     return findOneById(id)
 }

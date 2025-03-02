@@ -20,7 +20,7 @@ import kotlinx.serialization.Serializable
  * @property hasError Indicates whether the current state represents an error.
  */
 @Serializable
-data class ListState<@Suppress("unused") T : Any>(
+data class ListState<T : Any>(
     val data: List<T> = emptyList(),
     val last_page: Int? = null,
     val last_row: Int? = null,

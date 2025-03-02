@@ -11,7 +11,6 @@ import kotlin.reflect.KProperty1
  * @return The value at the specified path within the cell's data, cast to the specified generic type [R],
  *         or null if the data does not exist or cannot be cast to [R].
  */
-@Suppress("unused")
 fun <R> Tabulator.CellComponent.getDataValue(vararg path: KProperty1<*, *>): R? {
     var d: Object = getData() as Object
     path.forEach { k ->

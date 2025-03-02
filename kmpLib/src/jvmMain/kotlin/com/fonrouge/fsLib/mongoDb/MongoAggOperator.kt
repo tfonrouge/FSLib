@@ -15,7 +15,7 @@ enum class MongoAggOperator {
     ;
 
     override fun toString(): String {
-        return "\$$name"
+        return "$$name"
     }
 }
 
@@ -25,5 +25,4 @@ enum class MongoAggOperator {
  * @param expression The expression to be used with the aggregation operator.
  * @return A BSON document representing the aggregation operation.
  */
-@Suppress("unused")
 infix fun MongoAggOperator.from(expression: Any): Bson = toString().from(expression)

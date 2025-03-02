@@ -68,7 +68,7 @@ fun lookup5(
             expr(
                 MongoOperator.eq from listOf(
                     foreignField,
-                    "\$\$$validVarName"
+                    "$$$validVarName"
                 )
             )
         )

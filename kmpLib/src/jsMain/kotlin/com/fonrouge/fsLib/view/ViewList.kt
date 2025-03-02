@@ -92,7 +92,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     open val rowSelectedColumn: ColumnDefinition<T> = ColumnDefinition(
         title = "<i class=\"fa-regular fa-square\"></i>",
-        field = "rowSelected",
+        field = "__rowSelected",
         hozAlign = Align.CENTER,
         formatter = Formatter.ROWSELECTION
     )
@@ -101,7 +101,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         cellClick: ((e: Any?, cell: Tabulator.CellComponent) -> Unit)
     ): ColumnDefinition<T> = ColumnDefinition<T>(
         title = "",
-        field = "deleteItem",
+        field = "__deleteItem",
         hozAlign = Align.CENTER,
         formatterFunction = { _, _, _ ->
             "<i class=\"fa-solid fa-trash\"></i>"
@@ -172,7 +172,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *, *>? = null
         set(value) {
-            apiFilter.masterItemId = value?.item?._id
             editable = { value?.actionUpsert == true }
             crudTask = value?.crudTask
             field = value

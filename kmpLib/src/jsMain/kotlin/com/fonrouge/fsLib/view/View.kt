@@ -47,7 +47,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      *
      * Nullable, as URL parameters might not always be initialized or required for a given view.
      */
-    abstract val urlParams: UrlParams?
+    abstract var urlParams: UrlParams
 
     /**
      * A computed property that determines whether the current CRUD task is either a creation or an update operation.
@@ -73,20 +73,19 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     var crudTask: CrudTask? = null
         get() {
             if (field == null) {
-                field = CrudTask.entries.find { it.name == urlParams?.params["action"] }
+                field = CrudTask.entries.find { it.name == urlParams.params["action"] }
             }
             return field
         }
 
     open val label: String get() = configView.label
-    var linkBanner: Link? = null
     var mainView: Boolean = false
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
     var navButtonBack: Button? = null
     val navigoUrlWithParams: String
         get() {
-            return configView.url + if (urlParams != null) urlParams else ""
+            return configView.url + urlParams
         }
 
     /**
@@ -149,7 +148,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         }
 
     protected val apiFilterFromUrl: FILT?
-        get() = urlParams?.pullUrlParam(
+        get() = urlParams.pullUrlParam(
             serializer = configView.commonContainer.apiFilterSerializer,
             key = "apiFilter"
         )
@@ -207,33 +206,27 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     }
 
     /**
-     * Updates the current browser URL and history state based on the provided API filter.
+     * Converts the current API filter to a URL string and optionally updates the browser's history state.
      *
-     * This method serializes the `apiFilter` object and adds it as a parameter to the `urlParams`.
-     * Then, the updated `urlParams` are appended to the base URL, and the browser's history
-     * state is updated with the new URL, preserving the navigation state.
+     * This method serializes the current API filter to a URL parameter, appends it to the base URL,
+     * and optionally replaces the browser's history state with the updated URL.
      *
-     * Key actions:
-     * - Serializes the `apiFilter` object using a configured serializer from `configView`.
-     * - Adds the serialized `apiFilter` value to the URL parameters.
-     * - Updates the browser's URL and history via the `replaceState` function.
-     *
-     * Note:
-     * This function relies on global objects like `history` and uses a string-based state
-     * object for integration with the browser's history API.
+     * @param replaceState A boolean indicating whether the browser's history state should be updated
+     *                     with the new URL. If true, the history state is replaced with the modified URL.
+     * @return A string representing the encoded URL with the API filter parameter appended.
      */
-    fun apiFilterToUrl() {
+    fun apiFilterToUrl(replaceState: Boolean): String {
         configView.pairParam("apiFilter", configView.commonContainer.apiFilterSerializer, apiFilter)
             .let { pair ->
-                urlParams?.params?.set(pair.first, pair.second)
+                urlParams.params[pair.first] = pair.second
             }
-        @Suppress("unused", "UnusedVariable")
         val url = (configView.url + urlParams.toEncodedUrlString()).asDynamic()
-
-        @Suppress("UNUSED_VARIABLE", "unused")
-        val stateObj =
-            "{apiFilter: toUrl}".asDynamic()
-        js("""history.replaceState(stateObj,"createToUpdate",url)""")
+        if (replaceState) {
+            @Suppress("UNUSED_VARIABLE", "unused")
+            val stateObj = "{apiFilter: toUrl}".asDynamic()
+            js("""history.replaceState(stateObj,"createToUpdate",url)""")
+        }
+        return url
     }
 
     /**
@@ -287,22 +280,10 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             this@startDisplayPage.displayPage()
             bind(apiFilterObservable) {
                 onApiFilterChange()
-                if (mainView) apiFilterToUrl()
+                apiFilterToUrl(mainView)
             }
             onAfterDisplayPage()
         }
-    }
-
-    /**
-     * Updates the label of the link banner.
-     *
-     * This function asynchronously retrieves the latest label for the
-     * banner using the current `apiFilter` and sets it to the `linkBanner`'s label.
-     *
-     * Note that this function suspends while performing the label retrieval.
-     */
-    suspend fun updateLabelBanner() {
-        linkBanner?.label = labelBanner(apiFilter)
     }
 
     /**
@@ -375,14 +356,24 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             removeChildren = true
         ) {
             bannerLeggendContainer().apply {
-                linkBanner = link(
+                link(
                     label = this@View.label,
                     url = navigoUrlWithParams,
                     className = "navbar-brand",
                     icon = if (this@View is ViewItem<*, *, *, *, *>) iconCrud(crudTask) else null,
                 ) {
-                    AppScope.launch {
-                        label = labelBanner(apiFilter)
+                    apiFilterObservable.subscribe {
+                        url = apiFilterToUrl(replaceState = false)
+                        AppScope.launch {
+                            label = labelBanner(it)
+                        }
+                    }
+                    if (this@View is ViewItem<*, *, *, *, *>) {
+                        (this@View as ViewItem<*, *, *, *, *>).itemObservable.subscribe {
+                            AppScope.launch {
+                                label = labelBanner(apiFilter)
+                            }
+                        }
                     }
                 }
                 bannerLegend().apply {

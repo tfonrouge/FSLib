@@ -79,9 +79,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     init {
         itemObservable.subscribe {
-            AppScope.launch {
-                updateLabelBanner()
-            }
             it?.let { item ->
                 formPanel?.setData(item)
                 onChangeItemObservable(it)
@@ -182,6 +179,22 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 }
             }
         }
+    }
+
+    /**
+     * Adds a viewList to the container and optionally initializes it with custom logic.
+     *
+     * @param viewList The ViewList object to be added. It should extend from ICommonContainer and support an API filter implementation.
+     * @param init An optional lambda function to initialize the ViewList with custom configurations or behavior.
+     */
+    @Suppress("unused")
+    fun Container.addViewList(
+        viewList: ViewList<out ICommonContainer<*, *, out IApiFilter<ID>>, *, *, out IApiFilter<ID>, ID>,
+        init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
+    ) {
+        viewList.apply { startDisplayPage() }
+        viewList.masterViewItem = this@ViewItem
+        init?.invoke(viewList)
     }
 
     fun backCloseAction(confirmCancel: Boolean = false) {
@@ -347,7 +360,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             apiItemFun = configView.apiItemFun,
                             crudTask = crudAction,
                             callType = CallType.Query,
-                            id = urlParams?.id?.let {
+                            id = urlParams.id?.let {
                                 Json.decodeFromString(
                                     configView.commonContainer.idSerializer,
                                     it
@@ -356,9 +369,9 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             apiFilter = apiFilter
                         ) { itemResponse ->
                             if (crudAction == CrudTask.Create && itemResponse.item != null && itemResponse.itemAlreadyOn) {
-                                urlParams?.params?.set("action", CrudTask.Update.name)
+                                urlParams.params["action"] = CrudTask.Update.name
                                 itemResponse.item._id.let {
-                                    urlParams?.params?.set(
+                                    urlParams.params.set(
                                         propertyName = "id",
                                         value = Json.encodeToString(
                                             configView.commonContainer.idSerializer,

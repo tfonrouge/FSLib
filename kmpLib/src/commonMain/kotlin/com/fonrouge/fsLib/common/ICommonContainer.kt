@@ -39,14 +39,12 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     val itemSerializer get() = itemKClass.serializer()
 
     /* ApiItem */
-    @Suppress("unused")
     fun apiItemQueryCreate(
         apiFilter: FILT = apiFilterInstance()
     ): ApiItem.Upsert.Create.Query<T, ID, FILT> = ApiItem.Upsert.Create.Query(
         apiFilter = apiFilter,
     )
 
-    @Suppress("unused")
     fun apiItemQueryRead(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
@@ -55,7 +53,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter = apiFilter,
     )
 
-    @Suppress("unused")
     fun apiItemQueryUpdate(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
@@ -64,7 +61,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter = apiFilter,
     )
 
-    @Suppress("unused")
     fun apiItemQueryDelete(
         id: ID,
         apiFilter: FILT = apiFilterInstance()
@@ -73,7 +69,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter = apiFilter,
     )
 
-    @Suppress("unused")
     fun apiItemActionCreate(
         item: T,
         apiFilter: FILT = apiFilterInstance()
@@ -82,7 +77,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         apiFilter = apiFilter,
     )
 
-    @Suppress("unused")
     fun apiItemActionUpdate(
         item: T,
         apiFilter: FILT = apiFilterInstance(),
@@ -93,7 +87,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
         orig = orig,
     )
 
-    @Suppress("unused")
     fun apiItemActionDelete(
         item: T,
         apiFilter: FILT = apiFilterInstance()
@@ -109,7 +102,6 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
  * @param apiItem The API item to be converted.
  * @return The converted API item as an instance of [IApiItem].
  */
-@Suppress("unused")
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FILT>.toIApiItem(
     apiItem: ApiItem<T, ID, FILT>
 ): IApiItem<T, ID, FILT> =
