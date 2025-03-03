@@ -9,4 +9,4 @@ package com.fonrouge.fsLib.types
  * @return A `LongId<T>` if the `Long` is non-null, otherwise `null`.
  */
 @Suppress("unused")
-fun <T : Any> Long?.toLongId(): LongId<T>? = this?.let { LongId(it) }
+fun <T : Any> Long.toLongId(): LongId<T> = LongId(this)

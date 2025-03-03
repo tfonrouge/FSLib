@@ -9,4 +9,4 @@ package com.fonrouge.fsLib.types
  * @return An `IntId<T>` if the `Int` is non-null, otherwise `null`.
  */
 @Suppress("unused")
-fun <T : Any> Int?.toIntId(): IntId<T>? = this?.let { IntId(it) }
+fun <T : Any> Int.toIntId(): IntId<T> = IntId(this)

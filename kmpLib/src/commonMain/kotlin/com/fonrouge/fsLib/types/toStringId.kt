@@ -9,4 +9,4 @@ package com.fonrouge.fsLib.types
  * @return A `StringId<T>` if the `String` is non-null, otherwise `null`.
  */
 @Suppress("unused")
-fun <T> String?.toStringId(): StringId<T>? = this?.let { StringId(it) }
+fun <T> String.toStringId(): StringId<T> = StringId(this)

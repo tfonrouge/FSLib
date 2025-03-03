@@ -11,14 +11,14 @@ import kotlin.reflect.KProperty1
  * @return The value at the specified path within the cell's data, cast to the specified generic type [R],
  *         or null if the data does not exist or cannot be cast to [R].
  */
-fun <R> Tabulator.CellComponent.getDataValue(vararg path: KProperty1<*, *>): R? {
+fun <R> Tabulator.CellComponent.getDataValue(vararg path: KProperty1<*, *>): R {
     var d: Object = getData() as Object
     path.forEach { k ->
-        if (!d.hasOwnProperty(k.name)) return null
+        if (!d.hasOwnProperty(k.name)) return null.asDynamic() as R
         val x = d.asDynamic()[k.name]
         if (x is Object) {
             d = x
-        } else return x as R?
+        } else return x as R
     }
-    return (d.asDynamic()) as R?
+    return (d.asDynamic()) as R
 }
