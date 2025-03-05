@@ -10,9 +10,9 @@ plugins {
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-val libVersion = "1.4.7"
+val libVersion = "1.4.8"
 
-group = "com.fonrouge.kmpLib"
+group = "com.fonrouge.fsLib"
 version = libVersion
 
 repositories {
@@ -122,7 +122,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.fonrouge.kmpLib"
+    namespace = "com.fonrouge.fsLib"
     compileSdk = 35
     defaultConfig {
         minSdk = 28
