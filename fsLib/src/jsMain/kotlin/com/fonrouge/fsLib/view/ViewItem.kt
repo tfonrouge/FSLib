@@ -140,7 +140,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 if (formPanel.validate()) {
                     val data = transformData(formPanel.getData())
                     val simpleState = formPanelValidate(data)
-                    if (simpleState.state != State.Error) {
+                    if (simpleState.state == State.Ok) {
                         configView.commonContainer.callItemService(
                             serviceManager = configView.serviceManager,
                             apiItemFun = configView.apiItemFun,
