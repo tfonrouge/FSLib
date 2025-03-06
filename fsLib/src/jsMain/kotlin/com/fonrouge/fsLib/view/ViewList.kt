@@ -12,6 +12,7 @@ import com.fonrouge.fsLib.model.apiData.ApiItem
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
+import com.fonrouge.fsLib.model.apiData.setMasterItemId
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
@@ -174,6 +175,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         set(value) {
             editable = { value?.actionUpsert == true }
             crudTask = value?.crudTask
+            apiFilter = apiFilter.setMasterItemId(value?.item?._id)
             field = value
         }
 
