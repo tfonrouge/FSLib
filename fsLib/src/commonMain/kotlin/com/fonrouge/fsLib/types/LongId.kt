@@ -14,9 +14,9 @@ import kotlinx.serialization.Serializable
  * @property id The long value of the identifier.
  */
 @Serializable(with = LongIdSerializer::class)
-data class LongId<T : Any>(
-    val id: Long,
-) {
+data class LongId<T>(
+    override val id: Long,
+) : IBaseId<Long> {
     override fun toString(): String {
         return "$id"
     }

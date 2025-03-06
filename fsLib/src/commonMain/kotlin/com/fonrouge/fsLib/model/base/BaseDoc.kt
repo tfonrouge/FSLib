@@ -6,7 +6,7 @@ package com.fonrouge.fsLib.model.base
  * If a [Enum] class is used as [_id] [ID] type, remember to set the idKClass property on the ConfigViewContainer definition
  * to correctly serialize/deserialize the [_id] when referencing it in the transactions.
  */
-interface BaseDoc<ID : Any> {
+interface BaseDoc<ID> {
     @Suppress("PropertyName")
     val _id: ID
 }

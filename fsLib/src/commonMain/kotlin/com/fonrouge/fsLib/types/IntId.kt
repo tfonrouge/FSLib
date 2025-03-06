@@ -14,9 +14,9 @@ import kotlinx.serialization.Serializable
  * @property id The integer value of the identifier.
  */
 @Serializable(with = IntIdSerializer::class)
-data class IntId<T : Any>(
-    val id: Int,
-) {
+data class IntId<T>(
+    override val id: Int,
+) : IBaseId<Int> {
     override fun toString(): String {
         return "$id"
     }

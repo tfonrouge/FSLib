@@ -16,5 +16,5 @@ import kotlinx.serialization.Serializable
  */
 @Serializable(with = OIdSerializer::class)
 data class OId<T>(
-    val id: String = objectIdHexString(),
-)
+    override val id: String = objectIdHexString(),
+) : IBaseId<String>

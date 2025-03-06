@@ -18,8 +18,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable(with = StringIdSerializer::class)
 data class StringId<T>(
-    val id: String,
-) {
+    override val id: String,
+) : IBaseId<String> {
     override fun toString(): String {
         return id
     }
