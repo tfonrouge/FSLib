@@ -298,7 +298,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
             CrudTask.Read -> {
                 item?.let { formPanel?.setData(it) }
-                installUpdate(false)
+                installUpdate()
             }
 
             CrudTask.Update -> {
