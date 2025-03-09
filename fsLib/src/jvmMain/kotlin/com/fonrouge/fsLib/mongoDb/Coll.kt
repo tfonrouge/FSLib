@@ -496,22 +496,25 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Builds a pipeline of BSON lookup stages for aggregation queries.
+     * Builds a list of BSON pipeline components for lookups based on the provided lookup wrappers
+     * and the API filter.
      *
-     * @param lookupWrappers A list of lookup wrappers that define custom lookup operations. Defaults to an empty list.
-     * @param apiFilter A filter instance used to customize the lookup behavior.
-     * @return A mutable list of BSON stages for the lookup pipeline.
+     * @param lookupWrappers A list of lookup wrappers that define lookup configurations. Defaults to an empty list.
+     * @param apiFilter The API filter instance used to determine applicable lookups.
+     * @return A mutable list of BSON objects representing the constructed lookup pipeline.
      */
     private fun buildLookupList(
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> {
         val pipeline: MutableList<Bson> = mutableListOf()
-        val lookupPipelineBuilders =
-            lookupFun(apiFilter).plus(lookupWrappers.mapNotNull {
-                if (it is LookupByPipeline<*, *, *>) it.pipeline else null
-            })
-        lookupPipelineBuilders.forEach { lookupPipelineBuilder ->
+        val lookupPipelineBuilders = lookupFun(apiFilter)
+            .associateBy { it.resultProperty.name }
+            .plus(
+                lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null }
+                    .associateBy { it.resultProperty.name }
+            )
+        lookupPipelineBuilders.forEach { (_, lookupPipelineBuilder) ->
             val lookupWrapper = lookupWrappers.find {
                 lookupPipelineBuilder.resultProperty == when (it) {
                     is LookupByProperty -> it.resultProperty
