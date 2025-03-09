@@ -116,24 +116,6 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
     var onRowSelected: ((T?) -> Unit)? = null
 
     /**
-     * A nullable callback function that is executed at regular intervals.
-     *
-     * This property allows for defining a custom behavior to be triggered periodically
-     * during the lifecycle of the `TabulatorViewList` instance. The interval duration
-     * and logic to trigger the callback are managed within the containing class.
-     *
-     * When set, the callback function will be invoked with no parameters. If the value
-     * is `null`, no action is performed on the interval.
-     *
-     * Typical use cases may include updating UI components, refreshing data, or
-     * performing asynchronous tasks at a defined frequency.
-     *
-     * Set this property to a lambda or function reference to enable the interval updates,
-     * or set it to `null` to disable the functionality.
-     */
-    var onIntervalUpdate: (() -> Unit)? = null
-
-    /**
      * Converts a dynamic data object into a Kotlin List of type [T].
      *
      * @param data The dynamic data object to be converted into a Kotlin List.

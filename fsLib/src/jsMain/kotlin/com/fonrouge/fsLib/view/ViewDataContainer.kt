@@ -55,7 +55,7 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
         dataUpdate()
     }
 
-    fun installUpdate(first: Boolean) {
+    fun installUpdate() {
 //        console.warn("installUpdate", this.hashCode(), this::class.simpleName, periodicUpdateDataView)
         onPeriodicDataUpdate?.let {
             dataUpdateFuncs[this.hashCode() to (this::class.simpleName ?: "?")] = it
@@ -69,7 +69,6 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
                         launch { it.value.invoke() }
                     }
                 }
-                onPeriodicDataUpdate?.invoke()
             } catch (e: Exception) {
                 console.error("Error on interval =", e)
             }
@@ -92,9 +91,6 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
                 },
                 timeout = 250,
             )
-        }
-        if (first) {
-            callBlock()
         }
     }
 
