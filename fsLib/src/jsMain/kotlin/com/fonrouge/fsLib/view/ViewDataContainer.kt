@@ -79,7 +79,7 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
                 handler = {
                     if (!suspendPeriodicUpdate) {
                         val curTime = (Date().getTime() / 1000).toLong()
-                        if ((curTime - startTime) > periodicUpdateViewInterval) {
+                        if ((curTime - startTime) >= periodicUpdateViewInterval) {
                             if (!lock) {
                                 startTime = curTime
                                 lock = true
