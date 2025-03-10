@@ -5,13 +5,11 @@ import com.mongodb.client.model.Collation
 import com.mongodb.client.model.CollationStrength
 import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
-import org.litote.kmongo.reactivestreams.KMongo
+import org.litote.kmongo.reactivestreams.KMongo.createClient
 import org.litote.kmongo.serialization.registerSerializer
 import java.util.*
 
-internal var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPluginConfiguration()
+internal var mongoDbBuilder: MongoDbBuilder = MongoDbBuilder()
 
 /**
  * Lazily initialized variable to hold the MongoDB client instance.
@@ -20,7 +18,7 @@ internal var mongoDbPluginConfiguration: MongoDbPluginConfiguration = MongoDbPlu
  * on the provided connection string from the mongoDbPluginConfiguration.
  */
 val mongoClient by lazy {
-    mongoDbPluginConfiguration.let { KMongo.createClient(it.connectionString) }
+    createClient(mongoDbBuilder.connectionString)
 }
 
 /**
@@ -32,7 +30,7 @@ val mongoClient by lazy {
  * configured in the mongoDbPluginConfiguration.
  */
 val mongoDatabase: MongoDatabase by lazy {
-    mongoClient.getDatabase(mongoDbPluginConfiguration.database)
+    mongoClient.getDatabase(mongoDbBuilder.database)
 }
 
 /**
@@ -43,7 +41,7 @@ val mongoDatabase: MongoDatabase by lazy {
  * @return A `Collation` object configured with the given locale and collation strength.
  */
 fun collation(
-    locale: String = mongoDbPluginConfiguration.locale,
+    locale: String = mongoDbBuilder.locale,
     collationStrength: CollationStrength = CollationStrength.PRIMARY
 ): Collation {
     return Collation.builder().locale(locale).collationStrength(collationStrength).build()
@@ -61,23 +59,11 @@ fun collation(
 @Suppress("unused")
 val MongoDbPlugin = createApplicationPlugin(
     name = "MongoDbPlugin",
-    createConfiguration = ::MongoDbPluginConfiguration
+    createConfiguration = ::MongoDbBuilder
 ) {
-    mongoDbPluginConfiguration = pluginConfig
-    println("MongoDbPlugin is installed: host=${mongoDbPluginConfiguration.serverUrl}, database=${mongoDbPluginConfiguration.database}")
+    mongoDbBuilder = pluginConfig
+    println("MongoDbPlugin is installed: host=${mongoDbBuilder.serverUrl}, database=${mongoDbBuilder.database}")
 }
-
-// TODO: remove declaration redundancy by add this to KMongo
-val serializersModule
-    get() = SerializersModule {
-        contextual(OIdSerializer)
-        contextual(StringIdSerializer)
-        contextual(IntIdSerializer)
-        contextual(LongIdSerializer)
-        contextual(FSOffsetDateTimeSerializer)
-        contextual(FSLocalDateSerializer)
-        contextual(FSLocalDateTimeSerializer)
-    }
 
 /**
  * This class provides configuration settings for the MongoDB plugin.
@@ -93,14 +79,15 @@ val serializersModule
  * @property locale The locale setting to use. Defaults to the default locale language.
  * @property connectionString The constructed MongoDB connection string based on the provided configurations.
  */
-class MongoDbPluginConfiguration {
-    var serverUrl: String? = "localhost"
-    var serverPort: Int = 27017
-    var authSource: String? = null
-    var user: String? = null
-    var password: String? = null
-    var database: String = "test"
-    var locale: String = Locale.getDefault().language
+data class MongoDbBuilder(
+    var serverUrl: String? = "localhost",
+    var serverPort: Int = 27017,
+    var authSource: String? = null,
+    var user: String? = null,
+    var password: String? = null,
+    var database: String = "test",
+    var locale: String = Locale.getDefault().language,
+) {
 
     val connectionString
         get() = "mongodb://" + if (user != null || password != null) {
@@ -111,19 +98,23 @@ class MongoDbPluginConfiguration {
             "$it$serverUrl:$serverPort" + if (authSource != null) "/?authSource=$authSource" else ""
         }
 
-    init {
-        //
-        // TODO: using registerModule doesn't encode LocalDate to 'YYYY-MM-YY' as per FSLocalDateSerializer
-        // val d1: java.time.LocalDate
-        // d1.json -> { "$date" : "2024-09-01T00:00:00Z" }
-        //
-        // registerModule(serializersModule)
-        registerSerializer(OIdSerializer)
-        registerSerializer(StringIdSerializer)
-        registerSerializer(IntIdSerializer)
-        registerSerializer(LongIdSerializer)
-        registerSerializer(FSOffsetDateTimeSerializer)
-        registerSerializer(FSLocalDateSerializer)
-        registerSerializer(FSLocalDateTimeSerializer)
+    fun getMongoDb(): MongoDatabase = createClient(connectionString).getDatabase(database)
+
+    companion object {
+        init {
+            //
+            // TODO: using registerModule doesn't encode LocalDate to 'YYYY-MM-YY' as per FSLocalDateSerializer
+            // val d1: java.time.LocalDate
+            // d1.json -> { "$date" : "2024-09-01T00:00:00Z" }
+            //
+            // registerModule(serializersModule)
+            registerSerializer(OIdSerializer)
+            registerSerializer(StringIdSerializer)
+            registerSerializer(IntIdSerializer)
+            registerSerializer(LongIdSerializer)
+            registerSerializer(FSOffsetDateTimeSerializer)
+            registerSerializer(FSLocalDateSerializer)
+            registerSerializer(FSLocalDateTimeSerializer)
+        }
     }
 }

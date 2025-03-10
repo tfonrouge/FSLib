@@ -22,6 +22,7 @@ import com.mongodb.client.result.InsertOneResult
 import com.mongodb.client.result.UpdateResult
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
+import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
 import io.kvision.remote.RemoteFilter
@@ -68,18 +69,22 @@ val KClass<out BaseDoc<*>>.collectionName: String
     }
 
 /**
- * Represents a MongoDb collection
+ * Represents a collection class with functionality for handling CRUD operations, aggregation,
+ * and processing of API elements, including lookup and list processing for data retrieval and manipulation.
  *
- * @property commonContainer The common container instance.
- * @property debug The debug flag indicating if debugging is enabled.
- * @property children Set of children associated with the collection.
- * @property readOnly Indicates if the collection is read-only.
- * @property lookupFun Function for performing lookups.
- * @property mongoColl The MongoDB collection instance.
- * @property coroutine The CoroutineScope used for handling suspending functions.
+ * @param commonContainer A common container object holding shared resources and utilities like filters or configuration.
+ * @param debug A flag indicating whether debugging operations or logs should be enabled.
+ * @param children A container or reference to child entities or subcollections tied to this collection.
+ * @param coroutine A coroutine context or scope for managing asynchronous operations.
+ * @param lookupFun A function or utility for performing lookup operations.
+ * @param mongoDatabase The underlying MongoDB database instance associated with the collection.
+ * @param mongoColl The MongoDB collection instance being operated on.
+ * @param readOnly A flag indicating whether the collection operates in a read-only mode.
+ * @param readOnlyErrorMsg A message to display or log when a read-only action is attempted on the collection.
  */
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
+    mongoDbBuilder: MongoDbBuilder? = null,
     private var debug: Boolean? = null
 ) {
     companion object {
@@ -114,6 +119,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return a list of `LookupPipelineBuilder` instances based on the provided filter.
      */
     open val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = { listOf() }
+
+    val mongoDatabase: MongoDatabase = mongoDbBuilder?.getMongoDb() ?: com.fonrouge.fsLib.mongoDb.mongoDatabase
 
     val mongoColl: MongoCollection<T> =
         mongoDatabase.getCollection(
