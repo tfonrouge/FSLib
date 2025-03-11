@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.ApiItem
@@ -33,7 +32,7 @@ import kotlin.reflect.KClass
  * @constructor Initializes the class with necessary parameters for managing view items, including the common container,
  *              service manager, API interaction function, and additional configurations such as the base URL.
  */
-abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT, AIS>, FILT : IApiFilter<*>, AIS : IApiCommonService>(
+abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any>(
     commonContainer: CC,
     val serviceManager: KVServiceManager<AIS>,
     val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
@@ -164,7 +163,7 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
  * @return A ConfigViewItem instance configured with the provided parameters.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT, AIS>, FILT : IApiFilter<*>, AIS : IApiCommonService> configViewItem(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any> configViewItem(
     viewKClass: KClass<out V>,
     commonContainer: CC,
     serviceManager: KVServiceManager<AIS>,

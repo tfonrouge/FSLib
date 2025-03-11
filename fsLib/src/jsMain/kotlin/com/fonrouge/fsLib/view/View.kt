@@ -195,7 +195,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     @Suppress("unused")
     fun <MID : Any> Container.addViewList(
         viewList: ViewList<out ICommonContainer<*, *, out IApiFilter<MID>>, *, *, out IApiFilter<MID>, MID>,
-        masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *, *>? = null,
+        masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
         init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
     ) {
         viewList.apply { startDisplayPage() }
@@ -360,7 +360,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                     label = this@View.label,
                     url = navigoUrlWithParams,
                     className = "navbar-brand",
-                    icon = if (this@View is ViewItem<*, *, *, *, *>) iconCrud(crudTask) else null,
+                    icon = if (this@View is ViewItem<*, *, *, *>) iconCrud(crudTask) else null,
                 ) {
                     apiFilterObservable.subscribe {
                         url = apiFilterToUrl(replaceState = false)
@@ -368,8 +368,8 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                             label = labelBanner(it)
                         }
                     }
-                    if (this@View is ViewItem<*, *, *, *, *>) {
-                        (this@View as ViewItem<*, *, *, *, *>).itemObservable.subscribe {
+                    if (this@View is ViewItem<*, *, *, *>) {
+                        (this@View as ViewItem<*, *, *, *>).itemObservable.subscribe {
                             AppScope.launch {
                                 label = labelBanner(apiFilter)
                             }
@@ -384,7 +384,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 }
             }
             nav(rightAlign = true) {
-                if (this@View is ViewItem<*, *, *, *, *>) {
+                if (this@View is ViewItem<*, *, *, *>) {
                     if (actionUpsert) {
                         navButtonBack = button(
                             text = " ",

@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.common.callItemService
 import com.fonrouge.fsLib.common.confirmDeleteView
 import com.fonrouge.fsLib.common.getItemState
-import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.lib.UrlParams
@@ -37,23 +36,25 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 /**
- * Represents an abstract class that serves as the base for handling view items in the application.
+ * Represents a view item with various configurations, UI components, and event handlers.
  *
- * It provides core functionalities for defining, manipulating, and interacting with view components,
- * particularly those that involve CRUD operations and item state management.
- *
- * @param CC The type of the common container implementation which extends [ICommonContainer].
- * @param T The type of the base document used within the view item.
- * @param ID The type of the identifier for the base document.
- * @param FILT The type of the API filter associated with the view item.
- * @param AIS The type of the API common service used during operations.
- * @param configView The configuration for the view item defining its behavior, display, and handling.
- * @param periodicUpdateDataView Indicates whether periodic updates of the view's data are allowed.
- * @param icon An optional icon to be associated with the view item.
+ * @param configView The configuration view object associated with the view item.
+ * @param itemObservable Observes changes in the item for reactivity or binding.
+ * @param item The primary item data model associated with the view.
+ * @param origSerialized Original serialized form of the item, used for comparison or rollback.
+ * @param buttonBack The back button component in the UI.
+ * @param buttonCancel The cancel button component in the UI.
+ * @param buttonAccept The accept button component in the UI.
+ * @param formPanel The form panel component used for displaying or editing item data.
+ * @param labelId Label or identifier displayed in the UI for the item.
+ * @param noBackButton Flag indicating whether the back button should be hidden or not.
+ * @param onAcceptButtonClick Event handler invoked when the accept button is clicked.
+ * @param periodicUpdateDataView Data view for maintaining periodic updates.
+ * @param label The primary label associated with the view item.
  */
 @Suppress("unused")
-abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService>(
-    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT, AIS>, FILT, AIS>,
+abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, FILT, *>,
     periodicUpdateDataView: Boolean? = null,
     icon: String? = null,
 ) : ViewDataContainer<CC, T, ID, FILT>(

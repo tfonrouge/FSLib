@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.common
 
-import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -16,9 +15,9 @@ import kotlinx.serialization.json.Json
  * @return An `ItemState` object representing the result of the create operation.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemQueryCreateCall(
-    service: SRV,
-    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryCreateCall(
+    service: AIS,
+    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
     service,
@@ -34,7 +33,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @param T The type of the item being queried, which must extend BaseDoc.
  * @param ID The type of the ID of the item, which must be non-nullable.
  * @param FILT The type of the filter, extending IApiFilter, which defines constraints for the query.
- * @param SRV The service type implementing IApiCommonService that processes the API call.
+ * @param AIS The service type implementing IApiCommonService that processes the API call.
  * @param service The instance of the service to be used for processing the query.
  * @param apiItemFun A suspend function provided by the service that takes an API item and returns its state.
  *                   This is the function responsible for handling the read operation.
@@ -44,9 +43,9 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return The state of the queried item, wrapped in an ItemState instance.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemQueryReadCall(
-    service: SRV,
-    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryReadCall(
+    service: AIS,
+    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
@@ -64,7 +63,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @param T The type of the items managed by the container, must extend `BaseDoc`.
  * @param ID The type of the item ID, must be non-nullable.
  * @param FILT The type of the API filter, must extend `IApiFilter`.
- * @param SRV The type of the API service, must implement `IApiCommonService`.
+ * @param AIS The type of the API service, must implement `IApiCommonService`.
  * @param service The service instance used to handle the API request.
  * @param apiItemFun A suspend function representing the actual API item update logic.
  * @param id The identifier of the item to be updated.
@@ -72,9 +71,9 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return An `ItemState` representing the result state of the updated item.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemQueryUpdateCall(
-    service: SRV,
-    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryUpdateCall(
+    service: AIS,
+    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
@@ -95,9 +94,9 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return The resulting state of the item after the delete operation, encapsulated in an ItemState object.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemQueryDeleteCall(
-    service: SRV,
-    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryDeleteCall(
+    service: AIS,
+    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
@@ -115,7 +114,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @param T The type of the item to be created. Must extend BaseDoc.
  * @param ID The type of the unique identifier of the item. Must be a non-nullable type.
  * @param FILT The type of the filter used in the API operation. Must extend IApiFilter.
- * @param SRV The type of the service being used for the operation. Must implement IApiCommonService.
+ * @param AIS The type of the service being used for the operation. Must implement IApiCommonService.
  * @param service The service instance used to process the API operation.
  * @param apiItemFun A suspend function that performs the API item action for creation.
  * @param item The item to be created in the API.
@@ -123,9 +122,9 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return An ItemState representing the result of the create operation.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemActionCreateCall(
-    service: SRV,
-    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemActionCreateCall(
+    service: AIS,
+    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
@@ -144,7 +143,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @param T The type of the items being updated, which extends BaseDoc.
  * @param ID The type of the identifier for the items, which must be non-nullable.
  * @param FILT The type of the API filter used in the operation, which must extend IApiFilter.
- * @param SRV The type of the API service handling the operation, which must extend IApiCommonService.
+ * @param AIS The type of the API service handling the operation, which must extend IApiCommonService.
  * @param service The API service instance used for invoking the update action.
  * @param apiItemFun A suspendable function defining the update logic for a given API item.
  * @param item The item to update.
@@ -153,9 +152,9 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return The resulting state of the item after the update action.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemActionUpdateCall(
-    service: SRV,
-    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemActionUpdateCall(
+    service: AIS,
+    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
     orig: T?,
@@ -171,16 +170,16 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
 /**
  * Handles the deletion of a specific item via an API call.
  *
- * @param service The service instance of type [SRV] responsible for executing the API call.
+ * @param service The service instance of type [AIS] responsible for executing the API call.
  * @param apiItemFun A suspend function provided by the service, defining the delete operation for the item.
  * @param item The item of type [T], extending [BaseDoc], which is to be deleted.
  * @param apiFilter The filter of type [FILT], extending [IApiFilter], used to customize the API request. Defaults to a newly created filter instance.
  * @return The resulting state of the item after the API call, encapsulated in an [ItemState] instance.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, SRV : IApiCommonService> CC.apiItemActionDeleteCall(
-    service: SRV,
-    apiItemFun: suspend SRV.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemActionDeleteCall(
+    service: AIS,
+    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(

@@ -37,7 +37,7 @@ import kotlinx.browser.window
 @Suppress("unused")
 abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
     final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, *, FILT, MID>,
-    configViewItem: ConfigViewItem<CC, T, ID, *, FILT, IApiCommonService>? = null,
+    configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = null,
     periodicUpdateDataView: Boolean? = null,
     var editable: (() -> Boolean) = { true },
 ) : ViewDataContainer<CC, T, ID, FILT>(
@@ -57,8 +57,8 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * configuring CRUD-related operations, backend API interactions, and other functionalities tied to
      * the view item.
      */
-    private var _configViewItem: ConfigViewItem<CC, T, ID, *, FILT, IApiCommonService>? = configViewItem
-    fun configViewItem(): ConfigViewItem<CC, T, ID, *, FILT, IApiCommonService>? {
+    private var _configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = configViewItem
+    fun configViewItem(): ConfigViewItem<CC, T, ID, *, FILT, *>? {
         if (_configViewItem != null) return _configViewItem
         val viewClassName = configView.viewKClass.simpleName!!
         val name = if (viewClassName.startsWith("ViewList")) {
@@ -66,7 +66,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         } else {
             "ViewItem${configView.commonContainer.itemKClass.js.name}"
         }
-        _configViewItem = configViewItemMap[name]?.unsafeCast<ConfigViewItem<CC, T, ID, *, FILT, IApiCommonService>>()
+        _configViewItem = configViewItemMap[name]?.unsafeCast<ConfigViewItem<CC, T, ID, *, FILT, *>>()
         return _configViewItem
     }
 
@@ -108,18 +108,16 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     )
 
     /**
-     * Defines a column for deleting items in a tabular view. Upon interaction with this column,
-     * a confirmation dialog is displayed to confirm the deletion of the selected item. If confirmed,
-     * the related delete operation is executed.
+     * Creates a column definition for deleting items in a tabular view.
      *
-     * The function utilizes a configuration provided by the `configViewItem` property to determine
-     * the behavior of the confirmation dialog and the deletion process, allowing for specific
-     * implementations of delete actions via the `serviceManager` and `apiItemFun`.
+     * This method defines a column that facilitates item deletion functionality.
+     * When a user interacts with the delete column, it triggers a confirmation dialog.
+     * If confirmed, the delete operation is executed on the specific item using the
+     * associated configuration and API service manager.
      *
-     * @param AIS The type of the API service, extending `IApiCommonService`.
-     * @return A `ColumnDefinition` for the delete column, with preconfigured behavior for deletion.
+     * @return A column definition of type `ColumnDefinition<T>` that allows the deletion of items.
      */
-    fun <AIS : IApiCommonService> columnDefinitionDeleteItem(): ColumnDefinition<T> =
+    fun columnDefinitionDeleteItem(): ColumnDefinition<T> =
         buildColumnDefinitionDeleteItem { _, cell ->
             cell.item?.let { item ->
                 configViewItem()?.let { configViewItem ->
@@ -167,7 +165,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = emptyList()
 
-    var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *, *>? = null
+    var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
         set(value) {
             editable = { value?.actionUpsert == true }
             crudTask = value?.crudTask
@@ -205,7 +203,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItemObs.value,
-        configViewItem: ConfigViewItem<CC, T, ID, *, FILT, IApiCommonService>? = this.configViewItem(),
+        configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = this.configViewItem(),
     ) {
         configViewItem ?: return
         val apiItem = when (crudTask) {

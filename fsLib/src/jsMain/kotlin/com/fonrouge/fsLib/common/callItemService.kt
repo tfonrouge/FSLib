@@ -1,6 +1,5 @@
 package com.fonrouge.fsLib.common
 
-import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.model.apiData.CallType
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
@@ -19,27 +18,25 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 
 /**
- * Executes a transactional operation on the specified API service.
- * Used to perform CRUD tasks or actions by dynamically constructing the necessary API call.
+ * Executes an API call for an item-based service using the provided function, CRUD task, and call type.
  *
- * @param T The type of the base document.
- * @param ID The type of the unique identifier for the base document.
- * @param FILT The type of the API filter used for querying or actions.
- * @param AIS The type of the API service being called.
- * @param serviceManager The service manager responsible for handling API service call configurations.
- * @param apiItemFun The service function to be called, defined as an extension over the API service type.
- * @param crudTask The CRUD task to be performed, such as create, read, update, or delete.
- * @param callType The type of the call, either Query or Action.
- * @param id The unique identifier of the base document (used for Read/Update/Delete).
- * @param item The instance of the base document to be created or updated.
- * @param orig The original instance of the base document (used for update comparisons).
- * @param apiFilter The filter used for querying the API, with a default instance if not provided.
- * @param block A callback function that processes and optionally transforms the resulting item state.
+ * @param T The type of the item, which must extend BaseDoc.
+ * @param ID The type of the ID of the item, which must be non-nullable.
+ * @param FILT The type of the API filter, which must extend IApiFilter.
+ * @param serviceManager The service manager used for retrieving API call configuration, such as the URL and method.
+ * @param apiItemFun The function representing the API call.
+ * @param crudTask The CRUD operation to be performed (Create, Read, Update, or Delete).
+ * @param callType The type of API call, either Query or Action.
+ * @param id An optional ID of the item for Read, Update, or Delete operations.
+ * @param item An optional item to be passed for Create, Update, or Delete operations in the Action call type.
+ * @param orig An optional original item for auditing or comparison during Update operations in the Action call type.
+ * @param apiFilter An optional API filter to refine or customize the API call; defaults to a new instance using apiFilterInstance.
+ * @param block A callback function to handle the final state of the item after the API call.
  */
 @OptIn(ExperimentalSerializationApi::class)
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService> ICommonContainer<T, ID, FILT>.callItemService(
-    serviceManager: KVServiceManager<AIS>,
-    apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FILT>.callItemService(
+    serviceManager: KVServiceManager<*>,
+    apiItemFun: Function<*>,
     crudTask: CrudTask,
     callType: CallType,
     id: ID? = null,
