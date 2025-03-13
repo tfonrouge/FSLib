@@ -9,30 +9,27 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlinx.browser.window
 import org.w3c.dom.Window
+import web.prompts.alert
 import kotlin.reflect.KClass
 
 /**
- * ConfigViewList is an abstract class that provides configuration and utilities for managing
- * a list view of items associated with a specific container. It facilitates interaction with
- * APIs, URL construction, and navigation for views.
+ * Abstract class that provides a configuration for a view that handles listing and displaying collections of items,
+ * extending the functionality of a container-base class.
  *
- * @param CC The type of the common container, which must extend ICommonContainer.
- * @param T The type of items managed by the view, which must extend BaseDoc.
- * @param ID The type of the ID of the items in the view, which must be a non-nullable type.
- * @param V The type of the view class associated with the container.
- * @param E The type of the service manager that provides services for API interaction.
- * @param FILT The type of API filter used for querying, must extend IApiFilter.
- * @param MID The type of the filter metadata used by the API filter.
- * @param commonContainer The common container instance managing the configured items.
- * @param serviceManager The service manager that enables communication with API services.
- * @param apiListFun A suspend function provided by the service manager to fetch a list of items
- *                   corresponding to a specific filter.
- * @param viewKClass The KClass instance of the view associated with the configuration.
- * @param baseUrl Optional base URL for the view; defaults to the simple name of the view class.
+ * @param CC The type of the common container managing the API items and metadata, must extend ICommonContainer.
+ * @param T The type of the items within the list, must implement BaseDoc.
+ * @param ID The identifier type of the items in the list, must be non-nullable.
+ * @param V The type of the view list class, extending ViewList.
+ * @param E The execution context for the API list function.
+ * @param FILT The API filter type, extending IApiFilter.
+ * @param MID The type of the metadata ID used in filtering.
+ * @param commonContainer An instance of the common container that manages the configuration and items of the list.
+ * @param apiListFun A suspend function for retrieving a list state based on a given API filter.
+ * @param viewKClass The KClass instance of the view list class, representing the specific view type.
+ * @param baseUrl Optional; a custom base URL for the configuration. Defaults to the simple name of the view class.
  */
 abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, E : Any, FILT : IApiFilter<MID>, MID : Any>(
     commonContainer: CC,
-    val serviceManager: KVServiceManager<E>,
     val apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,
     viewKClass: KClass<out V>,
     baseUrl: String? = null
@@ -41,14 +38,25 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     viewKClass = viewKClass,
     baseUrl = baseUrl
 ) {
+    companion object {
+        private var dataListServiceManager: KVServiceManager<*>? = null
+        var serviceManager: KVServiceManager<*>
+            get() = dataListServiceManager
+                ?: throw IllegalStateException("serviceManager is null. Please set ConfigViewList.serviceManager value before instantiating any ConfigViewList.".also {
+                    alert(
+                        it
+                    )
+                })
+            set(value) {
+                dataListServiceManager = value
+            }
+        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
+    }
+
     override val baseUrl: String
         get() {
             return _baseUrl ?: viewKClass.simpleName!!
         }
-
-    companion object {
-        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
-    }
 
     override val label: String get() = commonContainer.labelList
     override val labelUrl: Pair<String, String> by lazy { commonContainer.labelList to url }
@@ -96,26 +104,25 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 }
 
 /**
- * Configures a view list component for managing and rendering a collection of items, where the component is tied to
- * a specific container, API service manager, and filtering logic.
+ * Configures a view list with the given parameters.
  *
- * @param viewKClass The KClass type of the view list component.
- * @param commonContainer The container managing the items and their lifecycle.
- * @param serviceManager The service manager responsible for backend interactions.
- * @param apiListFun The API function for fetching a filtered list of items.
- * @param baseUrl An optional base URL for API requests. Defaults to null.
- * @return A configured instance of ConfigViewList.
+ * This function creates and returns an instance of `ConfigViewList`, which serves as a configuration
+ * for managing a view list for a specific combination of item, filter type, and view type in the application.
+ *
+ * @param viewKClass The KClass of the view list type being configured.
+ * @param commonContainer The container managing the items and API-related details for the given type.
+ * @param apiListFun A suspend function that defines the API calls to retrieve the list state for the specified filter.
+ * @param baseUrl An optional base URL for the API interaction. Defaults to null.
+ * @return An instance of `ConfigViewList` configured with the provided parameters.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, V : ViewList<CC, T, ID, FILT, MID>, E : Any, ID : Any, FILT : IApiFilter<MID>, MID : Any> configViewList(
     viewKClass: KClass<out V>,
     commonContainer: CC,
-    serviceManager: KVServiceManager<E>,
     apiListFun: suspend E.(ApiList<FILT>) -> ListState<T>,
     baseUrl: String? = null,
 ): ConfigViewList<CC, T, ID, V, E, FILT, MID> = object : ConfigViewList<CC, T, ID, V, E, FILT, MID>(
     commonContainer = commonContainer,
-    serviceManager = serviceManager,
     apiListFun = apiListFun,
     viewKClass = viewKClass,
     baseUrl = baseUrl

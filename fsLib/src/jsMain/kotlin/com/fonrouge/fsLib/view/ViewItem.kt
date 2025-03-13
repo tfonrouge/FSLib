@@ -143,7 +143,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     val simpleState = formPanelValidate(data)
                     if (simpleState.state == State.Ok) {
                         configView.commonContainer.callItemService(
-                            serviceManager = configView.serviceManager,
                             apiItemFun = configView.apiItemFun,
                             crudTask = crudAction,
                             callType = CallType.Action,
@@ -349,7 +348,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
                             configView.commonContainer.confirmDeleteView(
-                                serviceManager = configView.serviceManager,
                                 apiItemFun = configView.apiItemFun,
                                 item = item,
                                 apiFilter = apiFilter
@@ -357,7 +355,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                         } ?: Toast.danger("${configView.commonContainer.labelItem} not valid ...")
                     } else {
                         configView.commonContainer.callItemService(
-                            serviceManager = configView.serviceManager,
                             apiItemFun = configView.apiItemFun,
                             crudTask = crudAction,
                             callType = CallType.Query,
@@ -478,7 +475,6 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         if (crudTask == CrudTask.Read) {
             item?._id?.let { id ->
                 configView.commonContainer.getItemState(
-                    serviceManager = configView.serviceManager,
                     apiItemFun = configView.apiItemFun,
                     apiItem = configView.commonContainer.apiItemQueryRead(id = id, apiFilter = apiFilter),
                 ) {

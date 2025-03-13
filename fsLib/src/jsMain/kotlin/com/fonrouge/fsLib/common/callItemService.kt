@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.common
 
+import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.model.apiData.CallType
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
@@ -8,7 +9,6 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import io.kvision.remote.CallAgent
 import io.kvision.remote.JsonRpcRequest
-import io.kvision.remote.KVServiceManager
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
@@ -18,24 +18,19 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 
 /**
- * Executes an API call for an item-based service using the provided function, CRUD task, and call type.
+ * Executes a service call for an API item within the container context.
  *
- * @param T The type of the item, which must extend BaseDoc.
- * @param ID The type of the ID of the item, which must be non-nullable.
- * @param FILT The type of the API filter, which must extend IApiFilter.
- * @param serviceManager The service manager used for retrieving API call configuration, such as the URL and method.
- * @param apiItemFun The function representing the API call.
- * @param crudTask The CRUD operation to be performed (Create, Read, Update, or Delete).
- * @param callType The type of API call, either Query or Action.
- * @param id An optional ID of the item for Read, Update, or Delete operations.
- * @param item An optional item to be passed for Create, Update, or Delete operations in the Action call type.
- * @param orig An optional original item for auditing or comparison during Update operations in the Action call type.
- * @param apiFilter An optional API filter to refine or customize the API call; defaults to a new instance using apiFilterInstance.
- * @param block A callback function to handle the final state of the item after the API call.
+ * @param apiItemFun A reference to the function representing the API operation.
+ * @param crudTask The type of CRUD operation to perform (Create, Read, Update, Delete).
+ * @param callType The type of API call (Query or Action).
+ * @param id The unique identifier of the item, or null if not applicable.
+ * @param item The item to be used for the operation, or null if not applicable.
+ * @param orig The original item before any updates, or null if not applicable.
+ * @param apiFilter The API filter used to customize queries, defaults to an instance created from the container's apiFilterInstance method.
+ * @param block A lambda to process the result of the operation, receiving the item state as input and returning the modified item state.
  */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FILT>.callItemService(
-    serviceManager: KVServiceManager<*>,
     apiItemFun: Function<*>,
     crudTask: CrudTask,
     callType: CallType,
@@ -45,7 +40,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
     apiFilter: FILT = apiFilterInstance(),
     block: (ItemState<T>) -> ItemState<T>,
 ) {
-    val (url, method) = serviceManager.requireCall(apiItemFun)
+    val (url, method) = ConfigViewItem.serviceManager.requireCall(apiItemFun)
     val callAgent = CallAgent()
     val iApiItem = when (callType) {
         CallType.Query -> when (crudTask) {

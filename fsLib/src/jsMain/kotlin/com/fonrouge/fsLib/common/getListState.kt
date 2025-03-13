@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.common
 
+import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -7,7 +8,6 @@ import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.state.State
 import io.kvision.remote.CallAgent
 import io.kvision.remote.JsonRpcRequest
-import io.kvision.remote.KVServiceManager
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
@@ -18,24 +18,21 @@ import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.js.Promise
 
 /**
- * Retrieves the state of a list based on the provided API filter, using a specified API function and transformer.
+ * Retrieves a transformed representation of the state of a list retrieved from an API function.
  *
- * @param serviceManager The service manager instance that provides a connection to the backend services.
- * @param apiListFun A suspend function executed in the API service, which takes an `ApiList` filter
- *                   and returns a `ListState` containing the desired data.
- * @param apiList The `ApiList` containing the API filter criteria; defaults to a newly created instance with a default filter.
- * @param transform A function to transform the returned `ListState<T>` into a desired result of type `R`.
- * @return A promise containing another promise of the transformed result of type `R`.
+ * @param apiListFun A suspend function specifying the API call that retrieves the list state.
+ * @param apiList An instance of ApiList containing the filter, sorter, and pagination details for the API call. Defaults to a new ApiList with the default filter.
+ * @param transform A transformation function to convert the retrieved ListState into the desired return format.
+ * @return A Promise that resolves to the result of the transformation function applied to the ListState.
  */
 @Suppress("unused")
 @OptIn(ExperimentalSerializationApi::class)
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommonContainer<T, ID, FILT>.getListState(
-    serviceManager: KVServiceManager<AIS>,
     apiListFun: suspend AIS.(ApiList<FILT>) -> ListState<T>,
     apiList: ApiList<FILT> = ApiList(apiFilter = apiFilterInstance()),
     transform: (ListState<T>) -> R,
 ): Promise<R> {
-    val (url, method) = serviceManager.requireCall(apiListFun)
+    val (url, method) = ConfigViewList.serviceManager.requireCall(apiListFun)
     val callAgent = CallAgent()
     val apiListSerialized = Json.encodeToString(ApiList.serializer(apiFilterSerializer), apiList)
     val paramList = listOf(apiListSerialized)

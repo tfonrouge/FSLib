@@ -18,7 +18,6 @@ import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
 import com.fonrouge.fsLib.tabulator.TabulatorViewList
 import com.fonrouge.fsLib.tabulator.menuItem
 import io.kvision.core.Container
-import io.kvision.remote.KVServiceManager
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator
@@ -122,7 +121,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             cell.item?.let { item ->
                 configViewItem()?.let { configViewItem ->
                     configViewItem.commonContainer.confirmDeleteView(
-                        serviceManager = configViewItem.serviceManager,
                         apiItemFun = configViewItem.apiItemFun,
                         item = item
                     )
@@ -139,23 +137,21 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
 
     /**
-     * Defines a column for deleting items in a tabular view. When a user interacts with this column,
-     * a confirmation dialog is displayed to confirm the deletion of the selected item. Upon confirmation,
-     * the delete operation is executed, and the view updates accordingly.
+     * Defines a column for deleting items within a tabular view.
      *
-     * @param AIS The type of the API service, extending `IApiCommonService`.
-     * @param serviceManager Manages API services, providing access to perform API operations.
-     * @param apiItemFun A suspendable function invoked on the API service to handle the deletion process.
-     * This function takes an API item and performs the corresponding delete operation.
-     * @return A `ColumnDefinition` configured for the delete column, enabling item deletion functionality within the tabular view.
+     * This method leverages a provided API function to execute the deletion of items.
+     * A confirmation dialog is displayed before the delete operation is performed.
+     * Upon successful deletion, the view's data is updated to reflect the changes.
+     *
+     * @param apiItemFun A suspend function provided by the API service to handle the deletion
+     *                   of the specified item. It operates within the context of the `IApiCommonService`.
+     * @return A `ColumnDefinition<T>` instance that represents the delete functionality for items.
      */
     fun <AIS : IApiCommonService> columnDefinitionDeleteItem(
-        serviceManager: KVServiceManager<AIS>,
         apiItemFun: (suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>),
     ): ColumnDefinition<T> = buildColumnDefinitionDeleteItem { _, cell ->
         cell.item?.let { item ->
             configView.commonContainer.confirmDeleteView(
-                serviceManager = serviceManager,
                 apiItemFun = apiItemFun,
                 item = item,
                 onSuccess = { dataUpdate() }
@@ -230,7 +226,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             if (crudTask == CrudTask.Delete) {
                 item?.let {
                     configViewItem.commonContainer.confirmDeleteView(
-                        serviceManager = configViewItem.serviceManager,
                         apiItemFun = configViewItem.apiItemFun,
                         item = item,
                         apiFilter = apiFilter

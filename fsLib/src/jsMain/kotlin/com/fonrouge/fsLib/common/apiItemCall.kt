@@ -5,201 +5,156 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
-import io.kvision.remote.KVServiceManager
 import kotlin.js.Promise
 
 /**
- * Creates an API item query call for creating a new item, executes the specified service function,
- * and returns the result in a transformed form.
+ * Executes an API item query to create a call to fetch the item's state and apply a transformation to the result.
  *
- * @param serviceManager The service manager that provides access to the API service.
- * @param apiItemFun The service function to handle the API item operation. The function receives an API item and returns an ItemState.
- * @param apiFilter The filter used to create the query. Defaults to a new instance of the filter.
- * @param transform A transformation function to process the resulting ItemState.
- * @return A promise of the transformation result based on the executed API item operation.
+ * @param apiItemFun The suspend function provided by the API service that operates on the given API item and returns its state.
+ * @param apiFilter The filter applied to the query to refine the results. Defaults to a new instance of the filter.
+ * @param transform A function to transform the resulting item state into the desired return type.
+ * @return A promise containing the transformed result of the item state.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryCreateCall(
-    serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     apiFilter: FILT = apiFilterInstance(),
     transform: ((ItemState<T>) -> R)
 ): Promise<R> = getItemState(
-    serviceManager = serviceManager,
     apiItemFun = apiItemFun,
     apiItem = apiItemQueryCreate(apiFilter),
     transform = transform
 )
 
 /**
- * Performs a read operation on an API item based on the specified ID and filter,
- * and transforms the resulting item state to a desired output format.
+ * Makes a query to read a specific item from an API and processes the result using a transform function.
  *
- * @param CC The type of the common container, which manages API items.
- * @param T The type of the items in the container, which must extend BaseDoc.
- * @param ID The type of the ID associated with the items, which must be a non-nullable type.
- * @param FILT The type of the API filter used for querying, which must extend IApiFilter.
- * @param AIS The type of the API service interface.
- * @param R The type of the transformed result returned by the function.
- * @param serviceManager The service manager responsible for managing the API service calls.
- * @param apiItemFun A suspend function representing the API method that handles the read operation.
- * @param id The ID of the item to be read.
- * @param apiFilter The filter used for querying. A default instance of the filter is used if not provided.
- * @param transform A function to transform the resulting ItemState to the desired return type.
- * @return A promise containing the transformed result of the read operation.
+ * @param apiItemFun A suspend function from the API service type `AIS` that accepts an `IApiItem`
+ *                   representing the API query, returning an `ItemState` with the queried item.
+ * @param id The identifier of the item to be queried.
+ * @param apiFilter An optional filter of type `FILT` to refine the query; defaults to an instance of `FILT`.
+ * @param transform A function to process the resulting `ItemState`, transforming it into a desired return type `R`.
+ * @return A `Promise` wrapping the result of the transform function applied to the `ItemState` of the queried item.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryReadCall(
-    serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
     transform: ((ItemState<T>) -> R)
 ): Promise<R> = getItemState(
-    serviceManager = serviceManager,
     apiItemFun = apiItemFun,
     apiItem = apiItemQueryRead(id, apiFilter),
     transform = transform
 )
 
 /**
- * Executes an API item update query in a given service manager and transforms the result.
+ * Executes a query update call for a specific API item, applying the provided transformation to the resulting item state.
  *
- * @param serviceManager The service manager that provides the API services needed for the query.
- * @param apiItemFun A suspend function representing the API operation to be performed for the item.
- * @param id The identifier of the item to be updated.
- * @param apiFilter An optional filter to narrow down the query. A default filter instance is used if not provided.
- * @param transform A function to transform the resulting item state into the desired type.
- * @return A promise of the result produced by applying the transform function to the item state.
+ * @param apiItemFun A suspend function of the API service that processes the given API item and returns its state.
+ * @param id The unique identifier of the item to be queried and updated.
+ * @param apiFilter The API filter to be applied during the query. Defaults to an instance created by `apiFilterInstance()`.
+ * @param transform A function to transform the resulting item state into the desired return type.
+ * @return A `Promise` containing the transformed result of the query update call.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryUpdateCall(
-    serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
     transform: ((ItemState<T>) -> R)
 ): Promise<R> = getItemState(
-    serviceManager = serviceManager,
     apiItemFun = apiItemFun,
     apiItem = apiItemQueryUpdate(id, apiFilter),
     transform = transform
 )
 
 /**
- * Executes a query to delete an API item and transforms the result.
+ * Executes a delete operation on a specific API item and processes the result with a transformation function.
  *
- * @param serviceManager The service manager instance responsible for handling `IApiCommonService` implementations.
- * @param apiItemFun The suspend function to execute the deletion query using the service.
- * @param id The identifier of the item to be deleted.
- * @param apiFilter An optional API filter, used to refine the query parameters. Defaults to an instance of the `FILT` type.
- * @param transform A transformation function applied to the `ItemState` result of the delete operation.
- * @return A `Promise` containing the transformed result of the delete operation.
+ * @param apiItemFun The suspend function provided by the API service to delete an item and return its state.
+ * @param id The unique identifier of the item to be deleted.
+ * @param apiFilter An API filter used to refine the query criteria. By default, it is initialized with `apiFilterInstance()`.
+ * @param transform A transformation function that processes the resulting `ItemState` into the desired output type.
+ * @return A `Promise` of the transformed result produced by the transformation function.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryDeleteCall(
-    serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
     transform: ((ItemState<T>) -> R)
 ): Promise<R> = getItemState(
-    serviceManager = serviceManager,
     apiItemFun = apiItemFun,
     apiItem = apiItemQueryDelete(id, apiFilter),
     transform = transform
 )
 
 /**
- * Executes a create action for a given item utilizing the specified API service and applies a transformation to the resulting item state.
+ * Invokes a create action on an API item and transforms its resulting state.
  *
- * @param CC The container type that manages the item, extending ICommonContainer.
- * @param T The type of the item to be created, which must extend BaseDoc.
- * @param ID The type of the ID field of the item, which must be a non-nullable type.
- * @param FILT The type of the API filter used for querying, must extend IApiFilter.
- * @param AIS The type of the API service, which must extend IApiCommonService.
- * @param R The return type resulting from the transformation function.
- * @param serviceManager The manager responsible for providing the appropriate API service.
- * @param apiItemFun A suspend function provided by the API service that operates on an API item and returns its state.
- * @param item The item to be created.
- * @param apiFilter Optional, the API filter to apply during the operation. Defaults to an instance created by apiFilterInstance().
- * @param transform A function to transform the resulting ItemState into the desired return type.
- * @return A Promise that resolves to the transformed result of the item state.
+ * @param apiItemFun A suspend function provided by the API service that defines how the API item creation should be processed.
+ * @param item The item to be created. Must extend `BaseDoc`.
+ * @param apiFilter The API filter instance used for additional querying or filtering options. Defaults to `apiFilterInstance()`.
+ * @param transform A function to transform the resulting `ItemState` of the created item into a desired output type.
+ * @return A `Promise` of the transformed result, which is of type `R`.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemActionCreateCall(
-    serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
     transform: ((ItemState<T>) -> R)
 ): Promise<R> = getItemState(
-    serviceManager = serviceManager,
     apiItemFun = apiItemFun,
     apiItem = apiItemActionCreate(item, apiFilter),
     transform = transform
 )
 
 /**
- * Updates an item within the API by applying the given action and transforms the resulting state.
- * The updated item's state is obtained through the provided service manager and API function.
+ * Executes an API call for updating an item within the context of a common container.
  *
- * @param CC The type of the common container that manages the items.
- * @param T The type of the item being updated, which must extend BaseDoc.
- * @param ID The type of the item's identifier, which must be a non-nullable type.
- * @param FILT The type of the API filter used for the operation, which must extend IApiFilter.
- * @param AIS The type of the API service used for this operation.
- * @param R The type of the result after applying the transformation function.
- * @param serviceManager The manager handling API services used for executing the update.
- * @param apiItemFun A suspending function that defines the API item update logic.
- * @param item The item to be updated.
- * @param apiFilter The filter used for the API operation, defaults to an instance of FILT.
- * @param orig The original item version before the update, if available.
- * @param transform A function that processes the resulting ItemState to produce a result of type R.
- * @return A Promise of the result after applying the transformation function to the item’s updated state.
+ * @param apiItemFun A suspend function representing the API call for updating the item.
+ *                   It takes an [IApiItem] containing the item and its associated filters
+ *                   and returns an [ItemState] representing the result of the operation.
+ * @param item The item of type [T] to be updated.
+ * @param apiFilter The API filter of type [FILT] to be used in the operation.
+ *                  Defaults to an instance created by `apiFilterInstance()`.
+ * @param orig The original version of the item prior to the update, if applicable. Can be null.
+ * @param transform A lambda function to transform the resulting [ItemState] into a different
+ *                  type [R] if needed.
+ *
+ * @return A [Promise] wrapping the transformed result of type [R].
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemActionUpdateCall(
-    serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
     orig: T?,
     transform: ((ItemState<T>) -> R)
 ): Promise<R> = getItemState(
-    serviceManager = serviceManager,
     apiItemFun = apiItemFun,
     apiItem = apiItemActionUpdate(item, apiFilter, orig),
     transform = transform
 )
 
 /**
- * Executes an API delete call for a specific item and transforms the resulting item state.
+ * Deletes an item using an asynchronous API call and processes the result.
  *
- * @param CC The container type implementing ICommonContainer.
- * @param T The type of the item being deleted, which must extend BaseDoc.
- * @param ID The type of the item's identifier, which must be a non-nullable type.
- * @param FILT The type of the API filter used for the operation, which must extend IApiFilter.
- * @param AIS The type of the API service being used, which must implement IApiCommonService.
- * @param R The return type resulting from the transformation applied to the item state.
- *
- * @param serviceManager The KVServiceManager instance managing the corresponding service.
- * @param apiItemFun A suspend function representing the API action to perform the delete operation.
- * @param item The item to be deleted, which must be of type T.
- * @param apiFilter The filter applied during the delete operation, which defaults to a new instance.
- * @param transform A transformation function applied to the resulting ItemState to produce the returned value.
- *
- * @return A Promise of the transformed result of type R.
+ * @param apiItemFun A suspending function representing the API action to delete an item, which operates on the provided `IApiItem`.
+ * @param item The item of type `T` to be deleted.
+ * @param apiFilter The filter of type `FILT` to be used during the delete operation. Defaults to an instance of `FILT`.
+ * @param transform A transformation function applied to the resulting `ItemState` of the deleted item.
+ * @return A `Promise` of the transformed result of type `R`.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemActionDeleteCall(
-    serviceManager: KVServiceManager<AIS>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
     transform: ((ItemState<T>) -> R)
 ): Promise<R> = getItemState(
-    serviceManager = serviceManager,
     apiItemFun = apiItemFun,
     apiItem = apiItemActionDelete(item, apiFilter),
     transform = transform

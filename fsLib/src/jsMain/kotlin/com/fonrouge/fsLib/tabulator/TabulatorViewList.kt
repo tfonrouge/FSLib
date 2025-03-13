@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.tabulator
 
 import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
@@ -249,7 +250,7 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
     }
 
     init {
-        viewList.configView.serviceManager.requireCall(viewList.configView.apiListFun).let {
+        ConfigViewList.serviceManager.requireCall(viewList.configView.apiListFun).let {
             url = it.first
             method = it.second
         }
