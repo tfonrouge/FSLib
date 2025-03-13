@@ -91,8 +91,8 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
  * @param init An optional initialization block to further customize the Tabulator view list. Defaults to `null`.
  * @return A configured `ViewList` instance for managing the items within the specified container.
  */
-inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, E : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
-    configViewList: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, E, FILT, MID>,
+inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any, ALS : Any> Container.fsTabulator(
+    configViewList: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, FILT, MID, ALS>,
     masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(),

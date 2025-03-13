@@ -35,7 +35,7 @@ import kotlinx.browser.window
  */
 @Suppress("unused")
 abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
-    final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, *, FILT, MID>,
+    final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, FILT, MID, *>,
     configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = null,
     periodicUpdateDataView: Boolean? = null,
     var editable: (() -> Boolean) = { true },
