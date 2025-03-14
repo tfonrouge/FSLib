@@ -42,8 +42,8 @@ abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFil
     /**
      * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservable] from the [UrlParams]
      */
-    fun newViewInstance(urlParams: UrlParams?): V {
-        return viewKClass.js.createInstance(urlParams ?: UrlParams())
+    fun newViewInstance(urlParams: UrlParams?, vararg args: dynamic): V {
+        return viewKClass.js.createInstance(urlParams ?: UrlParams(), args)
     }
 
     /**
