@@ -47,7 +47,7 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
      */
     var allowInstallPeriodicUpdate: Boolean = true
 
-    private var periodicUpdate = false
+    private var periodicUpdate = true
     abstract fun dataUpdate()
 
     open val onPeriodicDataUpdate: (() -> Unit)? = {
