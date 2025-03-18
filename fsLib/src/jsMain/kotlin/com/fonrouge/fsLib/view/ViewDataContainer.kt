@@ -47,8 +47,7 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
      */
     var allowInstallPeriodicUpdate: Boolean = true
 
-    @Suppress("MemberVisibilityCanBePrivate")
-    var suspendPeriodicUpdate = false
+    private var periodicUpdate = false
     abstract fun dataUpdate()
 
     open val onPeriodicDataUpdate: (() -> Unit)? = {
@@ -77,7 +76,7 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
             var lock = false
             handleInterval = window.setInterval(
                 handler = {
-                    if (!suspendPeriodicUpdate) {
+                    if (periodicUpdate) {
                         val curTime = (Date().getTime() / 1000).toLong()
                         if ((curTime - startTime) >= periodicUpdateViewInterval) {
                             if (!lock) {
@@ -106,5 +105,27 @@ abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc
     override fun onBeforeDispose() {
         super.onBeforeDispose()
         handleInterval = null
+    }
+
+    /**
+     * Resumes periodic updates by setting the `periodicUpdate` flag to `true`.
+     *
+     * This method is used to re-enable the periodic update mechanism within the
+     * update lifecycle management in `ViewDataContainer` after it has been suspended.
+     */
+    @Suppress("unused")
+    fun resumePeriodicUpdate() {
+        periodicUpdate = true
+    }
+
+    /**
+     * Suspends periodic updates by setting the `periodicUpdate` flag to `false`.
+     *
+     * This method temporarily disables the periodic update mechanism within
+     * the update lifecycle management of `ViewDataContainer`.
+     */
+    @Suppress("unused")
+    fun suspendPeriodicUpdate() {
+        periodicUpdate = false
     }
 }

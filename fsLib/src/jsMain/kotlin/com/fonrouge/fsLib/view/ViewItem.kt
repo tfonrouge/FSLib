@@ -367,6 +367,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                             apiFilter = apiFilter
                         ) { itemResponse ->
                             if (crudAction == CrudTask.Create && itemResponse.item != null && itemResponse.itemAlreadyOn) {
+                                crudTask = CrudTask.Update
                                 urlParams.params["action"] = CrudTask.Update.name
                                 itemResponse.item._id.let {
                                     urlParams.params.set(
