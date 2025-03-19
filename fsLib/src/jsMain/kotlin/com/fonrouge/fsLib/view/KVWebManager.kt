@@ -31,16 +31,18 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var configViewHome: ConfigView<*, *, *>? = null
 
     /**
-     * Global variable to allow periodic update on [ViewItem]
-     * Set to true if periodic update is allowed
+     * A flag indicating whether the periodic update for the data view item is enabled or not.
+     * It is a mutable property that can be used to toggle the functionality as needed.
+     * The default value is set to `true`.
      */
-    var periodicUpdateDataViewItem = false
+    var periodicUpdateDataViewItem = true
 
     /**
-     * Global variable to allow periodic update on [ViewList]
-     * Set to true if periodic update is allowed
+     * A variable indicating whether the periodic update for the data view list is enabled or not.
+     *
+     * If set to true, periodic updates are active; otherwise, updates are disabled.
      */
-    var periodicUpdateDataViewList = false
+    var periodicUpdateDataViewList = true
 
     var viewStateObservableValue = ObservableValue<ViewState?>(null)
 
