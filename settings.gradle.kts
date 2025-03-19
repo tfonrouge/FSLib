@@ -8,5 +8,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "KmpLib"
-include(":kmpLib")
+rootProject.name = "fsLib"
+include(":fsLib")

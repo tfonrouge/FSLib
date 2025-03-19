@@ -2,7 +2,7 @@
 /.gradle/
 /build/
 /build/classes/kotlin/backend/main/
-/kmpLib/build/
+/fsLib/build/
 /.idea/
 /.kotlin-js-store/yarn.lock
 .idea/
