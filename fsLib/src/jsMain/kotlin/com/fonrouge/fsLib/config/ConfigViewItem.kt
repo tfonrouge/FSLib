@@ -9,6 +9,7 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
+import com.fonrouge.fsLib.view.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.view.ViewItem
 import io.kvision.remote.KVServiceManager
 import kotlinx.browser.window
@@ -53,7 +54,6 @@ abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             set(value) {
                 dataItemServiceManager = value
             }
-        val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
     }
 
     override val baseUrl: String

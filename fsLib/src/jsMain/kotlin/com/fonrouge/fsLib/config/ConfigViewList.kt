@@ -5,6 +5,7 @@ import com.fonrouge.fsLib.model.apiData.ApiList
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
+import com.fonrouge.fsLib.view.KVWebManager.configViewListMap
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.remote.KVServiceManager
 import kotlinx.browser.window
@@ -50,7 +51,6 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
             set(value) {
                 dataListServiceManager = value
             }
-        val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
     }
 
     override val baseUrl: String

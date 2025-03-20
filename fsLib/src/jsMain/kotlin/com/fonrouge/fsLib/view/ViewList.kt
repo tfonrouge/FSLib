@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.common.confirmDeleteView
 import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.config.ConfigViewItem
-import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.lib.toast
@@ -17,6 +16,7 @@ import com.fonrouge.fsLib.tabulator.NavbarTabulator
 import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
 import com.fonrouge.fsLib.tabulator.TabulatorViewList
 import com.fonrouge.fsLib.tabulator.menuItem
+import com.fonrouge.fsLib.view.KVWebManager.configViewItemMap
 import io.kvision.core.Container
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.*

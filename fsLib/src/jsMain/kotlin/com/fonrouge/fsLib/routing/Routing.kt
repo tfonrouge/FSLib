@@ -1,10 +1,10 @@
 package com.fonrouge.fsLib.routing
 
 import com.fonrouge.fsLib.config.ConfigView.Companion.configViewMap
-import com.fonrouge.fsLib.config.ConfigViewItem.Companion.configViewItemMap
-import com.fonrouge.fsLib.config.ConfigViewList.Companion.configViewListMap
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.view.KVWebManager.configViewHome
+import com.fonrouge.fsLib.view.KVWebManager.configViewItemMap
+import com.fonrouge.fsLib.view.KVWebManager.configViewListMap
 import com.fonrouge.fsLib.view.KVWebManager.viewStateObservableValue
 import com.fonrouge.fsLib.view.ViewState
 import io.kvision.navigo.Navigo

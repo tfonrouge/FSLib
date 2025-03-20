@@ -3,6 +3,8 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.config.ConfigView
+import com.fonrouge.fsLib.config.ConfigViewItem
+import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.config.IConfigView
 import com.fonrouge.fsLib.routing.initialize
 import io.kvision.routing.Routing
@@ -29,6 +31,8 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var pageContainerWidth = "md"
 
     var configViewHome: ConfigView<*, *, *>? = null
+    val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
+    val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
 
     /**
      * A flag indicating whether the periodic update for the data view item is enabled or not.
