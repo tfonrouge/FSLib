@@ -236,7 +236,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      *                     with the new URL. If true, the history state is replaced with the modified URL.
      * @return A string representing the encoded URL with the API filter parameter appended.
      */
-    fun apiFilterToUrl(replaceState: Boolean): String {
+    fun apiFilterToPageUrl(replaceState: Boolean): String {
         configView.pairParam("apiFilter", configView.commonContainer.apiFilterSerializer, apiFilter)
             .let { pair ->
                 urlParams.params[pair.first] = pair.second
@@ -301,7 +301,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             this@startDisplayPage.displayPage()
             bind(apiFilterObservable) {
                 onApiFilterChange()
-                apiFilterToUrl(mainView)
+                apiFilterToPageUrl(mainView)
             }
             onAfterDisplayPage()
         }
@@ -384,7 +384,7 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                     icon = if (this@View is ViewItem<*, *, *, *>) iconCrud(crudTask) else null,
                 ) {
                     apiFilterObservable.subscribe {
-                        url = apiFilterToUrl(replaceState = false)
+                        url = apiFilterToPageUrl(replaceState = false)
                         AppScope.launch {
                             label = labelBanner(it)
                         }
