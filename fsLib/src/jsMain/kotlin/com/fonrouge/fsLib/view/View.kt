@@ -165,6 +165,27 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     var hasOffCanvasFilterView: Boolean = false
 
     /**
+     * Adds a page list body to the container.
+     *
+     * This method integrates the `pageListBody` of the provided `viewList` into the container,
+     * allowing for the display of a list-based UI structure. An optional initialization
+     * block can be applied to further configure the `viewList`.
+     *
+     * @param viewList The view list whose page list body will be added to the container.
+     * @param init An optional initialization block to configure the `viewList`. Defaults to null.
+     */
+    @Suppress("unused")
+    fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.addPageListBody(
+        viewList: ViewList<CC, T, ID, FILT, MID>,
+        init: (ViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null
+    ) {
+        with(viewList) {
+            pageListBody()
+        }
+        init?.invoke(viewList)
+    }
+
+    /**
      * Adds a view to the container and renders its main content.
      *
      * This method invokes the `displayPage` function of the provided view, which
