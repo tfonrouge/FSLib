@@ -1000,7 +1000,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         var result: Boolean? = null
         return try {
             apiItem1 = apiItem1.copy(item = apiItem1.item.copyItemWithPrimaryConstructorParameters())
-            onValidate(apiItem1.item).also { if (it.hasError) return it.asItemState() }
+            onValidate(apiItem1, apiItem1.item).also { if (it.hasError) return it.asItemState() }
             val insertOneResult: InsertOneResult = mongoColl.insertOne(
                 apiItem1.item,
             ).awaitSingle()
@@ -1223,7 +1223,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun onPermissionUpsertUpdate(apiItem: ApiItem.Upsert.Update<T, ID, FILT>, item: T): SimpleState =
         SimpleState(isOk = true)
 
-    open suspend fun onValidate(item: T): SimpleState = SimpleState(isOk = true)
+    /**
+     * Validates the given item and returns a state indicating the result of the validation.
+     *
+     * @param item The item of type T to be validated.
+     * @return A SimpleState object representing the outcome of the validation.
+     */
+    open suspend fun onValidate(apiItem: ApiItem.Upsert<T, ID, FILT>, item: T): SimpleState = SimpleState(isOk = true)
 
     /**
      * Generates a pipeline of BSON operations based on a lookup function and optional filtering fields.
@@ -1363,7 +1369,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         val result: UpdateResult = try {
             apiItem = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
-            onValidate(apiItem.item).also { if (it.hasError) return it.asItemState() }
+            onValidate(apiItem, apiItem.item).also { if (it.hasError) return it.asItemState() }
             coroutine.updateOne(
                 filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
                 target = apiItem.item,
@@ -1451,7 +1457,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val filter1 = and(BaseDoc<ID>::_id eq apiItem1.item._id, filter ?: EMPTY_BSON)
         val updateResult = try {
             apiItem1 = apiItem1.copy(item = apiItem1.item.copyItemWithPrimaryConstructorParameters())
-            onValidate(apiItem1.item).also { if (it.hasError) return it.asItemState() }
+            onValidate(apiItem1, apiItem1.item).also { if (it.hasError) return it.asItemState() }
             mongoColl.coroutine.updateOne(
                 filter = filter1,
                 target = apiItem1.item,
