@@ -1224,10 +1224,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         SimpleState(isOk = true)
 
     /**
-     * Validates the given item and returns a state indicating the result of the validation.
+     * Validates the provided item based on the given API item context.
      *
-     * @param item The item of type T to be validated.
-     * @return A SimpleState object representing the outcome of the validation.
+     * @param apiItem The API item context containing configuration and rules for validation.
+     * @param item The item of type T that needs to be validated.
+     * @return A SimpleState object indicating the validation result, with isOk set to true if valid.
      */
     open suspend fun onValidate(apiItem: ApiItem.Upsert<T, ID, FILT>, item: T): SimpleState = SimpleState(isOk = true)
 
