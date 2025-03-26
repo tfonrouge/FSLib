@@ -988,27 +988,29 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
         onPermissionUpsertCreate(apiItem).also { if (it.hasError) return it.asItemState() }
-        var item = apiItem.item
-        onBeforeUpsertAction(apiItem).also {
+        var apiItem1 = apiItem.copy()
+        onBeforeUpsertAction(apiItem1).also {
             if (it.hasError) return it
-            it.item?.let { item = it }
+            it.item?.let { apiItem1 = apiItem1.copy(item = it) }
         }
-        onBeforeUpsertCreateAction(apiItem).also {
+        onBeforeUpsertCreateAction(apiItem1).also {
             if (it.hasError) return it
-            it.item?.let { item = it }
+            it.item?.let { apiItem1 = apiItem1.copy(item = it) }
         }
         var result: Boolean? = null
         return try {
+            apiItem1 = apiItem1.copy(item = apiItem1.item.copyItemWithPrimaryConstructorParameters())
+            onValidate(apiItem1.item).also { if (it.hasError) return it.asItemState() }
             val insertOneResult: InsertOneResult = mongoColl.insertOne(
-                item.copyItemWithPrimaryConstructorParameters()
+                apiItem1.item,
             ).awaitSingle()
             result = insertOneResult.insertedId != null
-            ItemState(item = item, state = if (result) State.Ok else State.Error)
+            ItemState(item = apiItem1.item, state = if (result) State.Ok else State.Error)
         } catch (e: Exception) {
             ItemState(isOk = false, msgError = e.message)
         } finally {
-            onAfterUpsertCreateAction(apiItem = apiItem, result = result == true)
-            onAfterUpsertAction(apiItem = apiItem, result = result == true)
+            onAfterUpsertCreateAction(apiItem = apiItem1, result = result == true)
+            onAfterUpsertAction(apiItem = apiItem1, result = result == true)
         }
     }
 
@@ -1221,6 +1223,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun onPermissionUpsertUpdate(apiItem: ApiItem.Upsert.Update<T, ID, FILT>, item: T): SimpleState =
         SimpleState(isOk = true)
 
+    open suspend fun onValidate(item: T): SimpleState = SimpleState(isOk = true)
+
     /**
      * Generates a pipeline of BSON operations based on a lookup function and optional filtering fields.
      *
@@ -1358,9 +1362,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
         }
         val result: UpdateResult = try {
+            apiItem = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
+            onValidate(apiItem.item).also { if (it.hasError) return it.asItemState() }
             coroutine.updateOne(
                 filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
-                target = apiItem.item.copyItemWithPrimaryConstructorParameters(),
+                target = apiItem.item,
             )
         } catch (e: Exception) {
             onAfterUpsertUpdateAction(apiItem = apiItem, result = false)
@@ -1444,9 +1450,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         val filter1 = and(BaseDoc<ID>::_id eq apiItem1.item._id, filter ?: EMPTY_BSON)
         val updateResult = try {
+            apiItem1 = apiItem1.copy(item = apiItem1.item.copyItemWithPrimaryConstructorParameters())
+            onValidate(apiItem1.item).also { if (it.hasError) return it.asItemState() }
             mongoColl.coroutine.updateOne(
                 filter = filter1,
-                target = apiItem1.item.copyItemWithPrimaryConstructorParameters(),
+                target = apiItem1.item,
                 options = updateOptions
             )
         } catch (e: Exception) {
