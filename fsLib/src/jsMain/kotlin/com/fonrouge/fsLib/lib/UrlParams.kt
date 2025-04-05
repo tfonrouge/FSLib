@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.lib
 
 import io.kvision.navigo.Match
+import io.kvision.remote.encodeURIComponent
 import js.uri.decodeURIComponent
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
@@ -65,8 +66,7 @@ fun UrlParams?.toEncodedUrlString(): String {
     var size = 0
     for (entry in js("Object").entries(params)) {
         ++size
-        result += (if (result == "") "" else "&") + entry[0] + "="
-        result += js("encodeURIComponent(entry[1])")
+        result += (if (result == "") "" else "&") + entry[0] + "=" + encodeURIComponent(entry[1])
     }
     return if (size > 0) "?$result" else ""
 }
