@@ -2,12 +2,14 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.common.confirmDeleteView
-import com.fonrouge.fsLib.commonServices.IApiCommonService
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.lib.toast
-import com.fonrouge.fsLib.model.apiData.*
+import com.fonrouge.fsLib.model.apiData.ApiItem
+import com.fonrouge.fsLib.model.apiData.CrudTask
+import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.model.apiData.setMasterItemId
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
@@ -94,29 +96,33 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     )
 
     private fun buildColumnDefinitionDeleteItem(
-        cellClick: ((e: Any?, cell: Tabulator.CellComponent) -> Unit)
+        visible: Boolean? = null,
+        cellClick: ((e: Any?, cell: Tabulator.CellComponent) -> Unit),
     ): ColumnDefinition<T> = ColumnDefinition<T>(
         title = "",
         field = "__deleteItem",
+        vertAlign = VAlign.MIDDLE,
         hozAlign = Align.CENTER,
         formatterFunction = { _, _, _ ->
             "<i class=\"fa-solid fa-trash\"></i>"
         },
+        visible = visible,
         cellClick = cellClick
     )
 
     /**
-     * Creates a column definition for deleting items in a tabular view.
+     * Defines a column for the deletion of items in a tabular view.
      *
-     * This method defines a column that facilitates item deletion functionality.
-     * When a user interacts with the delete column, it triggers a confirmation dialog.
-     * If confirmed, the delete operation is executed on the specific item using the
-     * associated configuration and API service manager.
+     * This method configures a column that provides a delete functionality for items.
+     * It integrates a confirmation dialog for user confirmation before performing a delete action.
+     * If a configuration view item is not available, an error is logged and displayed.
      *
-     * @return A column definition of type `ColumnDefinition<T>` that allows the deletion of items.
+     * @param visible An optional parameter to control the visibility of the delete column.
+     *                If `null`, the visibility is determined by the default configuration.
+     * @return A `ColumnDefinition<T>` instance that represents the delete column.
      */
-    fun columnDefinitionDeleteItem(): ColumnDefinition<T> =
-        buildColumnDefinitionDeleteItem { _, cell ->
+    fun columnDefinitionDeleteItem(visible: Boolean? = null): ColumnDefinition<T> =
+        buildColumnDefinitionDeleteItem(visible = visible) { _, cell ->
             cell.item?.let { item ->
                 configViewItem()?.let { configViewItem ->
                     configViewItem.commonContainer.confirmDeleteView(
@@ -136,19 +142,21 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
 
     /**
-     * Defines a column for deleting items within a tabular view.
+     * Creates and configures a column definition that provides a delete functionality for items in a tabular view.
      *
-     * This method leverages a provided API function to execute the deletion of items.
-     * A confirmation dialog is displayed before the delete operation is performed.
-     * Upon successful deletion, the view's data is updated to reflect the changes.
+     * This column allows users to delete items from the tabular view. It integrates a confirmation dialog
+     * to ensure user approval before executing the delete operation. The delete operation uses the specified
+     * item state function and refreshes the data view upon success.
      *
-     * @param apiItemFun A suspend function provided by the API service to handle the deletion
-     *                   of the specified item. It operates within the context of the `IApiCommonService`.
-     * @return A `ColumnDefinition<T>` instance that represents the delete functionality for items.
+     * @param visible An optional parameter to determine the visibility of the delete column. Defaults to `null`,
+     *                allowing the default visibility settings to apply.
+     * @param apiItemFun A function that operates on the item's state and manages the delete operation.
+     * @return A `ColumnDefinition<T>` instance representing the delete column with appropriate functionality.
      */
-    fun <AIS : IApiCommonService> columnDefinitionDeleteItem(
-        apiItemFun: (suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>),
-    ): ColumnDefinition<T> = buildColumnDefinitionDeleteItem { _, cell ->
+    fun columnDefinitionDeleteItem(
+        visible: Boolean? = null,
+        apiItemFun: Function<ItemState<T>>,
+    ): ColumnDefinition<T> = buildColumnDefinitionDeleteItem(visible = visible) { _, cell ->
         cell.item?.let { item ->
             configView.commonContainer.confirmDeleteView(
                 apiItemFun = apiItemFun,
