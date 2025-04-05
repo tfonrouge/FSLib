@@ -18,7 +18,7 @@ import kotlin.js.Date
  * @param FILT The type of the API filter used for querying, must extend `IApiFilter`.
  * @property configViewContainer The configuration object for the view container.
  */
-abstract class ViewDataContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val configViewContainer: ConfigViewContainer<CC, T, ID, *, FILT>,
 ) : View<CC, FILT>(
     configView = configViewContainer,

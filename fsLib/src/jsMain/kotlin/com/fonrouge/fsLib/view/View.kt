@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
  * @param FILT The type of the API filter that implements IApiFilter.
  * @property configView The configuration view instance providing necessary configurations.
  */
-abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
+abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open val configView: ConfigView<CC, *, FILT>,
 ) {
     /**
@@ -215,8 +215,8 @@ abstract class View<CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     @Suppress("unused")
     fun <MID : Any> Container.addViewList(
-        viewList: ViewList<out ICommonContainer<*, *, out IApiFilter<MID>>, *, *, out IApiFilter<MID>, MID>,
-        masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
+        viewList: ViewList<ICommonContainer<*, *, out IApiFilter<MID>>, *, *, out IApiFilter<MID>, MID>,
+        masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
         init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
     ) {
         viewList.apply { startDisplayPage() }

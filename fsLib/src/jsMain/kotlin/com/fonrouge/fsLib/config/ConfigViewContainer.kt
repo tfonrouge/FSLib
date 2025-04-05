@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
  * @param viewKClass The KClass instance representing the type of the view data container.
  * @param baseUrl The optional base URL for API operations related to the configuration.
  */
-abstract class ConfigViewContainer<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewDataContainer<CC, T, ID, FILT>, FILT : IApiFilter<*>>(
+abstract class ConfigViewContainer<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewDataContainer<CC, T, ID, FILT>, FILT : IApiFilter<*>>(
     commonContainer: CC,
     viewKClass: KClass<out V>,
     baseUrl: String? = null,

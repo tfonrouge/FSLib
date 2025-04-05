@@ -53,7 +53,7 @@ import web.prompts.confirm
  * @param label The primary label associated with the view item.
  */
 @Suppress("unused")
-abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, FILT, *>,
     periodicUpdateDataView: Boolean? = null,
     icon: String? = null,
@@ -187,7 +187,7 @@ abstract class ViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      */
     @Suppress("unused")
     fun Container.addViewList(
-        viewList: ViewList<out ICommonContainer<*, *, out IApiFilter<ID>>, *, *, out IApiFilter<ID>, ID>,
+        viewList: ViewList<ICommonContainer<*, *, out IApiFilter<ID>>, *, *, out IApiFilter<ID>, ID>,
         init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
     ) {
         viewList.apply { startDisplayPage() }

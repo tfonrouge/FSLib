@@ -36,7 +36,7 @@ import kotlinx.browser.window
  * @param MID Type representing the master item identifier.
  */
 @Suppress("unused")
-abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
+abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
     final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, FILT, MID, *>,
     configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = null,
     periodicUpdateDataView: Boolean? = null,
@@ -168,7 +168,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = emptyList()
 
-    var masterViewItem: ViewItem<out ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
+    var masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
         set(value) {
             editable = { value?.actionUpsert == true }
             crudTask = value?.crudTask
@@ -206,7 +206,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItemObs.value,
-        configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = this.configViewItem(),
+        configViewItem: ConfigViewItem<@UnsafeVariance CC, T, ID, *, FILT, *>? = configViewItem(),
     ) {
         configViewItem ?: return
         val apiItem = when (crudTask) {

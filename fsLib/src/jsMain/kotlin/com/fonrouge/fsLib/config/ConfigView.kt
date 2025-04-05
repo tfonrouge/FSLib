@@ -21,7 +21,7 @@ import kotlin.reflect.KClass
  * @property viewKClass The Kotlin class reference for the associated view.
  * @property _baseUrl The optional base URL for this configuration view.
  */
-abstract class ConfigView<CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter<*>>(
+abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter<*>>(
     val commonContainer: CC,
     val viewKClass: KClass<out V>,
     @Suppress("PropertyName") internal val _baseUrl: String? = null,

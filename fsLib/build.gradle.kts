@@ -10,7 +10,7 @@ plugins {
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-val libVersion = "1.5.4"
+val libVersion = "1.5.5"
 
 group = "com.fonrouge.fsLib"
 version = libVersion

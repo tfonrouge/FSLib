@@ -32,7 +32,7 @@ import kotlin.reflect.KClass
  * @property viewKClass Reference to the Kotlin class associated with the view item.
  * @property baseUrl Configurable base endpoint URL. Defaults to the simple name of the associated view class.
  */
-abstract class ConfigViewItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any>(
+abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any>(
     commonContainer: CC,
     val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     viewKClass: KClass<out V>,
