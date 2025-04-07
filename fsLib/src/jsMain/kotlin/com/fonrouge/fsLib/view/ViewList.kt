@@ -95,6 +95,16 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         formatter = Formatter.ROWSELECTION
     )
 
+    /**
+     * Determines whether the default context menu for a row should be displayed.
+     *
+     * This property provides a lambda function returning a Boolean value
+     * that specifies whether the default context row menu is enabled or not.
+     * By default, it always returns `true`, indicating that the menu is shown.
+     * It can be customized to modify the condition dynamically based on specific logic.
+     */
+    var showDefaultContextRowMenu: () -> Boolean = { true }
+
     private fun buildColumnDefinitionDeleteItem(
         visible: Boolean? = null,
         cellClick: ((e: Any?, cell: Tabulator.CellComponent) -> Unit),
@@ -279,14 +289,16 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 header = true
             )
             menuItem(separator = true)
-            menuItem(
-                label = "Detail of",
-                icon = iconCrud(CrudTask.Read),
-                action = { _, _ ->
-                    goActionUrl(CrudTask.Read, item)
-                }
-            )
-            if (editable()) {
+            if (showDefaultContextRowMenu()) {
+                menuItem(
+                    label = "Detail of",
+                    icon = iconCrud(CrudTask.Read),
+                    action = { _, _ ->
+                        goActionUrl(CrudTask.Read, item)
+                    }
+                )
+            }
+            if (editable() && showDefaultContextRowMenu()) {
                 menuItem(separator = true)
                 menuItem(
                     label = "Create",
