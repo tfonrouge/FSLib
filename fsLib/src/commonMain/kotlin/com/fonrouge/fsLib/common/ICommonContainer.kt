@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
  * @property itemKClass Kotlin's KClass instance of the item type.
  * @property idSerializer Kotlinx serialization serializer for the ID type.
  * @property apiFilterSerializer Kotlinx serialization serializer for the API filter.
- * @property labelIdFunc Function to generate a label for the ID of an item.
+ * @property labelId Function to generate a label for the ID of an item.
  * @property labelItem Label for a single item.
  * @property labelItemId Function to generate a label for an item with its ID.
  * @property labelList Label for a list of items.
@@ -28,9 +28,9 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     val itemKClass: KClass<T>,
     val idSerializer: KSerializer<ID>,
     override val apiFilterSerializer: KSerializer<FILT>,
-    open val labelIdFunc: ((T?) -> String) = { t: T? -> t?.let { "${it._id}" } ?: "<no-item>" },
+    open val labelId: ((T?) -> String) = { t: T? -> t?.let { "${it._id}" } ?: "<no-item>" },
     open val labelItem: String = "${itemKClass.simpleName}",
-    open val labelItemId: ((T?) -> String) = { t: T? -> "$labelItem: ${labelIdFunc(t)}" },
+    open val labelItemId: ((T?) -> String) = { t: T? -> "$labelItem: ${labelId(t)}" },
     open val labelList: String = "List of ${itemKClass.simpleName}",
 ) : ICommon<FILT>(
     apiFilterSerializer = apiFilterSerializer

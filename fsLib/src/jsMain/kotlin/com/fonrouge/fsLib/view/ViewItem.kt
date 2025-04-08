@@ -89,7 +89,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     var formPanel: FormPanel<T> = FormPanel(serializer = configView.commonContainer.itemSerializer)
 
-    val labelId get() = configView.commonContainer.labelIdFunc(item)
+    val labelId get() = configView.commonContainer.labelId(item)
 
     //    var itemId: U? = null
     var noBackButton = false
@@ -441,7 +441,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     override val label: String
-        get() = "${configView.label}: ${configView.commonContainer.labelIdFunc(item)}"
+        get() = "${configView.label}: ${configView.commonContainer.labelId(item)}"
 
     fun encodeId(id: ID? = item?._id): String? {
         return id?.let { Json.encodeToString(configView.commonContainer.idSerializer, id) }

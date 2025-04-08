@@ -42,7 +42,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
             val modal = Confirm(
                 caption = "Please Confirm",
                 text = "<b>Delete</b> '<i>${labelItem}</i>', id: <b>${
-                    labelIdFunc(item)
+                    labelId(item)
                 }</b> ?",
                 rich = true,
                 size = ModalSize.XLARGE,

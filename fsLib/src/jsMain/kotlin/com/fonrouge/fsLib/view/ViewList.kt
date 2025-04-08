@@ -282,7 +282,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         val configViewItem = configViewItem()
         val menu = mutableListOf<TabulatorMenuItem>()
         with(menu) {
-            val labelId = configViewItem?.commonContainer?.labelIdFunc?.invoke(item) ?: ""
+            val labelId = configViewItem?.commonContainer?.labelId?.invoke(item) ?: ""
             menuItem(
                 label = " <font size=\"+1\">${configViewItem?.label ?: ""}</font>: <b>$labelId</b>",
                 disabled = false,

@@ -60,7 +60,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                             show()
                             enableTooltip(
                                 TooltipOptions(
-                                    title = "Detail of " + configViewItem.commonContainer.labelIdFunc(
+                                    title = "Detail of " + configViewItem.commonContainer.labelId(
                                         item
                                     ),
                                     animation = true,
@@ -113,7 +113,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                     show()
                                     enableTooltip(
                                         TooltipOptions(
-                                            title = "Update " + configViewItem.commonContainer.labelIdFunc(
+                                            title = "Update " + configViewItem.commonContainer.labelId(
                                                 item
                                             ),
                                             animation = true,
@@ -140,7 +140,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                                     show()
                                     enableTooltip(
                                         TooltipOptions(
-                                            title = "Delete " + configViewItem.commonContainer.labelIdFunc(
+                                            title = "Delete " + configViewItem.commonContainer.labelId(
                                                 item
                                             ),
                                             animation = true,
