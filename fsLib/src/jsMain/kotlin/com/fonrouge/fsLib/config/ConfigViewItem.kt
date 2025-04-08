@@ -125,7 +125,14 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
 
     fun viewItemUrl(apiItem: ApiItem<T, ID, FILT>): String? {
         val url: String? = when (apiItem) {
-            is ApiItem.Upsert.Create.Query -> listOf("action" to CrudTask.Create.name)
+            is ApiItem.Upsert.Create.Query -> listOf(
+                "action" to CrudTask.Create.name,
+            ) + (apiItem.id?.let {
+                listOf(
+                    "id" to Json.encodeToString(commonContainer.idSerializer, it)
+                )
+            } ?: emptyList())
+
             is ApiItem.Read -> listOf(
                 "action" to apiItem.crudTask.name,
                 "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)

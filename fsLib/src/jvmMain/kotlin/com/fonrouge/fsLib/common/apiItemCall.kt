@@ -18,10 +18,12 @@ import kotlinx.serialization.json.Json
 suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryCreateCall(
     service: AIS,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+    id: ID? = null,
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
     service,
     IApiItem.Upsert.Create.Query(
+        serializedId = id?.let { Json.encodeToString(idSerializer, id) },
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
 )

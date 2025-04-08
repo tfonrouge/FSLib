@@ -22,6 +22,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             override val crudTask: CrudTask = CrudTask.Create
 
             data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+                val id: ID?,
                 override val apiFilter: FILT,
                 override val call: ApplicationCall? = null,
             ) : Create<T, ID, FILT>() {

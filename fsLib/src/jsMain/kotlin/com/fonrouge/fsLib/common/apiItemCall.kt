@@ -18,11 +18,12 @@ import kotlin.js.Promise
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryCreateCall(
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+    id: ID? = null,
     apiFilter: FILT = apiFilterInstance(),
     transform: ((ItemState<T>) -> R)
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
-    apiItem = apiItemQueryCreate(apiFilter),
+    apiItem = apiItemQueryCreate(id = id, apiFilter = apiFilter),
     transform = transform
 )
 

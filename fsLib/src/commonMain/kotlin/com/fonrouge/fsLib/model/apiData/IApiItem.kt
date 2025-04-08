@@ -36,6 +36,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
 
             @Serializable
             data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+                val serializedId: String?,
                 override val serializedApiFilter: String
             ) : Create<T, ID, FILT>() {
                 override val callType: CallType = CallType.Query
@@ -44,6 +45,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                     call: ApplicationCall?,
                 ): ApiItem<T, ID, FILT> {
                     return ApiItem.Upsert.Create.Query(
+                        id = serializedId?.let { Json.decodeFromString(cc.idSerializer, it) },
                         apiFilter = Json.decodeFromString(
                             cc.apiFilterSerializer,
                             serializedApiFilter

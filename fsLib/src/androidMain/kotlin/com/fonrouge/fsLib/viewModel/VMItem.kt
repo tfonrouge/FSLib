@@ -33,6 +33,7 @@ abstract class VMItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
         val serializedId = id?.let { Json.encodeToString(commonContainer.idSerializer, id) }
         val apiItem: ApiItem<T, ID, FILT>? = when (crudTask) {
             CrudTask.Create -> ApiItem.Upsert.Create.Query(
+                id = id,
                 apiFilter = apiFilter,
             )
 

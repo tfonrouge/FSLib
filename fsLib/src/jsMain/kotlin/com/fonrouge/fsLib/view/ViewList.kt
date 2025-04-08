@@ -225,7 +225,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     ) {
         configViewItem ?: return
         val apiItem = when (crudTask) {
-            CrudTask.Create -> ApiItem.Upsert.Create.Query(apiFilter = apiFilter)
+            CrudTask.Create -> ApiItem.Upsert.Create.Query<T, ID, FILT>(id = item?._id, apiFilter = apiFilter)
             CrudTask.Read -> item?._id?.let { ApiItem.Read<T, ID, FILT>(id = item._id, apiFilter = apiFilter) }
             CrudTask.Update -> item?._id?.let {
                 ApiItem.Upsert.Update.Query<T, ID, FILT>(
@@ -241,7 +241,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 )
             }
         } ?: return
-        val url = configViewItem.viewItemUrl(
+        val url: String? = configViewItem.viewItemUrl(
             apiItem = apiItem
         )
         val callBlock = {

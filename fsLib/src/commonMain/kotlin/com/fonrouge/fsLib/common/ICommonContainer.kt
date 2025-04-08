@@ -40,8 +40,10 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
 
     /* ApiItem */
     fun apiItemQueryCreate(
+        id: ID? = null,
         apiFilter: FILT = apiFilterInstance()
     ): ApiItem.Upsert.Create.Query<T, ID, FILT> = ApiItem.Upsert.Create.Query(
+        id = id,
         apiFilter = apiFilter,
     )
 
@@ -107,6 +109,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
 ): IApiItem<T, ID, FILT> =
     when (apiItem) {
         is ApiItem.Upsert.Create.Query -> IApiItem.Upsert.Create.Query(
+            serializedId = apiItem.id?.let { Json.encodeToString(idSerializer, it) },
             serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter)
         )
 

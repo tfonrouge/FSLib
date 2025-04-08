@@ -44,10 +44,10 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
     val callAgent = CallAgent()
     val iApiItem = when (callType) {
         CallType.Query -> when (crudTask) {
-            CrudTask.Create -> apiItemQueryCreate(apiFilter)
-            CrudTask.Read -> id?.let { apiItemQueryRead(id, apiFilter) }
-            CrudTask.Update -> id?.let { apiItemQueryUpdate(id, apiFilter) }
-            CrudTask.Delete -> id?.let { apiItemQueryDelete(id, apiFilter) }
+            CrudTask.Create -> apiItemQueryCreate(id = id, apiFilter = apiFilter)
+            CrudTask.Read -> id?.let { apiItemQueryRead(id = id, apiFilter = apiFilter) }
+            CrudTask.Update -> id?.let { apiItemQueryUpdate(id = id, apiFilter = apiFilter) }
+            CrudTask.Delete -> id?.let { apiItemQueryDelete(id = id, apiFilter = apiFilter) }
         }
 
         CallType.Action -> when (crudTask) {
