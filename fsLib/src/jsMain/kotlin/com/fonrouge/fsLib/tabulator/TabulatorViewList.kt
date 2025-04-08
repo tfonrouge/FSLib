@@ -50,7 +50,7 @@ import kotlin.reflect.KClass
  */
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
-    val viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
+    val viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListSerialize: (ApiList<FILT>) -> String?,
     options: TabulatorOptions<T>,
@@ -312,7 +312,7 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
  * @return An instance of TabulatorViewList configured with the provided parameters, added to the container.
  */
 inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
-    viewList: ViewList<out ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
+    viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     noinline apiListBlock: (() -> ApiList<FILT>),
     noinline apiListSerialize: (ApiList<FILT>) -> String?,
     options: TabulatorOptions<T>,

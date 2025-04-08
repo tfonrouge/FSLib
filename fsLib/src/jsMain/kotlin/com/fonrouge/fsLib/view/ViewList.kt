@@ -77,7 +77,12 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     var errorMessage: String? = null
 
     /**
-     * contains an object of [T] type for the selected row in the [tabulator]
+     * Observable property representing the currently selected item in the view list.
+     *
+     * This variable holds a reactive observable value of type `T?`, which updates
+     * dynamically as the selected item changes. The selected item can be used to
+     * determine the user’s current selection in the view list or tabular data
+     * component.
      */
     var selectedItemObs: ObservableValue<T?> = ObservableValue(null)
     var jsTabulatorBuilt: Boolean = false
