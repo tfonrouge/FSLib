@@ -130,6 +130,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
 
     /**
+     * A mutable map that associates a `ResultField` with an integer value.
+     * This map is used to track or store specific relationships or mappings
+     * involving `ResultField` objects and their corresponding integer identifiers or counters.
+     */
+    private val resultFieldStack = mutableMapOf<ResultField, Int>()
+
+    /**
      * Indicates if the current instance should be read-only.
      *
      * This variable determines whether the instance can be modified or not.
@@ -503,8 +510,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
     }
 
-    private val resultFieldStack = mutableMapOf<ResultField, Int>()
-
     /**
      * Builds a lookup pipeline list based on the provided lookup wrappers and API filter.
      *
@@ -516,6 +521,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> {
+        fun outErr(resultField: ResultField, times: Int) {
+            System.err.println("ERROR: MAX_RECURSIVE_RESULT_FIELD limit exceeded. '${this::class.simpleName}': $resultField -> $times")
+        }
+
         val pipeline: MutableList<Bson> = mutableListOf()
         val lookupPipelineBuilders = lookupFun(apiFilter)
             .associateBy { it.resultProperty.name }
@@ -536,11 +545,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 val times = resultFieldStack[resultField]?.inc() ?: 1
                 resultFieldStack[resultField] = times
                 if (times > MAX_RECURSIVE_RESULT_FIELD) {
-                    System.err.println("ERROR: MAX_RECURSIVE_RESULT_FIELD limit exceeded: $resultField -> $times")
+                    outErr(resultField, times)
                 } else {
                     pipeline += lookupPipelineBuilder.pipelineList(lookupWrapper)
                 }
-                if (times == 0)
+                if (times == 1)
                     resultFieldStack.remove(resultField)
                 else
                     resultFieldStack[resultField] = times - 1
@@ -551,11 +560,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         val times = resultFieldStack[resultField]?.inc() ?: 1
                         resultFieldStack[resultField] = times
                         if (times > MAX_RECURSIVE_RESULT_FIELD) {
-                            System.err.println("ERROR: MAX_RECURSIVE_RESULT_FIELD limit exceeded: $resultField -> $times")
+                            outErr(resultField, times)
                         } else {
                             pipeline += lookupPipelineBuilder.pipelineList()
                         }
-                        if (times == 0)
+                        if (times == 1)
                             resultFieldStack.remove(resultField)
                         else
                             resultFieldStack[resultField] = times - 1
