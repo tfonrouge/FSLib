@@ -129,6 +129,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             commonContainer.itemKClass.java
         )
 
+    val objName: String
+        get() = this::class.simpleName ?: run {
+            this::class.superclasses[0].simpleName ?: "unknown"
+        }
+
     /**
      * A mutable map that associates a `ResultField` with an integer value.
      * This map is used to track or store specific relationships or mappings
@@ -522,7 +527,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> {
         fun outErr(resultField: ResultField, times: Int) {
-            System.err.println("ERROR: MAX_RECURSIVE_RESULT_FIELD limit exceeded. '${this::class.simpleName}': $resultField -> $times")
+            System.err.println("MAX_RECURSIVE_RESULT_FIELD limit exceeded, ${objName}: $resultField -> $times")
         }
 
         val pipeline: MutableList<Bson> = mutableListOf()
