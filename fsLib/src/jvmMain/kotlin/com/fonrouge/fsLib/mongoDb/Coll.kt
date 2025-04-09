@@ -90,6 +90,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     companion object {
         var globalDebug = false
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
+        var MAX_RECURSIVE_RESULT_FIELD = 1
     }
 
     /**
@@ -502,13 +503,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
     }
 
+    private val resultFieldStack = mutableMapOf<ResultField, Int>()
+
     /**
-     * Builds a list of BSON pipeline components for lookups based on the provided lookup wrappers
-     * and the API filter.
+     * Builds a lookup pipeline list based on the provided lookup wrappers and API filter.
      *
-     * @param lookupWrappers A list of lookup wrappers that define lookup configurations. Defaults to an empty list.
-     * @param apiFilter The API filter instance used to determine applicable lookups.
-     * @return A mutable list of BSON objects representing the constructed lookup pipeline.
+     * @param lookupWrappers A list of `LookupWrapper` instances that define the lookup configurations. Defaults to an empty list if not provided.
+     * @param apiFilter The API filter instance used to determine the lookup functions and pipelines.
+     * @return A mutable list of `Bson` representing the pipeline to be applied for the lookup operation.
      */
     private fun buildLookupList(
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
@@ -522,24 +524,51 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     .associateBy { it.resultProperty.name }
             )
         lookupPipelineBuilders.forEach { (_, lookupPipelineBuilder) ->
-            val lookupWrapper = lookupWrappers.find {
-                lookupPipelineBuilder.resultProperty == when (it) {
-                    is LookupByProperty -> it.resultProperty
-                    is LookupByPipeline<*, *, *> -> it.pipeline.resultProperty
+            val lookupWrapper = lookupWrappers.find { lookupWrapper ->
+                lookupPipelineBuilder.resultProperty == when (lookupWrapper) {
+                    is LookupByProperty -> lookupWrapper.resultProperty
+                    is LookupByPipeline<*, *, *> -> lookupWrapper.pipeline.resultProperty
                     else -> null
                 }
             }
             if (lookupWrapper != null) {
-                pipeline += lookupPipelineBuilder.pipelineList(lookupWrapper)
+                val resultField = ResultField(kResultField = lookupPipelineBuilder.resultProperty)
+                val times = resultFieldStack[resultField]?.inc() ?: 1
+                resultFieldStack[resultField] = times
+                if (times > MAX_RECURSIVE_RESULT_FIELD) {
+                    System.err.println("ERROR: MAX_RECURSIVE_RESULT_FIELD limit exceeded: $resultField -> $times")
+                } else {
+                    pipeline += lookupPipelineBuilder.pipelineList(lookupWrapper)
+                }
+                if (times == 0)
+                    resultFieldStack.remove(resultField)
+                else
+                    resultFieldStack[resultField] = times - 1
             } else {
                 fixedLookupList(apiFilter)?.find { kProperty1 -> kProperty1 == lookupPipelineBuilder.resultProperty }
                     ?.let {
-                        pipeline += lookupPipelineBuilder.pipelineList()
+                        val resultField = ResultField(kResultField = lookupPipelineBuilder.resultProperty)
+                        val times = resultFieldStack[resultField]?.inc() ?: 1
+                        resultFieldStack[resultField] = times
+                        if (times > MAX_RECURSIVE_RESULT_FIELD) {
+                            System.err.println("ERROR: MAX_RECURSIVE_RESULT_FIELD limit exceeded: $resultField -> $times")
+                        } else {
+                            pipeline += lookupPipelineBuilder.pipelineList()
+                        }
+                        if (times == 0)
+                            resultFieldStack.remove(resultField)
+                        else
+                            resultFieldStack[resultField] = times - 1
                     }
             }
         }
         return pipeline
     }
+
+    private data class ResultField(
+        val threadId: Long = Thread.currentThread().threadId(),
+        val kResultField: KProperty1<*, *>
+    )
 
     /**
      * Constructs and modifies the provided aggregation pipeline.
