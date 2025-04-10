@@ -639,6 +639,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *                          If not provided, defaults to an empty list, and the current values of the item's properties are used.
      * @return A new instance of the item, created using its primary constructor with the specified or current values.
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun T.copyItemWithPrimaryConstructorParameters(
         vararg fieldAssignments: AssignTo<T, *> = emptyArray()
     ): T {
