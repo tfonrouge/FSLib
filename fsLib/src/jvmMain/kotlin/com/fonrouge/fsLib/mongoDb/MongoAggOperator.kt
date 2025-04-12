@@ -4,14 +4,25 @@ import org.bson.conversions.Bson
 import org.litote.kmongo.from
 
 /**
- * Enum class representing MongoDB aggregation operators.
+ * Represents an enumeration of MongoDB aggregation framework operators.
+ * Each operator corresponds to a specific functionality used in aggregation pipelines.
+ * This enum overrides the `toString` method to return the operator name prefixed with `$`.
  *
- * MongoDB aggregation operators are used to transform and analyze data within aggregations.
+ * Note: These operators are not provided by KMongo.
+ *
  */
 @Suppress("unused")
 enum class MongoAggOperator {
     substrBytes,
     replaceWith,
+    toBool,
+    toDate,
+    toDecimal,
+    toDouble,
+    toHashedIndexKey,
+    toInt,
+    toLong,
+    toObjectId,
     ;
 
     override fun toString(): String {
