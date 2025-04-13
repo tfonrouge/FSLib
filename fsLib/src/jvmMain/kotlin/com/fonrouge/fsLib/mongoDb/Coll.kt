@@ -555,7 +555,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 if (times > MAX_RECURSIVE_RESULT_FIELD) {
                     outErr(resultField, times)
                 } else {
-                    pipeline += lookupPipelineBuilder.pipelineList(lookupWrapper)
+                    pipeline += lookupPipelineBuilder.toPipeline(lookupWrapper)
                 }
                 if (times == 1)
                     resultFieldStack.remove(resultField)
@@ -570,7 +570,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         if (times > MAX_RECURSIVE_RESULT_FIELD) {
                             outErr(resultField, times)
                         } else {
-                            pipeline += lookupPipelineBuilder.pipelineList()
+                            pipeline += lookupPipelineBuilder.toPipeline()
                         }
                         if (times == 1)
                             resultFieldStack.remove(resultField)
@@ -1295,7 +1295,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupFun(apiFilter)
             .filter { fields.isNullOrEmpty() || it.resultProperty in fields }
             .forEach { lookupWrapper ->
-                pipeline += lookupWrapper.pipelineList()
+                pipeline += lookupWrapper.toPipeline()
             }
         return pipeline
     }

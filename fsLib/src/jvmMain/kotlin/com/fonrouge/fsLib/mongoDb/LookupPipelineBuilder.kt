@@ -118,9 +118,9 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
      * @return A list of `Bson` objects representing the aggregation pipeline stages.
      */
     @Suppress("unused")
-    fun <U : BaseDoc<*>, V : BaseDoc<*>> pipelineList(
+    fun <U : BaseDoc<*>, V : BaseDoc<*>> toPipeline(
         lookupWrappers: List<LookupWrapper<V, U>>
-    ): List<Bson> = pipelineList(LookupWrapper<U, V>(lookupWrappers))
+    ): List<Bson> = toPipeline(LookupWrapper<U, V>(lookupWrappers))
 
     /**
      * Constructs a MongoDB aggregation pipeline based on the provided lookup wrapper and class fields.
@@ -133,7 +133,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
      *               Defaults to null if no additional lookups are required.
      * @return A list of BSON objects representing the final aggregation pipeline stages.
      */
-    fun pipelineList(
+    fun toPipeline(
         lookup: LookupWrapper<*, *>? = null
     ): List<Bson> {
         val pip2 = mutableListOf<Bson>()
