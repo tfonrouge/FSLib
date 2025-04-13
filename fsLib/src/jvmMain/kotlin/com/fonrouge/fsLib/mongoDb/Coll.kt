@@ -539,11 +539,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             )
         lookupPipelineBuilders.forEach { (_, lookupPipelineBuilder) ->
             val lookupWrapper = lookupWrappers.find { lookupWrapper ->
-                lookupPipelineBuilder.resultProperty == when (lookupWrapper) {
-                    is LookupByProperty -> lookupWrapper.resultProperty
-                    is LookupByPipeline<*, *, *> -> lookupWrapper.pipeline.resultProperty
+                val kProperty1: PropertyReference1Impl = lookupPipelineBuilder.resultProperty as PropertyReference1Impl
+                when (lookupWrapper) {
+                    is LookupByProperty -> lookupWrapper.resultProperty as PropertyReference1Impl
+                    is LookupByPipeline<*, *, *> -> lookupWrapper.pipeline.resultProperty as PropertyReference1Impl
                     else -> null
-                }
+                }?.let { kProperty2 ->
+                    (kProperty2.owner as KClass<*>).isSubclassOf(kProperty1.owner as KClass<*>) && kProperty2.name == kProperty1.name
+                } ?: false
             }
             if (lookupWrapper != null) {
                 val resultField = ResultField(kResultField = lookupPipelineBuilder.resultProperty)
