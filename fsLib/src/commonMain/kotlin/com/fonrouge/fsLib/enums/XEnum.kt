@@ -27,7 +27,7 @@ interface XEnum {
  * @return The encoded string representation if a matching entry is found, or `null` if no match exists.
  */
 @Suppress("unused")
-fun EnumEntries<*>.getEncoded(xEnum: XEnum?): String? {
+fun EnumEntries<*>.encode(xEnum: XEnum?): String? {
     val a = firstOrNull {
         if (it is XEnum) {
             it.encoded == xEnum?.encoded
@@ -37,16 +37,41 @@ fun EnumEntries<*>.getEncoded(xEnum: XEnum?): String? {
 }
 
 /**
- * Generates a list of pairs from the enum entries, where each pair consists of a string
- * representation of the entry. If the entry implements the `XEnum` interface, the pair
- * will contain the `encoded` value as the first element and the entry name as the second element.
- * For non-`XEnum` entries, both elements of the pair will contain the entry name.
+ * Decodes the given string value into an enum entry of type `T` that implements both `Enum` and `XEnum`.
  *
- * @return A list of pairs representing the encoded and name values of the enum entries.
+ * This method iterates through the entries of the enum and checks if the `encoded` value of each entry matches the provided string value.
+ * If a match is found, the corresponding enum entry is returned. If no match is found, `null` is returned.
+ *
+ * @param value The string value to be matched with the `encoded` property of the enum entries. Can be `null`.
+ * @return The matching enum entry of type `T` if found, or `null` if no match exists.
+ */
+fun <T> EnumEntries<T>.find(value: String?): T? where T : Enum<T>, T : XEnum {
+    val a: T? = firstOrNull {
+        it.encoded == value
+    }
+    return a
+}
+
+/* TODO: find out why this doesn't work:   <Enum<XEnum>>.find("value") -> enum entry
+inline fun <reified T> T.find(value: String?): T? where T : XEnum, T : Enum<T> {
+    return enumEntries<T>().find(value)
+}
+*/
+
+/**
+ * Retrieves a list of key-value pairs representing the mapping of string identifiers to their corresponding names within an enumeration.
+ *
+ * For each entry in the enumeration:
+ * - If the entry implements the `XEnum` interface, the pair consists of the `encoded` value as the key and the entry's `name` as the value.
+ * - If the entry does not implement `XEnum`, both the key and value are set to the entry's `name`.
+ *
+ * This is useful for creating mappings of enum entries, where additional string encoding is necessary or to provide simple name-to-name mappings for non-`XEnum` entries.
+ *
+ * @receiver A collection of enumeration entries (`EnumEntries`).
+ * @return A list of pairs, where each pair contains the key and value as `String`.
  */
 @Suppress("unused")
-fun EnumEntries<*>.encodedList(): List<Pair<String, String>> {
-    return map {
+val EnumEntries<*>.pairs: List<Pair<String, String>>
+    get() = map {
         if (it is XEnum) it.encoded to it.name else it.name to it.name
     }
-}
