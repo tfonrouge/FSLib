@@ -355,8 +355,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
         }
         if (debug ?: globalDebug) {
-            println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate pipeline:")
-            println(pipeline.json2)
+            printOutPipeline(pipeline)
         }
         return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
     }
@@ -385,8 +384,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
         postProcessPipeline?.let { it(pipeline) }
         if (debug ?: globalDebug) {
-            println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate pipeline:")
-            println(pipeline.json2)
+            printOutPipeline(pipeline)
         }
         return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
     }
@@ -1298,6 +1296,19 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 pipeline += lookupWrapper.toPipeline()
             }
         return pipeline
+    }
+
+    /**
+     * Prints out the details of the aggregate pipeline for a specific collection.
+     *
+     * @param pipeline The list of Bson stages representing the aggregation pipeline that will be printed.
+     */
+    private fun printOutPipeline(pipeline: List<Bson>) {
+        println("-".repeat(40))
+        println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate pipeline:")
+        println("*".repeat(40))
+        println(pipeline.json2)
+        println("+".repeat(40))
     }
 
     /**
