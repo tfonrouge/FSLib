@@ -36,21 +36,19 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 
 /**
- * Represents a view item with various configurations, UI components, and event handlers.
+ * Represents a configurable view item that connects and interacts with the backend API
+ * and provides functionalities to handle data viewing, editing, and validation.
  *
- * @param configView The configuration view object associated with the view item.
- * @param itemObservable Observes changes in the item for reactivity or binding.
- * @param item The primary item data model associated with the view.
- * @param origSerialized Original serialized form of the item, used for comparison or rollback.
- * @param buttonBack The back button component in the UI.
- * @param buttonCancel The cancel button component in the UI.
- * @param buttonAccept The accept button component in the UI.
- * @param formPanel The form panel component used for displaying or editing item data.
- * @param labelId Label or identifier displayed in the UI for the item.
- * @param noBackButton Flag indicating whether the back button should be hidden or not.
- * @param onAcceptButtonClick Event handler invoked when the accept button is clicked.
- * @param periodicUpdateDataView Data view for maintaining periodic updates.
- * @param label The primary label associated with the view item.
+ * This class is designed for creating and managing UI forms that interact with backend
+ * services via API calls, allowing CRUD (Create, Read, Update, Delete) actions.
+ *
+ * @param CC The type of the common container that holds the domain-specific logic and configuration.
+ * @param T The type of the domain entity being managed.
+ * @param ID The type of the identifier for the domain entity.
+ * @param FILT The type of API filter used for querying or filtering data.
+ * @param configView Configuration details for the view item, includes serializers and endpoint-related logic.
+ * @param periodicUpdateDataView Determines if periodic updates of the view's data are allowed.
+ * @param debug Enables or disables debugging for the instance.
  */
 @Suppress("unused")
 abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
