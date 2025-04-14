@@ -56,7 +56,7 @@ import web.prompts.confirm
 abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, FILT, *>,
     periodicUpdateDataView: Boolean? = null,
-    icon: String? = null,
+    private var debug: Boolean = false
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
 ) {
@@ -81,6 +81,9 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     init {
         itemObservable.subscribe {
             it?.let { item ->
+                if (debug) {
+                    console.warn("itemObservable.subscribe:", item)
+                }
                 formPanel.setData(item)
                 onChangeItemObservable(it)
             }
