@@ -49,6 +49,43 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
 }
 
 /**
+ * Builds a pipeline for a lookup operation by defining the necessary conditions
+ * and fields to retrieve specific results from the given collection.
+ *
+ * @param T The type of the local document involved in the lookup operation.
+ * @param U The type of the foreign document to be looked up.
+ * @param ID The type of the unique identifier used in both local and foreign documents.
+ * @param coll The collection providing the documents to be looked up.
+ * @param let A list of variables used for the lookup operation.
+ * @param pipeline An optional aggregation pipeline to apply on the foreign collection during the lookup.
+ * @param resultField The target property in the local document where the lookup results will be mapped.
+ * @param limit The maximum number of documents to retrieve from the foreign collection for each local document, defaults to 1.
+ * @param preserveNullAndEmptyArrays Defines whether to preserve "null" or empty arrays in the lookup result, defaults to true.
+ * @return A configured instance of LookupPipelineBuilder to execute the lookup operation.
+ */
+@Suppress("unused")
+fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
+    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *>,
+    let: List<Variable<out Any>>,
+    pipeline: List<Bson>? = null,
+    resultField: KProperty1<in T, U?>,
+    limit: Int? = 1,
+    preserveNullAndEmptyArrays: Boolean = true,
+): LookupPipelineBuilder<T, U, ID> {
+    return object : LookupPipelineBuilder<T, U, ID>(
+        coll = coll,
+        localField = null,
+        foreignField = null,
+        let = let,
+        pipeline = pipeline,
+        resultProperty = resultField,
+        preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
+        limit = limit,
+        resultUnit = Coll.ResultUnit.One
+    ) {}
+}
+
+/**
  * Constructs and returns a `LookupPipelineBuilder` with the specified parameters to facilitate MongoDB lookup aggregation.
  *
  * @param coll The collection on which the lookup operation is to be performed.
@@ -100,8 +137,8 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
  */
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
-    private val localField: KProperty<*>,
-    private val foreignField: KProperty<*>,
+    private val localField: KProperty<*>?,
+    private val foreignField: KProperty<*>?,
     private val let: List<Variable<out Any>>? = null,
     private val pipeline: List<Bson>?,
     val resultProperty: KProperty1<in T, *>,
@@ -147,21 +184,30 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
             limit?.let { pip2 += limit(it) }
         }
         val pipeline = mutableListOf<Bson>()
-        if (pip2.isEmpty()) {
-            pipeline += lookup(
-                from = coll.mongoColl.namespace.collectionName,
-                localField = localField,
-                foreignField = foreignField,
-                resultField = resultProperty,
-            )
+        if (localField != null && foreignField != null) {
+            if (pip2.isEmpty()) {
+                pipeline += lookup(
+                    from = coll.mongoColl.namespace.collectionName,
+                    localField = localField,
+                    foreignField = foreignField,
+                    resultField = resultProperty,
+                )
+            } else {
+                pipeline += lookup5(
+                    from = coll.mongoColl.namespace.collectionName,
+                    localField = localField,
+                    foreignField = foreignField,
+                    let = let,
+                    resultField = resultProperty,
+                    pipeline = pip2
+                )
+            }
         } else {
-            pipeline += lookup5(
+            pipeline += org.litote.kmongo.lookup(
                 from = coll.mongoColl.namespace.collectionName,
-                localField = localField,
-                foreignField = foreignField,
                 let = let,
-                resultField = resultProperty,
-                pipeline = pip2
+                resultProperty = resultProperty,
+                pipeline = pip2.toTypedArray()
             )
         }
         if (resultUnit == Coll.ResultUnit.One) {
