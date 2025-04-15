@@ -206,3 +206,7 @@ android {
     }
 }
 */
+
+tasks.named("sourcesJar") {
+    dependsOn("kspCommonMainKotlinMetadata")
+}
