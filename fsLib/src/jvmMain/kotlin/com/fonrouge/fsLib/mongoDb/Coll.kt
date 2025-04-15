@@ -23,10 +23,10 @@ import com.mongodb.client.result.UpdateResult
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import com.mongodb.reactivestreams.client.MongoDatabase
+import dev.kilua.rpc.RemoteFilter
+import dev.kilua.rpc.RemoteSorter
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
-import io.kvision.remote.RemoteFilter
-import io.kvision.remote.RemoteSorter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle

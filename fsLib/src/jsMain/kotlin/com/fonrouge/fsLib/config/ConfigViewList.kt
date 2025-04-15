@@ -7,7 +7,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.KVWebManager.configViewListMap
 import com.fonrouge.fsLib.view.ViewList
-import io.kvision.remote.KVServiceManager
+import dev.kilua.rpc.RpcServiceManager
 import kotlinx.browser.window
 import org.w3c.dom.Window
 import web.prompts.alert
@@ -40,8 +40,8 @@ abstract class ConfigViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     baseUrl = baseUrl
 ) {
     companion object {
-        private var dataListServiceManager: KVServiceManager<*>? = null
-        var serviceManager: KVServiceManager<*>
+        private var dataListServiceManager: RpcServiceManager<*>? = null
+        var serviceManager: RpcServiceManager<*>
             get() = dataListServiceManager
                 ?: throw IllegalStateException("serviceManager is null. Please set ConfigViewList.serviceManager value before instantiating any ConfigViewList.".also {
                     alert(

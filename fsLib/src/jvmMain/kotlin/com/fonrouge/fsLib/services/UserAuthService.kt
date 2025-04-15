@@ -1,9 +1,9 @@
 package com.fonrouge.fsLib.services
 
 import com.fonrouge.fsLib.model.base.IUser
+import dev.kilua.rpc.ServiceException
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
-import io.kvision.remote.ServiceException
 
 /**
  * Retrieves the current user of type [U] from the application call's session.

@@ -6,9 +6,10 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
-import io.kvision.remote.CallAgent
-import io.kvision.remote.JsonRpcRequest
-import io.kvision.utils.Serialization
+import dev.kilua.rpc.CallAgent
+import io.kvision.core.KVScope
+import kotlinx.coroutines.asPromise
+import kotlinx.coroutines.async
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
@@ -39,20 +40,12 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, R : Any?> ICommonContainer
     val apiItemSerialized =
         Json.encodeToString(IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer), iApiItem)
     val paramList = listOf(apiItemSerialized)
-    val data = Serialization.plain.encodeToString(
-        JsonRpcRequest(
-            id = 0,
-            method = url,
-            params = paramList
-        )
-    )
-    return callAgent.remoteCall(url = url, data = data, method = method).then { r: dynamic ->
-        val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+    return KVScope.async {
         transform(
-            Json.decodeFromDynamic(
-                ItemState.serializer(itemSerializer),
-                result
+            Json.decodeFromDynamic<ItemState<T>>(
+                ItemState.serializer(this@getItemState.itemSerializer),
+                callAgent.jsonRpcCall(url, paramList, method)
             )
         )
-    }
+    }.asPromise()
 }

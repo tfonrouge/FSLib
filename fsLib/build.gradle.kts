@@ -2,15 +2,17 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+//    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.serialization)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.kilua.rpc)
     id("maven-publish")
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-val libVersion = "1.5.6"
+val libVersion = "1.6.0"
 
 group = "com.fonrouge.fsLib"
 version = libVersion
@@ -26,7 +28,7 @@ repositories {
 val mainClassName = "io.ktor.server.netty.EngineMain"
 
 kotlin {
-    jvmToolchain(21)
+//    jvmToolchain(21)
     jvm {
         compilerOptions {
             freeCompilerArgs = listOf(
@@ -40,18 +42,30 @@ kotlin {
         }
     }
     js(IR) {
-        browser()
+        browser {
+            useEsModules()
+            commonWebpackConfig {
+                outputFileName = "main.bundle.js"
+                sourceMaps = false
+            }
+        }
         binaries.library()
+        compilerOptions {
+            target.set("es2015")
+        }
     }
-    androidTarget {
-        publishLibraryVariants("debug", "release")
-    }
+    /*
+        androidTarget {
+            publishLibraryVariants("debug", "release")
+        }
+    */
     sourceSets {
         commonMain.dependencies {
             implementation(kotlin("reflect"))
             api(libs.kotlinx.serialization.json)
             api(libs.kotlinx.datetime)
-            api(libs.kvision.server.ktor.koin)
+            implementation(libs.kilua.rpc.ktor.koin)
+            implementation(libs.kvision.common.remote)
         }
 
         jvmMain.dependencies {
@@ -115,12 +129,15 @@ kotlin {
             api(libs.kvision.tom.select.remote)
         }
 
-        androidMain.dependencies {
+        /*
+                androidMain.dependencies {
 
-        }
+                }
+        */
     }
 }
 
+/*
 android {
     namespace = "com.fonrouge.fsLib"
     compileSdk = 35
@@ -144,7 +161,9 @@ android {
         implementation(libs.navigation.compose)
 
         implementation(libs.paging.compose)
-        /* scanner service provided by Google Play */
+        */
+/* scanner service provided by Google Play *//*
+
         implementation(libs.play.services.code.scanner)
         implementation(libs.lifecycle.viewmodel.compose)
         api(libs.lifecycle.runtime.compose)
@@ -155,11 +174,17 @@ android {
 
         api(libs.barcode.scanning)
 
-        /* permission*/
+        */
+/* permission*//*
+
         implementation(libs.accompanist.permissions)
-        /* replacement for pullRefresh that doesn't exist in Material3 */
+        */
+/* replacement for pullRefresh that doesn't exist in Material3 *//*
+
         api(libs.compose.material3.pullrefresh)
-        /* multi-button floating action button */
+        */
+/* multi-button floating action button *//*
+
         api(libs.multifab)
 
         implementation(libs.ktor.client.cio)
@@ -180,3 +205,4 @@ android {
         debugImplementation(libs.ui.test.manifest)
     }
 }
+*/

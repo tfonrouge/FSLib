@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.model.apiData
 
-import io.kvision.remote.RemoteFilter
-import io.kvision.remote.RemoteSorter
+import dev.kilua.rpc.RemoteFilter
+import dev.kilua.rpc.RemoteSorter
 import kotlinx.serialization.Serializable
 
 /**
