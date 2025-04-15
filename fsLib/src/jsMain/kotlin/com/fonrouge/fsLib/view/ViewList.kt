@@ -71,7 +71,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         return _configViewItem
     }
 
-    open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(title = "", headerSort = false)
+    open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(title = "", headerSort = false, tooltip = true)
 
     val errorStateObs = ObservableValue(false)
     var errorMessage: String? = null
