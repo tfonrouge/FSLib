@@ -113,7 +113,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     private fun buildColumnDefinitionDeleteItem(
         visible: Boolean? = null,
         cellClick: ((e: Any?, cell: Tabulator.CellComponent) -> Unit),
-    ): ColumnDefinition<T> = ColumnDefinition<T>(
+    ): ColumnDefinition<T> = ColumnDefinition(
         title = "",
         field = "__deleteItem",
         vertAlign = VAlign.MIDDLE,
