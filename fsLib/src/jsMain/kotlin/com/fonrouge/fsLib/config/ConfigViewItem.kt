@@ -11,7 +11,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.view.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.view.ViewItem
-import io.kvision.remote.KVServiceManager
+import dev.kilua.rpc.RpcServiceManager
 import kotlinx.browser.window
 import kotlinx.serialization.json.Json
 import org.w3c.dom.Window
@@ -43,8 +43,8 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     baseUrl = baseUrl,
 ) {
     companion object {
-        private var dataItemServiceManager: KVServiceManager<*>? = null
-        var serviceManager: KVServiceManager<*>
+        private var dataItemServiceManager: RpcServiceManager<*>? = null
+        var serviceManager: RpcServiceManager<*>
             get() = dataItemServiceManager
                 ?: throw IllegalStateException("serviceManager is null. Please set ConfigViewItem.serviceManager value before instantiating any ConfigViewItem.".also {
                     alert(

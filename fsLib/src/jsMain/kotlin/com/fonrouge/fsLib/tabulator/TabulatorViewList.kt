@@ -7,7 +7,13 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.view.ViewList
+import dev.kilua.rpc.CallAgent
+import dev.kilua.rpc.HttpMethod
+import dev.kilua.rpc.RemoteFilter
+import dev.kilua.rpc.RemoteSorter
+import dev.kilua.rpc.RpcSerialization
 import io.kvision.core.Container
+import io.kvision.core.KVScope
 import io.kvision.remote.*
 import io.kvision.tabulator.TableType
 import io.kvision.tabulator.Tabulator
@@ -16,6 +22,7 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.utils.Serialization
 import kotlinx.browser.window
+import kotlinx.coroutines.async
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -59,7 +66,6 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
     kClass: KClass<T>?,
     serializer: KSerializer<T>?,
     module: SerializersModule?,
-    private val requestFilter: (suspend RequestInit.() -> Unit)?
 ) : Tabulator<T>(
     data = null,
     dataUpdateOnEdit = false,
@@ -77,14 +83,14 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
     private val callAgent: CallAgent
 
     override val jsonHelper = if (serializer != null) Json(
-        from = (RemoteSerialization.customConfiguration ?: Serialization.customConfiguration
+        from = (RpcSerialization.customConfiguration ?: Serialization.customConfiguration
         ?: Json {
             ignoreUnknownKeys = true
             isLenient = true
         })
     ) {
         serializersModule = SerializersModule {
-            include(RemoteSerialization.plain.serializersModule)
+            include(RpcSerialization.plain.serializersModule)
             module?.let { this.include(it) }
         }.overwriteWith(serializersModule)
     } else null
@@ -195,16 +201,11 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
             tabSorter = sorters
             contentHashCode = this@TabulatorViewList.contentHashCode
         }
-        val data =
-            Serialization.plain.encodeToString(
-                JsonRpcRequest(
-                    id = 0,
-                    method = url,
-                    params = listOf(
-                        apiListSerialize.invoke(apiList)
-                    )
-                )
-            )
+        KVScope.async {
+            val result = callAgent.jsonRpcCall(url,listOf(apiListSerialize.invoke(apiList)),method).let {
+                if (it.isEmpty()) "[]" else it
+            }
+        }
         return callAgent.remoteCall(
             url,
             data,

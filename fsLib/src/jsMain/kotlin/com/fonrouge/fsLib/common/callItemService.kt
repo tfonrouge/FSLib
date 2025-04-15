@@ -7,12 +7,15 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
-import io.kvision.remote.CallAgent
-import io.kvision.remote.JsonRpcRequest
+import com.fonrouge.fsLib.view.AppScope
+import dev.kilua.rpc.CallAgent
+import dev.kilua.rpc.JsonRpcRequest
+import io.kvision.core.KVScope
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
 import io.kvision.utils.Serialization
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
@@ -92,12 +95,31 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
             params = paramList
         )
     )
-    callAgent.remoteCall(url = url, data = data, method = method).then { r: dynamic ->
-        val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
-        if (r.error != null) {
-            console.error("Server error:", r.error)
+    KVScope.launch {
+        try {
+            val r = callAgent.jsonRpcCall(url = url, data = paramList, method = method)
+            try {
+                val itemResponse: ItemState<T> =
+                    Json.decodeFromDynamic(
+                        ItemState.serializer(itemSerializer),
+                        r
+                    )
+                block(itemResponse)
+            } catch (e: Exception) {
+                console.error(
+                    "Error decoding KClass",
+                    itemSerializer,
+                    "with serialized value",
+                    r,
+                    "exception:",
+                    e
+                )
+                e.printStackTrace()
+            }
+        } catch (e: Exception) {
+            console.error("Server error:", e.message)
             Toast.danger(
-                message = "Server error ${r.error}",
+                message = "Server error ${e.message}",
                 options = ToastOptions(
                     position = ToastPosition.BOTTOMRIGHT,
                     escapeHtml = true,
@@ -106,24 +128,6 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
                     newWindow = true
                 )
             )
-        }
-        try {
-            val itemResponse: ItemState<T> =
-                Json.decodeFromDynamic(
-                    ItemState.serializer(itemSerializer),
-                    result
-                )
-            block(itemResponse)
-        } catch (e: Exception) {
-            console.error(
-                "Error decoding KClass",
-                itemSerializer,
-                "with serialized value",
-                result,
-                "exception:",
-                e
-            )
-            e.printStackTrace()
         }
     }
 }

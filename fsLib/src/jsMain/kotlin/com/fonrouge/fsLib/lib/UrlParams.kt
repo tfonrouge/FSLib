@@ -1,13 +1,14 @@
 package com.fonrouge.fsLib.lib
 
 import io.kvision.navigo.Match
-import io.kvision.remote.encodeURIComponent
 import js.uri.decodeURIComponent
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer
 import kotlin.js.Json
 import kotlin.js.json
+
+external fun encodeURIComponent(uri: String): String
 
 /**
  * Represents URL parameters that can be manipulated and used for various CRUD operations.

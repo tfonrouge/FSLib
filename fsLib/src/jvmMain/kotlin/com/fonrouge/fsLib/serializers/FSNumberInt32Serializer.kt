@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.serializers
 
 import com.github.jershell.kbson.BsonFlexibleDecoder
-import io.kvision.remote.ServiceException
+import dev.kilua.rpc.ServiceException
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -10,7 +10,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.bson.BsonType
 
-@Suppress("unused", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+@Suppress("unused")
 actual object FSNumberInt32Serializer : KSerializer<Int> {
     actual override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Number as Int Serializer", PrimitiveKind.DOUBLE)
