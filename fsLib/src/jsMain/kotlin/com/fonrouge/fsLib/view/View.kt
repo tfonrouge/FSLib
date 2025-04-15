@@ -57,7 +57,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     val actionUpsert: Boolean
         get() {
-            return crudTask in listOf<CrudTask>(CrudTask.Create, CrudTask.Update)
+            return crudTask in listOf(CrudTask.Create, CrudTask.Update)
         }
 
     /**
@@ -267,10 +267,11 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     abstract fun Container.displayPage()
 
     /**
-     * Retrieves a label for the banner based on a given API filter.
+     * Constructs and returns a label for the banner based on the provided API filter.
+     * This function is designed to create a string label specific to the given filter configuration.
      *
-     * @param tag The API filter used to determine the label.
-     * @return The label used for the banner.
+     * @param apiFilter The API filter instance that will be used to generate the banner's label.
+     * @return A string representing the label for the banner.
      */
     open suspend fun labelBanner(apiFilter: FILT): String = label
 
@@ -381,7 +382,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                     label = this@View.label,
                     url = navigoUrlWithParams,
                     className = "navbar-brand",
-                    icon = if (this@View is ViewItem<*, *, *, *>) iconCrud(crudTask) else null,
+                    icon = if (this@View is ViewItem<*, *, *, FILT>) iconCrud(crudTask) else null,
                 ) {
                     apiFilterObservable.subscribe {
                         url = apiFilterToPageUrl(replaceState = false)
@@ -389,8 +390,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                             label = labelBanner(it)
                         }
                     }
-                    if (this@View is ViewItem<*, *, *, *>) {
-                        (this@View as ViewItem<*, *, *, *>).itemObservable.subscribe {
+                    if (this@View is ViewItem<*, *, *, FILT>) {
+                        (this@View as ViewItem<*, *, *, FILT>).itemObservable.subscribe {
                             AppScope.launch {
                                 label = labelBanner(apiFilter)
                             }
@@ -405,7 +406,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 }
             }
             nav(rightAlign = true) {
-                if (this@View is ViewItem<*, *, *, *>) {
+                if (this@View is ViewItem<*, *, *, FILT>) {
                     if (actionUpsert) {
                         navButtonBack = button(
                             text = " ",
