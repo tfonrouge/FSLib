@@ -129,7 +129,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * updates to the filtering logic, which may impact the displayed data or UI components.
      */
     val apiFilterObservable: ObservableValue<FILT> by lazy {
-        ObservableValue(configView.commonContainer.apiFilterInstance())
+        ObservableValue(apiFilterFromUrl ?: configView.commonContainer.apiFilterInstance())
     }
 
     /**
@@ -303,12 +303,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 onApiFilterChange()
                 apiFilterToPageUrl(mainView)
             }
-            if (mainView) {
-                apiFilterFromUrl?.let {
-                    apiFilter = it
-                }
-                apiFilterInit()
-            }
+            apiFilterInit()
             onAfterDisplayPage()
         }
     }
