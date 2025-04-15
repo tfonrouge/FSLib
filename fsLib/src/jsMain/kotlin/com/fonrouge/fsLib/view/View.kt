@@ -298,12 +298,12 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 onBeforeDispose()
             }
             onBeforeDisplayPage(this@startDisplayPage)
+            apiFilterInit()
             this@startDisplayPage.displayPage()
             bind(apiFilterObservable) {
                 onApiFilterChange()
                 apiFilterToPageUrl(mainView)
             }
-            apiFilterInit()
             onAfterDisplayPage()
         }
     }
