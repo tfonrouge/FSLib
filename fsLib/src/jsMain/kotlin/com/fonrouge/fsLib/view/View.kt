@@ -119,18 +119,17 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     private val pageBannerUpdateObservable = ObservableValue(0)
 
     /**
-     * Observable value that represents the current API filter instance used by the view.
-     * This value is lazily initialized with an API filter instance based on the URL parameters or,
-     * if not available, from the commonContainer configuration of the configView.
+     * Observable representation of the API filter used by the view.
      *
-     * The primary use of this observable is to keep track of changes to the API filter
-     * and trigger related updates within the view, such as updating the displayed content
-     * or the status of UI elements that depend on the filter.
+     * This property lazily initializes an observable value for the API filter, allowing
+     * the system to react to changes in the filter state dynamically. It is tied to the
+     * `apiFilterInstance` method for the default filter configuration.
+     *
+     * The observable value is primarily used within the view to monitor and respond to
+     * updates to the filtering logic, which may impact the displayed data or UI components.
      */
     val apiFilterObservable: ObservableValue<FILT> by lazy {
-        ObservableValue(
-            apiFilterInstance(apiFilterFromUrl) ?: configView.commonContainer.apiFilterInstance()
-        )
+        ObservableValue(configView.commonContainer.apiFilterInstance())
     }
 
     /**
@@ -304,6 +303,12 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 onApiFilterChange()
                 apiFilterToPageUrl(mainView)
             }
+            if (mainView) {
+                apiFilterFromUrl?.let {
+                    apiFilter = it
+                }
+                apiFilterInit()
+            }
             onAfterDisplayPage()
         }
     }
@@ -317,13 +322,14 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open fun onAfterDisplayPage() {}
 
     /**
-     * Sets the given API filter instance. This function is useful for assigning an API filter object
-     * to a view or passing the filter object around.
+     * Initializes the API filter to its default state or configuration.
      *
-     * @param apiFilter The API filter to be set or passed. Can be null.
-     * @return The provided API filter instance, or null if no filter is provided.
+     * This method is intended to set up the API filter properties and prepare
+     * it for further operations such as filtering data or updating the view
+     * based on the API filter state. It is typically overridden in subclasses
+     * to customize the initialization logic.
      */
-    open fun apiFilterInstance(apiFilter: FILT?): FILT? = apiFilter
+    open fun apiFilterInit() {}
 
     /**
      * This method is called when there is an update to the API filter.
