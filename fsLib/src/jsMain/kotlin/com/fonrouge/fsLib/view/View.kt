@@ -297,8 +297,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             addBeforeDisposeHook {
                 onBeforeDispose()
             }
-            onBeforeDisplayPage(this@startDisplayPage)
             apiFilterInit()
+            onBeforeDisplayPage(this@startDisplayPage)
             this@startDisplayPage.displayPage()
             bind(apiFilterObservable) {
                 onApiFilterChange()
