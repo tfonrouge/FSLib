@@ -7,14 +7,9 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.State
 import com.fonrouge.fsLib.view.ViewList
-import dev.kilua.rpc.CallAgent
-import dev.kilua.rpc.HttpMethod
-import dev.kilua.rpc.RemoteFilter
-import dev.kilua.rpc.RemoteSorter
-import dev.kilua.rpc.RpcSerialization
+import dev.kilua.rpc.*
 import io.kvision.core.Container
 import io.kvision.core.KVScope
-import io.kvision.remote.*
 import io.kvision.tabulator.TableType
 import io.kvision.tabulator.Tabulator
 import io.kvision.tabulator.TabulatorOptions
@@ -22,18 +17,15 @@ import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.utils.Serialization
 import kotlinx.browser.window
+import kotlinx.coroutines.asPromise
 import kotlinx.coroutines.async
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
+import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
-import kotlinx.serialization.serializer
 import org.w3c.dom.get
-import org.w3c.fetch.RequestInit
 import kotlin.js.Promise
 import kotlin.reflect.KClass
 
@@ -53,7 +45,6 @@ import kotlin.reflect.KClass
  * @param kClass Optionally specifies a Kotlin class type for serialization and reflection purposes.
  * @param serializer A serializer instance for serializing and deserializing the data type [T].
  * @param module A [SerializersModule] to support custom and polymorphic serialization.
- * @param requestFilter A suspending lambda for adding additional request configurations before remote API calls.
  */
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
@@ -201,53 +192,49 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
             tabSorter = sorters
             contentHashCode = this@TabulatorViewList.contentHashCode
         }
-        KVScope.async {
-            val result = callAgent.jsonRpcCall(url,listOf(apiListSerialize.invoke(apiList)),method).let {
-                if (it.isEmpty()) "[]" else it
-            }
-        }
-        return callAgent.remoteCall(
-            url,
-            data,
-            method = HttpMethod.valueOf(method.name),
-            requestFilter = requestFilter
-        ).then { r: dynamic ->
-            if (r.result != undefined) {
-                val result = JSON.parse<dynamic>(r.result.unsafeCast<String>())
+        return KVScope.async {
+            try {
+                val apiListResult = this@TabulatorViewList.callAgent.jsonRpcCall(
+                    this@TabulatorViewList.url,
+                    listOf(this@TabulatorViewList.apiListSerialize.invoke(apiList)),
+                    this@TabulatorViewList.method
+                ).let<String, ApiListResult> {
+                    Json.decodeFromString(it)
+                }
+                val result = JSON.parse<dynamic>(apiListResult.result)
                 if (result.data == undefined) {
                     result.data = js("[]")
                 }
                 result.contentHashCode = JSON.stringify(result.data).hashCode()
                 if (result.contentHashCode != undefined) {
-                    diffContentHashCode = (result.contentHashCode as? Int) != contentHashCode
-                    contentHashCode = result.contentHashCode as? Int
+                    this@TabulatorViewList.diffContentHashCode =
+                        (result.contentHashCode as? Int) != this@TabulatorViewList.contentHashCode
+                    this@TabulatorViewList.contentHashCode = result.contentHashCode as? Int
                 }
 //                console.warn("${viewList.configView.viewKClass.simpleName} result", result)
                 ((result.state as? String) == State.Error.name).also { errorState ->
-                    if (viewList.errorStateObs.value != errorState) {
-                        viewList.errorStateObs.value = errorState
+                    if (this@TabulatorViewList.viewList.errorStateObs.value != errorState) {
+                        this@TabulatorViewList.viewList.errorStateObs.value = errorState
                     }
-                    viewList.errorMessage = if (errorState) result.msgError as? String else null
+                    this@TabulatorViewList.viewList.errorMessage = if (errorState) result.msgError as? String else null
                     if (errorState) {
                         Toast.danger(
-                            message = viewList.errorMessage ?: "Unknown error",
+                            message = this@TabulatorViewList.viewList.errorMessage ?: "Unknown error",
                             options = ToastOptions(avatar = "")
                         )
                     }
                 }
-                viewList.onReceivingData(result.data)
+                this@TabulatorViewList.viewList.onReceivingData(result.data)
                 result
-            } else {
-                console.error("Server response error:", r)
-                if (r.error != undefined && r.exceptionType != undefined) {
-                    Toast.danger(
-                        message = "Server response error -> ${r.error}, exceptionType -> ${r.exceptionType}",
-                        options = ToastOptions(avatar = "")
-                    )
-                }
+            } catch (e: Exception) {
+                console.error("ApiList call error:", e.message)
+                Toast.danger(
+                    message = "Server response error -> ${e.message}, exceptionType -> ${e.cause}",
+                    options = ToastOptions(avatar = "")
+                )
                 null
             }
-        }
+        }.asPromise()
     }
 
     init {
@@ -291,6 +278,12 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
             )
         }
     }
+
+    @Serializable
+    private data class ApiListResult(
+        val id: Int,
+        val result: String,
+    )
 }
 
 /**
@@ -308,7 +301,6 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
  * @param className An optional class name applied to the Tabulator container for styling or other purposes. Defaults to null.
  * @param serializer An optional serializer used for serializing/deserializing instances of type T. Defaults to null.
  * @param module An optional serializers module used to resolve any custom serialization logic. Defaults to null.
- * @param requestFilter An optional suspend lambda that modifies the request initialization, allowing customization of API requests. Defaults to null.
  * @param init An optional initialization block applied to the TabulatorViewList instance. Defaults to null.
  * @return An instance of TabulatorViewList configured with the provided parameters, added to the container.
  */
@@ -321,7 +313,6 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
     className: String? = null,
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
-    noinline requestFilter: (suspend RequestInit.() -> Unit)? = null,
     noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
 ): TabulatorViewList<T, ID, FILT, MID> {
     val tabulatorViewList: TabulatorViewList<T, ID, FILT, MID> =
@@ -335,7 +326,6 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
             kClass = T::class,
             serializer = serializer,
             module = module,
-            requestFilter = requestFilter
         )
     init?.invoke(tabulatorViewList)
     this.add(tabulatorViewList)
