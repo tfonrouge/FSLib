@@ -122,6 +122,7 @@ kotlin {
             api(libs.kvision.rest)
             api(libs.kvision.richtext)
             api(libs.kvision.routing.navigo.ng)
+            api(libs.kvision.state)
             api(libs.kvision.tabulator)
             api(libs.kvision.tabulator.remote)
             api(libs.kvision.toastify)
