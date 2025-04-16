@@ -96,6 +96,7 @@ kvision-redux-kotlin = { module = "io.kvision:kvision-redux-kotlin", version.ref
 kvision-rest = { module = "io.kvision:kvision-rest", version.ref = "kvision" }
 kvision-richtext = { module = "io.kvision:kvision-richtext", version.ref = "kvision" }
 kvision-routing-navigo-ng = { module = "io.kvision:kvision-routing-navigo-ng", version.ref = "kvision" }
+kvision-state = { module = "io.kvision:kvision-state", version.ref = "kvision" }
 kvision-tabulator = { module = "io.kvision:kvision-tabulator", version.ref = "kvision" }
 kvision-tabulator-remote = { module = "io.kvision:kvision-tabulator-remote", version.ref = "kvision" }
 kvision-toastify = { module = "io.kvision:kvision-toastify", version.ref = "kvision" }
