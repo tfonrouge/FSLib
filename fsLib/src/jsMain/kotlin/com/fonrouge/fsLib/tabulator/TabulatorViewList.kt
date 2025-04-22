@@ -199,10 +199,10 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
                     listOf(this@TabulatorViewList.apiListSerialize.invoke(apiList)),
                     this@TabulatorViewList.method
                 ).let {
-                    console.warn("${viewList.configView.viewKClass.simpleName} jsonRpcCall result", it)
+//                    console.warn("${viewList.configView.viewKClass.simpleName} jsonRpcCall result", it)
                     JSON.parse<dynamic>(it)
                 }
-                console.warn("${viewList.configView.viewKClass.simpleName} jsonObj", jsonObj)
+//                console.warn("${viewList.configView.viewKClass.simpleName} jsonObj", jsonObj)
                 if (jsonObj.data == undefined) {
                     jsonObj.data = js("[]")
                 }
