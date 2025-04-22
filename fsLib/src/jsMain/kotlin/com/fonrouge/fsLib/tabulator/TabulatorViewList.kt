@@ -194,29 +194,29 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
         }
         return KVScope.async {
             try {
-                val apiListResult = this@TabulatorViewList.callAgent.jsonRpcCall(
+                val jsonObj = this@TabulatorViewList.callAgent.jsonRpcCall(
                     this@TabulatorViewList.url,
                     listOf(this@TabulatorViewList.apiListSerialize.invoke(apiList)),
                     this@TabulatorViewList.method
-                ).let<String, ApiListResult> {
-                    Json.decodeFromString(it)
+                ).let {
+                    console.warn("${viewList.configView.viewKClass.simpleName} jsonRpcCall result", it)
+                    JSON.parse<dynamic>(it)
                 }
-                val result = JSON.parse<dynamic>(apiListResult.result)
-                if (result.data == undefined) {
-                    result.data = js("[]")
+                console.warn("${viewList.configView.viewKClass.simpleName} jsonObj", jsonObj)
+                if (jsonObj.data == undefined) {
+                    jsonObj.data = js("[]")
                 }
-                result.contentHashCode = JSON.stringify(result.data).hashCode()
-                if (result.contentHashCode != undefined) {
+                jsonObj.contentHashCode = JSON.stringify(jsonObj.data).hashCode()
+                if (jsonObj.contentHashCode != undefined) {
                     this@TabulatorViewList.diffContentHashCode =
-                        (result.contentHashCode as? Int) != this@TabulatorViewList.contentHashCode
-                    this@TabulatorViewList.contentHashCode = result.contentHashCode as? Int
+                        (jsonObj.contentHashCode as? Int) != this@TabulatorViewList.contentHashCode
+                    this@TabulatorViewList.contentHashCode = jsonObj.contentHashCode as? Int
                 }
-//                console.warn("${viewList.configView.viewKClass.simpleName} result", result)
-                ((result.state as? String) == State.Error.name).also { errorState ->
+                ((jsonObj.state as? String) == State.Error.name).also { errorState ->
                     if (this@TabulatorViewList.viewList.errorStateObs.value != errorState) {
                         this@TabulatorViewList.viewList.errorStateObs.value = errorState
                     }
-                    this@TabulatorViewList.viewList.errorMessage = if (errorState) result.msgError as? String else null
+                    this@TabulatorViewList.viewList.errorMessage = if (errorState) jsonObj.msgError as? String else null
                     if (errorState) {
                         Toast.danger(
                             message = this@TabulatorViewList.viewList.errorMessage ?: "Unknown error",
@@ -224,8 +224,8 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
                         )
                     }
                 }
-                this@TabulatorViewList.viewList.onReceivingData(result.data)
-                result
+                this@TabulatorViewList.viewList.onReceivingData(jsonObj.data)
+                jsonObj
             } catch (e: Exception) {
                 console.error("ApiList call error:", e.message)
                 Toast.danger(
@@ -278,12 +278,6 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
             )
         }
     }
-
-    @Serializable
-    private data class ApiListResult(
-        val id: Int,
-        val result: String,
-    )
 }
 
 /**

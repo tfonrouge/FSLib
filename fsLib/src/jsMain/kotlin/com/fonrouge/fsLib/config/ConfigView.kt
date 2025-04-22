@@ -5,10 +5,10 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.view.View
 import com.fonrouge.fsLib.view.ViewDataContainer
-import io.kvision.utils.createInstance
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
+import kotlin.reflect.createInstance
 
 /**
  * Abstract class that represents a configuration view for managing connections between common containers,
@@ -40,10 +40,18 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
     open val labelUrl: Pair<String, String> by lazy { commonContainer.label to url }
 
     /**
-     * Helper function to create a new View instance, in [ViewDataContainer] sets the [ViewDataContainer.apiFilterObservable] from the [UrlParams]
+     * Creates a new instance of the view and initializes it with the provided URL parameters and initialization logic.
+     *
+     * @param urlParams The optional URL parameters to be associated with the new view instance. If not provided, default URL parameters are used.
+     * @param init An optional lambda function used to initialize the view instance after its creation.
+     * @return A newly created view instance of type [V], configured with the provided parameters and initialization logic.
      */
-    fun newViewInstance(urlParams: UrlParams?, vararg args: dynamic): V {
-        return viewKClass.js.createInstance(urlParams ?: UrlParams(), args)
+    @OptIn(ExperimentalJsReflectionCreateInstance::class)
+    fun newViewInstance(urlParams: UrlParams?, init: (V.() -> Unit)? = null): V {
+        return viewKClass.createInstance().apply {
+            this.urlParams = urlParams ?: UrlParams()
+            init?.invoke(this)
+        }
     }
 
     /**

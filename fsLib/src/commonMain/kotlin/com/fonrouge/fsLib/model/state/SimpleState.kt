@@ -21,7 +21,6 @@ import kotlinx.serialization.Serializable
  * @property state The current state of this instance.
  * @property msgOk An optional message indicating success.
  * @property msgError An optional message indicating an error.
- * @property cargo Optional additional information or payload.
  * @property dateTime A timestamp representing when this instance was created.
  * @property hasError A boolean indicating if the state represents an error condition.
  */
@@ -30,7 +29,6 @@ data class SimpleState(
     override val state: State,
     override val msgOk: String? = null,
     override val msgError: String? = null,
-    override val cargo: String? = null
 ) : ISimpleState {
     @Serializable(with = FSOffsetDateTimeSerializer::class)
     override val dateTime: OffsetDateTime = offsetDateTimeNow()

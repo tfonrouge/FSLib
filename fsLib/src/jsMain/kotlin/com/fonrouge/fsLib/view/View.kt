@@ -47,7 +47,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      *
      * Nullable, as URL parameters might not always be initialized or required for a given view.
      */
-    abstract var urlParams: UrlParams
+    var urlParams: UrlParams = UrlParams()
 
     /**
      * A computed property that determines whether the current CRUD task is either a creation or an update operation.
