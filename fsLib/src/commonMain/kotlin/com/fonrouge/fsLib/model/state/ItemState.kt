@@ -45,7 +45,6 @@ data class ItemState<T>(
     override val state: State = if (item != null) State.Ok else State.Error,
     override val msgOk: String? = MSG_OK,
     override val msgError: String? = if (state != State.Ok) MSG_ERROR else null,
-    override val cargo: String? = null
 ) : ISimpleState {
     @Serializable(with = FSOffsetDateTimeSerializer::class)
     override val dateTime: OffsetDateTime = offsetDateTimeNow()
@@ -84,7 +83,6 @@ data class ItemState<T>(
      * @param isOk A boolean indicating whether the state should be `State.Ok` or `State.Error`.
      * @param msgOk An optional message for a successful state. Defaults to `MSG_OK`.
      * @param msgError An optional message for an error state. Defaults to `MSG_ERROR`.
-     * @param cargo Optional additional data or metadata for the state.
      */
     constructor(
         isOk: Boolean,
@@ -99,7 +97,6 @@ data class ItemState<T>(
         },
         msgOk = msgOk,
         msgError = msgError,
-        cargo = cargo
     )
 
     /**
