@@ -19,12 +19,15 @@ import io.kvision.utils.Serialization
 import kotlinx.browser.window
 import kotlinx.coroutines.asPromise
 import kotlinx.coroutines.async
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
+import kotlinx.serialization.serializer
 import org.w3c.dom.get
 import kotlin.js.Promise
 import kotlin.reflect.KClass
@@ -173,8 +176,9 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
         ).then { result: dynamic ->
 //            console.warn("RESULT ->", result, "CONTENT_HASHCODE ->", contentHashCode, "diffContentHashCode", diffContentHashCode)
             if (diffContentHashCode) {
-                replaceData(toKotlinList(result.data).toTypedArray())
-//                jsTabulator?.replaceData(result.data, null, null)
+                if (result.data != undefined) {
+                    replaceData(toKotlinList(result.data).toTypedArray())
+                }
             }
         }
     }
@@ -227,12 +231,12 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
                 this@TabulatorViewList.viewList.onReceivingData(jsonObj.data)
                 jsonObj
             } catch (e: Exception) {
-                console.error("ApiList call error:", e.message)
+                console.error("Server call response error:", e.message)
                 Toast.danger(
-                    message = "Server response error -> ${e.message}, exceptionType -> ${e.cause}",
+                    message = "Server call response error: ${e.message}",
                     options = ToastOptions(avatar = "")
                 )
-                null
+                js("{}")
             }
         }.asPromise()
     }
