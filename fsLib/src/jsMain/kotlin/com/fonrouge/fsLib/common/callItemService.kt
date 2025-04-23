@@ -7,18 +7,14 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
-import com.fonrouge.fsLib.view.AppScope
 import dev.kilua.rpc.CallAgent
-import dev.kilua.rpc.JsonRpcRequest
 import io.kvision.core.KVScope
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
-import io.kvision.utils.Serialization
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromDynamic
 
 /**
  * Executes a service call for an API item within the container context.
@@ -88,21 +84,14 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
             value = toIApiItem(iApiItem)
         ),
     )
-    val data = Serialization.plain.encodeToString(
-        JsonRpcRequest(
-            id = 0,
-            method = url,
-            params = paramList
-        )
-    )
     KVScope.launch {
         try {
-            val r = callAgent.jsonRpcCall(url = url, data = paramList, method = method)
+            val jsonString = callAgent.jsonRpcCall(url = url, data = paramList, method = method)
             try {
                 val itemResponse: ItemState<T> =
-                    Json.decodeFromDynamic(
+                    Json.decodeFromString(
                         ItemState.serializer(itemSerializer),
-                        r
+                        jsonString
                     )
                 block(itemResponse)
             } catch (e: Exception) {
@@ -110,7 +99,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
                     "Error decoding KClass",
                     itemSerializer,
                     "with serialized value",
-                    r,
+                    jsonString,
                     "exception:",
                     e
                 )

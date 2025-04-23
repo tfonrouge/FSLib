@@ -12,7 +12,6 @@ import kotlinx.coroutines.asPromise
 import kotlinx.coroutines.async
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromDynamic
 import kotlin.js.Promise
 
 /**
@@ -42,7 +41,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, R : Any?> ICommonContainer
     val paramList = listOf(apiItemSerialized)
     return KVScope.async {
         transform(
-            Json.decodeFromDynamic<ItemState<T>>(
+            Json.decodeFromString<ItemState<T>>(
                 ItemState.serializer(this@getItemState.itemSerializer),
                 callAgent.jsonRpcCall(url, paramList, method)
             )

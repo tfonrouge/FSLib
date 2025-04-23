@@ -33,7 +33,6 @@ import kotlinx.serialization.Serializable
  * @property state The current state of the item, conforming to the `State` enum.
  * @property msgOk An optional success message.
  * @property msgError An optional error message.
- * @property cargo Additional metadata or payload associated with the item state.
  * @property dateTime A timestamp representing when this state was created or modified.
  * @property hasError A boolean indicating if the state represents an error condition.
  */
