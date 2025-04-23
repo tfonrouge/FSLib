@@ -8,8 +8,6 @@ import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.view.KVWebManager.configViewListMap
 import com.fonrouge.fsLib.view.ViewList
 import dev.kilua.rpc.RpcServiceManager
-import kotlinx.browser.window
-import org.w3c.dom.Window
 import web.prompts.alert
 import kotlin.reflect.KClass
 
@@ -74,29 +72,8 @@ abstract class ConfigViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         } ?: "")
     }
 
-    fun viewListUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String {
-        val params = mutableListOf<Pair<String, String>>()
-        apiFilterParam(apiFilter).let { params.add(it) }
-        return urlWithParams(*params.toTypedArray())
-    }
-
-    /**
-     * Navigates to a specific URL in a new or existing window.
-     *
-     * @param apiFilter An optional filter to apply to the URL, defaults to an instance of the filter.
-     * @param target The target window or frame where the URL should be opened, defaults to "_blank".
-     * @return The Window object of the opened URL, or null if the operation fails.
-     */
-    @Suppress("unused")
-    fun navigateTo(
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        target: String = "_blank"
-    ): Window? {
-        return window.open(
-            url = viewListUrl(apiFilter),
-            target = target
-        )
-    }
+    fun viewListUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String =
+        urlWithParams(apiFilterParam(apiFilter))
 
     init {
         configViewListMap[this.baseUrl] = this

@@ -2,11 +2,13 @@ package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.common.ICommon
 import com.fonrouge.fsLib.lib.UrlParams
+import com.fonrouge.fsLib.lib.encodeURIComponent
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.view.View
-import com.fonrouge.fsLib.view.ViewDataContainer
+import kotlinx.browser.window
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import org.w3c.dom.Window
 import kotlin.reflect.KClass
 import kotlin.reflect.createInstance
 
@@ -38,6 +40,32 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
     val url: String get() = "#/" + this.baseUrl
     open val label: String get() = commonContainer.label
     open val labelUrl: Pair<String, String> by lazy { commonContainer.label to url }
+
+    /**
+     * Opens a new browser window or tab with the URL generated from the current configuration.
+     *
+     * If the current instance is of type `ConfigViewList`, a specialized URL for the view list
+     * is generated; otherwise, a general URL with API filter parameters is constructed.
+     *
+     * @param apiFilter The API filter instance used to build the URL. Defaults to the result of `commonContainer.apiFilterInstance()`.
+     * @param target Specifies where to open the new window or tab. Defaults to "_blank", which opens it in a new tab or window.
+     * @return A `Window` object representing the newly opened window or tab, or `null` if the operation is unsuccessful (e.g., blocked by a popup blocker).
+     */
+    @Suppress("unused")
+    fun navigateTo(
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        target: String = "_blank"
+    ): Window? {
+        val url = if (this is ConfigViewList<*, *, *, *, FILT, *, *>) {
+            viewListUrl(apiFilter)
+        } else {
+            urlWithParams(apiFilterParam(apiFilter))
+        }
+        return window.open(
+            url = url,
+            target = target
+        )
+    }
 
     /**
      * Creates a new instance of the view and initializes it with the provided URL parameters and initialization logic.
@@ -72,7 +100,7 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
             val result = StringBuilder(url)
             pairParams.forEachIndexed { i, s ->
                 result.append(if (i == 0) "?" else "&")
-                result.append("${s.first}=${s.second}")
+                result.append("${s.first}=${encodeURIComponent(s.second)}")
             }
             result.toString()
         } else {
