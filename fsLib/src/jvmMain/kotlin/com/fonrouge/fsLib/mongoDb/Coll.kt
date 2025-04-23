@@ -286,7 +286,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     open suspend fun asApiItem(
         apiItem: ApiItem<T, ID, FILT>,
-    ): ItemState<ApiItem<T, ID, FILT>> = ItemState<ApiItem<T, ID, FILT>>(item = apiItem)
+    ): ItemState<ApiItem<T, ID, FILT>> = ItemState(item = apiItem)
 
     /**
      * Aggregates a lookup publisher with a provided pipeline and lookups.
@@ -537,13 +537,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             )
         lookupPipelineBuilders.forEach { (_, lookupPipelineBuilder) ->
             val lookupWrapper = lookupWrappers.find { lookupWrapper ->
-                val kProperty1: PropertyReference1Impl = lookupPipelineBuilder.resultProperty as PropertyReference1Impl
+                val kProperty1 = lookupPipelineBuilder.resultProperty
+                val owner1 = kProperty1.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
                 when (lookupWrapper) {
-                    is LookupByProperty -> lookupWrapper.resultProperty as PropertyReference1Impl
+                    is LookupByProperty<*, *> -> lookupWrapper.resultProperty //as PropertyReference1Impl
                     is LookupByPipeline<*, *, *> -> lookupWrapper.pipeline.resultProperty as PropertyReference1Impl
                     else -> null
                 }?.let { kProperty2 ->
-                    (kProperty2.owner as KClass<*>).isSubclassOf(kProperty1.owner as KClass<*>) && kProperty2.name == kProperty1.name
+                    val owner2 = kProperty2.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
+                    owner2.isSubclassOf(owner1) && kProperty2.name == kProperty1.name
                 } ?: false
             }
             if (lookupWrapper != null) {
@@ -1034,11 +1036,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
         onPermissionUpsertCreate(apiItem).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy()
-        onBeforeUpsertAction(apiItem1).also {
+        onBeforeUpsertAction(apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let { apiItem1 = apiItem1.copy(item = it) }
         }
-        onBeforeUpsertCreateAction(apiItem1).also {
+        onBeforeUpsertCreateAction(apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let { apiItem1 = apiItem1.copy(item = it) }
         }
@@ -1414,13 +1416,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         )
         onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
         onPermissionUpsertUpdate(apiItem, apiItem.item).also { if (it.hasError) return it.asItemState() }
-        onBeforeUpsertAction(apiItem = apiItem).also {
+        onBeforeUpsertAction(apiItem = apiItem).also { it ->
             if (it.hasError) return it
             it.item?.let {
                 apiItem = apiItem.copy(item = it)
             }
         }
-        onBeforeUpsertUpdateAction(apiItem = apiItem).also {
+        onBeforeUpsertUpdateAction(apiItem = apiItem).also { it ->
             if (it.hasError) return it
             it.item?.let {
                 apiItem = apiItem.copy(item = it)
@@ -1501,13 +1503,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             item = apiItem.item
         ).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy()
-        onBeforeUpsertAction(apiItem = apiItem1).also {
+        onBeforeUpsertAction(apiItem = apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let {
                 apiItem1 = apiItem1.copy(item = it)
             }
         }
-        onBeforeUpsertUpdateAction(apiItem = apiItem1).also {
+        onBeforeUpsertUpdateAction(apiItem = apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let {
                 apiItem1 = apiItem1.copy(item = it)
