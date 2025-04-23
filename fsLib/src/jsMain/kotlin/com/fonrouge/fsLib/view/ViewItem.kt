@@ -90,24 +90,57 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     var formPanel: FormPanel<T> = FormPanel(serializer = configView.commonContainer.itemSerializer)
 
+    /**
+     * Provides the identifier string for the label associated with the current item in the view.
+     * This identifier is determined dynamically based on the `commonContainer` configuration
+     * and the current `item` in the `configView`.
+     *
+     * The property is utilized for associating a label with a corresponding item within the user interface
+     * or backend system, facilitating structure and accessibility.
+     */
     val labelId get() = configView.commonContainer.labelId(item)
 
-    //    var itemId: U? = null
+    /**
+     * Indicates whether the back button should be hidden or disabled in the current view context.
+     *
+     * This variable determines the visibility or functionality of the navigational back button.
+     * It is primarily used to control user navigation within the interface. When set to `true`,
+     * the back button is effectively deactivated or not shown. The default value is `false`,
+     * which means the back button is enabled and visible.
+     */
     var noBackButton = false
 
+    /**
+     * A callback function that is invoked when the accept button is clicked.
+     * The function can handle custom logic or UI updates when the event occurs.
+     *
+     * This callback receives a reference to the button (`Button`) that was clicked
+     * and the associated `MouseEvent` representing the click action.
+     *
+     * It can be used to define specific behavior for the accept button,
+     * such as processing form submissions or triggering additional actions.
+     *
+     * The callback is optional and can be set to `null` if no specific action
+     * needs to be performed on the button click.
+     */
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
 
     /**
-     * Set to true if periodic update of [itemObservable] is allowed
+     * Indicates whether periodic updates for the data view are enabled. If not explicitly set,
+     * the value defaults to the `periodicUpdateDataViewItem` from `KVWebManager`.
+     *
+     * This property can be used to control or interrogate the state of periodic updates
+     * within the `ViewItem` context.
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewItem
 
     /**
-     * Performs an API call to an upsert action on the backend,
-     * requires [formPanel] and checks validity before the API request
+     * Executes an "upsert" action (either update or insert) for the current item, using form validation,
+     * data transformation, and API service calls. Optionally displays toast notifications and updates UI components.
      *
-     * @param block optional, executes with the API result [ItemState] as parameter
+     * @param block An optional lambda function to handle the result of the upsert API call. The function receives
+     *              an [ItemState] parameter, which contains information about the success, error, or status of the operation.
      */
     fun acceptUpsertAction(
         block: ((ItemState<T>) -> Unit)? = {
@@ -196,6 +229,16 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         init?.invoke(viewList)
     }
 
+    /**
+     * Handles the back or close action for the current view. If confirmation is required
+     * and unsaved changes are detected, prompts the user for confirmation before proceeding.
+     * Depending on the browser history, navigates back or closes the window.
+     *
+     * @param confirmCancel Indicates if the user should be prompted to confirm canceling any unsaved changes.
+     *                      If true, the method detects changes in the form panel data and compares them
+     *                      with the original item state. If changes are detected, a confirmation dialog
+     *                      is displayed to the user.
+     */
     fun backCloseAction(confirmCancel: Boolean = false) {
         var proceedClose = true
         if (confirmCancel) {
@@ -223,8 +266,11 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
-     * Override this function if you want to process the [formPanel] data content just *before*
-     * to send it to the backend
+     * Transforms the given item of type T and returns the transformed result.
+     * This method is intended to be overridden to apply custom transformations to the input item.
+     *
+     * @param item The input item of type T to be transformed.
+     * @return The transformed item of type T.
      */
     open fun transformData(item: T): T {
         return item
@@ -234,6 +280,14 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         centeredMessage("no CRUD action ...")
     }
 
+    /**
+     * Displays a form in the container based on the specified CRUD operation. The form can be customized
+     * to handle Create, Read, or Update tasks, and includes options for action buttons such as back, cancel,
+     * and accept, depending on the provided task and the application's state.
+     *
+     * @param crudTask The CRUD operation context (e.g., Create, Read, Update) for which the form is displayed.
+     *                 This determines the behavior and data handling of the form.
+     */
     private suspend fun Container.displayForm(crudTask: CrudTask) {
         onBeforeDisplayForm(crudTask)
         formPanel = pageItemBody()
@@ -333,6 +387,24 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     open suspend fun onBeforeDisplayForm(crudTask: CrudTask) {}
 
+    /**
+     * Displays a page in the container by rendering a user interface based on the given URL parameters, page context, and CRUD task.
+     * The method handles Create, Read, Update, and Delete actions, manages API calls, and updates the UI accordingly.
+     * It also manages navigation controls, confirmation dialogs, toast notifications, and form rendering.
+     *
+     * Behavior:
+     * - Displays a page banner if enabled (`noPageBanner` is false).
+     * - Handles different CRUD tasks (e.g., creating, updating, deleting) by interacting with necessary services and rendering the appropriate UI.
+     * - Displays confirmation dialogs for delete actions.
+     * - Calls API services for CRUD operations, updates item data, and transitions between Create to Update, if necessary.
+     * - Fires UI updates and displays forms with custom actions using asynchronous flow.
+     * - Manages navigation interactions including `back` actions and error handling.
+     *
+     * Notes:
+     * 1. If no specific CRUD task (`crudTask`) is set, it displays a default page.
+     * 2. For Create actions, the method checks if an item already exists and switches to an Update context if necessary.
+     * 3. Encodes and decodes item IDs using defined serializers for URL interactions.
+     */
     override fun Container.displayPage() {
         vPanel(className = "showItem") {
             flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
@@ -441,9 +513,22 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
     }
 
+    /**
+     * Represents the label of the view item, composed dynamically using the `configView`'s label and
+     * the label ID of the current item from the common container.
+     *
+     * This label is utilized to provide a concise and descriptive textual representation, aiding in
+     * UI rendering or internal debugging processes.
+     */
     override val label: String
         get() = "${configView.label}: ${configView.commonContainer.labelId(item)}"
 
+    /**
+     * Encodes the given ID into a JSON string representation using the specified serializer.
+     *
+     * @param id The ID to be encoded. If null, the function returns null. Defaults to the `_id` property of the `item`.
+     * @return A JSON string representation of the encoded ID, or null if the input ID is null.
+     */
     fun encodeId(id: ID? = item?._id): String? {
         return id?.let { Json.encodeToString(configView.commonContainer.idSerializer, id) }
     }
@@ -461,12 +546,37 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         )
 
     /**
-     * Called when the [ItemState] value changes
+     * Called when an observable item of type T changes. This method can be overridden to provide custom
+     * behavior or handling for changes in an observably tracked item.
+     *
+     * @param item The item of type T that has changed. Use this parameter to access details or to react
+     *             to updates in the item's state.
      */
     open fun onChangeItemObservable(item: T) {}
 
+    /**
+     * Builds and returns a FormPanel component within the current container.
+     * This method is intended to be overridden in subclasses to provide custom
+     * layout or UI elements for displaying or editing page items.
+     *
+     * @return A FormPanel of type T, which serves as the main container for the page item body.
+     */
     abstract fun Container.pageItemBody(): FormPanel<T>
 
+    /**
+     * Updates the data in the view based on the current CRUD task.
+     *
+     * Specifically, if the current task is a "Read" operation, this method retrieves the item
+     * based on its ID, fetches the corresponding state from the API through the configured
+     * query function, and updates the observable item with the retrieved data.
+     *
+     * Behavior:
+     * - Checks if the task is set to `Read` in the current CRUD operation.
+     * - If the `item` has an associated ID, the method calls the API function `apiItemQueryRead`
+     *   with the item ID and filter settings.
+     * - Updates the state of the observable item (`itemObservable`) with the fetched data
+     *   to reflect the current state in the UI.
+     */
     final override fun dataUpdate() {
         if (crudTask == CrudTask.Read) {
             item?._id?.let { id ->
