@@ -72,11 +72,11 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     fun labelUrlUpdate(id: ID) = commonContainer.labelItem to urlUpdate(id)
 
     /**
-     * Opens a new browser window or tab with the URL corresponding to the given ApiItem.
+     * Navigates to the URL associated with the given API item in a specified target window or tab.
      *
-     * @param apiItem The ApiItem representing the query to be executed.
-     * @param target The target where the URL should be opened. Defaults to "_blank".
-     * @return The window object of the newly opened window/tab, or null if the URL cannot be generated.
+     * @param apiItem the API item from which the URL will be resolved and navigated to
+     * @param target the target window or tab where the URL should be opened; default is "_blank"
+     * @return the opened [Window] instance if the URL is successfully resolved and opened, or `null` if the URL cannot be resolved
      */
     @Suppress("unused")
     fun navigateTo(apiItem: ApiItem<T, ID, FILT>, target: String = "_blank"): Window? {
