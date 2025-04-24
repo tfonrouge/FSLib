@@ -177,7 +177,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
         this.pipeline?.let { bsonList -> pip2 += bsonList }
         coll.buildPipeline(
             pipeline = mutableListOf(),
-            lookups = lookup?.lookupWrappers ?: emptyList(),
+            lookupWrappers = lookup?.lookupWrappers ?: emptyList(),
             resultUnit = resultUnit,
         ).let { it ->
             pip2 += it

@@ -292,7 +292,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Aggregates a lookup publisher with a provided pipeline and lookups.
      *
      * @param pipeline The mutable list of BSON stages to be applied to the aggregation pipeline.
-     * @param lookups The list of lookup wrapper objects to be used for aggregation.
+     * @param lookupWrappers The list of lookup wrapper objects to be used for aggregation.
      * @param apiFilter An instance of a common filter type used for API filtering.
      * @param listFirstStage The first stage of the list, which may include pre- and post-lookup match and sort stages.
      * @param countType The type of counting to be done, pre-lookup, post-lookup, estimated, or unknown.
@@ -304,7 +304,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregateLookupPublisher(
         pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: List<LookupWrapper<*, *>> = emptyList(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         listFirstStage: ListFirstStage? = null,
         countType: CountType = CountType.PreLookup,
@@ -320,9 +320,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         listFirstStage?.preLookupSort?.let { pipeline.add(sort(it)) }
         buildPipeline(
             pipeline = pipeline,
-            lookups = lookups,
-            resultUnit = ResultUnit.List,
-            apiFilter = apiFilter
+            apiFilter = apiFilter,
+            lookupWrappers = lookupWrappers,
+            resultUnit = ResultUnit.List
         )
         postProcessPipeline?.let { it(pipeline) }
         listFirstStage?.postLookupMatch?.let {
@@ -364,7 +364,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Aggregates data with a specified lookup in a MongoDB collection.
      *
      * @param pipeline an initial list of BSON operations to start the aggregation pipeline.
-     * @param lookups a list of lookup wrappers to specify join conditions in the aggregation.
+     * @param lookupWrappers a list of lookup wrappers to specify join conditions in the aggregation.
      * @param apiFilter a filter applied to the API, defaulting to a common container instance.
      * @param postProcessPipeline an optional lambda to further process the pipeline after it is built.
      * @return an AggregatePublisher that provides asynchronous access to the aggregated data.
@@ -372,15 +372,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("unused")
     fun aggregateOneLookup(
         pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: List<LookupWrapper<*, *>> = emptyList(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
         buildPipeline(
             pipeline = pipeline,
-            lookups = lookups,
-            resultUnit = ResultUnit.One,
-            apiFilter = apiFilter
+            apiFilter = apiFilter,
+            lookupWrappers = lookupWrappers,
+            resultUnit = ResultUnit.One
         )
         postProcessPipeline?.let { it(pipeline) }
         if (debug ?: globalDebug) {
@@ -424,7 +424,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         var pageCountInfo: PageCountInfo? = null
         val publisher = aggregateLookupPublisher(
             pipeline = listFirstStage.pipeline,
-            lookups = lookupWrappers,
+            lookupWrappers = lookupWrappers,
             apiFilter = apiFilter,
             listFirstStage = listFirstStage,
             countType = countType,
@@ -591,20 +591,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Constructs and modifies the provided aggregation pipeline.
      *
      * @param pipeline The initial mutable list of Bson objects representing the pipeline stages.
-     * @param lookups A list of LookupWrapper instances to build lookup stages.
-     * @param resultUnit The result unit used for refactoring the pipeline.
      * @param apiFilter An instance of the FILT configuration for filtering the pipeline.
+     * @param lookupWrappers A list of LookupWrapper instances to build lookup stages.
+     * @param resultUnit The result unit used for refactoring the pipeline.
      * @return The modified list of Bson objects representing the complete pipeline.
      */
     fun buildPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
-        lookups: List<LookupWrapper<*, *>> = emptyList(),
-        resultUnit: ResultUnit,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        resultUnit: ResultUnit,
     ): MutableList<Bson> {
         pipeline.addAll(
             refactorPipeline(
-                pipeline = buildLookupList(lookupWrappers = lookups, apiFilter = apiFilter),
+                pipeline = buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter),
                 resultUnit = resultUnit,
                 apiFilter = apiFilter
             )
@@ -920,7 +920,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): AggregatePublisher<T> {
         return aggregateLookupPublisher(
             pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
-            lookups = lookupWrappers,
+            lookupWrappers = lookupWrappers,
             apiFilter = apiFilter,
             debug = debug,
         )
@@ -1278,27 +1278,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return A SimpleState object indicating the validation result, with isOk set to true if valid.
      */
     open suspend fun onValidate(apiItem: ApiItem.Upsert<T, ID, FILT>, item: T): SimpleState = SimpleState(isOk = true)
-
-    /**
-     * Generates a pipeline of BSON operations based on a lookup function and optional filtering fields.
-     *
-     * @param apiFilter A filter instance to be applied in the lookup function. Defaults to `commonContainer.apiFilterInstance()`.
-     * @param fields An optional list of properties to filter the results. If null or empty, no filtering is applied.
-     * @return A list of BSON operations representing the generated pipeline.
-     */
-    @Suppress("unused")
-    fun pipelineFromLookupFun(
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        fields: List<KProperty1<in T, *>>? = null
-    ): List<Bson> {
-        val pipeline: MutableList<Bson> = mutableListOf()
-        lookupFun(apiFilter)
-            .filter { fields.isNullOrEmpty() || it.resultProperty in fields }
-            .forEach { lookupWrapper ->
-                pipeline += lookupWrapper.toPipeline()
-            }
-        return pipeline
-    }
 
     /**
      * Prints out the details of the aggregate pipeline for a specific collection.
