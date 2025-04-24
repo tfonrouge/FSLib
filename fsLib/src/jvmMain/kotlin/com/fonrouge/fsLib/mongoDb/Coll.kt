@@ -591,8 +591,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         resultUnit: ResultUnit,
     ): MutableList<Bson> {
-        matchStage(apiFilter)?.let { pipeline += match(it) }
-        sortStage(apiFilter)?.let { pipeline += sort(it) }
+        matchStage(apiFilter)?.let {
+            if (Document.parse(it.json).isNotEmpty()) pipeline += match(it)
+        }
+        sortStage(apiFilter)?.let {
+            if (Document.parse(it.json).isNotEmpty()) pipeline += sort(it)
+        }
         pipeline.addAll(
             refactorPipeline(
                 pipeline = buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter),
