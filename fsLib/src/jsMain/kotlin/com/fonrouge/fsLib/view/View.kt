@@ -213,10 +213,10 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * @param init An optional initialization block to configure the view list. Defaults to null.
      */
     @Suppress("unused")
-    fun <MID : Any> Container.addViewList(
-        viewList: ViewList<ICommonContainer<*, *, out IApiFilter<MID>>, *, *, out IApiFilter<MID>, MID>,
+    fun <FILT : IApiFilter<MID>, MID : Any> Container.addViewList(
+        viewList: ViewList<ICommonContainer<*, *, FILT>, *, *, FILT, MID>,
         masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
-        init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
+        init: ((ViewList<ICommonContainer<*, *, FILT>, *, *, FILT, MID>).() -> Unit)? = null
     ) {
         viewList.apply { startDisplayPage() }
         masterViewItem?.let {

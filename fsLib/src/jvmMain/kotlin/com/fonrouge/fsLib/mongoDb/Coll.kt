@@ -312,12 +312,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        listFirstStage?.preLookupMatch?.let {
-            if (Document.parse(it.json).isNotEmpty()) pipeline.add(
-                match(it)
-            )
-        }
-        listFirstStage?.preLookupSort?.let { pipeline.add(sort(it)) }
         buildPipeline(
             pipeline = pipeline,
             apiFilter = apiFilter,
@@ -334,7 +328,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         listFirstStage?.let {
             val pageCountInfo: PageCountInfo = when (countType) {
                 CountType.PreLookup -> PageCountInfo(
-                    match = listFirstStage.preLookupMatch,
+                    match = matchStage(apiFilter),
                     countType = countType
                 )
 
@@ -466,9 +460,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Processes a list for API responses with configurable match, sort, filter, and post-process stages.
      *
      * @param call Optional `ApplicationCall` context for the current API request, used for request details.
-     * @param preLookupMatch Optional BSON filter applied before any lookup operations in the pipeline.
      * @param postLookupMatch Optional BSON filter applied after lookup operations in the pipeline.
-     * @param preLookupSort Optional BSON sorting applied before any lookup operations in the pipeline.
      * @param postLookupSort Optional BSON sorting applied after lookup operations in the pipeline.
      * @param apiList The `ApiList` object containing configuration for pagination, filtering, sorting, and API-specific filters.
      * @param countType Specifies the type of count operation to be performed, either pre-lookup or post-lookup.
@@ -481,9 +473,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("unused")
     suspend fun apiListProcess(
         call: ApplicationCall? = null,
-        preLookupMatch: Bson? = null,
         postLookupMatch: Bson? = null,
-        preLookupSort: Bson? = null,
         postLookupSort: Bson? = null,
         apiList: ApiList<FILT>,
         countType: CountType = CountType.PreLookup,
@@ -495,14 +485,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         return apiListProcess(
             call = call,
             listFirstStage = listFirstStage(
-                preLookupMatch = preLookupMatch,
+                apiFilter = apiList.apiFilter,
                 postLookupMatch = postLookupMatch,
-                preLookupSort = preLookupSort,
                 postLookupSort = postLookupSort,
                 page = apiList.tabPage,
                 size = apiList.tabSize,
-                filter = apiList.tabFilter,
-                sorter = apiList.tabSorter,
+                remoteFilters = apiList.tabFilter,
+                sorters = apiList.tabSorter,
             ),
             lookupWrappers = lookupWrappers,
             postProcessPipeline = postProcessPipeline,
@@ -602,6 +591,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         resultUnit: ResultUnit,
     ): MutableList<Bson> {
+        matchStage(apiFilter)?.let { pipeline += match(it) }
+        sortStage(apiFilter)?.let { pipeline += sort(it) }
         pipeline.addAll(
             refactorPipeline(
                 pipeline = buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter),
@@ -1062,21 +1053,19 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     private fun listFirstStage(
-        preLookupMatch: Bson? = null,
+        apiFilter: FILT,
         postLookupMatch: Bson? = null,
-        preLookupSort: Bson? = null,
         postLookupSort: Bson? = null,
         page: Int? = null,
         size: Int? = null,
-        filter: List<RemoteFilter>? = null,
-        sorter: List<RemoteSorter>? = null,
+        remoteFilters: List<RemoteFilter>? = null,
+        sorters: List<RemoteSorter>? = null,
     ): ListFirstStage {
-        val pipeline = mutableListOf<Bson>()
         val postLookupMatchList: MutableList<Bson> = mutableListOf()
         postLookupMatch?.let { postLookupMatchList.add(it) }
-        filter?.let {
+        remoteFilters?.let {
             val result = mutableListOf<Bson>()
-            filter.forEach { remoteFilter ->
+            remoteFilters.forEach { remoteFilter ->
                 val value: BsonValue? =
                     when (findFieldType(commonContainer.itemKClass, remoteFilter.field)) {
                         Array<String>::class, String::class, StringId::class, null -> {
@@ -1108,30 +1097,39 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             if (result.isNotEmpty()) postLookupMatchList.add(and(result))
         }
         var sortDocument: Bson? = null
-        if (preLookupSort != null) {
-            sortDocument = preLookupSort
-        } else if (!sorter.isNullOrEmpty()) {
-            sortDocument = BsonDocument()
-            sorter.forEach { remoteSorter ->
-                sortDocument.append(
-                    remoteSorter.field, when (remoteSorter.dir) {
-                        "asc" -> BsonInt32(1)
-                        "desc" -> BsonInt32(-1)
-                        else -> BsonInt32(1)
-                    }
-                )
+        sortStage(apiFilter)?.let {
+            sortDocument = it
+        } ?: run {
+            if (!sorters.isNullOrEmpty()) {
+                sortDocument = BsonDocument()
+                sorters.forEach { remoteSorter ->
+                    sortDocument.append(
+                        remoteSorter.field, when (remoteSorter.dir) {
+                            "asc" -> BsonInt32(1)
+                            "desc" -> BsonInt32(-1)
+                            else -> BsonInt32(1)
+                        }
+                    )
+                }
             }
         }
         return ListFirstStage(
-            pipeline = pipeline,
+            pipeline = mutableListOf(),
             pageSize = size,
             page = page,
-            preLookupMatch = preLookupMatch,
             postLookupMatch = and(postLookupMatchList),
             preLookupSort = sortDocument,
             postLookupSort = postLookupSort
         )
     }
+
+    /**
+     * Builds a BSON representation of the given filter to be used in a MongoDB aggregation match stage.
+     *
+     * @param apiFilter The filter of type FILT used to construct the match stage.
+     * @return A BSON object representing the match stage, or null if the filter could not be processed.
+     */
+    open fun matchStage(apiFilter: FILT): Bson? = null
 
     /**
      * This method is executed after a delete action is performed.
@@ -1351,6 +1349,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         resultUnit: ResultUnit,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): MutableList<Bson> = pipeline
+
+    /**
+     * Generates a MongoDB BSON sort stage based on the provided filter.
+     *
+     * @param apiFilter the filter object specifying the sorting configuration.
+     * @return a BSON object representing the sort stage, or null if no sort stage is defined.
+     */
+    open fun sortStage(apiFilter: FILT): Bson? = null
 
     /**
      * Updates specific fields of an item identified by its ID.
