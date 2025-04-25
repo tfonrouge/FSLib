@@ -5,6 +5,7 @@ import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.encodeURIComponent
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.view.View
+import io.kvision.utils.createInstance
 import kotlinx.browser.window
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -76,7 +77,17 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
      */
     @OptIn(ExperimentalJsReflectionCreateInstance::class)
     fun newViewInstance(urlParams: UrlParams?, init: (V.() -> Unit)? = null): V {
-        return viewKClass.createInstance().apply {
+        val v1: V = viewKClass.createInstance()
+        // TODO: find out why are differences between js.createInstance() and kotlin.reflect.createInstance() in development mode vs production mode
+        val v: V = if (js("typeof v1") == "object") {
+//            console.warn("using kotlin.reflect.createInstance() instead of js.createInstanceHack() for ${viewKClass.simpleName}")
+            v1
+        } else {
+//            console.warn("using js.createInstanceHack().unsafeCast<V> for ${viewKClass.simpleName}")
+            viewKClass.js.createInstance()
+        }
+//        console.warn("v", v)
+        return v.apply {
             this.urlParams = urlParams ?: UrlParams()
             init?.invoke(this)
         }
