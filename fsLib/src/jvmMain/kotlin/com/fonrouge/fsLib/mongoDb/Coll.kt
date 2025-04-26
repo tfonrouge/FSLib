@@ -325,7 +325,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregateLookupPublisher(
-        pipeline: MutableList<Bson>? = null,
+        pipeline: List<Bson>? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
@@ -333,7 +333,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean? = this.debug,
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        val pipeline1 = pipeline ?: pipeline(
+        val pipeline1 = pipeline?.toMutableList() ?: pipeline(
             apiFilter = apiFilter,
             apiRequestParams = apiRequestParams,
             lookupWrappers = lookupWrappers,
@@ -369,33 +369,30 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Constructs and executes an aggregation pipeline with one lookup stage, applying optional filters
-     * and post-processing steps to the pipeline before execution.
+     * Performs an aggregation operation on a MongoDB collection using the specified pipeline,
+     * lookup wrappers, and API filter, and returns an `AggregatePublisher` for further processing.
      *
-     * @param lookupWrappers A list of `LookupWrapper` objects defining the lookup stages in the pipeline.
-     *                        Defaults to an empty list when no lookup stages are required.
-     * @param apiFilter An instance of a filter to be applied to the API queries. Defaults to a common
-     *                  container's API filter instance.
-     * @param postProcessPipeline A lambda function that modifies the pipeline after its construction,
-     *                            allowing for custom transformations. Can be null if no post-processing is needed.
-     * @return An `AggregatePublisher` that can be used to perform the aggregation pipeline on the MongoDB collection.
+     * @param pipeline Optional list of aggregation stages represented as a list of `Bson`.
+     *                 If null, a default pipeline is generated based on the `apiFilter`, `lookupWrappers`, and `ResultUnit.Single`.
+     * @param lookupWrappers A list of `LookupWrapper` instances to specify lookup operations during aggregation. Defaults to an empty list.
+     * @param apiFilter An instance of `FILT` used to apply specific filters as part of the aggregation. Defaults to the common container's API filter instance.
+     * @return An `AggregatePublisher` representing the result of the aggregation operation.
      */
     @Suppress("unused")
     fun aggregateSingleLookup(
+        pipeline: List<Bson>? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        val pipeline = pipeline(
+        val pipeline1 = pipeline ?: pipeline(
             apiFilter = apiFilter,
             lookupWrappers = lookupWrappers,
             resultUnit = ResultUnit.Single
         )
-        postProcessPipeline?.let { it(pipeline) }
         if (debug ?: globalDebug) {
-            printOutPipeline(pipeline)
+            printOutPipeline(pipeline1)
         }
-        return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
+        return mongoColl.aggregate(pipeline1, commonContainer.itemKClass.java)
     }
 
     /**
@@ -588,7 +585,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return a list of `Bson` objects representing the constructed MongoDB aggregation pipeline.
      */
     @Suppress("unused")
-    fun pipelineHandMake(
+    fun pipelineByHand(
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         matchStage: Bson? = null,
         sortStage: Bson? = null,
