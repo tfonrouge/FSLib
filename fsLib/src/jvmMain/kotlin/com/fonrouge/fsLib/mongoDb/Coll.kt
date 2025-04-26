@@ -622,6 +622,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             if (Document.parse(it.json).isNotEmpty()) pipeline += sort(it)
         }
         pipeline += buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter)
+
+        refactorPipeline(
+            pipeline = pipeline,
+            apiFilter = apiFilter,
+            apiRequestParams = apiRequestParams,
+            resultUnit = resultUnit
+        )
+
         val postLookupMatchDoc = mutableListOf<Bson>()
         apiRequestParams?.remoteMatch?.let { apiReqPostLookupMatch ->
             postLookupMatchDoc += apiReqPostLookupMatch
@@ -630,14 +638,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             postLookupMatchDoc += it
         }
         and(*postLookupMatchDoc.toTypedArray()).also {
-            if (Document.parse(it.json).isNotEmpty()) {
-                pipeline += match(it)
-            }
+            if (Document.parse(it.json).isNotEmpty()) pipeline += match(it)
         }
         afterLookupSortStage(apiFilter)?.let {
             if (Document.parse(it.json).isNotEmpty()) pipeline += sort(it)
         }
-        return refactorPipeline(pipeline = pipeline, resultUnit = resultUnit, apiFilter = apiFilter)
+        return pipeline
     }
 
     /**
@@ -1363,7 +1369,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> = ItemState(item = item)
 
     /**
-     * Refactors the given pipeline by applying a result unit and an API filter.
+     * Refactors the given pipeline right after the [buildLookupList] fun by applying a result unit and an API filter.
      *
      * @param pipeline a mutable list of Bson elements representing the data pipeline
      * @param resultUnit an instance of the ResultUnit to apply to the pipeline
@@ -1372,9 +1378,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     open fun refactorPipeline(
         pipeline: MutableList<Bson> = mutableListOf(),
-        resultUnit: ResultUnit,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-    ): MutableList<Bson> = pipeline
+        apiRequestParams: ApiRequestParams? = null,
+        resultUnit: ResultUnit,
+    ) {}
 
     /**
      * Generates a MongoDB BSON sort stage based on the provided filter.
