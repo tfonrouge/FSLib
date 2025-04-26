@@ -305,27 +305,21 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<ApiItem<T, ID, FILT>> = ItemState(item = apiItem)
 
     /**
-     * Aggregates a lookup query using the specified pipeline, lookup wrappers, filters, request parameters,
-     * and other configurations to produce an `AggregatePublisher`.
+     * Constructs and executes an aggregation pipeline to generate an `AggregatePublisher` result based on the
+     * provided parameters like filter, pagination, custom lookups, and debug settings.
      *
-     * @param pipeline The initial MongoDB aggregation pipeline to be used. If not provided, a default pipeline
-     *                 is created using the provided filter, request parameters, and lookup wrappers.
-     * @param lookupWrappers A list of `LookupWrapper` objects to be used for constructing lookup stages in the pipeline.
-     *                       Defaults to an empty list if not provided.
-     * @param apiFilter The filter instance to be applied during the aggregation process. Defaults to a generic
-     *                  API filter instance from the `commonContainer`.
-     * @param apiRequestParams Additional parameters for API requests, such as pagination settings.
-     * @param countType Specifies the type of count computation to be used in the aggregation. Options include
-     *                  pre-lookup, post-lookup, estimated count, or unknown count types. Defaults to `PreLookup`.
-     * @param debug Whether debugging is enabled, affecting whether the pipeline is printed for review. Defaults
-     *              to the method's `debug` parameter or a global debug setting.
-     * @param pageStateInfoFun A callback function to provide additional state information (such as pagination)
-     *                         derived from the aggregation pipeline.
-     * @return An `AggregatePublisher` that represents the results of the aggregation query.
+     * @param pipeline The initial pipeline to use. Defaults to an empty mutable list.
+     * @param lookupWrappers A list of custom lookup wrappers to include in the aggregation pipeline. Defaults to an empty list.
+     * @param apiFilter The API filter instance to apply over the aggregation pipeline. Defaults to a common container filter instance.
+     * @param apiRequestParams Request parameters for API calls, including pagination details. Can be null.
+     * @param countType Specifies the type of count operation to use, such as `PreLookup` or `PostLookup`. Default is `CountType.PreLookup`.
+     * @param debug Flag to enable or disable debug information for the aggregation pipeline execution. Defaults to the class-level debug configuration.
+     * @param pageStateInfoFun A callback function that provides `PageCountInfo` details based on the count type and pipeline state. Can be null.
+     * @return An `AggregatePublisher` containing the result of executing the aggregation pipeline.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregateLookupPublisher(
-        pipeline: List<Bson>? = null,
+        pipeline: MutableList<Bson> = mutableListOf(),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
@@ -333,7 +327,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean? = this.debug,
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        val pipeline1 = pipeline?.toMutableList() ?: pipeline(
+        pipeline += pipeline(
             apiFilter = apiFilter,
             apiRequestParams = apiRequestParams,
             lookupWrappers = lookupWrappers,
@@ -347,7 +341,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 )
 
                 CountType.PostLookup -> PageCountInfo(
-                    pipeline = pipeline1 + Aggregates.count(),
+                    pipeline = pipeline + Aggregates.count(),
                     countType = countType
                 )
 
@@ -357,15 +351,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             pageStateInfoFun?.invoke(pageCountInfo)
             it.page?.let { page ->
                 it.pageSize?.let { pageSize ->
-                    (pageSize * (page - 1)).let { skip -> if (skip > 0) pipeline1.add(skip(skip)) }
-                    pipeline1.add(limit(pageSize))
+                    (pageSize * (page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
+                    pipeline.add(limit(pageSize))
                 }
             }
         }
         if (debug ?: globalDebug) {
-            printOutPipeline(pipeline1)
+            printOutPipeline(pipeline)
         }
-        return mongoColl.aggregate(pipeline1, commonContainer.itemKClass.java)
+        return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
     }
 
     /**
@@ -1381,7 +1375,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
         resultUnit: ResultUnit,
-    ) {}
+    ) {
+    }
 
     /**
      * Generates a MongoDB BSON sort stage based on the provided filter.
