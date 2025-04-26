@@ -13,7 +13,7 @@ import org.bson.conversions.Bson
  * @property preLookupSort An optional BSON document to sort documents before a lookup operation.
  * @property postLookupSort An optional BSON document to sort documents after a lookup operation.
  */
-data class ListFirstStage(
+data class ApiRequestParams(
     val pipeline: MutableList<Bson> = mutableListOf(),
     val pageSize: Int?,
     val page: Int?,
