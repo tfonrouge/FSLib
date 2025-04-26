@@ -305,20 +305,27 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<ApiItem<T, ID, FILT>> = ItemState(item = apiItem)
 
     /**
-     * Aggregates a lookup publisher with a provided pipeline and lookups.
+     * Aggregates a lookup query using the specified pipeline, lookup wrappers, filters, request parameters,
+     * and other configurations to produce an `AggregatePublisher`.
      *
-     * @param pipeline The mutable list of BSON stages to be applied to the aggregation pipeline.
-     * @param lookupWrappers The list of lookup wrapper objects to be used for aggregation.
-     * @param apiFilter An instance of a common filter type used for API filtering.
-     * @param apiRequestParams The first stage of the list, which may include pre- and post-lookup match and sort stages.
-     * @param countType The type of counting to be done, pre-lookup, post-lookup, estimated, or unknown.
-     * @param debug A flag to indicate whether debugging information should be printed.
-     * @param pageStateInfoFun A function to handle page count information, called with a PageCountInfo object.
-     * @return An AggregatePublisher that executes the aggregation pipeline with the applied stages and lookups.
+     * @param pipeline The initial MongoDB aggregation pipeline to be used. If not provided, a default pipeline
+     *                 is created using the provided filter, request parameters, and lookup wrappers.
+     * @param lookupWrappers A list of `LookupWrapper` objects to be used for constructing lookup stages in the pipeline.
+     *                       Defaults to an empty list if not provided.
+     * @param apiFilter The filter instance to be applied during the aggregation process. Defaults to a generic
+     *                  API filter instance from the `commonContainer`.
+     * @param apiRequestParams Additional parameters for API requests, such as pagination settings.
+     * @param countType Specifies the type of count computation to be used in the aggregation. Options include
+     *                  pre-lookup, post-lookup, estimated count, or unknown count types. Defaults to `PreLookup`.
+     * @param debug Whether debugging is enabled, affecting whether the pipeline is printed for review. Defaults
+     *              to the method's `debug` parameter or a global debug setting.
+     * @param pageStateInfoFun A callback function to provide additional state information (such as pagination)
+     *                         derived from the aggregation pipeline.
+     * @return An `AggregatePublisher` that represents the results of the aggregation query.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregateLookupPublisher(
-        pipeline: MutableList<Bson> = mutableListOf(),
+        pipeline: MutableList<Bson>? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
@@ -326,8 +333,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean? = this.debug,
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        buildPipeline(
-            pipeline = pipeline,
+        val pipeline1 = pipeline ?: pipeline(
             apiFilter = apiFilter,
             apiRequestParams = apiRequestParams,
             lookupWrappers = lookupWrappers,
@@ -341,7 +347,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 )
 
                 CountType.PostLookup -> PageCountInfo(
-                    pipeline = pipeline + Aggregates.count(),
+                    pipeline = pipeline1 + Aggregates.count(),
                     countType = countType
                 )
 
@@ -351,38 +357,39 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             pageStateInfoFun?.invoke(pageCountInfo)
             it.page?.let { page ->
                 it.pageSize?.let { pageSize ->
-                    (pageSize * (page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
-                    pipeline.add(limit(pageSize))
+                    (pageSize * (page - 1)).let { skip -> if (skip > 0) pipeline1.add(skip(skip)) }
+                    pipeline1.add(limit(pageSize))
                 }
             }
         }
         if (debug ?: globalDebug) {
-            printOutPipeline(pipeline)
+            printOutPipeline(pipeline1)
         }
-        return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
+        return mongoColl.aggregate(pipeline1, commonContainer.itemKClass.java)
     }
 
     /**
-     * Aggregates data with a specified lookup in a MongoDB collection.
+     * Constructs and executes an aggregation pipeline with one lookup stage, applying optional filters
+     * and post-processing steps to the pipeline before execution.
      *
-     * @param pipeline an initial list of BSON operations to start the aggregation pipeline.
-     * @param lookupWrappers a list of lookup wrappers to specify join conditions in the aggregation.
-     * @param apiFilter a filter applied to the API, defaulting to a common container instance.
-     * @param postProcessPipeline an optional lambda to further process the pipeline after it is built.
-     * @return an AggregatePublisher that provides asynchronous access to the aggregated data.
+     * @param lookupWrappers A list of `LookupWrapper` objects defining the lookup stages in the pipeline.
+     *                        Defaults to an empty list when no lookup stages are required.
+     * @param apiFilter An instance of a filter to be applied to the API queries. Defaults to a common
+     *                  container's API filter instance.
+     * @param postProcessPipeline A lambda function that modifies the pipeline after its construction,
+     *                            allowing for custom transformations. Can be null if no post-processing is needed.
+     * @return An `AggregatePublisher` that can be used to perform the aggregation pipeline on the MongoDB collection.
      */
     @Suppress("unused")
-    fun aggregateOneLookup(
-        pipeline: MutableList<Bson> = mutableListOf(),
+    fun aggregateSingleLookup(
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         postProcessPipeline: ((MutableList<Bson>) -> Unit)? = null,
     ): AggregatePublisher<T> {
-        buildPipeline(
-            pipeline = pipeline,
+        val pipeline = pipeline(
             apiFilter = apiFilter,
             lookupWrappers = lookupWrappers,
-            resultUnit = ResultUnit.One
+            resultUnit = ResultUnit.Single
         )
         postProcessPipeline?.let { it(pipeline) }
         if (debug ?: globalDebug) {
@@ -423,7 +430,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         var pageCountInfo: PageCountInfo? = null
         val publisher = aggregateLookupPublisher(
-            pipeline = apiRequestParams.pipeline,
             lookupWrappers = lookupWrappers,
             apiFilter = apiFilter,
             apiRequestParams = apiRequestParams,
@@ -572,22 +578,46 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     )
 
     /**
-     * Constructs and modifies a MongoDB aggregation pipeline based on the provided parameters.
+     * Constructs a MongoDB aggregation pipeline based on the provided parameters.
      *
-     * @param pipeline An optional initial list of Bson objects representing the pipeline. Defaults to an empty list.
+     * @param apiFilter an instance of the filter to apply to the pipeline, defaulting to a common filter.
+     * @param matchStage an optional `Bson` match stage to add to the pipeline, or null if no match is required.
+     * @param sortStage an optional `Bson` sort stage to apply to the pipeline, or null if no sorting is required.
+     * @param lookupWrappers a list of `LookupWrapper` objects defining lookup stages to include in the pipeline, defaults to an empty list.
+     * @param refactor an optional lambda function that takes the constructed pipeline as input and allows modification or replacement of it. Returns the final pipeline list.
+     * @return a list of `Bson` objects representing the constructed MongoDB aggregation pipeline.
+     */
+    @Suppress("unused")
+    fun pipelineHandMake(
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        matchStage: Bson? = null,
+        sortStage: Bson? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        refactor: ((MutableList<Bson>) -> List<Bson>)? = null,
+    ): List<Bson> {
+        val pipeline: MutableList<Bson> = mutableListOf()
+        matchStage?.let { pipeline += match(it) }
+        sortStage?.let { pipeline += sort(it) }
+        pipeline += buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter)
+        return refactor?.invoke(pipeline) ?: pipeline
+    }
+
+    /**
+     * Constructs and modifies a MongoDB aggregation pipeline based on class-defined match and sort stages.
+     *
      * @param apiFilter The filter object used to determine match and sort stages. Defaults to the common container's API filter instance.
      * @param apiRequestParams Optional request parameters that may include post-lookup match conditions.
      * @param lookupWrappers A list of lookup wrapper objects used to build lookup stages. Defaults to an empty list.
      * @param resultUnit Specifies the result-related configurations to refine or transform the pipeline.
      * @return A mutable list of Bson objects representing the constructed and refined aggregation pipeline.
      */
-    fun buildPipeline(
-        pipeline: MutableList<Bson> = mutableListOf(),
+    fun pipeline(
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         resultUnit: ResultUnit,
     ): MutableList<Bson> {
+        val pipeline: MutableList<Bson> = mutableListOf()
         matchStage(apiFilter)?.let {
             if (Document.parse(it.json).isNotEmpty()) pipeline += match(it)
         }
@@ -1115,7 +1145,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
         }
         return ApiRequestParams(
-            pipeline = mutableListOf(),
             pageSize = size,
             page = page,
             remoteMatch = postLookupMatchList?.let { and(it) },
@@ -1602,7 +1631,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     enum class ResultUnit {
-        One,
+        Single,
         List,
     }
 

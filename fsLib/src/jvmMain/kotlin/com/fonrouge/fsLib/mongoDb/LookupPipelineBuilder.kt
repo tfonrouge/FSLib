@@ -44,7 +44,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
         resultProperty = resultField,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
         limit = limit,
-        resultUnit = Coll.ResultUnit.One
+        resultUnit = Coll.ResultUnit.Single
     ) {}
 }
 
@@ -81,7 +81,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
         resultProperty = resultField,
         preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
         limit = limit,
-        resultUnit = Coll.ResultUnit.One
+        resultUnit = Coll.ResultUnit.Single
     ) {}
 }
 
@@ -175,8 +175,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     ): List<Bson> {
         val pip2 = mutableListOf<Bson>()
         this.pipeline?.let { bsonList -> pip2 += bsonList }
-        coll.buildPipeline(
-            pipeline = mutableListOf(),
+        coll.pipeline(
             lookupWrappers = lookup?.lookupWrappers ?: emptyList(),
             resultUnit = resultUnit,
         ).let { it ->
@@ -210,7 +209,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 pipeline = pip2.toTypedArray()
             )
         }
-        if (resultUnit == Coll.ResultUnit.One) {
+        if (resultUnit == Coll.ResultUnit.Single) {
             resultProperty.let {
                 pipeline += resultProperty.unwind(
                     UnwindOptions().preserveNullAndEmptyArrays(
