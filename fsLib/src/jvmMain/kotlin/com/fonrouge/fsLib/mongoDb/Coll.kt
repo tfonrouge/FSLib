@@ -447,7 +447,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
         }
         return ListState(
-            data = list,
+            data = postProcessList?.invoke(list) ?: list,
             last_page = pageCountInfo?.lastPage,
             last_row = pageCountInfo?.lastRow,
             state = State.Ok,
