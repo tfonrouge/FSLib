@@ -38,7 +38,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
 ): TabulatorOptions<T> {
     val index = tabulatorOptions.index ?: "_id"
     val autoResize = tabulatorOptions.autoResize != false
-    val columns = tabulatorOptions.columns ?: viewList.columnDefinitionList()
+    val columns = tabulatorOptions.columns ?: viewList.finalColumnDefinitionList()
     val columnDefaults = tabulatorOptions.columnDefaults ?: viewList.columnDefaults
     val dataLoader = tabulatorOptions.dataLoader == true
     val filterMode = tabulatorOptions.filterMode ?: FilterMode.REMOTE
