@@ -1,6 +1,16 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.types.IntId
+import com.fonrouge.fsLib.types.LongId
+import com.fonrouge.fsLib.types.StringId
+import dev.kilua.rpc.RemoteFilter
+import dev.kilua.rpc.RemoteSorter
+import org.bson.*
 import org.bson.conversions.Bson
+import kotlin.reflect.KClass
+import kotlin.reflect.KClassifier
+import kotlin.reflect.full.memberProperties
 
 /**
  * A data class representing the first stage in a pipeline,
@@ -8,12 +18,122 @@ import org.bson.conversions.Bson
  *
  * @property pageSize The number of items per page, can be null if not paginated.
  * @property page The current page number, can be null if not paginated.
- * @property remoteMatch An optional BSON document to match documents after a lookup operation.
- * @property remoteSort An optional BSON document to sort documents before a lookup operation.
+ * @property remoteFilters An optional BSON document to match documents after a lookup operation.
+ * @property remoteSorters An optional BSON document to sort documents before a lookup operation.
  */
 data class ApiRequestParams(
     val pageSize: Int?,
     val page: Int?,
-    val remoteMatch: Bson? = null,
-    val remoteSort: Bson? = null,
-)
+    private val remoteFilters: List<RemoteFilter>? = null,
+    private val remoteSorters: List<RemoteSorter>? = null,
+) {
+    /**
+     * Finds the type of a specified field in the given Kotlin class, considering nested fields separated by dots.
+     *
+     * @param kClass The Kotlin class to inspect for the field.
+     * @param fieldName The name of the field whose type is to be found. Nested fields are specified using dot notation.
+     * @return The type of the specified field as a [KClassifier], or null if the field is not found.
+     */
+    private fun findFieldType(kClass: KClass<*>, fieldName: String): KClassifier? {
+        val k = kClass.memberProperties
+        return if (fieldName.contains('.')) {
+            k.firstOrNull { it.name == fieldName.substringBefore('.') }?.returnType?.classifier?.let {
+                findFieldType(it as KClass<*>, fieldName.substringAfter('.'))
+            }
+        } else {
+            k.firstOrNull { it.name == fieldName }?.returnType?.classifier
+        }
+    }
+
+    /**
+     * Constructs a set of BSON-based filters for database queries, segregated into pre-main and post-main lookup filters.
+     *
+     * @param commonContainer An instance of [ICommonContainer] that provides information about the item type and its associated metadata.
+     * @return A [MatchLists] object containing the pre-main and post-main lookup filters, or null if no filters are generated.
+     */
+    fun bsonMatches(commonContainer: ICommonContainer<*, *, *>): MatchLists? {
+        val preMainLookup: MutableList<Bson> = mutableListOf()
+        val postMainLookup: MutableList<Bson> = mutableListOf()
+        remoteFilters?.let {
+            remoteFilters.forEach { remoteFilter ->
+                val value: BsonValue? =
+                    when (findFieldType(commonContainer.itemKClass, remoteFilter.field)) {
+                        Array<String>::class, String::class, StringId::class, null -> {
+                            when (remoteFilter.type) {
+                                "like" -> BsonDocument(
+                                    "\$regex",
+                                    BsonString(remoteFilter.value)
+                                ).append("\$options", BsonString("i"))
+
+                                else -> BsonString(remoteFilter.value)
+                            }
+                        }
+
+                        Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()
+                            ?.let { BsonInt32(it) }
+
+                        Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()
+                            ?.let { BsonInt64(it) }
+
+                        Double::class -> remoteFilter.value?.toDoubleOrNull()
+                            ?.let { BsonDouble(it) }
+
+                        else -> null
+                    }
+                value?.let {
+                    val bsonDocument = BsonDocument(remoteFilter.field, value)
+                    if (remoteFilter.field.contains("."))
+                        postMainLookup += bsonDocument
+                    else
+                        preMainLookup += bsonDocument
+                }
+            }
+        }
+        return if (preMainLookup.isEmpty() && postMainLookup.isEmpty())
+            null
+        else MatchLists(
+            preMainLookup = if (preMainLookup.isEmpty()) null else preMainLookup,
+            postMainLookup = if (postMainLookup.isEmpty()) null else postMainLookup,
+        )
+    }
+
+    /**
+     * Constructs BSON-based sorters for database queries, dividing them into pre-main and post-main lookup sorters.
+     * The sorters are created based on the provided `remoteSorters` field, where each sorter determines the field to sort
+     * and the direction (`asc` or `desc`). Sorters are split into pre-main and post-main lists depending on whether the
+     * field contains a dot notation.
+     *
+     * @return A [SortLists] object containing the pre-main and post-main lookup sorters, or null if no sorters are generated.
+     */
+    fun bsonSorters(): SortLists? {
+        val preMainLookup = BsonDocument()
+        val postMainLookup = BsonDocument()
+        remoteSorters?.forEach { remoteSorter ->
+            val pair: Pair<String, BsonInt32> = remoteSorter.field to when (remoteSorter.dir) {
+                "asc" -> BsonInt32(1)
+                "desc" -> BsonInt32(-1)
+                else -> BsonInt32(1)
+            }
+            if (remoteSorter.field.contains("."))
+                postMainLookup.append(pair.first, pair.second)
+            else
+                preMainLookup.append(pair.first, pair.second)
+        }
+        return if (preMainLookup.isEmpty() && postMainLookup.isEmpty())
+            null
+        else SortLists(
+            preMainLookup = if (preMainLookup.isEmpty()) null else preMainLookup,
+            postMainLookup = if (postMainLookup.isEmpty()) null else postMainLookup
+        )
+    }
+
+    data class MatchLists(
+        val preMainLookup: MutableList<Bson>? = null,
+        val postMainLookup: MutableList<Bson>? = null,
+    )
+
+    data class SortLists(
+        val preMainLookup: BsonDocument? = null,
+        val postMainLookup: BsonDocument? = null,
+    )
+}

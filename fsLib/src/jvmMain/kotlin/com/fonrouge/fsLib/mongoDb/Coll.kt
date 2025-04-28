@@ -12,9 +12,6 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.ListState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
-import com.fonrouge.fsLib.types.IntId
-import com.fonrouge.fsLib.types.LongId
-import com.fonrouge.fsLib.types.StringId
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
@@ -23,8 +20,6 @@ import com.mongodb.client.result.UpdateResult
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import com.mongodb.reactivestreams.client.MongoDatabase
-import dev.kilua.rpc.RemoteFilter
-import dev.kilua.rpc.RemoteSorter
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.*
@@ -32,7 +27,9 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
-import org.bson.*
+import org.bson.BsonDocument
+import org.bson.BsonInt32
+import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
@@ -42,7 +39,6 @@ import org.litote.kmongo.property.KPropertyPath
 import java.util.*
 import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.KClass
-import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.*
 
@@ -135,13 +131,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
 
     /**
-     * A mutable map that associates a `ResultField` with an integer value.
-     * This map is used to track or store specific relationships or mappings
-     * involving `ResultField` objects and their corresponding integer identifiers or counters.
-     */
-    private val resultFieldStack = mutableMapOf<ResultField, Int>()
-
-    /**
      * Indicates if the current instance should be read-only.
      *
      * This variable determines whether the instance can be modified or not.
@@ -149,6 +138,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * If set to `false`, the instance is mutable and can be altered.
      */
     open val readOnly = false
+
+    /**
+     * A mutable map that associates a `ResultField` with an integer value.
+     * This map is used to track or store specific relationships or mappings
+     * involving `ResultField` objects and their corresponding integer identifiers or counters.
+     */
+    private val resultFieldStack = mutableMapOf<ResultField, Int>()
 
     val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
 
@@ -480,9 +476,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ListState<T> {
         return apiListProcess(
             call = call,
-            apiRequestParams = listFirstStage(
+            apiRequestParams = ApiRequestParams(
                 page = apiList.tabPage,
-                size = apiList.tabSize,
+                pageSize = apiList.tabSize,
                 remoteFilters = apiList.tabFilter,
                 remoteSorters = apiList.tabSorter,
             ),
@@ -567,78 +563,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val threadId: Long = Thread.currentThread().threadId(),
         val kResultField: KProperty1<*, *>
     )
-
-    /**
-     * Constructs a MongoDB aggregation pipeline based on the provided parameters.
-     *
-     * @param apiFilter an instance of the filter to apply to the pipeline, defaulting to a common filter.
-     * @param matchStage an optional `Bson` match stage to add to the pipeline, or null if no match is required.
-     * @param sortStage an optional `Bson` sort stage to apply to the pipeline, or null if no sorting is required.
-     * @param lookupWrappers a list of `LookupWrapper` objects defining lookup stages to include in the pipeline, defaults to an empty list.
-     * @param refactor an optional lambda function that takes the constructed pipeline as input and allows modification or replacement of it. Returns the final pipeline list.
-     * @return a list of `Bson` objects representing the constructed MongoDB aggregation pipeline.
-     */
-    @Suppress("unused")
-    fun pipelineByHand(
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        matchStage: Bson? = null,
-        sortStage: Bson? = null,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        refactor: ((MutableList<Bson>) -> List<Bson>)? = null,
-    ): List<Bson> {
-        val pipeline: MutableList<Bson> = mutableListOf()
-        matchStage?.let { pipeline += match(it) }
-        sortStage?.let { pipeline += sort(it) }
-        pipeline += buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter)
-        return refactor?.invoke(pipeline) ?: pipeline
-    }
-
-    /**
-     * Constructs and modifies a MongoDB aggregation pipeline based on class-defined match and sort stages.
-     *
-     * @param apiFilter The filter object used to determine match and sort stages. Defaults to the common container's API filter instance.
-     * @param apiRequestParams Optional request parameters that may include post-lookup match conditions.
-     * @param lookupWrappers A list of lookup wrapper objects used to build lookup stages. Defaults to an empty list.
-     * @param resultUnit Specifies the result-related configurations to refine or transform the pipeline.
-     * @return A mutable list of Bson objects representing the constructed and refined aggregation pipeline.
-     */
-    fun pipeline(
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        apiRequestParams: ApiRequestParams? = null,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        resultUnit: ResultUnit,
-    ): MutableList<Bson> {
-        val pipeline: MutableList<Bson> = mutableListOf()
-        matchStage(apiFilter)?.let {
-            if (Document.parse(it.json).isNotEmpty()) pipeline += match(it)
-        }
-        sortStage(apiFilter)?.let {
-            if (Document.parse(it.json).isNotEmpty()) pipeline += sort(it)
-        }
-        pipeline += buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter)
-
-        refactorPipeline(
-            pipeline = pipeline,
-            apiFilter = apiFilter,
-            apiRequestParams = apiRequestParams,
-            resultUnit = resultUnit
-        )
-
-        val postLookupMatchDoc = mutableListOf<Bson>()
-        apiRequestParams?.remoteMatch?.let { apiReqPostLookupMatch ->
-            postLookupMatchDoc += apiReqPostLookupMatch
-        }
-        afterLookupMatchStage(apiFilter)?.let {
-            postLookupMatchDoc += it
-        }
-        and(*postLookupMatchDoc.toTypedArray()).also {
-            if (Document.parse(it.json).isNotEmpty()) pipeline += match(it)
-        }
-        afterLookupSortStage(apiFilter)?.let {
-            if (Document.parse(it.json).isNotEmpty()) pipeline += sort(it)
-        }
-        return pipeline
-    }
 
     /**
      * Performs a bulk write operation asynchronously on the provided list of write models.
@@ -799,24 +723,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
         }
         return itemState
-    }
-
-    /**
-     * Finds the type of a specified field in the given Kotlin class, considering nested fields separated by dots.
-     *
-     * @param kClass The Kotlin class to inspect for the field.
-     * @param fieldName The name of the field whose type is to be found. Nested fields are specified using dot notation.
-     * @return The type of the specified field as a [KClassifier], or null if the field is not found.
-     */
-    private fun findFieldType(kClass: KClass<*>, fieldName: String): KClassifier? {
-        val k = kClass.memberProperties
-        return if (fieldName.contains('.')) {
-            k.firstOrNull { it.name == fieldName.substringBefore('.') }?.returnType?.classifier?.let {
-                findFieldType(it as KClass<*>, fieldName.substringAfter('.'))
-            }
-        } else {
-            k.firstOrNull { it.name == fieldName }?.returnType?.classifier
-        }
     }
 
     /**
@@ -1089,66 +995,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
-    private fun listFirstStage(
-        page: Int? = null,
-        size: Int? = null,
-        remoteFilters: List<RemoteFilter>? = null,
-        remoteSorters: List<RemoteSorter>? = null,
-    ): ApiRequestParams {
-        val postLookupMatchList: MutableList<Bson>? = remoteFilters?.let {
-            val result = mutableListOf<Bson>()
-            remoteFilters.forEach { remoteFilter ->
-                val value: BsonValue? =
-                    when (findFieldType(commonContainer.itemKClass, remoteFilter.field)) {
-                        Array<String>::class, String::class, StringId::class, null -> {
-                            when (remoteFilter.type) {
-                                "like" -> BsonDocument(
-                                    "\$regex",
-                                    BsonString(remoteFilter.value)
-                                ).append("\$options", BsonString("i"))
-
-                                else -> BsonString(remoteFilter.value)
-                            }
-                        }
-
-                        Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()
-                            ?.let { BsonInt32(it) }
-
-                        Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()
-                            ?.let { BsonInt64(it) }
-
-                        Double::class -> remoteFilter.value?.toDoubleOrNull()
-                            ?.let { BsonDouble(it) }
-
-                        else -> null
-                    }
-                value?.let {
-                    result.add(BsonDocument(remoteFilter.field, value))
-                }
-            }
-            result.ifEmpty { null }
-        }
-        var remoteSort: Bson? = null
-        if (!remoteSorters.isNullOrEmpty()) {
-            remoteSort = BsonDocument()
-            remoteSorters.forEach { remoteSorter ->
-                remoteSort.append(
-                    remoteSorter.field, when (remoteSorter.dir) {
-                        "asc" -> BsonInt32(1)
-                        "desc" -> BsonInt32(-1)
-                        else -> BsonInt32(1)
-                    }
-                )
-            }
-        }
-        return ApiRequestParams(
-            pageSize = size,
-            page = page,
-            remoteMatch = postLookupMatchList?.let { and(it) },
-            remoteSort = remoteSort,
-        )
-    }
-
     /**
      * Builds a BSON representation of the given filter to be used in a MongoDB aggregation match stage.
      *
@@ -1302,6 +1148,106 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return A SimpleState object indicating the validation result, with isOk set to true if valid.
      */
     open suspend fun onValidate(apiItem: ApiItem.Upsert<T, ID, FILT>, item: T): SimpleState = SimpleState(isOk = true)
+
+    /**
+     * Constructs and modifies a MongoDB aggregation pipeline based on class-defined match and sort stages.
+     *
+     * @param apiFilter The filter object used to determine match and sort stages. Defaults to the common container's API filter instance.
+     * @param apiRequestParams Optional request parameters that may include post-lookup match conditions.
+     * @param lookupWrappers A list of lookup wrapper objects used to build lookup stages. Defaults to an empty list.
+     * @param resultUnit Specifies the result-related configurations to refine or transform the pipeline.
+     * @return A mutable list of Bson objects representing the constructed and refined aggregation pipeline.
+     */
+    fun pipeline(
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        apiRequestParams: ApiRequestParams? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        resultUnit: ResultUnit,
+    ): MutableList<Bson> {
+        val bsonMatches: ApiRequestParams.MatchLists? = apiRequestParams?.bsonMatches(commonContainer)
+        val bsonSorters: ApiRequestParams.SortLists? = apiRequestParams?.bsonSorters()
+        val pipeline: MutableList<Bson> = mutableListOf()
+
+        var bson: Bson = EMPTY_BSON
+        matchStage(apiFilter)?.let {
+            if (Document.parse(it.json).isNotEmpty()) bson = it
+        }
+        // combine matchStage() result with apiRequestParams pre lookup doc
+        and(bson, *(bsonMatches?.preMainLookup?.toTypedArray() ?: emptyArray())).also {
+            if (Document.parse(it.json).isNotEmpty()) pipeline.add(match(it))
+        }
+
+        bson = EMPTY_BSON
+        sortStage(apiFilter)?.let {
+            if (Document.parse(it.json).isNotEmpty()) bson = it
+        }
+        // combine sortStage() result with apiRequestParams pre sort doc
+        document(bson, bsonSorters?.preMainLookup ?: EMPTY_BSON).also {
+            if (Document.parse(it.json).isNotEmpty()) pipeline.add(sort(it))
+        }
+
+        // build the main lookups stage
+        pipeline += buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter)
+
+        refactorPipeline(
+            pipeline = pipeline,
+            apiFilter = apiFilter,
+            apiRequestParams = apiRequestParams,
+            resultUnit = resultUnit
+        )
+
+        val postLookupMatchDoc = mutableListOf<Bson>()
+        // first, afterLookupMatchStage()
+        afterLookupMatchStage(apiFilter)?.let {
+            postLookupMatchDoc += it
+        }
+        // second, remote matches
+        bsonMatches?.postMainLookup?.let { apiReqPostLookupMatch ->
+            postLookupMatchDoc += apiReqPostLookupMatch
+        }
+        and(*postLookupMatchDoc.toTypedArray()).also {
+            if (Document.parse(it.json).isNotEmpty()) pipeline += match(it)
+        }
+
+        // first, remote sorts
+        val bson1: BsonDocument = bsonSorters?.postMainLookup ?: BsonDocument()
+        // second, afterLookupSortStage()
+        afterLookupSortStage(apiFilter)?.let {
+            val doc = Document.parse(it.json)
+            if (doc.isNotEmpty()) {
+                doc.forEach { (key, value) ->
+                    bson1.append(key, BsonInt32(value as Int))
+                }
+            }
+        }
+        if(Document.parse(bson1.json).isNotEmpty()) pipeline += sort(bson1)
+        return pipeline
+    }
+
+    /**
+     * Constructs a MongoDB aggregation pipeline based on the provided parameters.
+     *
+     * @param apiFilter an instance of the filter to apply to the pipeline, defaulting to a common filter.
+     * @param matchStage an optional `Bson` match stage to add to the pipeline, or null if no match is required.
+     * @param sortStage an optional `Bson` sort stage to apply to the pipeline, or null if no sorting is required.
+     * @param lookupWrappers a list of `LookupWrapper` objects defining lookup stages to include in the pipeline, defaults to an empty list.
+     * @param refactor an optional lambda function that takes the constructed pipeline as input and allows modification or replacement of it. Returns the final pipeline list.
+     * @return a list of `Bson` objects representing the constructed MongoDB aggregation pipeline.
+     */
+    @Suppress("unused")
+    fun pipelineByHand(
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        matchStage: Bson? = null,
+        sortStage: Bson? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        refactor: ((MutableList<Bson>) -> List<Bson>)? = null,
+    ): List<Bson> {
+        val pipeline: MutableList<Bson> = mutableListOf()
+        matchStage?.let { pipeline += match(it) }
+        sortStage?.let { pipeline += sort(it) }
+        pipeline += buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter)
+        return refactor?.invoke(pipeline) ?: pipeline
+    }
 
     /**
      * Prints out the details of the aggregate pipeline for a specific collection.
