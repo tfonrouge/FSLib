@@ -50,8 +50,9 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
     val paginationSize = tabulatorOptions.paginationSize ?: 50
     val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100)
+    val persistence = true
     val persistenceID =
-        tabulatorOptions.persistenceID ?: viewList.configView.commonContainer.itemKClass.simpleName
+        tabulatorOptions.persistenceID ?: viewList::class.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
     val selectableRows = tabulatorOptions.selectableRows ?: 1
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
@@ -70,6 +71,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
         paginationMode = paginationMode,
         paginationSize = paginationSize,
         paginationSizeSelector = paginationSizeSelector,
+        persistence = persistence,
         persistenceID = persistenceID,
         rowContextMenu = rowContextMenu,
         selectableRows = selectableRows,
