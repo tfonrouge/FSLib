@@ -513,7 +513,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     .associateBy { it.resultProperty.name }
             )
         lookupPipelineBuilders.forEach { (_, lookupPipelineBuilder) ->
-            val lookupWrapper = lookupWrappers.find { lookupWrapper ->
+            val lookupWrapper: LookupWrapper<*, *>? = lookupWrappers.find { lookupWrapper ->
                 val kProperty1 = lookupPipelineBuilder.resultProperty
                 val owner1 = kProperty1.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
                 when (lookupWrapper) {
@@ -532,7 +532,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 if (times > MAX_RECURSIVE_RESULT_FIELD) {
                     outErr(resultField, times)
                 } else {
-                    pipeline += lookupPipelineBuilder.toPipeline(lookupWrapper)
+                    pipeline += lookupPipelineBuilder.toPipeline(lookupWrapper.lookupWrappers)
                 }
                 if (times == 1)
                     resultFieldStack.remove(resultField)
