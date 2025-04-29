@@ -71,7 +71,12 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         return _configViewItem
     }
 
-    open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(title = "", headerSort = false, tooltip = true)
+    open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(
+        title = "",
+        headerTooltip = true,
+        headerSort = false,
+        tooltip = true
+    )
 
     val errorStateObs = ObservableValue(false)
     var errorMessage: String? = null
@@ -201,6 +206,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         return listOf(
             ColumnDefinition<T>(
                 title = "",
+                headerTooltip = "Editor de columnas, fila seleccionada",
                 hozAlign = Align.CENTER,
                 vertAlign = VAlign.MIDDLE,
                 headerColumnsMenuTitle = "",
