@@ -66,6 +66,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
         height = height,
         layout = layout,
         layoutColumnsOnNewData = layoutColumnsOnNewData,
+        movableColumns = true,
         pagination = pagination,
         paginationCounter = paginationCounter,
         paginationMode = paginationMode,
