@@ -910,6 +910,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
+     * Processes a group stage operation on a MongoDB aggregation pipeline.
+     *
+     * @param pipeline the aggregation pipeline expressed as a mutable list of Bson objects.
+     * @param apiFilter an instance of the FILT class to handle API filtering logic, defaulting to `commonContainer.apiFilterInstance()`.
+     * @param apiRequestParams the API request parameters to be used during the processing, may be null.
+     */
+    open fun groupStage(
+        pipeline: MutableList<Bson>,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        apiRequestParams: ApiRequestParams?
+    ) {
+    }
+
+    /**
      * Retrieves the indexes of the documents within the collection.
      *
      * This function is a coroutine and should be called within a coroutine scope.
@@ -1164,9 +1178,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         resultUnit: ResultUnit,
     ): MutableList<Bson> {
+
+        val pipeline: MutableList<Bson> = mutableListOf()
+
+        groupStage(pipeline = pipeline, apiFilter = apiFilter, apiRequestParams = apiRequestParams)
+
         val bsonMatches: ApiRequestParams.MatchLists? = apiRequestParams?.bsonMatches(commonContainer)
         val bsonSorters: ApiRequestParams.SortLists? = apiRequestParams?.bsonSorters()
-        val pipeline: MutableList<Bson> = mutableListOf()
 
         var bson: Bson = EMPTY_BSON
         matchStage(apiFilter)?.let {
@@ -1220,7 +1238,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 }
             }
         }
-        if(Document.parse(bson1.json).isNotEmpty()) pipeline += sort(bson1)
+        if (Document.parse(bson1.json).isNotEmpty()) pipeline += sort(bson1)
         return pipeline
     }
 
