@@ -34,19 +34,17 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     resultField: KProperty1<in T, U?>,
     limit: Int? = 1,
     preserveNullAndEmptyArrays: Boolean = true,
-): LookupPipelineBuilder<T, U, ID> {
-    return object : LookupPipelineBuilder<T, U, ID>(
-        coll = coll,
-        localField = localField,
-        foreignField = foreignField,
-        let = let,
-        pipeline = pipeline,
-        resultProperty = resultField,
-        preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
-        limit = limit,
-        resultUnit = Coll.ResultUnit.Single
-    ) {}
-}
+): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
+    coll = coll,
+    localField = localField,
+    foreignField = foreignField,
+    let = let,
+    pipeline = pipeline,
+    resultProperty = resultField,
+    preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
+    limit = limit,
+    resultUnit = Coll.ResultUnit.Single
+) {}
 
 /**
  * Builds a pipeline for a lookup operation by defining the necessary conditions
@@ -71,19 +69,17 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     resultField: KProperty1<in T, U?>,
     limit: Int? = 1,
     preserveNullAndEmptyArrays: Boolean = true,
-): LookupPipelineBuilder<T, U, ID> {
-    return object : LookupPipelineBuilder<T, U, ID>(
-        coll = coll,
-        localField = null,
-        foreignField = null,
-        let = let,
-        pipeline = pipeline,
-        resultProperty = resultField,
-        preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
-        limit = limit,
-        resultUnit = Coll.ResultUnit.Single
-    ) {}
-}
+): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
+    coll = coll,
+    localField = null,
+    foreignField = null,
+    let = let,
+    pipeline = pipeline,
+    resultProperty = resultField,
+    preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
+    limit = limit,
+    resultUnit = Coll.ResultUnit.Single
+) {}
 
 /**
  * Constructs and returns a `LookupPipelineBuilder` with the specified parameters to facilitate MongoDB lookup aggregation.
@@ -108,19 +104,17 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     resultFieldArray: KProperty1<in T, Collection<U>?>,
     preserveNullAndEmptyArrays: Boolean = true,
     limit: Int? = null,
-): LookupPipelineBuilder<T, U, ID> {
-    return object : LookupPipelineBuilder<T, U, ID>(
-        coll = coll,
-        localField = localField,
-        foreignField = foreignField,
-        let = let,
-        pipeline = pipeline,
-        resultProperty = resultFieldArray,
-        preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
-        limit = limit,
-        resultUnit = Coll.ResultUnit.List
-    ) {}
-}
+): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
+    coll = coll,
+    localField = localField,
+    foreignField = foreignField,
+    let = let,
+    pipeline = pipeline,
+    resultProperty = resultFieldArray,
+    preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
+    limit = limit,
+    resultUnit = Coll.ResultUnit.List
+) {}
 
 /**
  * Abstract class that builds a MongoDB lookup pipeline for aggregating documents.
@@ -146,19 +140,6 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     internal val limit: Int?,
     val resultUnit: Coll.ResultUnit,
 ) {
-    /**
-     * Builds a list of BSON pipeline stages using the provided list of lookup wrappers.
-     * The method creates a MongoDB aggregation pipeline by processing the nested `LookupWrapper` instances.
-     *
-     * @param lookupWrappers A list of `LookupWrapper` instances that define the lookup and pipeline details
-     *                       for generating the aggregation stages.
-     * @return A list of `Bson` objects representing the aggregation pipeline stages.
-     */
-//    @Suppress("unused")
-//    fun <U : BaseDoc<*>, V : BaseDoc<*>> toPipeline(
-//        lookupWrappers: List<LookupWrapper<V, U>>
-//    ): List<Bson> = toPipeline(LookupWrapper<U, V>(lookupWrappers))
-
     /**
      * Constructs a MongoDB aggregation pipeline based on the provided lookup wrapper and class fields.
      *
