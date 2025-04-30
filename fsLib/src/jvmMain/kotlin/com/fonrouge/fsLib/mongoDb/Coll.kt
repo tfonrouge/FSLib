@@ -1006,7 +1006,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     /**
      * Transforms data in the pipeline before lookups are created, allowing aggregation and restructuring
      * of records. For example, can convert individual sales records into summarized sales reports
-     * or reshape document structure.
+     * or reshape document structure. An typical application is using a mongodb group stage or a projection of
+     * resulting fields, or adding new calculated fields.
      *
      * @param pipeline A mutable list of BSON objects representing the stages of the data pipeline.
      * @param apiFilter An instance of the API filter parameter, used to apply filtering logic to the pipeline.
