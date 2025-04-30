@@ -1,5 +1,6 @@
 package com.fonrouge.fsLib.mongoDb
 
+import com.fonrouge.fsLib.annotations.PreLookupField
 import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.types.IntId
 import com.fonrouge.fsLib.types.LongId
@@ -10,6 +11,7 @@ import org.bson.*
 import org.bson.conversions.Bson
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 /**
@@ -28,20 +30,26 @@ data class ApiRequestParams(
     private val remoteSorters: List<RemoteSorter>? = null,
 ) {
     /**
-     * Finds the type of a specified field in the given Kotlin class, considering nested fields separated by dots.
+     * Finds the type of a field within a Kotlin class and verifies whether the field is annotated with `@PreLookupField`.
+     * It supports nested field names using dot notation to traverse deeper into properties.
      *
-     * @param kClass The Kotlin class to inspect for the field.
-     * @param fieldName The name of the field whose type is to be found. Nested fields are specified using dot notation.
-     * @return The type of the specified field as a [KClassifier], or null if the field is not found.
+     * @param kClass The Kotlin class to search for the field.
+     * @param fieldName The name of the field to look for. Supports dot notation for nested properties.
+     * @return A pair containing the field's type as a [KClassifier] and a Boolean indicating if the field is annotated with `@PreLookupField`.
+     *         Returns null if the field is not found.
      */
-    private fun findFieldType(kClass: KClass<*>, fieldName: String): KClassifier? {
+    private fun findFieldType(kClass: KClass<*>, fieldName: String): Pair<KClassifier, Boolean>? {
         val k = kClass.memberProperties
         return if (fieldName.contains('.')) {
             k.firstOrNull { it.name == fieldName.substringBefore('.') }?.returnType?.classifier?.let {
                 findFieldType(it as KClass<*>, fieldName.substringAfter('.'))
             }
         } else {
-            k.firstOrNull { it.name == fieldName }?.returnType?.classifier
+            k.firstOrNull { it.name == fieldName }?.let { kProperty ->
+                kProperty.returnType.classifier?.let { classifier ->
+                    Pair(classifier, kProperty.hasAnnotation<PreLookupField>())
+                }
+            }
         }
     }
 
@@ -56,33 +64,36 @@ data class ApiRequestParams(
         val postMainLookup: MutableList<Bson> = mutableListOf()
         remoteFilters?.let {
             remoteFilters.forEach { remoteFilter ->
-                val value: BsonValue? =
-                    when (findFieldType(commonContainer.itemKClass, remoteFilter.field)) {
-                        Array<String>::class, String::class, StringId::class, null -> {
-                            when (remoteFilter.type) {
-                                "like" -> BsonDocument(
-                                    "\$regex",
-                                    BsonString(remoteFilter.value)
-                                ).append("\$options", BsonString("i"))
+                val (kClasiffier, isPreLookupField) = findFieldType(
+                    kClass = commonContainer.itemKClass,
+                    fieldName = remoteFilter.field
+                ) ?: return@forEach
+                val value: BsonValue? = when (kClasiffier) {
+                    Array<String>::class, String::class, StringId::class, null -> {
+                        when (remoteFilter.type) {
+                            "like" -> BsonDocument(
+                                "\$regex",
+                                BsonString(remoteFilter.value)
+                            ).append("\$options", BsonString("i"))
 
-                                else -> BsonString(remoteFilter.value)
-                            }
+                            else -> BsonString(remoteFilter.value)
                         }
-
-                        Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()
-                            ?.let { BsonInt32(it) }
-
-                        Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()
-                            ?.let { BsonInt64(it) }
-
-                        Double::class -> remoteFilter.value?.toDoubleOrNull()
-                            ?.let { BsonDouble(it) }
-
-                        else -> null
                     }
+
+                    Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()
+                        ?.let { BsonInt32(it) }
+
+                    Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()
+                        ?.let { BsonInt64(it) }
+
+                    Double::class -> remoteFilter.value?.toDoubleOrNull()
+                        ?.let { BsonDouble(it) }
+
+                    else -> null
+                }
                 value?.let {
                     val bsonDocument = BsonDocument(remoteFilter.field, value)
-                    if (remoteFilter.field.contains("."))
+                    if (!isPreLookupField && remoteFilter.field.contains("."))
                         postMainLookup += bsonDocument
                     else
                         preMainLookup += bsonDocument

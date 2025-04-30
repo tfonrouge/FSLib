@@ -11,18 +11,16 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
 /**
- * Constructs a lookup pipeline between two collections based on the specified fields.
+ * Builds a lookup aggregation pipeline to join documents from a foreign collection.
  *
- * @param coll The collection to perform the lookup on.
- * @param localField The local field used for the join condition.
- * @param foreignField The foreign field used for the join condition.
- * @param let Additional variables to use in the operation, or null.
- * @param pipeline Optional aggregation pipeline to apply to the foreign collection before the join.
- * @param resultField The property in the result document where the joined documents will be stored.
- * @param limit The maximum number of matching documents to include for each input document, defaults to 1.
- * @param preserveNullAndEmptyArrays Whether to include documents in the output array that do not have matching documents,
- *     defaults to true.
- * @return A configured `LookupPipelineBuilder` to execute the lookup operation.
+ * @param coll the foreign collection to join with
+ * @param localField the field from the local collection to match with the foreign collection
+ * @param foreignField the field from the foreign collection to match with the local collection
+ * @param let optional variable definitions for use within the aggregation pipeline
+ * @param pipeline optional additional pipeline stages to apply to the foreign collection before joining
+ * @param resultField the field in the local collection where the results of the lookup will be stored
+ * @param preserveNullAndEmptyArrays indicates whether to include local documents even if no matches are found
+ * @return a builder for creating and configuring the lookup aggregation pipeline
  */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
@@ -32,7 +30,6 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     let: List<Variable<out Any>>? = null,
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, U?>,
-    limit: Int? = 1,
     preserveNullAndEmptyArrays: Boolean = true,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
     coll = coll,
@@ -42,24 +39,20 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     pipeline = pipeline,
     resultProperty = resultField,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
-    limit = limit,
+    limit = 1,
     resultUnit = Coll.ResultUnit.Single
 ) {}
 
 /**
- * Builds a pipeline for a lookup operation by defining the necessary conditions
- * and fields to retrieve specific results from the given collection.
+ * Constructs a `LookupPipelineBuilder` for performing a lookup operation on the specified collection.
  *
- * @param T The type of the local document involved in the lookup operation.
- * @param U The type of the foreign document to be looked up.
- * @param ID The type of the unique identifier used in both local and foreign documents.
- * @param coll The collection providing the documents to be looked up.
- * @param let A list of variables used for the lookup operation.
- * @param pipeline An optional aggregation pipeline to apply on the foreign collection during the lookup.
- * @param resultField The target property in the local document where the lookup results will be mapped.
- * @param limit The maximum number of documents to retrieve from the foreign collection for each local document, defaults to 1.
- * @param preserveNullAndEmptyArrays Defines whether to preserve "null" or empty arrays in the lookup result, defaults to true.
- * @return A configured instance of LookupPipelineBuilder to execute the lookup operation.
+ * @param coll The target collection containing the data to perform the lookup against.
+ * @param let A list of variables to include in the let statement for the lookup operation.
+ * @param pipeline An optional aggregation pipeline to apply during the lookup operation.
+ * @param resultField The field in the local collection where the lookup result will be stored.
+ * @param preserveNullAndEmptyArrays A boolean indicating whether to include documents in the result
+ *                                   when there are no matches in the foreign collection (default is true).
+ * @return A `LookupPipelineBuilder` instance to define and process the lookup operation.
  */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
@@ -67,7 +60,6 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     let: List<Variable<out Any>>,
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, U?>,
-    limit: Int? = 1,
     preserveNullAndEmptyArrays: Boolean = true,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
     coll = coll,
@@ -77,7 +69,49 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     pipeline = pipeline,
     resultProperty = resultField,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
-    limit = limit,
+    limit = 1,
+    resultUnit = Coll.ResultUnit.Single
+) {}
+
+/**
+ * Constructs a lookup pipeline to link documents between collections based on specified field references
+ * and optional aggregation pipeline stages. Primarily used to build references and retrieve related data
+ * during aggregation queries.
+ *
+ * @param coll The collection to perform the lookup on. It should be a valid reference to a collection
+ * derived from the `ICommonContainer` interface.
+ * @param localField The local field in the current collection to match with the field in the foreign collection.
+ * Defaults to `null` if not specified.
+ * @param foreignField The field in the foreign collection to match with the local field. Defaults to `null`
+ * if not specified.
+ * @param let A list of variables to be defined in the aggregation pipeline for use in the lookup query. Defaults
+ * to `null` if not set.
+ * @param pipeline An optional list of additional aggregation pipeline stages to apply in the lookup transformation.
+ * Defaults to `null` if not provided.
+ * @param resultField The field in the resulting documents where the lookup results will be stored.
+ * @param preserveNullAndEmptyArrays Indicates whether to include documents that match the lookup criteria
+ * but where no matches are found (resulting in `null` or an empty array). Defaults to `true`.
+ * @return A `LookupPipelineBuilder` instance configured to perform the defined lookup with optional field
+ * mappings and pipeline procedures.
+ */
+@Suppress("unused")
+fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
+    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *>,
+    localField: KProperty<*>? = null,
+    foreignField: KProperty<*>? = null,
+    let: List<Variable<out Any>>? = null,
+    pipeline: List<Bson>? = null,
+    resultField: KProperty1<in T, Any?>,
+    preserveNullAndEmptyArrays: Boolean = true,
+): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
+    coll = coll,
+    localField = localField,
+    foreignField = foreignField,
+    let = let,
+    pipeline = pipeline,
+    resultProperty = resultField,
+    preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
+    limit = 1,
     resultUnit = Coll.ResultUnit.Single
 ) {}
 
