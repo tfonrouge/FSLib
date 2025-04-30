@@ -15,6 +15,7 @@ import org.litote.kmongo.from
 enum class MongoAggOperator {
     substrBytes,
     replaceWith,
+    switch,
     toBool,
     toDate,
     toDecimal,
