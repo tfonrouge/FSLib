@@ -1184,6 +1184,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
         val pipeline: MutableList<Bson> = mutableListOf()
 
+        // Execute pipeline transformations before any other pipeline stages
         morphingStage(pipeline = pipeline, apiFilter = apiFilter, apiRequestParams = apiRequestParams)
 
         val bsonMatches: ApiRequestParams.MatchLists? = apiRequestParams?.bsonMatches(commonContainer)
