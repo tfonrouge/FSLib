@@ -78,7 +78,12 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
  * and optional aggregation pipeline stages. Primarily used to build references and retrieve related data
  * during aggregation queries.
  *
- * A typical usage involves adding a group stage to the pipeline to retrieve summarized data containers
+ * Commonly used with a group stage in the pipeline for aggregating and retrieving
+ * summarized data from document collections.
+ *
+ * Note: The internal processing pipeline does not utilize any collection-level
+ * configuration settings specified in the [coll] parameter beacuse the resulting document is not expected
+ * to be the same type of the one defined in the [Coll.commonContainer]
  *
  * @param coll The collection to perform the lookup on. It should be a valid reference to a collection
  * derived from the `ICommonContainer` interface.
@@ -114,7 +119,8 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
     resultProperty = resultField,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = 1,
-    resultUnit = Coll.ResultUnit.Single
+    resultUnit = Coll.ResultUnit.Single,
+    isAnyResult = true
 ) {}
 
 /**
@@ -153,17 +159,23 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
 ) {}
 
 /**
- * Abstract class that builds a MongoDB lookup pipeline for aggregating documents.
+ * Abstract builder class responsible for constructing MongoDB aggregation pipelines
+ * for lookups between documents. This enables aggregation stages for joining, filtering,
+ * and transforming data based on relationships between collections.
  *
- * @param coll The collection containing common container documents.
- * @param localField The field from the local collection to match values against.
- * @param foreignField The field from the foreign collection to match values against.
- * @param let Optional list of variables to use in the $lookup stage.
- * @param pipeline Optional list of BSON operations for the pipeline stage.
- * @param resultProperty The property of the result to project.
- * @param preserveNullAndEmptyArrays Flag to control whether to preserve null and empty array values.
- * @param limit Optional limit to the number of documents in the aggregation stage.
- * @param resultUnit Specifies the result unit type for the lookup aggregation.
+ * @param T The type of the base document in the current collection.
+ * @param U The type of the base document in the foreign (lookup) collection.
+ * @param ID The type of the unique identifier for documents.
+ * @property coll The collection object representing the foreign (lookup) collection and its metadata.
+ * @property localField The local field in the current collection used for the lookup.
+ * @property foreignField The corresponding field in the foreign collection used for the lookup.
+ * @property let List of variables for aggregation stages to be used during the lookup.
+ * @property pipeline A list of Bson stages representing the partial pipeline to use in the lookup.
+ * @property resultProperty The property in the base document where the result of the lookup will be stored.
+ * @property preserveNullAndEmptyArrays Flag indicating whether null or empty array results should be preserved.
+ * @property limit An optional limit on the number of results from the lookup.
+ * @property resultUnit Specifies whether the lookup result should treat data as a single or multiple entry.
+ * @property isAnyResult A flag indicating whether to bypass the standard pipeline processing and return unfiltered results. When true, the [Coll.pipeline] function is not called to construct the pipeline stages.
  */
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
@@ -175,6 +187,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     internal val preserveNullAndEmptyArrays: Boolean,
     internal val limit: Int?,
     val resultUnit: Coll.ResultUnit,
+    private val isAnyResult: Boolean = false,
 ) {
     /**
      * Constructs a MongoDB aggregation pipeline based on the provided lookup wrapper and class fields.
@@ -192,12 +205,14 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     ): List<Bson> {
         val pip2 = mutableListOf<Bson>()
         this.pipeline?.let { bsonList -> pip2 += bsonList }
-        coll.pipeline(
-            lookupWrappers = lookupWrappers,
-            resultUnit = resultUnit,
-        ).let { it ->
-            pip2 += it
-            limit?.let { pip2 += limit(it) }
+        if (!isAnyResult) {
+            coll.pipeline(
+                lookupWrappers = lookupWrappers,
+                resultUnit = resultUnit,
+            ).let { it ->
+                pip2 += it
+                limit?.let { pip2 += limit(it) }
+            }
         }
         val pipeline = mutableListOf<Bson>()
         if (localField != null && foreignField != null) {
