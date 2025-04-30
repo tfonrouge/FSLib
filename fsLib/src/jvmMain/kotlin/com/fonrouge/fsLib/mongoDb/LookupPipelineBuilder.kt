@@ -78,6 +78,8 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
  * and optional aggregation pipeline stages. Primarily used to build references and retrieve related data
  * during aggregation queries.
  *
+ * A typical usage involves adding a group stage to the pipeline to retrieve summarized data containers
+ *
  * @param coll The collection to perform the lookup on. It should be a valid reference to a collection
  * derived from the `ICommonContainer` interface.
  * @param localField The local field in the current collection to match with the field in the foreign collection.
