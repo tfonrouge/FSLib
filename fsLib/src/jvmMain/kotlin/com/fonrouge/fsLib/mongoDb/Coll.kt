@@ -910,20 +910,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Processes a group stage operation on a MongoDB aggregation pipeline.
-     *
-     * @param pipeline the aggregation pipeline expressed as a mutable list of Bson objects.
-     * @param apiFilter an instance of the FILT class to handle API filtering logic, defaulting to `commonContainer.apiFilterInstance()`.
-     * @param apiRequestParams the API request parameters to be used during the processing, may be null.
-     */
-    open fun groupStage(
-        pipeline: MutableList<Bson>,
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        apiRequestParams: ApiRequestParams?
-    ) {
-    }
-
-    /**
      * Retrieves the indexes of the documents within the collection.
      *
      * This function is a coroutine and should be called within a coroutine scope.
@@ -1016,6 +1002,22 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return A BSON object representing the match stage, or null if the filter could not be processed.
      */
     open fun matchStage(apiFilter: FILT): Bson? = null
+
+    /**
+     * Transforms data in the pipeline before lookups are created, allowing aggregation and restructuring
+     * of records. For example, can convert individual sales records into summarized sales reports
+     * or reshape document structure.
+     *
+     * @param pipeline A mutable list of BSON objects representing the stages of the data pipeline.
+     * @param apiFilter An instance of the API filter parameter, used to apply filtering logic to the pipeline.
+     * @param apiRequestParams An optional set of parameters for the API request to further adjust the pipeline stages.
+     */
+    open fun morphingStage(
+        pipeline: MutableList<Bson>,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        apiRequestParams: ApiRequestParams?
+    ) {
+    }
 
     /**
      * This method is executed after a delete action is performed.
@@ -1181,7 +1183,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
         val pipeline: MutableList<Bson> = mutableListOf()
 
-        groupStage(pipeline = pipeline, apiFilter = apiFilter, apiRequestParams = apiRequestParams)
+        morphingStage(pipeline = pipeline, apiFilter = apiFilter, apiRequestParams = apiRequestParams)
 
         val bsonMatches: ApiRequestParams.MatchLists? = apiRequestParams?.bsonMatches(commonContainer)
         val bsonSorters: ApiRequestParams.SortLists? = apiRequestParams?.bsonSorters()
