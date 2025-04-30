@@ -48,11 +48,10 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val pagination = tabulatorOptions.pagination != false
     val paginationCounter = tabulatorOptions.paginationCounter ?: "rows"
     val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
-    val paginationSize = tabulatorOptions.paginationSize ?: 50
-    val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100)
+    val paginationSize = tabulatorOptions.paginationSize ?: 100
+    val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100, 200, 500)
     val persistence = true
-    val persistenceID =
-        tabulatorOptions.persistenceID ?: viewList::class.simpleName
+    val persistenceID = tabulatorOptions.persistenceID ?: viewList::class.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
     val selectableRows = tabulatorOptions.selectableRows ?: 1
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
