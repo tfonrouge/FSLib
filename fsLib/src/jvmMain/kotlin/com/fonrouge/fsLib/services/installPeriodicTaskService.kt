@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.ktor.ext.inject
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import kotlin.reflect.KCallable
@@ -28,10 +27,10 @@ interface IPeriodicTaskService {
  * @param debug If set to true, debug information will be printed to the console.
  */
 @Suppress("unused")
-inline fun <reified T : IPeriodicTaskService> Application.installPeriodicTaskService(
+fun <T : IPeriodicTaskService> Application.installPeriodicTaskService(
+    periodicTask: T,
     debug: Boolean = false,
 ) {
-    val periodicTask: T by inject<T>()
     val klass = periodicTask::class
     val pairPeriodFunc: List<Pair<TimeUnit, KCallable<*>>> = klass.members.mapNotNull { kFunction ->
         kFunction.findAnnotation<Task>()?.let { task: Task ->
