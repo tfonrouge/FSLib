@@ -81,10 +81,9 @@ val KClass<out BaseDoc<*>>.collectionName: String
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
     mongoDbBuilder: MongoDbBuilder? = null,
-    private var debug: Boolean? = null
+    private var debug: Boolean = false
 ) {
     companion object {
-        var globalDebug = false
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
         var MAX_RECURSIVE_RESULT_FIELD = 1
     }
@@ -320,7 +319,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
         countType: CountType = CountType.PreLookup,
-        debug: Boolean? = this.debug,
+        debug: Boolean = this.debug,
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
     ): AggregatePublisher<T> {
         pipeline += pipeline(
@@ -352,7 +351,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 }
             }
         }
-        if (debug ?: globalDebug) {
+        if (debug) {
             printOutPipeline(pipeline)
         }
         return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
@@ -379,7 +378,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             lookupWrappers = lookupWrappers,
             resultUnit = ResultUnit.Single
         )
-        if (debug ?: globalDebug) {
+        if (debug) {
             printOutPipeline(pipeline1)
         }
         return mongoColl.aggregate(pipeline1, commonContainer.itemKClass.java)
@@ -404,7 +403,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         countType: CountType = CountType.PreLookup,
-        debug: Boolean? = this.debug,
+        debug: Boolean = this.debug,
         postProcessList: ((List<T>) -> List<T>)? = null,
     ): ListState<T> {
         call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } }?.let {
@@ -443,7 +442,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
             joinAll(j1, j2)
         }
-        if (debug ?: globalDebug) {
+        if (debug) {
             println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate time: ${t1}ms, Count time: ${t2}ms")
         }
         return ListState(
@@ -470,7 +469,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         call: ApplicationCall? = null,
         apiList: ApiList<FILT>,
         countType: CountType = CountType.PreLookup,
-        debug: Boolean? = this.debug,
+        debug: Boolean = this.debug,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessList: ((List<T>) -> List<T>)? = null
     ): ListState<T> {
@@ -802,7 +801,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        debug: Boolean = false,
+        debug: Boolean = this.debug,
     ): List<T> {
         return findPublisher(
             filter = filter,
