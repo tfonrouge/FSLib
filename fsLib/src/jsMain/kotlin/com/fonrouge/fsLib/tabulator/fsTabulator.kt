@@ -3,7 +3,6 @@
 package com.fonrouge.fsLib.tabulator
 
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.layout.centeredMessage
 import com.fonrouge.fsLib.layout.toolBarList
 import com.fonrouge.fsLib.model.apiData.ApiList
@@ -17,6 +16,7 @@ import io.kvision.panel.vPanel
 import io.kvision.state.bind
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator.RowComponent
+import io.kvision.utils.obj
 import io.kvision.utils.px
 import io.kvision.utils.vh
 import kotlinx.browser.window
@@ -38,7 +38,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
 ): TabulatorOptions<T> {
     val index = tabulatorOptions.index ?: "_id"
     val autoResize = tabulatorOptions.autoResize != false
-    val columns = tabulatorOptions.columns ?: viewList.finalColumnDefinitionList()
+    val columns = tabulatorOptions.columns ?: viewList.columnDefinitionList()
     val columnDefaults = tabulatorOptions.columnDefaults ?: viewList.columnDefaults
     val dataLoader = tabulatorOptions.dataLoader == true
     val filterMode = tabulatorOptions.filterMode ?: FilterMode.REMOTE
@@ -53,7 +53,21 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
     val persistence = true
     val persistenceID = tabulatorOptions.persistenceID ?: viewList::class.simpleName
     val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
-    val selectableRows = tabulatorOptions.selectableRows ?: 1
+    val selectableRows = tabulatorOptions.selectableRows
+    val rowHeader = if (selectableRows == true || selectableRows is Number) {
+        obj {
+            headerSort = false
+            resizable = false
+            frozen = true
+            headerHozAlign = "center"
+            hozAlign = "center"
+            formatter = "rowSelection"
+            titleFormatter = "rowSelection"
+            cellClick = fun(e: dynamic, cell: dynamic) {
+                cell.getRow().toggleSelect()
+            }
+        }
+    } else null
     val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
     return tabulatorOptions.copy(
         index = index,
@@ -74,46 +88,9 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
         persistence = persistence,
         persistenceID = persistenceID,
         rowContextMenu = rowContextMenu,
+        rowHeader = rowHeader,
         selectableRows = selectableRows,
         sortMode = sortMode,
-    )
-}
-
-/**
- * Creates and configures a Tabulator-based view list for managing items within the specified container.
- *
- * @param configViewList The configuration for creating the view list instance.
- * @param masterViewItem An optional view item representing the master item context for the Tabulator.
- *                       Defaults to `null`.
- * @param options Tabulator options for customizing the behavior of the table. Defaults to a new instance
- *                of `TabulatorOptions`.
- * @param types The set of table types used for building the Tabulator. Defaults to an empty set.
- * @param minToolbarSize A flag to determine whether to configure the minimum toolbar size. Defaults to `true`.
- * @param editable A lambda function returning whether or not the table should be editable. Defaults to `null`.
- * @param init An optional initialization block to further customize the Tabulator view list. Defaults to `null`.
- * @return A configured `ViewList` instance for managing the items within the specified container.
- */
-inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any, ALS : Any> Container.fsTabulator(
-    configViewList: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, FILT, MID, ALS>,
-    masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
-    options: TabulatorOptions<T> = TabulatorOptions(),
-    types: Set<TableType> = setOf(),
-    minToolbarSize: Boolean = true,
-    noinline editable: (() -> Boolean)? = null,
-    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
-): ViewList<CC, T, ID, FILT, MID> {
-    val viewList: ViewList<CC, T, ID, FILT, MID> = configViewList.newViewInstance(null)
-    masterViewItem?.let {
-        viewList.masterViewItem = it
-        viewList.crudTask = it.crudTask
-    }
-    editable?.let { viewList.editable = it }
-    return fsTabulator(
-        viewList = viewList,
-        options = options,
-        types = types,
-        minToolbarSize = minToolbarSize,
-        init = init
     )
 }
 
@@ -135,6 +112,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
 @OptIn(InternalSerializationApi::class)
 inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
     viewList: ViewList<CC, T, ID, FILT, MID>,
+    masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
     options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(
         TableType.STRIPED,
@@ -143,8 +121,14 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
         TableType.SMALL
     ),
     minToolbarSize: Boolean = true,
+    noinline editable: (() -> Boolean)? = null,
     noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
 ): ViewList<CC, T, ID, FILT, MID> {
+    masterViewItem?.let {
+        viewList.masterViewItem = it
+        viewList.crudTask = it.crudTask
+    }
+    editable?.let { viewList.editable = it }
     val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams =

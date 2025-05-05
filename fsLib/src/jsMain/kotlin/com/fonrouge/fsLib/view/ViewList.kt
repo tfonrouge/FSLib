@@ -196,28 +196,6 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = emptyList()
 
-    /**
-     * Constructs the final list of column definitions for the tabular view.
-     *
-     * @return A list of `ColumnDefinition<T>` instances. The list includes a default column
-     *         definition as well as any additional columns defined in `columnDefinitionList`.
-     */
-    fun finalColumnDefinitionList(): List<ColumnDefinition<T>> {
-        return listOf(
-            ColumnDefinition<T>(
-                title = "",
-                headerTooltip = "Editor de columnas, fila seleccionada",
-                hozAlign = Align.CENTER,
-                vertAlign = VAlign.MIDDLE,
-                headerColumnsMenuTitle = "",
-                headerColumnsMenuResetTitle = "Default columns",
-                headerColumnsMenu = true,
-                formatter = Formatter.ROWSELECTION,
-            )
-        ) + columnDefinitionList()
-
-    }
-
     var masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
         set(value) {
             editable = { value?.actionUpsert == true }
@@ -388,7 +366,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun loadColumnDefinitions() {
-        val columnList = finalColumnDefinitionList()
+        val columnList = columnDefinitionList()
         tabulator?.let { tabulator ->
             tabulator.jsTabulator?.setColumns(columnList.map {
                 it.toJs(tabulator, tabulator::translate, configView.commonContainer.itemKClass)
