@@ -59,10 +59,11 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
         onPeriodicDataUpdate?.let {
             dataUpdateFuncs[this.hashCode() to (this::class.simpleName ?: "?")] = it
         }
-        val callBlock = {
+
+        fun runPeriodicBlock() = {
             try {
-//                console.warn("dataUpdateFuncs", dataUpdateFuncs.map { it.key }.toObj())
                 AppScope.launch {
+//                    console.warn("dataUpdateFuncs", dataUpdateFuncs.map { it.key }.toObj())
                     dataUpdateFuncs.forEach {
 //                        console.warn("callBlock", it.key, it.value.toString().substringBefore("("))
                         launch { it.value.invoke() }
@@ -82,7 +83,7 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
                             if (!lock) {
                                 startTime = curTime
                                 lock = true
-                                callBlock()
+                                runPeriodicBlock()
                                 lock = false
                             }
                         }
