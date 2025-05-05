@@ -87,6 +87,7 @@ kvision-bootstrap-upload = { module = "io.kvision:kvision-bootstrap-upload", ver
 kvision-chart = { module = "io.kvision:kvision-chart", version.ref = "kvision" }
 kvision-datetime = { module = "io.kvision:kvision-datetime", version.ref = "kvision" }
 kvision-fontawesome = { module = "io.kvision:kvision-fontawesome", version.ref = "kvision" }
+kvision-i18n = { module = "io.kvision:kvision-i18n", version.ref = "kvision" }
 kvision-imask = { module = "io.kvision:kvision-imask", version.ref = "kvision" }
 kvision-jquery = { module = "io.kvision:kvision-jquery", version.ref = "kvision" }
 kvision-pace = { module = "io.kvision:kvision-pace", version.ref = "kvision" }

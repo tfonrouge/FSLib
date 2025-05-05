@@ -114,6 +114,7 @@ kotlin {
             api(libs.kvision.chart)
             api(libs.kvision.fontawesome)
             api(libs.kvision.imask)
+            api(libs.kvision.i18n)
             api(libs.kvision.jquery)
             api(libs.kvision.pace)
             api(libs.kvision.print)

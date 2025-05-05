@@ -1,9 +1,18 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.common.callItemService
 import com.fonrouge.fsLib.config.ConfigViewContainer
+import com.fonrouge.fsLib.lib.toast
+import com.fonrouge.fsLib.model.apiData.CallType
+import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.state.ItemState
+import io.kvision.i18n.I18n.tr
+import io.kvision.modal.Confirm
+import io.kvision.modal.ModalSize
+import io.kvision.toast.Toast
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlin.js.Date
@@ -52,6 +61,86 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
 
     open val onPeriodicDataUpdate: (() -> Unit)? = {
         dataUpdate()
+    }
+
+    /**
+     * Displays a confirmation dialog for deleting an item and processes the delete operation
+     * based on user interaction. If confirmed, it attempts to delete the specified item
+     * using the provided API function and callbacks for handling success or failure scenarios.
+     *
+     * @param apiItemFun The API function to be used for the delete operation.
+     * @param item The item to be deleted.
+     * @param apiFilter An API filter instance used for filtering the delete operation. Defaults to a common filter instance.
+     * @param onFail A callback invoked when the delete operation fails, providing the resulting [ItemState].
+     * @param onSuccess A callback invoked when the delete operation succeeds.
+     */
+    fun confirmDeleteView(
+        apiItemFun: Function<*>,
+        item: T,
+        apiFilter: FILT = configView.commonContainer.apiFilterInstance(),
+        onFail: ((ItemState<T>) -> Unit)? = null,
+        onSuccess: (() -> Unit)? = null,
+    ) {
+        configView.commonContainer.callItemService(
+            apiItemFun = apiItemFun,
+            crudTask = CrudTask.Delete,
+            callType = CallType.Query,
+            id = item._id,
+            item = item,
+            apiFilter = apiFilter,
+        ) { itemState ->
+            if (itemState.hasError.not()) {
+                val numSelectedRows = if (this is ViewList<*, *, *, *, *>)
+                    tabulator?.getSelectedRows()?.size ?: 0 else null
+                val deleteWord = tr("Delete")
+                val text = if (numSelectedRows != null && numSelectedRows > 0) {
+                    "<b>$deleteWord</b> $numSelectedRows selected '<i>${configView.commonContainer.labelItem}</i>', id: <b>${
+                        configView.commonContainer.labelId(item)
+                    }</b> ?"
+                } else "<b>$deleteWord</b> '<i>${configView.commonContainer.labelItem}</i>', id: <b>${
+                    configView.commonContainer.labelId(item)
+                }</b> ?"
+                val modal = Confirm(
+                    caption = "Please Confirm",
+                    text = text,
+                    rich = true,
+                    size = ModalSize.XLARGE,
+                    centered = true,
+                    noTitle = "Cancel",
+                    noCallback = {
+                        Toast.warning("Delete canceled")
+                    },
+                    yesCallback = {
+                        configView.commonContainer.callItemService(
+                            apiItemFun = apiItemFun,
+                            crudTask = CrudTask.Delete,
+                            callType = CallType.Action,
+                            id = item._id,
+                            item = item,
+                            apiFilter = apiFilter,
+                        ) { itemState1 ->
+                            if (itemState1.hasError.not()) {
+                                Toast.success(
+                                    message = itemState1.msgOk ?: "Delete action successful ...",
+                                )
+                                onSuccess?.invoke()
+                            } else {
+                                Toast.warning(
+                                    message = itemState1.msgError ?: "Delete action failed ...",
+                                )
+                                onFail?.invoke(itemState1)
+                            }
+                            itemState1
+                        }
+                    }
+                )
+                modal.show()
+            } else {
+                itemState.toast()
+                onFail?.invoke(itemState)
+            }
+            itemState
+        }
     }
 
     fun installUpdate() {

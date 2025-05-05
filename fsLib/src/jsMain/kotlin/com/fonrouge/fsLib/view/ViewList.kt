@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.common.confirmDeleteView
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.config.ConfigViewList
 import com.fonrouge.fsLib.lib.iconCrud
@@ -20,6 +19,7 @@ import com.fonrouge.fsLib.tabulator.TabulatorViewList
 import com.fonrouge.fsLib.tabulator.menuItem
 import com.fonrouge.fsLib.view.KVWebManager.configViewItemMap
 import io.kvision.core.Container
+import io.kvision.i18n.I18n.gettext
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator
@@ -145,7 +145,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         buildColumnDefinitionDeleteItem(visible = visible) { _, cell ->
             cell.item?.let { item ->
                 configViewItem()?.let { configViewItem ->
-                    configViewItem.commonContainer.confirmDeleteView(
+                    confirmDeleteView(
                         apiItemFun = configViewItem.apiItemFun,
                         item = item
                     )
@@ -178,7 +178,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         apiItemFun: Function<ItemState<T>>,
     ): ColumnDefinition<T> = buildColumnDefinitionDeleteItem(visible = visible) { _, cell ->
         cell.item?.let { item ->
-            configView.commonContainer.confirmDeleteView(
+            confirmDeleteView(
                 apiItemFun = apiItemFun,
                 item = item,
                 onSuccess = { dataUpdate() }
@@ -260,7 +260,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         val callBlock = {
             if (crudTask == CrudTask.Delete) {
                 item?.let {
-                    configViewItem.commonContainer.confirmDeleteView(
+                    confirmDeleteView(
                         apiItemFun = configViewItem.apiItemFun,
                         item = item,
                         apiFilter = apiFilter
@@ -309,7 +309,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             menuItem(separator = true)
             if (showDefaultContextRowMenu()) {
                 menuItem(
-                    label = "Detail of",
+                    label = gettext("Detail of"),
                     icon = iconCrud(CrudTask.Read),
                     action = { _, _ ->
                         goActionUrl(CrudTask.Read, item)
@@ -319,21 +319,21 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             if (editable() && showDefaultContextRowMenu()) {
                 menuItem(separator = true)
                 menuItem(
-                    label = "Create",
+                    label = gettext("Create"),
                     icon = iconCrud(CrudTask.Create),
                     action = { _, _ ->
                         goActionUrl(CrudTask.Create, item)
                     }
                 )
                 menuItem(
-                    label = "Update",
+                    label = gettext("Update"),
                     icon = iconCrud(CrudTask.Update),
                     action = { _, _ ->
                         goActionUrl(CrudTask.Update, item)
                     }
                 )
                 menuItem(
-                    label = "Delete",
+                    label = gettext("Delete"),
                     icon = iconCrud(CrudTask.Delete),
                     action = { _, _ ->
                         goActionUrl(CrudTask.Delete, item)
@@ -410,7 +410,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     open fun NavbarTabulator.navBarOptions() {}
 
     /**
-     * allows to process javascript array arrived from backend
+     * allows processing JavaScript array arrived from the backend
      */
     open fun onReceivingData(data: dynamic) {}
 

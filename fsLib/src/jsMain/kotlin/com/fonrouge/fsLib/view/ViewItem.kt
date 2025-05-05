@@ -2,7 +2,6 @@ package com.fonrouge.fsLib.view
 
 import com.fonrouge.fsLib.common.ICommonContainer
 import com.fonrouge.fsLib.common.callItemService
-import com.fonrouge.fsLib.common.confirmDeleteView
 import com.fonrouge.fsLib.common.getItemState
 import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.layout.centeredMessage
@@ -414,7 +413,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 crudTask?.let { crudAction ->
                     if (crudAction == CrudTask.Delete) {
                         item?.let { item ->
-                            configView.commonContainer.confirmDeleteView(
+                            confirmDeleteView(
                                 apiItemFun = configView.apiItemFun,
                                 item = item,
                                 apiFilter = apiFilter

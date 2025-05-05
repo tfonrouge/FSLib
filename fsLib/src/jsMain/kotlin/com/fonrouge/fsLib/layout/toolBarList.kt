@@ -12,6 +12,8 @@ import io.kvision.core.disableTooltip
 import io.kvision.core.enableTooltip
 import io.kvision.dropdown.ddLink
 import io.kvision.dropdown.dropDown
+import io.kvision.i18n.I18n.gettext
+import io.kvision.i18n.I18n.tr
 import io.kvision.navbar.NavbarExpand
 import io.kvision.navbar.nav
 import io.kvision.navbar.navLink
@@ -60,7 +62,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                             show()
                             enableTooltip(
                                 TooltipOptions(
-                                    title = "Detail of " + configViewItem.commonContainer.labelId(
+                                    title = "${gettext("Detail of")} " + configViewItem.commonContainer.labelId(
                                         item
                                     ),
                                     animation = true,
@@ -76,13 +78,13 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             viewList.configViewItem()?.let { configViewItem ->
                 if (viewList.editable()) {
                     dropDown(
-                        text = "Edit",
+                        text = tr("Edit"),
                         icon = "far fa-file",
                         forNavbar = true,
                         arrowVisible = false
                     ) {
                         ddLink(
-                            label = "Create",
+                            label = tr("Create"),
                             icon = iconCrud(CrudTask.Create),
                         ) {
                             onClick {
@@ -98,7 +100,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                             )
                         }
                         ddLink(
-                            label = "Update",
+                            label = tr("Update"),
                             icon = iconCrud(CrudTask.Update)
                         ) {
                             onClick {
@@ -124,7 +126,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                             }
                         }
                         ddLink(
-                            label = "Delete",
+                            label = tr("Delete"),
                             icon = iconCrud(CrudTask.Delete)
                         ) {
                             hide()
