@@ -9,7 +9,7 @@ import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
-import io.kvision.i18n.I18n.tr
+import io.kvision.i18n.gettext
 import io.kvision.modal.Confirm
 import io.kvision.modal.ModalSize
 import io.kvision.toast.Toast
@@ -92,7 +92,7 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
             if (itemState.hasError.not()) {
                 val numSelectedRows = if (this is ViewList<*, *, *, *, *>)
                     tabulator?.getSelectedRows()?.size ?: 0 else null
-                val deleteWord = tr("Delete")
+                val deleteWord = gettext("Delete")
                 val text = if (numSelectedRows != null && numSelectedRows > 0) {
                     "<b>$deleteWord</b> $numSelectedRows selected '<i>${configView.commonContainer.labelItem}</i>', id: <b>${
                         configView.commonContainer.labelId(item)
