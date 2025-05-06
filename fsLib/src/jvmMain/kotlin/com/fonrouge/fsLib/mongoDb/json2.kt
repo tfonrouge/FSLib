@@ -10,7 +10,12 @@ import org.litote.kmongo.json
  * It is useful for reformatting JSON data containing MongoDB-style date fields.
  */
 val Any.json2: String
-    get() = this.json.replace(
-        regex = "\\{\\s*\"\\\$date\"\\s*:\\s*\"([^\"]+)\"\\s*}".toRegex(),
-        replacement = "ISODate(\"\$1\")"
-    )
+    get() = this.json
+        .replace(
+            regex = "\\{\\s*\"\\\$date\"\\s*:\\s*\"([^\"]+)\"\\s*}".toRegex(),
+            replacement = "ISODate(\"$1\")"
+        )
+        .replace(
+            regex = "\\{\\s*\"\\\$oid\"\\s*:\\s*\"([^\"]+)\"\\s*}".toRegex(),
+            replacement = "ObjectId(\"$1\")"
+        )

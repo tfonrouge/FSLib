@@ -14,16 +14,15 @@ import io.kvision.modal.Confirm
 import io.kvision.modal.ModalSize
 import io.kvision.toast.Toast
 import kotlinx.browser.window
-import kotlinx.coroutines.launch
 import kotlin.js.Date
 
 /**
  * An abstract class `ViewDataContainer` which extends from the `View`. This class is designed
  * to manage the configuration and periodic update of a view container.
  *
- * @param CC The type of the common container, must extend from `ICommonContainer`.
- * @param T The type of the data item, must extend from `BaseDoc`.
- * @param ID The type of the ID of data item, which must be a non-nullable type.
+ * @param CC The type of the common container must extend from `ICommonContainer`.
+ * @param T The type of the data item must extend from `BaseDoc`.
+ * @param ID The type out of the ID of a data item, which must be a non-nullable type.
  * @param FILT The type of the API filter used for querying, must extend `IApiFilter`.
  * @property configViewContainer The configuration object for the view container.
  */
@@ -143,24 +142,22 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
         }
     }
 
+    fun runPeriodicBlock() {
+        try {
+//            console.warn("dataUpdateFuncs", dataUpdateFuncs.map { it.key }.toObj())
+            dataUpdateFuncs.forEach {
+//                console.warn("callBlock", it.key, it.value.toString().substringBefore("("))
+                it.value.invoke()
+            }
+        } catch (e: Exception) {
+            console.error("Error on runPeriodicBlock(): ", e)
+        }
+    }
+
     fun installUpdate() {
 //        console.warn("installUpdate", this.hashCode(), this::class.simpleName, periodicUpdateDataView)
         onPeriodicDataUpdate?.let {
             dataUpdateFuncs[this.hashCode() to (this::class.simpleName ?: "?")] = it
-        }
-
-        fun runPeriodicBlock() = {
-            try {
-                AppScope.launch {
-//                    console.warn("dataUpdateFuncs", dataUpdateFuncs.map { it.key }.toObj())
-                    dataUpdateFuncs.forEach {
-//                        console.warn("callBlock", it.key, it.value.toString().substringBefore("("))
-                        launch { it.value.invoke() }
-                    }
-                }
-            } catch (e: Exception) {
-                console.error("Error on interval =", e)
-            }
         }
         if (handleInterval == null && periodicUpdateDataView == true) {
             var lock = false
@@ -184,7 +181,7 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
     }
 
     /**
-     * open function that allows to override the default action when the [apiFilterObservable] observable changes.
+     * Open function that allows to override the default action when the [apiFilterObservable] observable changes.
      * The default action will do an [updateBanner] and then an [dataUpdate]
      */
     override fun onApiFilterChange() {
