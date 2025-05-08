@@ -14,9 +14,8 @@ import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.*
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
-import io.kvision.tabulator.*
+import io.kvision.tabulator.TableType
 import io.kvision.tabulator.js.Tabulator.RowComponent
-import io.kvision.utils.obj
 import io.kvision.utils.px
 import io.kvision.utils.vh
 import kotlinx.browser.window
@@ -26,95 +25,21 @@ import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 
 /**
- * Configures and returns a default `TabulatorOptions` instance based on the provided parameters and sensible defaults.
+ * Configures and enhances a `TabulatorViewList` for a given `ViewList` of items.
+ * Sets up additional interactions, styles, and behaviors for displaying and managing items in a tabular view.
  *
- * @param tabulatorOptions The initial `TabulatorOptions` object to be configured.
- * @param viewList The `ViewList` object used for deriving additional configurations, such as column definitions and defaults.
- * @return A configured `TabulatorOptions` instance with default values applied wherever the input options are null or not specified.
- */
-fun <T : BaseDoc<*>> defaultTabulatorOptions(
-    tabulatorOptions: TabulatorOptions<T>,
-    viewList: ViewList<*, T, *, *, *>
-): TabulatorOptions<T> {
-    val index = tabulatorOptions.index ?: "_id"
-    val autoResize = tabulatorOptions.autoResize != false
-    val columns = tabulatorOptions.columns ?: viewList.columnDefinitionList()
-    val columnDefaults = tabulatorOptions.columnDefaults ?: viewList.columnDefaults
-    val dataLoader = tabulatorOptions.dataLoader == true
-    val filterMode = tabulatorOptions.filterMode ?: FilterMode.REMOTE
-    val height = tabulatorOptions.height ?: "calc(100vh - 35vh)"
-    val layout = tabulatorOptions.layout ?: Layout.FITDATAFILL
-    val layoutColumnsOnNewData = tabulatorOptions.layoutColumnsOnNewData != false
-    val pagination = tabulatorOptions.pagination != false
-    val paginationCounter = tabulatorOptions.paginationCounter ?: "rows"
-    val paginationMode = tabulatorOptions.paginationMode ?: PaginationMode.REMOTE
-    val paginationSize = tabulatorOptions.paginationSize ?: 100
-    val paginationSizeSelector = tabulatorOptions.paginationSizeSelector ?: arrayOf(10, 20, 50, 100, 200, 500)
-    val persistence = true
-    val persistenceID = tabulatorOptions.persistenceID ?: viewList::class.simpleName
-    val rowContextMenu = tabulatorOptions.rowContextMenu ?: { viewList.contextRowMenuGenerator() }
-    val selectableRows = tabulatorOptions.selectableRows
-    val rowHeader = if (selectableRows == true || selectableRows is Number) {
-        obj {
-            headerSort = false
-            resizable = false
-            frozen = true
-            headerHozAlign = "center"
-            hozAlign = "center"
-            vertAlign = "middle"
-            formatter = "rowSelection"
-            titleFormatter = "rowSelection"
-            cellClick = fun(e: dynamic, cell: dynamic) {
-                cell.getRow().toggleSelect()
-            }
-        }
-    } else null
-    val sortMode = tabulatorOptions.sortMode ?: SortMode.REMOTE
-    return tabulatorOptions.copy(
-        index = index,
-        autoResize = autoResize,
-        columns = columns,
-        columnDefaults = columnDefaults,
-        dataLoader = dataLoader,
-        filterMode = filterMode,
-        height = height,
-        layout = layout,
-        layoutColumnsOnNewData = layoutColumnsOnNewData,
-        movableColumns = true,
-        pagination = pagination,
-        paginationCounter = paginationCounter,
-        paginationMode = paginationMode,
-        paginationSize = paginationSize,
-        paginationSizeSelector = paginationSizeSelector,
-        persistence = persistence,
-        persistenceID = persistenceID,
-        rowContextMenu = rowContextMenu,
-        rowHeader = rowHeader,
-        selectableRows = selectableRows,
-        sortMode = sortMode,
-    )
-}
-
-/**
- * Configures a Tabulator table for the given [ViewList] and integrates it into a container.
- *
- * @param CC The type of the common container implementing [ICommonContainer].
- * @param T The type of the document extending [BaseDoc].
- * @param ID The type of the ID used for the document.
- * @param FILT The type of the API filter implementing [IApiFilter].
- * @param MID The type of the master ID used in the API filter.
- * @param viewList The [ViewList] object containing the data and configurations required to set up the Tabulator.
- * @param options Optional parameter for specifying additional [TabulatorOptions] for the table.
- * @param types Optional parameter defining the [TableType] styles to be applied, such as STRIPED, BORDERED, HOVER, SMALL.
- * @param minToolbarSize If true, renders a compact toolbar size; defaults to true.
- * @param init Optional lambda function for additional initialization of the [TabulatorViewList].
- * @return An updated [ViewList] instance with the configured Tabulator table and its associated settings.
+ * @param viewList The view list containing the items to be managed in the Tabulator view.
+ * @param masterViewItem The optional master view item providing context for the Tabulator view.
+ * @param types A set of table styles to be applied to the Tabulator, such as striped, bordered, hover, and small.
+ * @param minToolbarSize Indicates whether the toolbar should be minimized.
+ * @param editable An optional lambda to determine if the table is editable.
+ * @param init An optional initializer lambda to customize the behaviors and configurations of the `TabulatorViewList`.
+ * @return The configured `ViewList` with the Tabulator and options applied.
  */
 @OptIn(InternalSerializationApi::class)
 inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
     viewList: ViewList<CC, T, ID, FILT, MID>,
     masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
-    options: TabulatorOptions<T> = TabulatorOptions(),
     types: Set<TableType> = setOf(
         TableType.STRIPED,
         TableType.BORDERED,
@@ -130,7 +55,6 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
         viewList.crudTask = it.crudTask
     }
     editable?.let { viewList.editable = it }
-    val tabulatorOptions = defaultTabulatorOptions(options, viewList)
     val apiListBlock: () -> ApiList<FILT> = {
         val urlParams =
             if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
@@ -155,7 +79,6 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                     apiListBlock = apiListBlock,
                     apiListSerialize = apiListSerialize,
                     serializer = T::class.serializer(),
-                    options = tabulatorOptions,
                     types = types,
                 ) {
                     id = viewList::class.simpleName

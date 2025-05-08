@@ -12,7 +12,6 @@ import io.kvision.core.Container
 import io.kvision.core.KVScope
 import io.kvision.tabulator.TableType
 import io.kvision.tabulator.Tabulator
-import io.kvision.tabulator.TabulatorOptions
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.utils.Serialization
@@ -54,7 +53,6 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
     val viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListSerialize: (ApiList<FILT>) -> String?,
-    options: TabulatorOptions<T>,
     types: Set<TableType>,
     className: String?,
     kClass: KClass<T>?,
@@ -63,7 +61,7 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
 ) : Tabulator<T>(
     data = null,
     dataUpdateOnEdit = false,
-    options = options,
+    options = viewList.defaultTabulatorOptions(),
     types = types,
     className = className,
     kClass = kClass,
@@ -306,7 +304,6 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
     viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     noinline apiListBlock: (() -> ApiList<FILT>),
     noinline apiListSerialize: (ApiList<FILT>) -> String?,
-    options: TabulatorOptions<T>,
     types: Set<TableType> = setOf(),
     className: String? = null,
     serializer: KSerializer<T>? = null,
@@ -318,7 +315,6 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
             viewList = viewList,
             apiListBlock = apiListBlock,
             apiListSerialize = apiListSerialize,
-            options = options,
             types = types,
             className = className,
             kClass = T::class,

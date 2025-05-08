@@ -24,6 +24,7 @@ import io.kvision.state.ObservableValue
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator
 import io.kvision.toast.Toast
+import io.kvision.utils.obj
 import kotlinx.browser.window
 
 /**
@@ -359,6 +360,83 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 tabulator?.apiCall()
             }
         }
+    }
+
+    /**
+     * Generates the default configuration options for the Tabulator component.
+     *
+     * This method defines and prepares the standard settings applied to a Tabulator table view,
+     * including pagination, filtering, layout, column configurations, and other basic behaviors.
+     * These options are designed to provide a functional and consistent data table experience
+     * out of the box while allowing further customization if needed.
+     *
+     * The returned options consist of, but are not limited to:
+     * - Default column definitions.
+     * - Pagination settings and remote configuration.
+     * - Data loading behavior.
+     * - Layout settings such as automatic column sizing.
+     * - Context menu and row selection options.
+     * - Sorting and filtering modes.
+     *
+     * @return A `TabulatorOptions<T>` object encapsulating default settings for the Tabulator component.
+     */
+    open fun defaultTabulatorOptions(): TabulatorOptions<T> {
+        val columnDefaults: ColumnDefinition<T>? = this.columnDefaults
+        val columns: List<ColumnDefinition<T>>? = columnDefinitionList()
+        val dataLoader: Boolean? = true
+        val filterMode: FilterMode? = FilterMode.REMOTE
+        val height: String? = "calc(100vh - 35vh)"
+        val index: String? = "_id"
+        val layout: Layout? = Layout.FITDATAFILL
+        val layoutColumnsOnNewData: Boolean? = true
+        val movableColumns: Boolean? = true
+        val pagination: Boolean? = true
+        val paginationCounter: dynamic = "rows"
+        val paginationMode: PaginationMode? = PaginationMode.REMOTE
+        val paginationSize: Int? = 100
+        val paginationSizeSelector: dynamic = arrayOf(10, 20, 50, 100, 200, 500)
+        val persistence: dynamic = true
+        val persistenceID: String? = this::class.simpleName
+        val rowContextMenu: dynamic = { contextRowMenuGenerator() }
+        val selectableRows: dynamic = null
+        val rowHeader: dynamic = if (selectableRows == true || (selectableRows is Number && selectableRows > 1)) {
+            obj {
+                headerSort = false
+                resizable = false
+                frozen = true
+                headerHozAlign = "center"
+                hozAlign = "center"
+                vertAlign = "middle"
+                formatter = "rowSelection"
+                titleFormatter = "rowSelection"
+                cellClick = fun(e: dynamic, cell: dynamic) {
+                    cell.getRow().toggleSelect()
+                }
+            }
+        } else null
+        val sortMode: SortMode? = SortMode.REMOTE
+        return TabulatorOptions(
+            columnDefaults = columnDefaults,
+            columns = columns,
+            dataLoader = dataLoader,
+            filterMode = filterMode,
+            height = height,
+            index = index,
+            layout = layout,
+            layoutColumnsOnNewData = layoutColumnsOnNewData,
+            movableColumns = movableColumns,
+            pagination = pagination,
+            paginationCounter = paginationCounter,
+            paginationMode = paginationMode,
+            paginationSize = paginationSize,
+            paginationSizeSelector = paginationSizeSelector,
+            persistence = persistence,
+            persistenceID = persistenceID,
+            selectableRows = selectableRows,
+            rowContextMenu = rowContextMenu,
+            rowHeader = rowHeader,
+            sortMode = sortMode,
+        )
     }
 
     /**
