@@ -299,7 +299,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             addBeforeDisposeHook {
                 onBeforeDispose()
             }
-            apiFilterInit()
+            apiFilterInit()?.let { apiFilter = it }
             onBeforeDisplayPage(this@startDisplayPage)
             this@startDisplayPage.displayPage()
             bind(apiFilterObservable) {
@@ -319,14 +319,15 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open fun onAfterDisplayPage() {}
 
     /**
-     * Initializes the API filter to its default state or configuration.
+     * Initializes and returns the default or custom API filter for the view.
      *
-     * This method is intended to set up the API filter properties and prepare
-     * it for further operations such as filtering data or updating the view
-     * based on the API filter state. It is typically overridden in subclasses
-     * to customize the initialization logic.
+     * This method can be overridden in subclasses to provide a specific implementation
+     * for initializing an API filter. The returned filter is typically used
+     * to constrain or define the scope of API requests.
+     *
+     * @return The initialized API filter of type FILT, or null if no filter is specified.
      */
-    open fun apiFilterInit() {}
+    open fun apiFilterInit(): FILT? = null
 
     /**
      * This method is called when there is an update to the API filter.
