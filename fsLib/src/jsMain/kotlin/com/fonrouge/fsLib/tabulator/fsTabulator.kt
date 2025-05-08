@@ -61,6 +61,7 @@ fun <T : BaseDoc<*>> defaultTabulatorOptions(
             frozen = true
             headerHozAlign = "center"
             hozAlign = "center"
+            vertAlign = "middle"
             formatter = "rowSelection"
             titleFormatter = "rowSelection"
             cellClick = fun(e: dynamic, cell: dynamic) {
