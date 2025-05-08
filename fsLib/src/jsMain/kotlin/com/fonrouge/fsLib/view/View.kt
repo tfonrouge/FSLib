@@ -9,6 +9,7 @@ import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.view.KVWebManager.frontEndAppName
 import io.kvision.core.*
 import io.kvision.html.*
 import io.kvision.navbar.nav
@@ -20,6 +21,7 @@ import io.kvision.state.bind
 import io.kvision.utils.em
 import io.kvision.utils.px
 import kotlinx.coroutines.launch
+import web.dom.document
 
 /**
  * Represents an abstract base class for creating views with configurable display elements.
@@ -462,6 +464,17 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     fun updateBanner() {
         pageBannerUpdateObservable.value++
+    }
+
+    /**
+     * Updates the document's title to match the current value of the `label` property.
+     *
+     * This method sets the `document.title` to the current value of the `label` field,
+     * which serves as the label or title associated with the view. It is typically used
+     * to ensure the browser's title reflects the current view's context or purpose.
+     */
+    fun updateTitle() {
+        document.title = "$frontEndAppName - $label"
     }
 
     /**

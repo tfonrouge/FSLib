@@ -82,6 +82,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     console.warn("itemObservable.subscribe:", item)
                 }
                 formPanel.setData(item)
+                if (mainView) updateTitle()
                 onChangeItemObservable(it)
             }
         }
@@ -520,7 +521,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * UI rendering or internal debugging processes.
      */
     override val label: String
-        get() = "${configView.label}: ${configView.commonContainer.labelId(item)}"
+        get() = configView.commonContainer.labelItemId(item)
 
     /**
      * Encodes the given ID into a JSON string representation using the specified serializer.

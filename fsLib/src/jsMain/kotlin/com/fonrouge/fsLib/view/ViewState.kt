@@ -28,6 +28,7 @@ class ViewState(
 fun Container.showView(viewState: ViewState) {
     val view = viewState.configView.newViewInstance(viewState.urlParams)
     view.apply {
+        view.updateTitle()
         startDisplayPage(mainView = true)
     }
 }
