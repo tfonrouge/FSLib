@@ -25,7 +25,10 @@ import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator
 import io.kvision.toast.Toast
 import io.kvision.utils.obj
+import kotlinx.browser.document
+import kotlinx.browser.localStorage
 import kotlinx.browser.window
+import org.w3c.dom.events.Event
 
 /**
  * Abstract class representing a list view with various properties and methods to manage and display collections of data items.
@@ -72,11 +75,123 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         return _configViewItem
     }
 
+    /**
+     * Builds a context menu for the column header in a Tabulator table.
+     * The menu options include hiding a column, showing hidden columns,
+     * and resetting the column layout to default. This context menu
+     * enhances the interactivity of the table for the end user.
+     *
+     * @param event The event object associated with opening the context menu.
+     * @param columnComponent The column component for which the context menu is being built.
+     * @return An array representing the menu items available in the context menu.
+     */
+    private fun buildColumnHeaderContextMenu(event: Event, columnComponent: Tabulator.ColumnComponent): Array<Any> {
+        fun resetColumns() {
+            val persistenceID =
+                tabulator?.jsTabulator?.options?.persistenceID?.let { "tabulator-$it" } ?: "tabulator"
+            localStorage.removeItem("$persistenceID-columns")
+            window.location.reload()
+        }
+
+        fun hiddenColumns(): Array<Any>? {
+            val x: List<Any>? = tabulator?.jsTabulator?.getColumns(false)?.filter {
+                !it.isVisible()
+            }?.map { columnComponent ->
+                val responsiveHiddenColumns =
+                    (this@ViewList.tabulator?.jsTabulator?.modules?.asDynamic()?.responsiveLayout?.hiddenColumns as Array<Tabulator.ColumnComponent>).map {
+                        it.getField()
+                    }
+                obj {
+                    this.label = columnComponent.getDefinition().title
+                    this.action = { e: Event, c: Tabulator.ColumnComponent ->
+                        e.stopPropagation()
+                        if (columnComponent.isVisible()) {
+                            columnComponent.hide()
+                        } else if (responsiveHiddenColumns.contains(c.getField())) {
+                            columnComponent.show()
+                            columnComponent.hide()
+                        } else {
+                            columnComponent.show()
+                        }
+                        this@ViewList.tabulator?.jsTabulator?.redraw(true)
+                    }
+                }
+            }
+            return x?.toTypedArray()
+        }
+
+        val menuHiddenColumns = hiddenColumns()
+        val icon = document.createElement("i").apply {
+            classList.add("far", "fa-eye-slash")
+        }
+        val label = document.createElement("span")
+        val title = document.createElement("span")
+        title.textContent = " " + gettext("Hide Column") + ": "
+        title.appendChild(
+            document.createElement("div").also {
+                it.innerHTML = "<b>" + columnComponent.getDefinition().title + "</b>"
+            })
+        label.appendChild(icon)
+        label.appendChild(title)
+        val menu = mutableListOf<Any>()
+        menu.add(
+            obj {
+                this.label = label
+                action = fun(event: Event, column: Tabulator.ColumnComponent) {
+                    column.hide()
+                    tabulator?.jsTabulator?.redraw(true)
+                }
+            },
+        )
+        menu.add(
+            obj {
+                separator = true
+            }
+        )
+        if (menuHiddenColumns.isNullOrEmpty().not()) {
+            menu.add(
+                obj {
+                    val label = document.createElement("span")
+                    val title = document.createElement("span")
+                    val icon = document.createElement("i").apply {
+                        classList.add("fas", "fa-table-columns")
+                    }
+                    title.textContent = " " + gettext("Hidden columns  ->")
+                    label.appendChild(icon)
+                    label.appendChild(title)
+                    this.label = label
+                    this.menu = menuHiddenColumns
+                }
+            )
+        }
+        menu.add(
+            obj {
+                val icon = document.createElement("i")
+                icon.classList.add("fas")
+                icon.classList.add("fa-rotate")
+                val label = document.createElement("span")
+                val title = document.createElement("span")
+                title.textContent = " " + gettext("Reset Columns")
+                label.appendChild(icon)
+                label.appendChild(title)
+                this.label = label
+                this.action = { e: Event ->
+                    e.stopPropagation()
+                    resetColumns()
+                }
+            }
+
+        )
+        return menu.toTypedArray()
+    }
+
     open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(
         title = "",
         headerTooltip = true,
         headerSort = false,
-        tooltip = true
+        tooltip = true,
+        headerContextMenu = fun(event: Event, columnComponent: Tabulator.ColumnComponent): Array<Any> =
+            buildColumnHeaderContextMenu(event, columnComponent)
     )
 
     val errorStateObs = ObservableValue(false)
@@ -98,13 +213,6 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     /* dynamic content only used to get _id */
     var overItem: Any? = null
-
-    open val rowSelectedColumn: ColumnDefinition<T> = ColumnDefinition(
-        title = "<i class=\"fa-regular fa-square\"></i>",
-        field = "__rowSelected",
-        hozAlign = Align.CENTER,
-        formatter = Formatter.ROWSELECTION
-    )
 
     /**
      * Determines whether the default context menu for a row should be displayed.
