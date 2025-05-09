@@ -152,7 +152,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     val icon = document.createElement("i").apply {
                         classList.add("fas", "fa-table-columns")
                     }
-                    title.textContent = " " + gettext("Hidden columns") + " ->"
+                    title.textContent = " " + gettext("Hidden columns") + " ⇾"
                     label.appendChild(icon)
                     label.appendChild(title)
                     this.label = label
