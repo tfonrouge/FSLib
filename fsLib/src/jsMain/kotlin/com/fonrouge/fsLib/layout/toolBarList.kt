@@ -166,8 +166,8 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                     viewList.dataUpdate()
                 }
             }
-            navLink(if (minToolbarSize) "" else "Reset columns", icon = "fas fa-rotate") {
-                enableTooltip(TooltipOptions("Reset columns", animation = true, delay = delay))
+            navLink(if (minToolbarSize) "" else gettext("Reset columns"), icon = "fas fa-rotate") {
+                enableTooltip(TooltipOptions(gettext("Reset columns"), animation = true, delay = delay))
                 onClick {
                     viewList.resetColumns()
                 }
