@@ -12,6 +12,7 @@ import io.kvision.core.Container
 import io.kvision.core.KVScope
 import io.kvision.tabulator.TableType
 import io.kvision.tabulator.Tabulator
+import io.kvision.tabulator.TabulatorOptions
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.utils.Serialization
@@ -53,6 +54,7 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
     val viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListSerialize: (ApiList<FILT>) -> String?,
+    tabulatorOptions: TabulatorOptions<T>,
     types: Set<TableType>,
     className: String?,
     kClass: KClass<T>?,
@@ -61,7 +63,7 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
 ) : Tabulator<T>(
     data = null,
     dataUpdateOnEdit = false,
-    options = viewList.defaultTabulatorOptions(),
+    options = tabulatorOptions,
     types = types,
     className = className,
     kClass = kClass,
@@ -292,7 +294,7 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
  * @param viewList The view list object that provides the container and its data-related logic.
  * @param apiListBlock A lambda function that generates the API list used for querying the data.
  * @param apiListSerialize A lambda function that serializes the API list into a string format for transmission.
- * @param options The configuration options for the Tabulator table.
+ * @param tabulatorOptions The configuration options for the Tabulator table.
  * @param types A set of table types that define specific table features or behaviors. Defaults to an empty set.
  * @param className An optional class name applied to the Tabulator container for styling or other purposes. Defaults to null.
  * @param serializer An optional serializer used for serializing/deserializing instances of type T. Defaults to null.
@@ -304,6 +306,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
     viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
     noinline apiListBlock: (() -> ApiList<FILT>),
     noinline apiListSerialize: (ApiList<FILT>) -> String?,
+    tabulatorOptions: TabulatorOptions<T> = viewList.defaultTabulatorOptions(),
     types: Set<TableType> = setOf(),
     className: String? = null,
     serializer: KSerializer<T>? = null,
@@ -315,6 +318,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
             viewList = viewList,
             apiListBlock = apiListBlock,
             apiListSerialize = apiListSerialize,
+            tabulatorOptions = tabulatorOptions,
             types = types,
             className = className,
             kClass = T::class,

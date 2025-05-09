@@ -500,43 +500,61 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
-     * Generates the default configuration options for the Tabulator component.
+     * Creates default Tabulator options for initializing a Tabulator table configuration.
      *
-     * This method defines and prepares the standard settings applied to a Tabulator table view,
-     * including pagination, filtering, layout, column configurations, and other basic behaviors.
-     * These options are designed to provide a functional and consistent data table experience
-     * out of the box while allowing further customization if needed.
-     *
-     * The returned options consist of, but are not limited to:
-     * - Default column definitions.
-     * - Pagination settings and remote configuration.
-     * - Data loading behavior.
-     * - Layout settings such as automatic column sizing.
-     * - Context menu and row selection options.
-     * - Sorting and filtering modes.
-     *
-     * @return A `TabulatorOptions<T>` object encapsulating default settings for the Tabulator component.
+     * @param columnDefaults Default column settings to be applied. Defaults to `columnDefaults()`.
+     * @param columns List of column definitions. Defaults to `columnDefinitionList()`.
+     * @param dataLoader Enables or disables the data loader. Defaults to `true`.
+     * @param dataTree Enables or disables data tree view. Defaults to `null`.
+     * @param dataTreeChildIndent Indentation for child rows in the data tree. Defaults to `null`.
+     * @param dataTreeCollapseElement Custom element used when a tree node is collapsed. Defaults to `null`.
+     * @param dataTreeExpandElement Custom element used when a tree node is expanded. Defaults to `null`.
+     * @param dataTreeStartExpanded Function to determine default expanded state for tree nodes. Defaults to `null`.
+     * @param filterMode Mode for applying filters, either `REMOTE` or `LOCAL`. Defaults to `FilterMode.REMOTE`.
+     * @param height Height of the Tabulator table. Defaults to `"calc(100vh - 35vh)"`.
+     * @param index Field name for the row index. Defaults to `"_id"`.
+     * @param layout Layout mode for table columns. Defaults to `Layout.FITDATAFILL`.
+     * @param layoutColumnsOnNewData Re-layout columns when new data is loaded. Defaults to `true`.
+     * @param movableColumns Enables or disables column reordering. Defaults to `true`.
+     * @param pagination Enables or disables pagination. Defaults to `true`.
+     * @param paginationCounter Defines the pagination counter behavior, e.g., "rows". Defaults to `"rows"`.
+     * @param paginationMode Mode for pagination, either `REMOTE` or `LOCAL`. Defaults to `PaginationMode.REMOTE`.
+     * @param paginationSize Number of rows per page. Defaults to `100`.
+     * @param paginationSizeSelector Options for selecting page sizes. Defaults to `arrayOf(10, 20, 50, 100, 200, 500)`.
+     * @param persistence Enables or disables state persistence for the table. Defaults to `true`.
+     * @param persistenceID Unique identifier for state persistence. Defaults to the `simpleName` of the class.
+     * @param rowContextMenu Context menu configuration for table rows. Defaults to the result of `contextRowMenuGenerator()`.
+     * @param selectableRows Enables selection of rows. Defaults to `null`.
+     * @param rowHeader Configures settings for the row header column, if enabled, such as selection controls. Defaults to `null` or specific configuration based on `selectableRows
+     * `.
+     * @param sortMode Mode for sorting, either `REMOTE` or `LOCAL`. Defaults to `SortMode.REMOTE`.
+     * @return A configured instance of `TabulatorOptions` with the specified or default settings.
      */
-    open fun defaultTabulatorOptions(): TabulatorOptions<T> {
-        val columnDefaults: ColumnDefinition<T>? = this.columnDefaults()
-        val columns: List<ColumnDefinition<T>>? = columnDefinitionList()
-        val dataLoader: Boolean? = true
-        val filterMode: FilterMode? = FilterMode.REMOTE
-        val height: String? = "calc(100vh - 35vh)"
-        val index: String? = "_id"
-        val layout: Layout? = Layout.FITDATAFILL
-        val layoutColumnsOnNewData: Boolean? = true
-        val movableColumns: Boolean? = true
-        val pagination: Boolean? = true
-        val paginationCounter: dynamic = "rows"
-        val paginationMode: PaginationMode? = PaginationMode.REMOTE
-        val paginationSize: Int? = 100
-        val paginationSizeSelector: dynamic = arrayOf(10, 20, 50, 100, 200, 500)
-        val persistence: dynamic = true
-        val persistenceID: String? = this::class.simpleName
-        val rowContextMenu: dynamic = { contextRowMenuGenerator() }
-        val selectableRows: dynamic = null
-        val rowHeader: dynamic = if (selectableRows == true || (selectableRows is Number && selectableRows > 1)) {
+    fun defaultTabulatorOptions(
+        columnDefaults: ColumnDefinition<T>? = this.columnDefaults(),
+        columns: List<ColumnDefinition<T>>? = columnDefinitionList(),
+        dataLoader: Boolean? = true,
+        dataTree: Boolean? = null,
+        dataTreeChildIndent: Number? = null,
+        dataTreeCollapseElement: dynamic = null,
+        dataTreeExpandElement: dynamic = null,
+        dataTreeStartExpanded: ((row: Tabulator.RowComponent, level: Number) -> Boolean)? = null,
+        filterMode: FilterMode? = FilterMode.REMOTE,
+        height: String? = "calc(100vh - 35vh)",
+        index: String? = "_id",
+        layout: Layout? = Layout.FITDATAFILL,
+        layoutColumnsOnNewData: Boolean? = true,
+        movableColumns: Boolean? = true,
+        pagination: Boolean? = true,
+        paginationCounter: dynamic = "rows",
+        paginationMode: PaginationMode? = PaginationMode.REMOTE,
+        paginationSize: Int? = 100,
+        paginationSizeSelector: dynamic = arrayOf(10, 20, 50, 100, 200, 500),
+        persistence: dynamic = true,
+        persistenceID: String? = this::class.simpleName,
+        rowContextMenu: dynamic = { contextRowMenuGenerator() },
+        selectableRows: dynamic = null,
+        rowHeader: dynamic = if (selectableRows == true || (selectableRows is Number && selectableRows > 1)) {
             obj {
                 headerSort = false
                 resizable = false
@@ -550,14 +568,20 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     cell.getRow().toggleSelect()
                 }
             }
-        } else null
-        val sortMode: SortMode? = SortMode.REMOTE
+        } else null,
+        sortMode: SortMode? = SortMode.REMOTE,
+    ): TabulatorOptions<T> {
         return TabulatorOptions(
             columnDefaults = columnDefaults,
             columns = columns,
             dataLoader = dataLoader,
             dataLoaderError = "ups error ...",
             dataLoaderLoading = "un momento ...",
+            dataTree = dataTree,
+            dataTreeChildIndent = dataTreeChildIndent,
+            dataTreeCollapseElement = dataTreeCollapseElement,
+            dataTreeExpandElement = dataTreeExpandElement,
+            dataTreeStartExpanded = dataTreeStartExpanded,
             filterMode = filterMode,
             height = height,
             index = index,

@@ -15,6 +15,7 @@ import io.kvision.core.*
 import io.kvision.panel.vPanel
 import io.kvision.state.bind
 import io.kvision.tabulator.TableType
+import io.kvision.tabulator.TabulatorOptions
 import io.kvision.tabulator.js.Tabulator.RowComponent
 import io.kvision.utils.px
 import io.kvision.utils.vh
@@ -40,6 +41,7 @@ import org.w3c.dom.events.Event
 inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
     viewList: ViewList<CC, T, ID, FILT, MID>,
     masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
+    tabulatorOptions: TabulatorOptions<T> = viewList.defaultTabulatorOptions(),
     types: Set<TableType> = setOf(
         TableType.STRIPED,
         TableType.BORDERED,
@@ -79,6 +81,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                     apiListBlock = apiListBlock,
                     apiListSerialize = apiListSerialize,
                     serializer = T::class.serializer(),
+                    tabulatorOptions = tabulatorOptions,
                     types = types,
                 ) {
                     id = viewList::class.simpleName
