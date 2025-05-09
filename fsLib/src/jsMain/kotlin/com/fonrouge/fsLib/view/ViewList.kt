@@ -101,22 +101,27 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     (this@ViewList.tabulator?.jsTabulator?.modules?.asDynamic()?.responsiveLayout?.hiddenColumns as Array<Tabulator.ColumnComponent>).map {
                         it.getField()
                     }
-                obj {
-                    this.label = columnComponent.getDefinition().title
-                    this.action = { e: Event, c: Tabulator.ColumnComponent ->
-                        e.stopPropagation()
-                        if (columnComponent.isVisible()) {
-                            columnComponent.hide()
-                        } else if (responsiveHiddenColumns.contains(c.getField())) {
-                            columnComponent.show()
-                            columnComponent.hide()
-                        } else {
-                            columnComponent.show()
+                listOf(
+                    obj {
+                        this.label = columnComponent.getDefinition().title
+                        this.action = { e: Event, c: Tabulator.ColumnComponent ->
+                            e.stopPropagation()
+                            if (columnComponent.isVisible()) {
+                                columnComponent.hide()
+                            } else if (responsiveHiddenColumns.contains(c.getField())) {
+                                columnComponent.show()
+                                columnComponent.hide()
+                            } else {
+                                columnComponent.show()
+                            }
+                            this@ViewList.tabulator?.jsTabulator?.redraw(true)
                         }
-                        this@ViewList.tabulator?.jsTabulator?.redraw(true)
+                    },
+                    obj {
+                        separator = true
                     }
-                }
-            }
+                )
+            }?.flatten()
             return x?.toTypedArray()
         }
 
@@ -152,7 +157,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     val icon = document.createElement("i").apply {
                         classList.add("fas", "fa-table-columns")
                     }
-                    title.textContent = " " + gettext("Hidden columns") + " ⇾"
+                    title.textContent = " ${gettext("Hidden columns")} (${menuHiddenColumns.size / 2}) ⇾ "
                     label.appendChild(icon)
                     label.appendChild(title)
                     this.label = label
@@ -167,7 +172,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 icon.classList.add("fa-rotate")
                 val label = document.createElement("span")
                 val title = document.createElement("span")
-                title.textContent = " " + gettext("Reset columns")
+                title.textContent = " ${gettext("Reset columns")}"
                 label.appendChild(icon)
                 label.appendChild(title)
                 this.label = label
