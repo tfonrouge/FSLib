@@ -197,14 +197,32 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         return menu.toTypedArray()
     }
 
-    open val columnDefaults: ColumnDefinition<T>? = ColumnDefinition(
-        title = "",
-        headerTooltip = true,
-        headerSort = false,
-        tooltip = true,
-        headerContextMenu = fun(event: Event, columnComponent: Tabulator.ColumnComponent): Array<Any> =
-            buildColumnHeaderContextMenu(event, columnComponent)
-    )
+    /**
+     * Provides the default column definition for a Tabulator table in the `ViewList` class.
+     *
+     * This property defines a base configuration for a table column, including behaviors such as tooltip,
+     * whether the header tooltip is displayed, sorting enabled on the header, and the context menu for
+     * the column header. The context menu allows users to modify column visibility and reset column layouts.
+     *
+     * The default values for the column configuration are as follows:
+     * - Title: An empty string, indicating no default title.
+     * - Header tooltip: Enabled by default.
+     * - Header sort: Disabled by default.
+     * - Tooltip for cells: Enabled by default.
+     * - Header context menu: Builds a menu for column operations using the `buildColumnHeaderContextMenu` method.
+     *
+     * This property serves as a template for consistent column behaviors across the table, with customization
+     * available for specific columns via additional configuration.
+     */
+    open val columnDefaults: ColumnDefinition<T>?
+        get() = ColumnDefinition(
+            title = "",
+            headerTooltip = true,
+            headerSort = false,
+            tooltip = true,
+            headerContextMenu = fun(event: Event, columnComponent: Tabulator.ColumnComponent): Array<Any> =
+                buildColumnHeaderContextMenu(event, columnComponent)
+        )
 
     val errorStateObs = ObservableValue(false)
     var errorMessage: String? = null
