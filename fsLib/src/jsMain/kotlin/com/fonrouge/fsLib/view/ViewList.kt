@@ -126,7 +126,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
         val label = document.createElement("span")
         val title = document.createElement("span")
-        title.textContent = " " + gettext("Hide Column") + ": "
+        title.textContent = " " + gettext("Hide column") + ": "
         title.appendChild(
             document.createElement("div").also {
                 it.innerHTML = "<b>" + columnComponent.getDefinition().title + "</b>"
@@ -156,7 +156,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     val icon = document.createElement("i").apply {
                         classList.add("fas", "fa-table-columns")
                     }
-                    title.textContent = " " + gettext("Hidden columns  ->")
+                    title.textContent = " " + gettext("Hidden columns") + " ->"
                     label.appendChild(icon)
                     label.appendChild(title)
                     this.label = label
@@ -171,7 +171,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 icon.classList.add("fa-rotate")
                 val label = document.createElement("span")
                 val title = document.createElement("span")
-                title.textContent = " " + gettext("Reset Columns")
+                title.textContent = " " + gettext("Reset columns")
                 label.appendChild(icon)
                 label.appendChild(title)
                 this.label = label
