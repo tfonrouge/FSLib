@@ -76,6 +76,24 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
+     * Resets the persisted column layout settings for a Tabulator table and reloads the page.
+     *
+     * This method removes the saved column configuration from the browser's local storage for the
+     * current Tabulator instance. It is useful when restoring the table to its default column layout
+     * after a user has made customizations. After clearing the persisted configuration, the page
+     * is reloaded to apply the default settings.
+     *
+     * Automatically uses the Tabulator's `persistenceID` for identifying and removing the corresponding
+     * local storage entry. If no `persistenceID` is available, a default identifier is used.
+     */
+    fun resetColumns() {
+        val persistenceID =
+            tabulator?.jsTabulator?.options?.persistenceID?.let { "tabulator-$it" } ?: "tabulator"
+        localStorage.removeItem("$persistenceID-columns")
+        window.location.reload()
+    }
+
+    /**
      * Builds a context menu for the column header in a Tabulator table.
      * The menu options include hiding a column, showing hidden columns,
      * and resetting the column layout to default. This context menu
@@ -86,13 +104,6 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @return An array representing the menu items available in the context menu.
      */
     private fun buildColumnHeaderContextMenu(event: Event, columnComponent: Tabulator.ColumnComponent): Array<Any> {
-        fun resetColumns() {
-            val persistenceID =
-                tabulator?.jsTabulator?.options?.persistenceID?.let { "tabulator-$it" } ?: "tabulator"
-            localStorage.removeItem("$persistenceID-columns")
-            window.location.reload()
-        }
-
         fun hiddenColumns(): Array<Any>? {
             val x: List<Any>? = tabulator?.jsTabulator?.getColumns(false)?.filter {
                 !it.isVisible()

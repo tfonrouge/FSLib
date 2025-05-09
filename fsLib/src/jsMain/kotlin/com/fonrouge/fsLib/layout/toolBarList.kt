@@ -160,17 +160,29 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             navBarOptions()
         }
         nav(rightAlign = true) {
-            navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo").onClick {
-                viewList.dataUpdate()
+            navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo") {
+                enableTooltip(TooltipOptions("Refresh table", animation = true, delay = delay))
+                onClick {
+                    viewList.dataUpdate()
+                }
             }
-            navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print").onClick {
-                viewList.outPrint()
+            navLink(if (minToolbarSize) "" else "Reset columns", icon = "fas fa-rotate") {
+                enableTooltip(TooltipOptions("Reset columns", animation = true, delay = delay))
+                onClick {
+                    viewList.resetColumns()
+                }
             }
-            navLink(
-                label = if (minToolbarSize) "" else "Export",
-                icon = "fas fa-file-export"
-            ).onClick {
-                viewList.outToFile()
+            navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print") {
+                enableTooltip(TooltipOptions("Print table", animation = true, delay = delay))
+                onClick {
+                    viewList.outPrint()
+                }
+            }
+            navLink(label = if (minToolbarSize) "" else "Export", icon = "fas fa-file-export") {
+                enableTooltip(TooltipOptions("Export table", animation = true, delay = delay))
+                onClick {
+                    viewList.outToFile()
+                }
             }
         }
     }
