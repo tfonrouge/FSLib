@@ -126,11 +126,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
         val label = document.createElement("span")
         val title = document.createElement("span")
-        title.textContent = " " + gettext("Hide column") + ": "
-        title.appendChild(
-            document.createElement("div").also {
-                it.innerHTML = "<b>" + columnComponent.getDefinition().title + "</b>"
-            })
+        title.innerHTML = " ${gettext("Hide column")} ⇾ '<b>${columnComponent.getDefinition().title}</b>'"
         label.appendChild(icon)
         label.appendChild(title)
         val menu = mutableListOf<Any>()
