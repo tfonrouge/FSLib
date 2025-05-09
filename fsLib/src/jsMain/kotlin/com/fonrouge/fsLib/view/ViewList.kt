@@ -200,7 +200,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     /**
      * Provides the default column definition for a Tabulator table in the `ViewList` class.
      *
-     * This property defines a base configuration for a table column, including behaviors such as tooltip,
+     * This function defines a base configuration for a table column, including behaviors such as tooltip,
      * whether the header tooltip is displayed, sorting enabled on the header, and the context menu for
      * the column header. The context menu allows users to modify column visibility and reset column layouts.
      *
@@ -214,15 +214,14 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * This property serves as a template for consistent column behaviors across the table, with customization
      * available for specific columns via additional configuration.
      */
-    open val columnDefaults: ColumnDefinition<T>?
-        get() = ColumnDefinition(
-            title = "",
-            headerTooltip = true,
-            headerSort = false,
-            tooltip = true,
-            headerContextMenu = fun(event: Event, columnComponent: Tabulator.ColumnComponent): Array<Any> =
-                buildColumnHeaderContextMenu(event, columnComponent)
-        )
+    open fun columnDefaults(): ColumnDefinition<T>? = ColumnDefinition(
+        title = "",
+        headerTooltip = true,
+        headerSort = false,
+        tooltip = true,
+        headerContextMenu = fun(event: Event, columnComponent: Tabulator.ColumnComponent): Array<Any> =
+            buildColumnHeaderContextMenu(event, columnComponent)
+    )
 
     val errorStateObs = ObservableValue(false)
     var errorMessage: String? = null
@@ -519,7 +518,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @return A `TabulatorOptions<T>` object encapsulating default settings for the Tabulator component.
      */
     open fun defaultTabulatorOptions(): TabulatorOptions<T> {
-        val columnDefaults: ColumnDefinition<T>? = this.columnDefaults
+        val columnDefaults: ColumnDefinition<T>? = this.columnDefaults()
         val columns: List<ColumnDefinition<T>>? = columnDefinitionList()
         val dataLoader: Boolean? = true
         val filterMode: FilterMode? = FilterMode.REMOTE
