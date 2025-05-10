@@ -1,0 +1,30 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: src/jsMain/kotlin/com/fonrouge/fsErsaPack/view/ViewItemProfitCalcDataHead.kt:32
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Parameters"
+msgstr "Parámetros"
+
+msgid "Detail of"
+msgstr "Detalle de"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Create"
+msgstr "Crear"
+
+msgid "Update"
+msgstr "Cambiar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Delete selection"
+msgstr "Eliminar selección"
