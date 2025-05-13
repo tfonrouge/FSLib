@@ -13,13 +13,13 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
-import com.fonrouge.fsLib.tabulator.NavbarTabulator
 import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
 import com.fonrouge.fsLib.tabulator.TabulatorViewList
 import com.fonrouge.fsLib.tabulator.menuItem
 import com.fonrouge.fsLib.view.KVWebManager.configViewItemMap
 import io.kvision.core.Container
 import io.kvision.i18n.I18n.gettext
+import io.kvision.navbar.Navbar
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.*
 import io.kvision.tabulator.js.Tabulator
@@ -237,7 +237,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     var selectedItemObs: ObservableValue<T?> = ObservableValue(null)
     var jsTabulatorBuilt: Boolean = false
     var menuOpenedState: Boolean? = null
-    var navbarTabulator: NavbarTabulator? = null
+    var navbarTabulator: Navbar? = null
     var onDataLoadedTabulator: ((List<T>) -> Unit)? = null
 
     /* dynamic content only used to get _id */
@@ -648,7 +648,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     override val label: String get() = configView.commonContainer.labelList
 
-    open fun NavbarTabulator.navBarOptions() {}
+    open fun Navbar.navBarOptions() {}
 
     /**
      * allows processing JavaScript array arrived from the backend

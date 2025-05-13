@@ -3,8 +3,6 @@ package com.fonrouge.fsLib.layout
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.tabulator.NavbarTabulator
-import com.fonrouge.fsLib.tabulator.navbarTabulator
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
@@ -14,24 +12,25 @@ import io.kvision.dropdown.ddLink
 import io.kvision.dropdown.dropDown
 import io.kvision.i18n.I18n.gettext
 import io.kvision.i18n.I18n.tr
-import io.kvision.navbar.NavbarExpand
-import io.kvision.navbar.nav
-import io.kvision.navbar.navLink
+import io.kvision.navbar.*
 import io.kvision.state.bind
 
 /**
- * Generates a toolbar navigation list for a given `ViewList` and integrates it into a container's navigation bar.
+ * Creates and returns a toolbar `Navbar` with actions and controls bound to the provided `ViewList`.
  *
- * @param viewList The `ViewList` instance containing configuration, actions, and state for generating the toolbar.
- * @param minToolbarSize A flag indicating whether to minimize the toolbar size. Defaults to true.
- * @return A `NavbarTabulator` instance containing the configured toolbar navigation.
+ * @param T The type of the data items used in the `ViewList`. Must extend `BaseDoc`.
+ * @param ID The type of the identifier for the data items. Must match the `_id` property type in `BaseDoc`.
+ * @param viewList The `ViewList` instance containing data items and their configurations.
+ * @param minToolbarSize Determines if the toolbar should use compact labels or full labels for its actions.
+ *                       If true, labels are minimized, otherwise full labels are displayed.
+ * @return The constructed `Navbar` containing the toolbar with the configured actions.
  */
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
     viewList: ViewList<*, T, ID, *, *>,
     minToolbarSize: Boolean = true,
-): NavbarTabulator {
+): Navbar {
     val delay = 300
-    return navbarTabulator(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
+    return navbar(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
         nav {
             if (viewList.hasOffCanvasFilterView) {
                 navLink(
