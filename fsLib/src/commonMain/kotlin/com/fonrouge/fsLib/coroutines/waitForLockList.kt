@@ -28,7 +28,7 @@ suspend fun <T, R> waitForLockList(
     releaseLock: Boolean = true,
     onLock: (suspend () -> R)
 ): R? {
-    val locked: Boolean = flow<Boolean> {
+    val locked: Boolean = flow {
         var counter = attempts
         while (lockList.contains(lockValue) && counter > 0) {
             --counter
