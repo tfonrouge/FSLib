@@ -1,8 +1,6 @@
 package com.fonrouge.fsLib.coroutines
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -32,25 +30,23 @@ suspend fun <T, R> waitForLockList(
     releaseLock: Boolean = true,
     onLock: (suspend () -> R)
 ): R? {
-    val locked: Boolean = flow {
-        var counter = attempts
-        mutex.withLock {
-            while (lockList.contains(lockValue) && counter > 0) {
-                --counter
-                if (attempts > 0) {
-                    println("waiting for lock release ... $counter attempts left")
-                    delay(delay.toLong())
-                }
-            }
-            if (counter == 0) {
-                emit(false)
-            } else {
-                lockList.add(lockValue)
-                emit(true)
+    var counter = attempts
+    return mutex.withLock {
+        while (lockList.contains(lockValue) && counter > 0) {
+            --counter
+            if (attempts > 0) {
+                println("waiting for lock release ... $counter attempts left")
+                delay(delay.toLong())
             }
         }
-    }.first()
-    return if (locked) onLock().also {
-        if (releaseLock) lockList.remove(lockValue)
-    } else null
+        if (counter > 0) {
+            lockList.add(lockValue)
+            val r = onLock()
+            lockList.remove(lockValue)
+            r
+        } else {
+            null
+        }
+    }
 }
+
