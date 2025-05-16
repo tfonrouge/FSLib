@@ -3,6 +3,10 @@ package com.fonrouge.fsLib.coroutines
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+private val mutex = Mutex()
 
 /**
  * Attempts to acquire a lock using a specified value in a collection, retrying if necessary
@@ -30,18 +34,20 @@ suspend fun <T, R> waitForLockList(
 ): R? {
     val locked: Boolean = flow {
         var counter = attempts
-        while (lockList.contains(lockValue) && counter > 0) {
-            --counter
-            if (attempts > 0) {
-                println("waiting for lock release ... $counter attempts left")
-                delay(delay.toLong())
+        mutex.withLock {
+            while (lockList.contains(lockValue) && counter > 0) {
+                --counter
+                if (attempts > 0) {
+                    println("waiting for lock release ... $counter attempts left")
+                    delay(delay.toLong())
+                }
             }
-        }
-        if (counter == 0) {
-            emit(false)
-        } else {
-            lockList.add(lockValue)
-            emit(true)
+            if (counter == 0) {
+                emit(false)
+            } else {
+                lockList.add(lockValue)
+                emit(true)
+            }
         }
     }.first()
     return if (locked) onLock().also {
