@@ -103,3 +103,25 @@ fun lookup(
     foreignField = foreignField.path(),
     newAs = resultField.path()
 )
+
+/**
+ * Creates a MongoDB aggregation lookup stage that joins documents from another collection into the current aggregation.
+ *
+ * @param from The name of the collection in the same database to perform the join with.
+ * @param let Optional list of variables that can be accessed during the pipeline execution.
+ * @param pipeline A list of aggregation stages applied to the documents being joined.
+ * @param resultField The property representing the field where the resulting array of matched documents will be stored.
+ * @return A BSON stage representing the lookup operation.
+ */
+@Suppress("UNCHECKED_CAST")
+fun lookup(
+    from: String,
+    let: List<Variable<out Any>>? = null,
+    pipeline: List<Bson>,
+    resultField: KProperty<Any?>,
+): Bson = Aggregates.lookup(
+    from,
+    let as? List<Variable<Any>>,
+    pipeline,
+    resultField.path()
+)
