@@ -73,9 +73,9 @@ fun Container.buttonMenu(
             onClick { menuOpen.value = menuOpen.value.not() }
             bind(menuOpen) {
                 if (it) {
-                    this.icon = "fas fa-caret-up"
-                } else {
                     this.icon = "fas fa-caret-down"
+                } else {
+                    this.icon = "fas fa-caret-up"
                 }
             }
         }
