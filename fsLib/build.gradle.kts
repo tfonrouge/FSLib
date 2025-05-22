@@ -84,6 +84,7 @@ kotlin {
             api(libs.ktor.server.compression)
             api(libs.ktor.server.core)
             api(libs.ktor.server.default.headers)
+            api(libs.ktor.server.forwarded.header)
             api(libs.ktor.server.netty)
             api(libs.ktor.server.sessions)
             api(libs.ktor.network.tls.certificates)
