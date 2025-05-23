@@ -16,7 +16,9 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
 import io.kvision.core.*
+import io.kvision.form.DateFormControl
 import io.kvision.form.FormPanel
+import io.kvision.form.KFilesFormControl
 import io.kvision.html.Button
 import io.kvision.html.ButtonStyle
 import io.kvision.html.button
@@ -27,9 +29,13 @@ import io.kvision.state.ObservableValue
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
+import io.kvision.types.KFile
+import io.kvision.types.toDateF
+import io.kvision.utils.Serialization
 import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
@@ -134,6 +140,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewItem
+
+    private var valueMap: Map<String, String?>? = null
 
     /**
      * Executes an "upsert" action (either update or insert) for the current item, using form validation,
@@ -344,6 +352,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             CrudTask.Create -> {
                 item?.let {
                     formPanel.setData(it)
+                } ?: valueMap?.let {
+                    formSetData(it)
                 }
             }
 
@@ -433,26 +443,32 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                             },
                             apiFilter = apiFilter
                         ) { itemResponse ->
-                            if (crudAction == CrudTask.Create && itemResponse.item != null && itemResponse.itemAlreadyOn) {
-                                crudTask = CrudTask.Update
-                                urlParams.params["action"] = CrudTask.Update.name
-                                itemResponse.item._id.let {
-                                    urlParams.params.set(
-                                        propertyName = "id",
-                                        value = Json.encodeToString(
-                                            configView.commonContainer.idSerializer,
-                                            it
-                                        )
-                                    )
-                                }
-                                @Suppress("UNUSED_VARIABLE")
-                                val url =
-                                    (configView.url + urlParams.toEncodedUrlString()).asDynamic()
+                            if (crudAction == CrudTask.Create) {
+                                if (itemResponse.item != null) {
+                                    if (itemResponse.itemAlreadyOn) {
+                                        crudTask = CrudTask.Update
+                                        urlParams.params["action"] = CrudTask.Update.name
+                                        itemResponse.item._id.let {
+                                            urlParams.params.set(
+                                                propertyName = "id",
+                                                value = Json.encodeToString(
+                                                    configView.commonContainer.idSerializer,
+                                                    it
+                                                )
+                                            )
+                                        }
+                                        @Suppress("UNUSED_VARIABLE")
+                                        val url =
+                                            (configView.url + urlParams.toEncodedUrlString()).asDynamic()
 
-                                @Suppress("UNUSED_VARIABLE")
-                                val stateObj =
-                                    "{${itemResponse::class.simpleName}: \"${itemResponse.item._id}\"}".asDynamic()
-                                js("""history.replaceState(stateObj,"createToUpdate",url)""")
+                                        @Suppress("UNUSED_VARIABLE")
+                                        val stateObj =
+                                            "{${itemResponse::class.simpleName}: \"${itemResponse.item._id}\"}".asDynamic()
+                                        js("""history.replaceState(stateObj,"createToUpdate",url)""")
+                                    }
+                                } else if (itemResponse.valueMap != null) {
+                                    valueMap = itemResponse.valueMap
+                                }
                             }
                             var alreadyBack = false
                             val toastOptions = ToastOptions(
@@ -586,6 +602,35 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 ) {
                     itemObservable.value = it.item
                 }
+            }
+        }
+    }
+
+    /**
+     * Populates form fields within the `formPanel` using data from the provided map.
+     * For each entry in the map, updates the corresponding form field with parsed data.
+     * Handles specific types of controls, such as `DateFormControl` and `KFilesFormControl`,
+     * using custom parsing and value setting logic.
+     *
+     * @param map A map where the key represents the form field identifier and the value is its serialized data.
+     *            Null values result in clearing the corresponding form field.
+     */
+    private fun formSetData(map: Map<String, String?>) {
+        map.forEach { entry ->
+            formPanel.form.fields[entry.key]?.let { formControl ->
+                entry.value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
+                    when (formControl) {
+                        is DateFormControl -> formControl.value = value.unsafeCast<String>().toDateF()
+                        is KFilesFormControl -> {
+                            formControl.value = Serialization.plain.decodeFromString(
+                                ListSerializer(KFile.serializer()),
+                                JSON.stringify(value)
+                            )
+                        }
+
+                        else -> formControl.setValue(value)
+                    }
+                } ?: formControl.setValue(null)
             }
         }
     }

@@ -4,44 +4,33 @@ import com.fonrouge.fsLib.offsetDateTimeNow
 import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
 import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /**
- * Represents the state of an item with additional information and status metadata.
+ * Represents the state of an item, including its current status, associated messages,
+ * and additional metadata such as timestamps and internal structure.
  *
- * This class encapsulates state information for a particular item, providing details such as:
- * - The item itself, which may be null.
- * - A flag to indicate whether the item is already present.
- * - A flag to indicate whether any data has been modified.
- * - The current state of the item, which defaults to `State.Ok` if the item is not null,
- *   or `State.Error` otherwise.
- * - Optional messages for success or error scenarios.
- * - Optional metadata or cargo associated with the item's state.
- * - A timestamp indicating when the state was created or last updated.
- * - A boolean property indicating whether the state represents an error.
- *
- * This class also provides several constructors for convenient initialization:
- * - From an existing simple state.
- * - With a warning message.
- * - With a boolean indicating success or failure, along with optional messages and cargo.
- *
- * Utility methods are available for converting to a `SimpleState` representation.
- *
- * @param T The type of the item this state represents.
- * @property item The item associated with this state, or null if not present.
- * @property itemAlreadyOn A flag indicating if the item is already active or present.
- * @property noDataModified An optional flag indicating if no data has been modified.
- * @property state The current state of the item, conforming to the `State` enum.
- * @property msgOk An optional success message.
- * @property msgError An optional error message.
- * @property dateTime A timestamp representing when this state was created or modified.
- * @property hasError A boolean indicating if the state represents an error condition.
+ * @param T The type of the item this state pertains to.
+ * @property item The item associated with this state. May be null if no item is applicable.
+ * @property itemAlreadyOn Indicates whether the item is already active or present.
+ * @property noDataModified Specifies whether any data has been modified. May be null if not applicable.
+ * @property valueMap A map containing key-value pairs of data associated with this state. Keys are property name strings,
+ * while values may be nullable strings with serialized values.
+ * @property state The current state of this item, represented using the [State] enum. Defaults to `State.Ok`
+ * if an item exists or `valueMap` is not empty. Otherwise, it defaults to `State.Error`.
+ * @property msgOk An optional message indicating a successful state. Defaults to `MSG_OK`.
+ * @property msgError An optional message describing an error state. Defaults to `MSG_ERROR` if the state
+ * is not `State.Ok`, otherwise null.
+ * @property dateTime The timestamp when this state was defined or last modified.
+ * @property hasError A boolean indicating whether the current state represents an error.
  */
 @Serializable
 data class ItemState<T>(
     val item: T? = null,
     val itemAlreadyOn: Boolean = false,
     val noDataModified: Boolean? = null,
-    override val state: State = if (item != null) State.Ok else State.Error,
+    val valueMap: Map<String, String?>? = null,
+    override val state: State = if (item != null || valueMap.isNullOrEmpty().not()) State.Ok else State.Error,
     override val msgOk: String? = MSG_OK,
     override val msgError: String? = if (state != State.Ok) MSG_ERROR else null,
 ) : ISimpleState {
@@ -106,3 +95,10 @@ data class ItemState<T>(
      */
     val asSimpleState get() = SimpleState(this)
 }
+
+/**
+ * Serializes the calling object into its JSON string representation.
+ *
+ * @return The JSON string representation of the object.
+ */
+inline fun <reified T : Any> T.serialize(): String = Json.encodeToString<T>(value = this)
