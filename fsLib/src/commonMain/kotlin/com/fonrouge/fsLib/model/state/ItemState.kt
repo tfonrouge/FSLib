@@ -4,7 +4,6 @@ import com.fonrouge.fsLib.offsetDateTimeNow
 import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
 import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 /**
  * Represents the state of an item, including its current status, associated messages,
@@ -95,11 +94,3 @@ data class ItemState<T>(
      */
     val asSimpleState get() = SimpleState(this)
 }
-
-/**
- * Serializes the calling object into its JSON string representation.
- *
- * @return The JSON string representation of the object.
- */
-@Suppress("unused")
-inline fun <reified T : Any> T.serialized(): String = Json.encodeToString<T>(value = this)
