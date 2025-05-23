@@ -101,4 +101,5 @@ data class ItemState<T>(
  *
  * @return The JSON string representation of the object.
  */
-inline fun <reified T : Any> T.serialize(): String = Json.encodeToString<T>(value = this)
+@Suppress("unused")
+inline fun <reified T : Any> T.serialized(): String = Json.encodeToString<T>(value = this)
