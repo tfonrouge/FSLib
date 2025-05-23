@@ -141,7 +141,16 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewItem
 
-    private var valueMap: Map<String, String?>? = null
+    /**
+     * A nullable map property that stores key-value pairs where keys are of type String and values are nullable Strings.
+     * It is used to manage and hold configuration or form field data within the class. The map can be null, and its contents
+     * are modifiable only within the owning class.
+     *
+     * This property is private for setting, ensuring controlled access and consistency when updating its data.
+     */
+    var valueMap: Map<String, String?>? = null
+        private set
+
 
     /**
      * Executes an "upsert" action (either update or insert) for the current item, using form validation,
@@ -415,7 +424,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * 2. For Create actions, the method checks if an item already exists and switches to an Update context if necessary.
      * 3. Encodes and decodes item IDs using defined serializers for URL interactions.
      */
-    override fun Container.displayPage() {
+    final override fun Container.displayPage() {
         vPanel(className = "showItem") {
             flexPanel(direction = FlexDirection.COLUMN, spacing = 10) {
                 if (!noPageBanner) {

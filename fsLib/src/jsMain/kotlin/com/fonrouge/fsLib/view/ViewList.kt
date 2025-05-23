@@ -618,7 +618,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     /**
      * the main display for the viewList, displays the [pageBanner] and the [buildOffCanvasFilterView] if any defined
      */
-    override fun Container.displayPage() {
+    final override fun Container.displayPage() {
         if (!noPageBanner) {
             pageBanner()
         }
