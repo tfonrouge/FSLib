@@ -629,13 +629,11 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             formPanel.form.fields[entry.key]?.let { formControl ->
                 entry.value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
                     when (formControl) {
-                        is DateFormControl -> formControl.value = value.unsafeCast<String>().toDateF()
-                        is KFilesFormControl -> {
-                            formControl.value = Serialization.plain.decodeFromString(
-                                ListSerializer(KFile.serializer()),
-                                JSON.stringify(value)
-                            )
-                        }
+                        is DateFormControl -> formControl.value = value.unsafeCast<String>().toDateF("isoDateTime")
+                        is KFilesFormControl -> formControl.value = Serialization.plain.decodeFromString(
+                            ListSerializer(KFile.serializer()),
+                            JSON.stringify(value)
+                        )
 
                         else -> formControl.setValue(value)
                     }
