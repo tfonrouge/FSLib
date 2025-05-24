@@ -23,7 +23,7 @@ import kotlin.reflect.KClass
 /**
  * Abstract class `IRoleInUserColl` that represents a collection of user roles.
  *
- * @param UR The type of the user role.
+ * @param RIU The type of the user role.
  * @param U The type of the user.
  * @param UID The type of the user ID.
  * @param GR The type of the group role.
@@ -33,13 +33,13 @@ import kotlin.reflect.KClass
  * @param userKClass The KClass instance representing the user type.
  */
 @Suppress("unused")
-abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID : Any, GR : IRoleInGroup<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
-    commonContainer: ICommonContainer<UR, OId<IRoleInUser<U, UID>>, FILT>,
+abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UID : Any, GR : IRoleInGroup<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
+    commonContainer: ICommonContainer<RIU, OId<IRoleInUser<U, UID>>, FILT>,
     internal val userKClass: KClass<U>,
-) : Coll<ICommonContainer<UR, OId<IRoleInUser<U, UID>>, FILT>, UR, OId<IRoleInUser<U, UID>>, FILT>(
+) : Coll<ICommonContainer<RIU, OId<IRoleInUser<U, UID>>, FILT>, RIU, OId<IRoleInUser<U, UID>>, FILT>(
     commonContainer = commonContainer
 ) {
-    override suspend fun CoroutineCollection<UR>.indexes() {
+    override suspend fun CoroutineCollection<RIU>.indexes() {
         coroutine.ensureUniqueIndex(
             IRoleInUser<U, UID>::userId, IRoleInUser<U, UID>::appRoleId
         )
@@ -172,13 +172,13 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
                 msgError = itemState.msgError ?: "App role doesn't exist"
             )
         }
-        val x: UR? = coroutine.find(
+        val roleInUser: RIU? = coroutine.find(
             filter = and(
                 IRoleInUser<U, UID>::userId eq user._id,
                 IRoleInUser<U, UID>::appRoleId eq appRole._id
             )
         ).first()
-        x?.let { it: UR ->
+        roleInUser?.let { it: RIU ->
             return when (roleType) {
                 RoleType.SingleAction -> when (it.permission) {
                     PermissionType.Allow -> buildSimpleState(BaseRolePermission.Allow, appRole, null)
@@ -203,8 +203,7 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
             }
         }
         return when (roleType) {
-            RoleType.SingleAction -> TODO()
-            RoleType.CrudTask -> buildSimpleState(
+            RoleType.SingleAction -> buildSimpleState(
                 baseRolePermission = getGroupPermission(
                     user = user,
                     appRole = appRole,
@@ -214,6 +213,15 @@ abstract class IRoleInUserColl<UR : IRoleInUser<U, UID>, U : IUser<out UID>, UID
                 crudTask = crudTask
             )
 
+            RoleType.CrudTask -> buildSimpleState(
+                baseRolePermission = getGroupPermission(
+                    user = user,
+                    appRole = appRole,
+                    crudTask = crudTask
+                ),
+                appRole = appRole,
+                crudTask = crudTask
+            )
         }
     }
 

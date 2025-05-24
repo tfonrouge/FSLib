@@ -553,7 +553,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         persistence: dynamic = true,
         persistenceID: String? = this::class.simpleName,
         rowContextMenu: dynamic = { contextRowMenuGenerator() },
-        selectableRows: dynamic = null,
+        selectableRows: dynamic = 1,
         rowHeader: dynamic = if (selectableRows is Number && selectableRows > 1) {
             obj {
                 headerSort = false
