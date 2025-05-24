@@ -155,7 +155,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     protected open suspend fun actionCreate(
         apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>
-    ): ItemState<T> = insertOne(apiItem)
+    ): ItemState<T> = insertOne(
+        apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
+    )
 
     /**
      * Executes an update action on the given API item and returns the updated item state.
@@ -165,7 +167,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     protected open suspend fun actionUpdate(
         apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
-    ): ItemState<T> = updateOne(apiItem)
+    ): ItemState<T> = updateOne(
+        apiItem.copy(
+            item = apiItem.item.copyItemWithPrimaryConstructorParameters(),
+            orig = apiItem.orig?.copyItemWithPrimaryConstructorParameters()
+        )
+    )
 
     /**
      * Executes the delete action for a specific item and returns the resulting state of the item.
@@ -968,14 +975,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
         onPermissionUpsertCreate(apiItem).also { if (it.hasError) return it.asItemState() }
-        var apiItem1 = apiItem.copy()
+        var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
         onBeforeUpsertAction(apiItem1).also { it ->
             if (it.hasError) return it
-            it.item?.let { apiItem1 = apiItem1.copy(item = it) }
+            it.item?.let { apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters()) }
         }
         onBeforeUpsertCreateAction(apiItem1).also { it ->
             if (it.hasError) return it
-            it.item?.let { apiItem1 = apiItem1.copy(item = it) }
+            it.item?.let { apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters()) }
         }
         var result: Boolean? = null
         return try {
@@ -1399,17 +1406,21 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         onBeforeUpsertAction(apiItem = apiItem).also { it ->
             if (it.hasError) return it
             it.item?.let {
-                apiItem = apiItem.copy(item = it)
+                apiItem = apiItem.copy(item = it.copyItemWithPrimaryConstructorParameters())
             }
         }
         onBeforeUpsertUpdateAction(apiItem = apiItem).also { it ->
             if (it.hasError) return it
             it.item?.let {
-                apiItem = apiItem.copy(item = it)
+                apiItem = apiItem.copy(item = it.copyItemWithPrimaryConstructorParameters())
             }
         }
         val result: UpdateResult = try {
             apiItem = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
+            if (apiItem.item.json == apiItem.orig?.json) return ItemState(
+                isOk = false,
+                msgError = "Update skipped - no changes detected in item"
+            )
             onValidate(apiItem, apiItem.item).also { if (it.hasError) return it.asItemState() }
             coroutine.updateOne(
                 filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
@@ -1482,22 +1493,26 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             apiItem = apiItem,
             item = apiItem.item
         ).also { if (it.hasError) return it.asItemState() }
-        var apiItem1 = apiItem.copy()
+        var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
         onBeforeUpsertAction(apiItem = apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let {
-                apiItem1 = apiItem1.copy(item = it)
+                apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters())
             }
         }
         onBeforeUpsertUpdateAction(apiItem = apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let {
-                apiItem1 = apiItem1.copy(item = it)
+                apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters())
             }
         }
         val filter1 = and(BaseDoc<ID>::_id eq apiItem1.item._id, filter ?: EMPTY_BSON)
         val updateResult = try {
             apiItem1 = apiItem1.copy(item = apiItem1.item.copyItemWithPrimaryConstructorParameters())
+            if (apiItem1.item.json == apiItem1.orig?.json) return ItemState(
+                isOk = false,
+                msgError = "Update skipped - no changes detected in item"
+            )
             onValidate(apiItem1, apiItem1.item).also { if (it.hasError) return it.asItemState() }
             mongoColl.coroutine.updateOne(
                 filter = filter1,
