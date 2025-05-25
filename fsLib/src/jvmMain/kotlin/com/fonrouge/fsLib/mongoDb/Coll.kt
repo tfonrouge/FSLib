@@ -326,6 +326,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
         countType: CountType = CountType.PreLookup,
+        resultUnit: ResultUnit,
         debug: Boolean = this.debug,
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
     ): AggregatePublisher<T> {
@@ -333,7 +334,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             apiFilter = apiFilter,
             apiRequestParams = apiRequestParams,
             lookupWrappers = lookupWrappers,
-            resultUnit = ResultUnit.List
+            resultUnit = resultUnit
         )
         apiRequestParams?.let {
             val pageCountInfo: PageCountInfo = when (countType) {
@@ -430,7 +431,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             debug = debug,
             pageStateInfoFun = {
                 pageCountInfo = it
-            }
+            },
+            resultUnit = ResultUnit.List,
         )
         val curTime = Date().time
         var t1: Long? = null
@@ -814,6 +816,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             filter = filter,
             lookupWrappers = lookupWrappers,
             apiFilter = apiFilter,
+            resultUnit = ResultUnit.List,
             debug = debug,
         ).toList()
     }
@@ -838,6 +841,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             filter = filter,
             lookupWrappers = lookupWrappers,
             apiFilter = apiFilter,
+            resultUnit = ResultUnit.Single,
             debug = debug,
         ).awaitFirstOrNull()
     }
@@ -856,12 +860,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
+        resultUnit: ResultUnit,
         debug: Boolean = false,
     ): AggregatePublisher<T> {
         return aggregateLookupPublisher(
             pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
             lookupWrappers = lookupWrappers,
             apiFilter = apiFilter,
+            resultUnit = resultUnit,
             debug = debug,
         )
     }
@@ -1015,14 +1021,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * or reshape document structure. An typical application is using a mongodb group stage or a projection of
      * resulting fields, or adding new calculated fields.
      *
-     * @param pipeline A mutable list of BSON objects representing the stages of the data pipeline.
-     * @param apiFilter An instance of the API filter parameter, used to apply filtering logic to the pipeline.
-     * @param apiRequestParams An optional set of parameters for the API request to further adjust the pipeline stages.
+     * @param pipeline The mutable list of BSON objects representing the pipeline that needs to be processed.
+     * @param apiFilter The filter instance to be applied during the morphing stage. Defaults to a common container's API filter instance.
+     * @param apiRequestParams The parameters of the API request used for modifying or adapting the pipeline.
+     * @param resultUnit The resulting unit specifying the output or transformation target of the morphing process.
      */
     open fun morphingStage(
         pipeline: MutableList<Bson>,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        apiRequestParams: ApiRequestParams?
+        apiRequestParams: ApiRequestParams?,
+        resultUnit: ResultUnit,
     ) {
     }
 
@@ -1191,7 +1199,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val pipeline: MutableList<Bson> = mutableListOf()
 
         // Execute pipeline transformations before any other pipeline stages
-        morphingStage(pipeline = pipeline, apiFilter = apiFilter, apiRequestParams = apiRequestParams)
+        morphingStage(
+            pipeline = pipeline,
+            apiFilter = apiFilter,
+            apiRequestParams = apiRequestParams,
+            resultUnit = resultUnit
+        )
 
         val bsonMatches: ApiRequestParams.MatchLists? = apiRequestParams?.bsonMatches(commonContainer)
         val bsonSorters: ApiRequestParams.SortLists? = apiRequestParams?.bsonSorters()
