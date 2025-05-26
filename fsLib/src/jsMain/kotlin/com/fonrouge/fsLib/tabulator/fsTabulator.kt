@@ -58,11 +58,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     }
     editable?.let { viewList.editable = it }
     val apiListBlock: () -> ApiList<FILT> = {
-        val urlParams =
-            if (viewList.masterViewItem != null) viewList.masterViewItem?.urlParams else viewList.urlParams
-        val apiList: ApiList<FILT> = ApiList(apiFilter = viewList.apiFilter)
-        apiList.params = JSON.stringify(urlParams?.params)
-        apiList
+        ApiList(apiFilter = viewList.apiFilter)
     }
 
     val apiListSerialize: (ApiList<FILT>) -> String = { apiList: ApiList<FILT> ->

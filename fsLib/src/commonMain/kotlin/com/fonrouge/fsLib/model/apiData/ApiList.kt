@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
  * @param tabFilter a list of filters to apply to the API items.
  * @param tabSorter a list of sorters to apply to the API items.
  * @param sorter a string representation of the sorter to apply.
- * @param params additional parameters for the API request.
  * @param contentHashCode a hash code representing the content for cache purposes.
  * @param apiFilter the filter criteria used for the API.
  */
@@ -23,7 +22,6 @@ data class ApiList<FILT : IApiFilter<*>>(
     var tabFilter: List<RemoteFilter>? = null,
     var tabSorter: List<RemoteSorter>? = null,
     var sorter: String? = null,
-    var params: String? = null,
     var contentHashCode: Int? = null,
     var apiFilter: FILT,
 )

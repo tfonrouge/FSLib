@@ -354,8 +354,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             pageStateInfoFun?.invoke(pageCountInfo)
             it.page?.let { page ->
                 it.pageSize?.let { pageSize ->
-                    (pageSize * (page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
-                    pipeline.add(limit(pageSize))
+                    if (pageSize > 0) {
+                        (pageSize * (page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
+                        pipeline.add(limit(pageSize))
+                    }
                 }
             }
         }
@@ -1618,7 +1620,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 CountType.Unknown -> null
             }
             count?.let {
-                lastPage = (count / pageSize + if (count.toInt() % pageSize > 0) 1 else 0).toInt()
+                if (pageSize > 0) {
+                    lastPage = (count / pageSize + if (count.toInt() % pageSize > 0) 1 else 0).toInt()
+                }
                 lastRow = it.toInt()
             }
         }
