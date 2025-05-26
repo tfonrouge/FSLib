@@ -10,6 +10,7 @@ import com.fonrouge.fsLib.view.ViewList
 import dev.kilua.rpc.*
 import io.kvision.core.Container
 import io.kvision.core.KVScope
+import io.kvision.tabulator.PaginationMode
 import io.kvision.tabulator.TableType
 import io.kvision.tabulator.Tabulator
 import io.kvision.tabulator.TabulatorOptions
@@ -63,7 +64,12 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
 ) : Tabulator<T>(
     data = null,
     dataUpdateOnEdit = false,
-    options = tabulatorOptions,
+    // TODO: Fix error when not using the following parameters when decoding api result in [TabulatorViewList.promise]
+    // which returns an object ("{}") instead of a list ("[]")
+    options = tabulatorOptions.copy(
+        pagination = true,
+        paginationMode = PaginationMode.REMOTE
+    ),
     types = types,
     className = className,
     kClass = kClass,
