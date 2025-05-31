@@ -12,6 +12,7 @@ import org.bson.conversions.Bson
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
 /**
@@ -39,13 +40,16 @@ data class ApiRequestParams(
      *         Returns null if the field is not found.
      */
     private fun findFieldType(kClass: KClass<*>, fieldName: String): Pair<KClassifier, Boolean>? {
-        val k = kClass.memberProperties
+        val properties = kClass.memberProperties
         return if (fieldName.contains('.')) {
-            k.firstOrNull { it.name == fieldName.substringBefore('.') }?.returnType?.classifier?.let {
-                findFieldType(it as KClass<*>, fieldName.substringAfter('.'))
-            }
+            val kproperty1 = properties.firstOrNull { it.name == fieldName.substringBefore('.') }
+            val classifier = kproperty1?.returnType?.classifier
+            val kClass: KClass<*> = classifier as? KClass<*> ?: return null
+            if (kClass.isSubclassOf(Collection::class)) {
+                Pair(String::class, kproperty1?.hasAnnotation<PreLookupField>() == true)
+            } else findFieldType(kClass, fieldName.substringAfter('.'))
         } else {
-            k.firstOrNull { it.name == fieldName }?.let { kProperty ->
+            properties.firstOrNull { it.name == fieldName }?.let { kProperty ->
                 kProperty.returnType.classifier?.let { classifier ->
                     Pair(classifier, kProperty.hasAnnotation<PreLookupField>())
                 }
