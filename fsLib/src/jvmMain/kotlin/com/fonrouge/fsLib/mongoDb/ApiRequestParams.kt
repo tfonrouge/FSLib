@@ -46,6 +46,7 @@ data class ApiRequestParams(
             val classifier = kproperty1?.returnType?.classifier
             val kClass: KClass<*> = classifier as? KClass<*> ?: return null
             if (kClass.isSubclassOf(Collection::class)) {
+                // TODO: solve collection element type, here String class is hardcoded
                 Pair(String::class, kproperty1?.hasAnnotation<PreLookupField>() == true)
             } else findFieldType(kClass, fieldName.substringAfter('.'))
         } else {
