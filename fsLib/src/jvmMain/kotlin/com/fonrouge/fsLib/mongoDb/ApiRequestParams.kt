@@ -47,7 +47,7 @@ data class ApiRequestParams(
             val kClass: KClass<*> = classifier as? KClass<*> ?: return null
             if (kClass.isSubclassOf(Collection::class)) {
                 // TODO: solve collection element type, here String class is hardcoded
-                Pair(String::class, kproperty1?.hasAnnotation<PreLookupField>() == true)
+                Pair(String::class, kproperty1.hasAnnotation<PreLookupField>())
             } else findFieldType(kClass, fieldName.substringAfter('.'))
         } else {
             properties.firstOrNull { it.name == fieldName }?.let { kProperty ->
@@ -74,7 +74,7 @@ data class ApiRequestParams(
                     fieldName = remoteFilter.field
                 ) ?: return@forEach
                 val value: BsonValue? = when (kClasiffier) {
-                    Array<String>::class, String::class, StringId::class, null -> {
+                    Array<String>::class, String::class, StringId::class -> {
                         when (remoteFilter.type) {
                             "like" -> BsonDocument(
                                 "\$regex",
