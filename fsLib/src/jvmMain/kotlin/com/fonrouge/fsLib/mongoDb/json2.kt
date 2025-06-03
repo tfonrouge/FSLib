@@ -19,3 +19,7 @@ val Any.json2: String
             regex = "\\{\\s*\"\\\$oid\"\\s*:\\s*\"([^\"]+)\"\\s*}".toRegex(),
             replacement = "ObjectId(\"$1\")"
         )
+        .replace(
+            regex = "\\{\\s*\"\\\$regularExpression\"\\s*:\\s*\\{\\s*\"pattern\"\\s*:\\s*\"([^\"]*)\"\\s*,\\s*\"options\"\\s*:\\s*\"([^\"]*)\"\\s*}\\s*}".toRegex(),
+            replacement = "RegExp(\"$1\", \"$2\")"
+        )
