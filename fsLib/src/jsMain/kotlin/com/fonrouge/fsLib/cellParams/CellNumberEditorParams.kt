@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.cellParams
 
-import js.objects.jso
+import js.objects.unsafeJso
 
 /**
  * Represents configuration parameters for a number editor in a table cell.
@@ -47,4 +47,4 @@ enum class VerticalNavigationNumber {
  * @return A `CellNumberEditorParams` object containing the customized configuration for the number editor.
  */
 @Suppress("unused")
-fun cellNumberEditorParams(block: CellNumberEditorParams.() -> Unit): CellNumberEditorParams = jso(block)
+fun cellNumberEditorParams(block: CellNumberEditorParams.() -> Unit): CellNumberEditorParams = unsafeJso(block)

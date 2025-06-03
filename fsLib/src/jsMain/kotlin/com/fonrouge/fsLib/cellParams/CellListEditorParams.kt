@@ -3,7 +3,7 @@
 package com.fonrouge.fsLib.cellParams
 
 import io.kvision.tabulator.js.Tabulator
-import js.objects.jso
+import js.objects.unsafeJso
 import kotlin.js.Json
 import kotlin.js.Promise
 
@@ -122,7 +122,7 @@ external interface ValueLabel {
  * `elementAttributes` (custom attributes for the UI element).
  * @return A configured `ValueObject` instance with the applied properties.
  */
-fun valueLabel(block: ValueLabel.() -> Unit): ValueLabel = jso(block)
+fun valueLabel(block: ValueLabel.() -> Unit): ValueLabel = unsafeJso(block)
 
 /**
  * Represents the possible range lookup values for rows in a table or data grid.
@@ -179,7 +179,7 @@ enum class Sort {
  * specified in the provided block.
  */
 fun cellListEditorParams(block: CellListEditorParams.() -> Unit): CellListEditorParams {
-    val result = jso(block)
+    val result = unsafeJso(block)
     result.valuesAsArray?.let { result.values = it }
     result.valuesAsObject?.let { result.values = it }
     result.valuesAsValueLabelArray?.let { result.values = it }

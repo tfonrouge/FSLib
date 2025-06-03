@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.cellParams
 
-import js.objects.jso
+import js.objects.unsafeJso
 
 /**
  * Represents the parameters required for formatting a cell with a progress indicator.
@@ -63,7 +63,7 @@ enum class LegendAlign {
  */
 @Suppress("unused")
 fun cellProgressFormatterParams(block: CellProgressFormatterParams.() -> Unit): CellProgressFormatterParams {
-    val r: CellProgressFormatterParams = jso(block)
+    val r: CellProgressFormatterParams = unsafeJso(block)
     r.colorAsString?.let { r.color = it }
     r.colorAsArray?.let { r.color = it }
     r.colorAsFun?.let { r.color = it }

@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.cellParams
 
 import io.kvision.tabulator.js.Tabulator
-import js.objects.jso
+import js.objects.unsafeJso
 
 /**
  * Represents the configuration parameters for the "link" formatter in a Tabulator table cell.
@@ -48,8 +48,9 @@ external interface CellLinkFormatterParams {
  * @param block A lambda function used to configure the `CellLinkFormatterParams` instance.
  * @return A configured instance of `CellLinkFormatterParams` with the applied customizations.
  */
+@Suppress("unused")
 fun cellLinkFormatterParams(block: CellLinkFormatterParams.() -> Unit): CellLinkFormatterParams {
-    val result = jso(block)
+    val result = unsafeJso(block)
     result.labelAsString?.let { result.label = it }
     result.labelAsFun?.let { result.label = it }
     result.urlAsString?.let { result.url = it }

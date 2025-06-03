@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.cellParams
 
-import js.objects.jso
+import js.objects.unsafeJso
 
 /**
  * Represents configuration parameters for a cell tick/cross formatter.
@@ -40,7 +40,7 @@ external interface CellTickCrossFormatterParams {
  */
 @Suppress("unused")
 fun cellTickCrossFormatterParams(block: CellTickCrossFormatterParams.() -> Unit): CellTickCrossFormatterParams {
-    val formatterParams: CellTickCrossFormatterParams = jso(block)
+    val formatterParams: CellTickCrossFormatterParams = unsafeJso(block)
     formatterParams.tickElementAsString?.let { formatterParams.tickElement = it }
     formatterParams.tickElementAsBoolean?.let { formatterParams.tickElement = it }
     formatterParams.crossElementAsString?.let { formatterParams.crossElement = it }

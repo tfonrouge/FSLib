@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.cellParams
 
-import js.objects.jso
+import js.objects.unsafeJso
 
 /**
  * Encapsulates configuration parameters for an input editor in a column definition.
@@ -35,4 +35,4 @@ external interface CellInputEditorParams {
  * @return A `dynamic` object representing the serialized JSON configuration for the input editor parameters.
  */
 @Suppress("unused")
-fun cellInputEditorParams(block: CellInputEditorParams.() -> Unit): CellInputEditorParams = jso(block)
+fun cellInputEditorParams(block: CellInputEditorParams.() -> Unit): CellInputEditorParams = unsafeJso(block)

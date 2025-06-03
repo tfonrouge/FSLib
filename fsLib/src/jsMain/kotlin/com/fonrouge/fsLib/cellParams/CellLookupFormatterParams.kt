@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.cellParams
 
 import io.kvision.tabulator.js.Tabulator
-import js.objects.jso
+import js.objects.unsafeJso
 import kotlin.js.Json
 import kotlin.js.json
 
@@ -34,7 +34,7 @@ fun cellLookupFormatterParamsAsFun(
     block: CellLookupFormatterParamsAsFun.(cell: Tabulator.CellComponent) -> Unit
 ): (Tabulator.CellComponent) -> Json {
     return {
-        val result = jso<CellLookupFormatterParamsAsFun>()
+        val result = unsafeJso<CellLookupFormatterParamsAsFun>()
         block(result, it)
         json(result.key to result.value)
     }
