@@ -16,13 +16,16 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
 /**
- * A data class representing the first stage in a pipeline,
- * used for operations involving paginated data and sorting/matching BSON documents.
+ * Represents a set of parameters for API requests, including pagination data, filters, and sorters.
  *
- * @property pageSize The number of items per page, can be null if not paginated.
- * @property page The current page number, can be null if not paginated.
- * @property remoteFilters An optional BSON document to match documents after a lookup operation.
- * @property remoteSorters An optional BSON document to sort documents before a lookup operation.
+ * This class is designed to construct efficient database queries by organizing filters and sorters
+ * into pre-main and post-main lookup categories. It also provides functionality to handle nested fields
+ * using dot notation and supports multiple data types for filtering and sorting.
+ *
+ * @property pageSize The number of items to be fetched per page. Defaults to null if not specified.
+ * @property page The current page number to fetch. Defaults to null if not specified.
+ * @property remoteFilters A list of filters used for querying data remotely. These filters are tied to field names and may define operators such as `like` or equality.
+ * @property remoteSorters A list of sorters used for sorting data remotely. These determine the sorting order (e.g., ascending or descending) based on field names.
  */
 data class ApiRequestParams(
     val pageSize: Int? = null,
