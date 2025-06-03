@@ -25,8 +25,8 @@ import kotlin.reflect.full.memberProperties
  * @property remoteSorters An optional BSON document to sort documents before a lookup operation.
  */
 data class ApiRequestParams(
-    val pageSize: Int?,
-    val page: Int?,
+    val pageSize: Int? = null,
+    val page: Int? = null,
     private val remoteFilters: List<RemoteFilter>? = null,
     private val remoteSorters: List<RemoteSorter>? = null,
 ) {

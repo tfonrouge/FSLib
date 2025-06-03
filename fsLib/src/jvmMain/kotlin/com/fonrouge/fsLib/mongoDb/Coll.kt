@@ -336,7 +336,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             lookupWrappers = lookupWrappers,
             resultUnit = resultUnit
         )
-        apiRequestParams?.let {
+        apiRequestParams?.let { requestParams ->
             val pageCountInfo: PageCountInfo = when (countType) {
                 CountType.PreLookup -> PageCountInfo(
                     match = matchStage(apiFilter),
@@ -352,12 +352,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 CountType.Unknown -> PageCountInfo(countType = countType)
             }
             pageStateInfoFun?.invoke(pageCountInfo)
-            it.page?.let { page ->
-                it.pageSize?.let { pageSize ->
-                    if (pageSize > 0) {
-                        (pageSize * (page - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
-                        pipeline.add(limit(pageSize))
-                    }
+            requestParams.pageSize?.let { pageSize ->
+                if (pageSize > 0) {
+                    (pageSize * ((requestParams.page ?: 1) - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
+                    pipeline.add(limit(pageSize))
                 }
             }
         }
