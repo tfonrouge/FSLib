@@ -748,7 +748,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         mongoCollection.coroutine.find(Document(fieldName, id)).first()?.let {
                             return ItemState(
                                 state = State.Error,
-                                msgError = "'${commonContainer.labelItem}' ${("tiene dependencias en")} '${dependency.common.labelList} -> $fieldName'"
+                                msgError = "'${commonContainer.labelItem}' ${("tiene dependencias en")} '${dependency.common.labelList}'"
                             )
                         }
                     }
