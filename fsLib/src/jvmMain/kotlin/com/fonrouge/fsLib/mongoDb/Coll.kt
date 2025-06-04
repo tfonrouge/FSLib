@@ -65,18 +65,25 @@ val KClass<out BaseDoc<*>>.collectionName: String
     }
 
 /**
- * Represents a collection class with functionality for handling CRUD operations, aggregation,
- * and processing of API elements, including lookup and list processing for data retrieval and manipulation.
+ * Represents a collection (Coll) with various functionalities to handle CRUD operations,
+ * aggregation pipelines, and API-based data processing. The class is designed to interact
+ * with a MongoDB collection, offering methods for item creation, updates, deletions,
+ * and complex list processing with filters, lookups, and debug features.
  *
- * @param commonContainer A common container object holding shared resources and utilities like filters or configuration.
- * @param debug A flag indicating whether debugging operations or logs should be enabled.
- * @param children A container or reference to child entities or subcollections tied to this collection.
- * @param coroutine A coroutine context or scope for managing asynchronous operations.
- * @param lookupFun A function or utility for performing lookup operations.
- * @param mongoDatabase The underlying MongoDB database instance associated with the collection.
- * @param mongoColl The MongoDB collection instance being operated on.
- * @param readOnly A flag indicating whether the collection operates in a read-only mode.
- * @param readOnlyErrorMsg A message to display or log when a read-only action is attempted on the collection.
+ * @param commonContainer A container instance holding shared configurations or dependencies.
+ * @param debug Flag indicating if debug mode is enabled for detailed logging.
+ * @param dependencies A list of dependent data structures and their relationships to this collection.
+ * Dependencies represent linked data structures that reference items in this collection through properties,
+ * allowing tracking of relationships between collections and prevention of orphaned references.
+ * Each dependency specifies the container holding the dependent items and the property that links to this collection.
+ * @param coroutine The coroutine context for executing asynchronous tasks.
+ * @param lookupFun A lookup function to be used in aggregation pipelines or data processing.
+ * @param mongoDatabase The MongoDB database instance associated with this collection.
+ * @param mongoColl The MongoDB collection instance being operated upon.
+ * @param objName The name of the object or collection represented by this instance.
+ * @param readOnly Flag to determine if the collection is read-only (no write operations allowed).
+ * @param resultFieldStack A stack for result field tracking or state management.
+ * @param readOnlyErrorMsg The error message to display when a write operation is attempted in a read-only mode.
  */
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
@@ -89,11 +96,28 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * A lambda function that, when invoked, returns a list of KProperty1 instances representing
-     * properties of type ID? within a subclass of BaseDoc. These properties are typically
-     * used to define relationships or associations within a document.
+     * Provides a list of dependencies that reference this collection.
+     * When a document is deleted, this list is used to check for any existing references
+     * to prevent orphaning data in dependent collections.
+     *
+     * @return A function that returns a list of [Dependency] objects describing the relationships
+     * between this collection and other collections that depend on its documents, or null if there
+     * are no dependencies
      */
-    open val children: (() -> List<KProperty1<out BaseDoc<*>, ID?>>)? = null
+    abstract val dependencies: (() -> List<Dependency<*, ID>>)?
+
+    /**
+     * Represents a dependency relationship between collections.
+     *
+     * @param T The type of document in the dependent collection that references this collection
+     * @param ID The type of the identifier used to reference items in this collection
+     * @param common The container managing the dependent collection's items
+     * @param property The property within the dependent document that references items in this collection
+     */
+    data class Dependency<T : BaseDoc<*>, ID : Any>(
+        val common: ICommonContainer<out T, *, *>,
+        val property: KProperty1<out T, ID?>
+    )
 
     /**
      * A coroutine-based collection instance derived from a MongoDB collection.
@@ -704,7 +728,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         val itemState = findItemStateById(id)
         if (itemState.hasError.not()) {
-            children?.invoke()?.forEach { kProperty1: KProperty1<out BaseDoc<*>, ID?> ->
+            dependencies?.invoke()?.forEach { dependency ->
+                val kProperty1: KProperty1<out BaseDoc<*>, ID?> = dependency.property
                 when (kProperty1) {
                     is FieldPath -> kProperty1.path to kProperty1.owner.collectionName
                     is PropertyReference1Impl -> {
@@ -723,7 +748,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         mongoCollection.coroutine.find(Document(fieldName, id)).first()?.let {
                             return ItemState(
                                 state = State.Error,
-                                msgError = "'${commonContainer.labelItem}' has children in '$collectionName.$fieldName'"
+                                msgError = "'${commonContainer.labelItem}' ${("tiene dependencias en")} '${dependency.common.labelList} -> $fieldName'"
                             )
                         }
                     }
