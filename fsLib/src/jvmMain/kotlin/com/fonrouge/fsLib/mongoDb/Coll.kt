@@ -299,7 +299,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         val itemState = findItemStateById(apiItem.id)
                         val item = itemState.item
                         if (itemState.hasError || item == null) return itemState
-                        findChildrenNot(apiItem.id).also { if (it.hasError) return it }
+                        findChildrenNot(item).also { if (it.hasError) return it }
                         onPermissionDelete(
                             apiItem = apiItem,
                             item = item
@@ -308,7 +308,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     }
 
                     is ApiItem.Delete.Action -> {
-                        findChildrenNot(apiItem.item._id).also { if (it.hasError) return it }
+                        findChildrenNot(apiItem.item).also { if (it.hasError) return it }
                         onPermissionDelete(
                             apiItem = apiItem,
                             item = apiItem.item
@@ -674,7 +674,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        findChildrenNot(apiItem.item._id).also { if (it.hasError) return it }
+        findChildrenNot(apiItem.item).also { if (it.hasError) return it }
         onPermissionDelete(apiItem = apiItem, item = apiItem.item).also { if (it.hasError) return it.asItemState() }
         onBeforeDeleteAction(apiItem = apiItem).also { if (it.hasError) return it }
         var result: Boolean? = null
@@ -724,9 +724,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findChildrenNot(
-        id: ID,
+        item: T,
     ): ItemState<T> {
-        val itemState = findItemStateById(id)
+        val itemState = findItemStateById(item._id)
         if (itemState.hasError.not()) {
             dependencies?.invoke()?.forEach { dependency ->
                 val kProperty1: KProperty1<out BaseDoc<*>, ID?> = dependency.property
@@ -745,10 +745,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     else -> null
                 }?.let { (fieldName: String, collectionName) ->
                     mongoDatabase.getCollection(collectionName).also { mongoCollection ->
-                        mongoCollection.coroutine.find(Document(fieldName, id)).first()?.let {
+                        mongoCollection.coroutine.find(Document(fieldName, item._id)).first()?.let {
                             return ItemState(
                                 state = State.Error,
-                                msgError = "'${commonContainer.labelItem}' ${("tiene dependencias en")} '${dependency.common.labelList}'"
+                                msgError = "'${commonContainer.labelItemId(item)}' ${("tiene dependencias en")} '${dependency.common.labelList}'"
                             )
                         }
                     }
