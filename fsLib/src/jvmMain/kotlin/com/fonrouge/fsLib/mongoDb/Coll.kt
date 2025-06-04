@@ -104,7 +104,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * between this collection and other collections that depend on its documents, or null if there
      * are no dependencies
      */
-    abstract val dependencies: (() -> List<Dependency<*, ID>>)?
+    open val dependencies: (() -> List<Dependency<*, ID>>)? = null
 
     /**
      * Represents a dependency relationship between collections.
@@ -716,11 +716,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Finds the children of an item specified by the given ID that do not match certain conditions.
+     * Finds and checks child dependencies of the given item and determines if they are not valid.
      *
-     * @param id The ID of the item to find children for.
-     * @return An ItemState indicating the result of the find operation,
-     *         including potential errors or states.
+     * @param item The item of type T whose children dependencies are to be checked.
+     * @return An [ItemState] representing the state of the item. It may include errors if any
+     *         invalid child dependencies are detected.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findChildrenNot(
