@@ -10,6 +10,7 @@ import kotlin.reflect.KProperty1
  * @param property The property of type [KProperty1] whose value needs to be set.
  * @param value The value to set for the given property. Can be null.
  */
-fun <T : BaseDoc<*>> FormPanel<T>.setValue(property: KProperty1<out T, *>, value: Any?) {
+@Suppress("unused")
+fun <T : BaseDoc<*>> FormPanel<T>.setFormControlValue(property: KProperty1<out T, *>, value: Any?) {
     form.fields[property.name]?.setValue(value)
 }

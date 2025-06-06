@@ -13,8 +13,9 @@ import kotlin.reflect.KProperty1
  * @param property The property of the base document type [T] whose value is to be retrieved.
  * @return The decoded value of the property if present, or null if the property field is not found or cannot be decoded.
  */
+@Suppress("unused")
 @OptIn(ExperimentalSerializationApi::class)
-inline fun <T : BaseDoc<*>, reified V : Any> FormPanel<T>.getValue(property: KProperty1<out T, V?>): V? =
+inline fun <T : BaseDoc<*>, reified V : Any> FormPanel<T>.getFormControlValue(property: KProperty1<out T, V?>): V? =
     form.fields[property.name]?.getValue()?.let {
         Json.decodeFromDynamic(it)
     }
