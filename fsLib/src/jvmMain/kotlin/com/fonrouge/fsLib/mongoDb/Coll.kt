@@ -1033,6 +1033,25 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
+     * Generates a list of BSON objects based on the provided property and parameters.
+     *
+     * @param property The property of type [KProperty1] to use for the lookup.
+     * @param apiFilter An optional filter of type [FILT] used to dictate API handling logic, with a default instance provided by `commonContainer.apiFilterInstance()`.
+     * @param lookupWrappers A list of [LookupWrapper] objects for additional lookup processing, with an empty list as the default.
+     * @return A list of BSON objects if a match is found, or null if no match exists.
+     */
+    @Suppress("unused")
+    fun lookupByProperty(
+        property: KProperty1<T, *>,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+    ): List<Bson>? {
+        return lookupFun(apiFilter).firstOrNull { it.resultProperty.name == property.name }?.toPipeline(
+            lookupWrappers = lookupWrappers
+        )
+    }
+
+    /**
      * Builds a BSON representation of the given filter to be used in a MongoDB aggregation match stage.
      *
      * @param apiFilter The filter of type FILT used to construct the match stage.
