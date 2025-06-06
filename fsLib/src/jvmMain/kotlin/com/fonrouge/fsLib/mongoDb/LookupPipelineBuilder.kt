@@ -20,6 +20,7 @@ import kotlin.reflect.KProperty1
  * @param pipeline optional additional pipeline stages to apply to the foreign collection before joining
  * @param resultField the field in the local collection where the results of the lookup will be stored
  * @param preserveNullAndEmptyArrays indicates whether to include local documents even if no matches are found
+ * @param addStages An optional list of additional BSON aggregation stages to apply after the lookup.
  * @return a builder for creating and configuring the lookup aggregation pipeline
  */
 @Suppress("unused")
@@ -31,6 +32,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, U?>,
     preserveNullAndEmptyArrays: Boolean = true,
+    addStages: List<Bson>? = null,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
     coll = coll,
     localField = localField,
@@ -40,7 +42,8 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     resultProperty = resultField,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = 1,
-    resultUnit = Coll.ResultUnit.Single
+    resultUnit = Coll.ResultUnit.Single,
+    addStages = addStages,
 ) {}
 
 /**
@@ -52,6 +55,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
  * @param resultField The field in the local collection where the lookup result will be stored.
  * @param preserveNullAndEmptyArrays A boolean indicating whether to include documents in the result
  *                                   when there are no matches in the foreign collection (default is true).
+ * @param addStages An optional list of additional BSON aggregation stages to apply after the lookup.
  * @return A `LookupPipelineBuilder` instance to define and process the lookup operation.
  */
 @Suppress("unused")
@@ -61,6 +65,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, U?>,
     preserveNullAndEmptyArrays: Boolean = true,
+    addStages: List<Bson>? = null,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
     coll = coll,
     localField = null,
@@ -70,7 +75,8 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     resultProperty = resultField,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = 1,
-    resultUnit = Coll.ResultUnit.Single
+    resultUnit = Coll.ResultUnit.Single,
+    addStages = addStages,
 ) {}
 
 /**
@@ -98,6 +104,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
  * @param resultField The field in the resulting documents where the lookup results will be stored.
  * @param preserveNullAndEmptyArrays Indicates whether to include documents that match the lookup criteria
  * but where no matches are found (resulting in `null` or an empty array). Defaults to `true`.
+ * @param addStages An optional list of additional BSON aggregation stages to apply after the lookup.
  * @return A `LookupPipelineBuilder` instance configured to perform the defined lookup with optional field
  * mappings and pipeline procedures.
  */
@@ -110,6 +117,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, Any?>,
     preserveNullAndEmptyArrays: Boolean = true,
+    addStages: List<Bson>? = null,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
     coll = coll,
     localField = localField,
@@ -120,7 +128,8 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = 1,
     resultUnit = Coll.ResultUnit.Single,
-    isAnyResult = true
+    isAnyResult = true,
+    addStages = addStages,
 ) {}
 
 /**
@@ -134,6 +143,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
  * @param resultFieldArray The field in the input documents where the results of the lookup will be stored.
  * @param preserveNullAndEmptyArrays If true, the join will include documents with null and empty arrays.
  * @param limit Optional limit on the number of results to return.
+ * @param addStages An optional list of additional BSON aggregation stages to apply after the lookup.
  * @return A `LookupPipelineBuilder` configured with the provided parameters.
  */
 @Suppress("unused")
@@ -146,6 +156,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     resultFieldArray: KProperty1<in T, Collection<U>?>,
     preserveNullAndEmptyArrays: Boolean = true,
     limit: Int? = null,
+    addStages: List<Bson>? = null,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
     coll = coll,
     localField = localField,
@@ -155,7 +166,8 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     resultProperty = resultFieldArray,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = limit,
-    resultUnit = Coll.ResultUnit.List
+    resultUnit = Coll.ResultUnit.List,
+    addStages = addStages,
 ) {}
 
 /**
@@ -176,6 +188,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
  * @property limit An optional limit on the number of results from the lookup.
  * @property resultUnit Specifies whether the lookup result should treat data as a single or multiple entry.
  * @property isAnyResult A flag indicating whether to bypass the standard pipeline processing and return unfiltered results. When true, the [Coll.pipeline] function is not called to construct the pipeline stages.
+ * @property addStages An optional list of additional BSON aggregation stages to apply after the lookup.
  */
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
@@ -188,6 +201,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     internal val limit: Int?,
     val resultUnit: Coll.ResultUnit,
     private val isAnyResult: Boolean = false,
+    val addStages: List<Bson>? = null,
 ) {
     /**
      * Constructs a MongoDB aggregation pipeline based on the provided lookup wrapper and class fields.
@@ -250,6 +264,6 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 )
             }
         }
-        return pipeline
+        return pipeline + addStages.orEmpty()
     }
 }
