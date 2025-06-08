@@ -35,10 +35,21 @@ import io.kvision.utils.Serialization
 import io.kvision.utils.em
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromDynamic
+import kotlinx.serialization.json.encodeToDynamic
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
+import kotlin.collections.Map
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.contains
+import kotlin.collections.forEach
+import kotlin.collections.mutableMapOf
+import kotlin.js.json
+import kotlin.reflect.KProperty1
 
 /**
  * Represents a configurable view item that connects and interacts with the backend API
@@ -63,6 +74,29 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
 ) {
+    var buttonBack: Button? = null
+    var buttonCancel: Button? = null
+    var buttonAccept: Button? = null
+
+    /**
+     * Holds a mutable mapping of property references of type [KProperty1] to optional string representations.
+     * Used to store custom mappings of data fields to their serialized or stringified values.
+     * This can be used in data transformation operations or for managing dynamic configurations.
+     */
+    val customMapValues = mutableMapOf<KProperty1<in T, *>, String?>()
+
+    /**
+     * Holds a reference to a FormPanel instance that is used to manage the display
+     * and handling of form inputs for a specified data type.
+     *
+     * The formPanel is initialized with a serializer to enable data serialization
+     * for the associated form items.
+     *
+     * @property formPanel A dynamically typed FormPanel that supports interaction
+     * with forms.
+     */
+    var formPanel: FormPanel<T> = FormPanel(serializer = configView.commonContainer.itemSerializer)
+
     /**
      * Observable that holds the [ItemState] for the [ViewItem]
      */
@@ -76,10 +110,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         set(value) {
             itemObservable.value = value
         }
-    private var origSerialized: String? = null
-    var buttonBack: Button? = null
-    var buttonCancel: Button? = null
-    var buttonAccept: Button? = null
 
     init {
         itemObservable.subscribe {
@@ -94,7 +124,15 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
     }
 
-    var formPanel: FormPanel<T> = FormPanel(serializer = configView.commonContainer.itemSerializer)
+    /**
+     * Represents the label of the view item, composed dynamically using the `configView`'s label and
+     * the label ID of the current item from the common container.
+     *
+     * This label is utilized to provide a concise and descriptive textual representation, aiding in
+     * UI rendering or internal debugging processes.
+     */
+    override val label: String
+        get() = configView.commonContainer.labelItemId(item)
 
     /**
      * Provides the identifier string for the label associated with the current item in the view.
@@ -130,6 +168,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * needs to be performed on the button click.
      */
     var onAcceptButtonClick: (Button.(MouseEvent) -> Unit)? = null
+    private var origSerialized: String? = null
 
     /**
      * Indicates whether periodic updates for the data view are enabled. If not explicitly set,
@@ -150,7 +189,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     var valueMap: Map<String, String?>? = null
         private set
-
 
     /**
      * Executes an "upsert" action (either update or insert) for the current item, using form validation,
@@ -283,16 +321,39 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
-     * Transforms the given item of type T and returns the transformed result.
-     * This method is intended to be overridden to apply custom transformations to the input item.
+     * Updates the data in the view based on the current CRUD task.
      *
-     * @param item The input item of type T to be transformed.
-     * @return The transformed item of type T.
+     * Specifically, if the current task is a "Read" operation, this method retrieves the item
+     * based on its ID, fetches the corresponding state from the API through the configured
+     * query function, and updates the observable item with the retrieved data.
+     *
+     * Behavior:
+     * - Checks if the task is set to `Read` in the current CRUD operation.
+     * - If the `item` has an associated ID, the method calls the API function `apiItemQueryRead`
+     *   with the item ID and filter settings.
+     * - Updates the state of the observable item (`itemObservable`) with the fetched data
+     *   to reflect the current state in the UI.
      */
-    open fun transformData(item: T): T {
-        return item
+    final override fun dataUpdate() {
+        if (crudTask == CrudTask.Read) {
+            item?._id?.let { id ->
+                configView.commonContainer.getItemState(
+                    apiItemFun = configView.apiItemFun,
+                    apiItem = configView.commonContainer.apiItemQueryRead(id = id, apiFilter = apiFilter),
+                ) {
+                    itemObservable.value = it.item
+                }
+            }
+        }
     }
 
+    /**
+     * Displays a default message in the container, typically used when no specific CRUD action
+     * or default behavior is defined for the context.
+     *
+     * @param urlParams An optional parameter containing URL-specific information that may
+     *                  influence the displayed default message or behavior.
+     */
     open fun Container.displayDefault(urlParams: UrlParams?) {
         centeredMessage("no CRUD action ...")
     }
@@ -362,12 +423,14 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 item?.let {
                     formPanel.setData(it)
                 } ?: valueMap?.let {
-                    formSetData(it)
+                    formSetDataWithValueMap(it)
                 }
             }
 
             CrudTask.Read -> {
-                item?.let { formPanel.setData(it) }
+                item?.let {
+                    formPanel.setData(it)
+                }
                 installUpdate()
             }
 
@@ -389,22 +452,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
         onAfterDisplayForm(crudTask)
     }
-
-    /**
-     * This method is triggered after the form associated with the given CRUD task has been displayed.
-     * It can be overridden to implement additional processing or actions specific to the form display context.
-     *
-     * @param crudTask The CRUD operation context (e.g., Create, Read, Update, Delete) for which the form is displayed.
-     */
-    open fun onAfterDisplayForm(crudTask: CrudTask) {}
-
-    /**
-     * This method is triggered before the form associated with the given CRUD task is displayed.
-     * It can be overridden to perform custom initialization or setup actions before the form display.
-     *
-     * @param crudTask The CRUD operation context (e.g., Create, Read, Update, Delete) for which the form is about to be displayed.
-     */
-    open suspend fun onBeforeDisplayForm(crudTask: CrudTask) {}
 
     /**
      * Displays a page in the container by rendering a user interface based on the given URL parameters, page context, and CRUD task.
@@ -539,16 +586,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
-     * Represents the label of the view item, composed dynamically using the `configView`'s label and
-     * the label ID of the current item from the common container.
-     *
-     * This label is utilized to provide a concise and descriptive textual representation, aiding in
-     * UI rendering or internal debugging processes.
-     */
-    override val label: String
-        get() = configView.commonContainer.labelItemId(item)
-
-    /**
      * Encodes the given ID into a JSON string representation using the specified serializer.
      *
      * @param id The ID to be encoded. If null, the function returns null. Defaults to the `_id` property of the `item`.
@@ -571,6 +608,58 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         )
 
     /**
+     * Populates form fields within the `formPanel` using data from the provided map.
+     * For each entry in the map, updates the corresponding form field with parsed data.
+     * Handles specific types of controls, such as `DateFormControl` and `KFilesFormControl`,
+     * using custom parsing and value setting logic.
+     *
+     * @param map A map where the key represents the form field identifier and the value is its serialized data.
+     *            Null values result in clearing the corresponding form field.
+     */
+    private fun formSetDataWithValueMap(map: Map<String, String?>) {
+        map.forEach { entry ->
+            formPanel.form.fields[entry.key]?.let { formControl ->
+                entry.value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
+                    when (formControl) {
+                        is DateFormControl -> formControl.value = value.unsafeCast<String>().toDateF("isoDateTime")
+                        is KFilesFormControl -> formControl.value = Serialization.plain.decodeFromString(
+                            ListSerializer(KFile.serializer()),
+                            JSON.stringify(value)
+                        )
+
+                        else -> formControl.setValue(value)
+                    }
+                } ?: formControl.setValue(null)
+            }
+        }
+    }
+
+    /**
+     * Retrieves and transforms the data from the form panel.
+     *
+     * This method applies the `transformData` function to the data retrieved from the `formPanel`.
+     *
+     * @return The transformed data of type `T`.
+     */
+    fun getData(): T = transformData(formPanel.getData())
+
+    /**
+     * This method is triggered after the form associated with the given CRUD task has been displayed.
+     * It can be overridden to implement additional processing or actions specific to the form display context.
+     *
+     * @param crudTask The CRUD operation context (e.g., Create, Read, Update, Delete) for which the form is displayed.
+     */
+    open fun onAfterDisplayForm(crudTask: CrudTask) {}
+
+    /**
+     * This method is triggered before the form associated with the given CRUD task is displayed.
+     * It can be overridden to perform custom initialization or setup actions before the form display.
+     *
+     * @param crudTask The CRUD operation context (e.g., Create, Read, Update, Delete) for which the form is about to be displayed.
+     */
+    open suspend fun onBeforeDisplayForm(crudTask: CrudTask) {}
+
+    /**
      * Called when an observable item of type T changes. This method can be overridden to provide custom
      * behavior or handling for changes in an observably tracked item.
      *
@@ -589,56 +678,25 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     abstract fun Container.pageItemBody(): FormPanel<T>
 
     /**
-     * Updates the data in the view based on the current CRUD task.
+     * Transforms the given data item by applying custom modifications based on defined map values.
+     * If there are no custom map values provided, the original item is returned unchanged.
      *
-     * Specifically, if the current task is a "Read" operation, this method retrieves the item
-     * based on its ID, fetches the corresponding state from the API through the configured
-     * query function, and updates the observable item with the retrieved data.
-     *
-     * Behavior:
-     * - Checks if the task is set to `Read` in the current CRUD operation.
-     * - If the `item` has an associated ID, the method calls the API function `apiItemQueryRead`
-     *   with the item ID and filter settings.
-     * - Updates the state of the observable item (`itemObservable`) with the fetched data
-     *   to reflect the current state in the UI.
+     * @param item The data item of type T to be transformed. Represents the original input data that may
+     *             undergo modification based on custom logic.
+     * @return The transformed data item of type T after applying the custom map values. If no modifications
+     *         are applied, the original item is returned.
      */
-    final override fun dataUpdate() {
-        if (crudTask == CrudTask.Read) {
-            item?._id?.let { id ->
-                configView.commonContainer.getItemState(
-                    apiItemFun = configView.apiItemFun,
-                    apiItem = configView.commonContainer.apiItemQueryRead(id = id, apiFilter = apiFilter),
-                ) {
-                    itemObservable.value = it.item
-                }
-            }
+    @OptIn(ExperimentalSerializationApi::class)
+    open fun transformData(item: T): T {
+        if (customMapValues.isEmpty()) return item
+        @Suppress("UnusedVariable") val s0 = Json.encodeToDynamic(configView.commonContainer.itemSerializer, item)
+        val s1 = json()
+        customMapValues.forEach { (key, value) ->
+            s1[key.name] = value?.let { JSON.parse(value) }
         }
+        val s2 = js("Object.assign({}, s0, s1)")
+        val item2 = Json.decodeFromDynamic(configView.commonContainer.itemSerializer, s2)
+        return item2
     }
 
-    /**
-     * Populates form fields within the `formPanel` using data from the provided map.
-     * For each entry in the map, updates the corresponding form field with parsed data.
-     * Handles specific types of controls, such as `DateFormControl` and `KFilesFormControl`,
-     * using custom parsing and value setting logic.
-     *
-     * @param map A map where the key represents the form field identifier and the value is its serialized data.
-     *            Null values result in clearing the corresponding form field.
-     */
-    private fun formSetData(map: Map<String, String?>) {
-        map.forEach { entry ->
-            formPanel.form.fields[entry.key]?.let { formControl ->
-                entry.value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
-                    when (formControl) {
-                        is DateFormControl -> formControl.value = value.unsafeCast<String>().toDateF("isoDateTime")
-                        is KFilesFormControl -> formControl.value = Serialization.plain.decodeFromString(
-                            ListSerializer(KFile.serializer()),
-                            JSON.stringify(value)
-                        )
-
-                        else -> formControl.setValue(value)
-                    }
-                } ?: formControl.setValue(null)
-            }
-        }
-    }
 }
