@@ -325,13 +325,14 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @param toControlValue A transformation function that converts the property's value to a string compatible with the control.
      */
     @OptIn(InternalSerializationApi::class)
-    fun <F : FormControl, V> F.bindCustomValue(
+    inline fun <F : FormControl, reified V> F.bindCustomValue(
         property: KProperty1<in T, V?>,
-        toControlValue: (V?) -> String?,
+        noinline toControlValue: (V?) -> String?,
     ) {
         customMapValues[property.name] = CustomMapValue(
             formControl = this,
             toControlValue = toControlValue,
+            serialized = item?.let { property.get(it) }?.let { it: V? -> Json.encodeToString(it) }
         )
         setValue(toControlValue(item?.let { property.get(it) }))
     }
