@@ -16,20 +16,25 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 
 /**
- * Represents a set of parameters for API requests, including pagination data, filters, and sorters.
+ * Represents the parameters required for executing an API request. These parameters include pagination settings,
+ * filters, and sorting options both for pre-lookup and post-lookup database operations.
  *
- * This class is designed to construct efficient database queries by organizing filters and sorters
- * into pre-main and post-main lookup categories. It also provides functionality to handle nested fields
- * using dot notation and supports multiple data types for filtering and sorting.
- *
- * @property pageSize The number of items to be fetched per page. Defaults to null if not specified.
- * @property page The current page number to fetch. Defaults to null if not specified.
- * @property remoteFilters A list of filters used for querying data remotely. These filters are tied to field names and may define operators such as `like` or equality.
- * @property remoteSorters A list of sorters used for sorting data remotely. These determine the sorting order (e.g., ascending or descending) based on field names.
+ * @property pageSize Specifies the number of items to be retrieved per page. Can be null if no pagination is required.
+ * @property page Denotes the page number of the results to be fetched. Null indicates no specific page is targeted.
+ * @property filter Specifies the BSON-based filter to be applied during the database query before the lookup process.
+ * @property sorter Defines a BSONDocument representing the sorting criteria for queries before the lookup process.
+ * @property postLookupFilter Represents a BSON filter to be applied after the database lookup has occurred.
+ * @property postLookupSorter Represents a BSONDocument defining sorting criteria to be applied after the database lookup.
+ * @property remoteFilters A list of remote filters used to dynamically generate BSON filters for the query.
+ * @property remoteSorters A list of remote sorters used to dynamically generate BSON sorters for the query.
  */
 data class ApiRequestParams(
     val pageSize: Int? = null,
     val page: Int? = null,
+    val filter: Bson? = null,
+    val sorter: BsonDocument? = null,
+    val postLookupFilter: Bson? = null,
+    val postLookupSorter: BsonDocument? = null,
     private val remoteFilters: List<RemoteFilter>? = null,
     private val remoteSorters: List<RemoteSorter>? = null,
 ) {
@@ -70,42 +75,42 @@ data class ApiRequestParams(
     fun bsonMatches(commonContainer: ICommonContainer<*, *, *>): MatchLists? {
         val preMainLookup: MutableList<Bson> = mutableListOf()
         val postMainLookup: MutableList<Bson> = mutableListOf()
-        remoteFilters?.let {
-            remoteFilters.forEach { remoteFilter ->
-                val (kClasiffier, isPreLookupField) = findFieldType(
-                    kClass = commonContainer.itemKClass,
-                    fieldName = remoteFilter.field
-                ) ?: return@forEach
-                val value: BsonValue? = when (kClasiffier) {
-                    Array<String>::class, String::class, StringId::class -> {
-                        when (remoteFilter.type) {
-                            "like" -> BsonDocument(
-                                "\$regex",
-                                BsonString(remoteFilter.value)
-                            ).append("\$options", BsonString("i"))
+        filter?.let { preMainLookup += it }
+        postLookupFilter?.let { postMainLookup += it }
+        remoteFilters?.forEach { remoteFilter ->
+            val (kClasiffier, isPreLookupField) = findFieldType(
+                kClass = commonContainer.itemKClass,
+                fieldName = remoteFilter.field
+            ) ?: return@forEach
+            val value: BsonValue? = when (kClasiffier) {
+                Array<String>::class, String::class, StringId::class -> {
+                    when (remoteFilter.type) {
+                        "like" -> BsonDocument(
+                            "\$regex",
+                            BsonString(remoteFilter.value)
+                        ).append("\$options", BsonString("i"))
 
-                            else -> BsonString(remoteFilter.value)
-                        }
+                        else -> BsonString(remoteFilter.value)
                     }
-
-                    Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()
-                        ?.let { BsonInt32(it) }
-
-                    Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()
-                        ?.let { BsonInt64(it) }
-
-                    Double::class -> remoteFilter.value?.toDoubleOrNull()
-                        ?.let { BsonDouble(it) }
-
-                    else -> null
                 }
-                value?.let {
-                    val bsonDocument = BsonDocument(remoteFilter.field, value)
-                    if (!isPreLookupField && remoteFilter.field.contains("."))
-                        postMainLookup += bsonDocument
-                    else
-                        preMainLookup += bsonDocument
-                }
+
+                Int::class, IntId::class -> remoteFilter.value?.toIntOrNull()
+                    ?.let { BsonInt32(it) }
+
+                Long::class, LongId::class -> remoteFilter.value?.toLongOrNull()
+                    ?.let { BsonInt64(it) }
+
+                Double::class -> remoteFilter.value?.toDoubleOrNull()
+                    ?.let { BsonDouble(it) }
+
+                else -> null
+            }
+            value?.let {
+                val bsonDocument = BsonDocument(remoteFilter.field, value)
+                if (!isPreLookupField && remoteFilter.field.contains("."))
+                    postMainLookup += bsonDocument
+                else
+                    preMainLookup += bsonDocument
             }
         }
         return if (preMainLookup.isEmpty() && postMainLookup.isEmpty())
@@ -127,6 +132,8 @@ data class ApiRequestParams(
     fun bsonSorters(): SortLists? {
         val preMainLookup = BsonDocument()
         val postMainLookup = BsonDocument()
+        sorter?.let { preMainLookup += it }
+        postLookupSorter?.let { postMainLookup += it }
         remoteSorters?.forEach { remoteSorter ->
             val pair: Pair<String, BsonInt32> = remoteSorter.field to when (remoteSorter.dir) {
                 "asc" -> BsonInt32(1)
