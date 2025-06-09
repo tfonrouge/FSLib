@@ -15,7 +15,7 @@ import kotlin.reflect.KProperty1
  */
 @Suppress("unused")
 @OptIn(ExperimentalSerializationApi::class)
-inline fun <T : BaseDoc<*>, reified V : Any> FormPanel<T>.getFormControlValue(property: KProperty1<out T, V?>): V? =
+inline fun <T : BaseDoc<*>, reified V : Any> FormPanel<T>.getFormControlValue(property: KProperty1<in T, V?>): V? =
     form.fields[property.name]?.getValue()?.let {
         Json.decodeFromDynamic(it)
     }
