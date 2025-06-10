@@ -34,6 +34,7 @@ import io.kvision.types.KFile
 import io.kvision.types.toDateF
 import io.kvision.utils.Serialization
 import io.kvision.utils.em
+import js.date.Date
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -46,6 +47,7 @@ import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 import kotlin.collections.set
 import kotlin.js.json
+import kotlin.js.unsafeCast
 import kotlin.reflect.KProperty1
 
 /**
@@ -679,7 +681,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             formPanel.form.fields[entry.key]?.let { formControl ->
                 entry.value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
                     when (formControl) {
-                        is DateFormControl -> formControl.value = value.unsafeCast<String>().toDateF("isoDateTime")
+                        is DateFormControl -> formControl.value = Date(value.unsafeCast<String>()).unsafeCast<kotlin.js.Date>()
                         is KFilesFormControl -> formControl.value = Serialization.plain.decodeFromString(
                             ListSerializer(KFile.serializer()),
                             JSON.stringify(value)
