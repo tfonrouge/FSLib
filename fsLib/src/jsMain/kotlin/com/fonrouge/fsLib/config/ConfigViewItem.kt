@@ -1,6 +1,7 @@
 package com.fonrouge.fsLib.config
 
 import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.common.apiItemQueryReadCall
 import com.fonrouge.fsLib.lib.UrlParams
 import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.ApiItem
@@ -16,6 +17,7 @@ import kotlinx.browser.window
 import kotlinx.serialization.json.Json
 import org.w3c.dom.Window
 import web.prompts.alert
+import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 /**
@@ -64,6 +66,29 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     override val label: String get() = commonContainer.labelItem
 
     override val labelUrl: Pair<String, String> by lazy { commonContainer.labelItem to url }
+
+    /**
+     * Makes an API query to retrieve an item by its identifier, applies a filter and a transformation
+     * function to process the result, and returns the transformed output as a Promise.
+     *
+     * @param id The identifier of the item to retrieve.
+     * @param apiFilter An optional filter of type `FILT` to customize the API query; defaults to a new instance of `FILT`.
+     * @param transform A function that processes the resulting `ItemState` and transforms it into the desired type `T?`.
+     * @return A `Promise` containing the transformed output of type `T?`, or `null` if the transformation or retrieval fails.
+     */
+    @Suppress("unused")
+    fun apiQueryReadCall(
+        id: ID,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        transform: (ItemState<T>) -> Unit
+    ): Promise<Unit> {
+        return commonContainer.apiItemQueryReadCall(
+            apiItemFun = apiItemFun,
+            id = id,
+            apiFilter = apiFilter,
+            transform = transform
+        )
+    }
 
     @Suppress("unused")
     fun labelUrlRead(id: ID) = commonContainer.labelItem to urlRead(id)
