@@ -758,5 +758,4 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         val item2 = Json.decodeFromDynamic(configView.commonContainer.itemSerializer, s2)
         return item2
     }
-
 }
