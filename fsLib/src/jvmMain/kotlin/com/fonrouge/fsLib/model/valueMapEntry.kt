@@ -18,7 +18,7 @@ import kotlin.reflect.KProperty1
  * @return A map where the key is the name of the property and the value is the serialized representation of the given value.
  */
 @Suppress("unused")
-inline fun <T : BaseDoc<*>, @OnlyInputTypes reified V> mapValue(
+inline fun <T : BaseDoc<*>, @OnlyInputTypes reified V> valueMapEntry(
     property: KProperty1<in T, V?>,
     value: V?
 ): Map<String, String?> = mapOf(
