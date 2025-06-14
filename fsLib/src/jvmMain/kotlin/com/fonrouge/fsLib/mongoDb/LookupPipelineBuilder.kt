@@ -80,33 +80,19 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
 ) {}
 
 /**
- * Constructs a lookup pipeline to link documents between collections based on specified field references
- * and optional aggregation pipeline stages. Primarily used to build references and retrieve related data
- * during aggregation queries.
+ * Builds a pipeline for a MongoDB lookup operation, designed to find and integrate data from multiple sources
+ * based on specified relationships and fields.
  *
- * Commonly used with a group stage in the pipeline for aggregating and retrieving
- * summarized data from document collections.
- *
- * Note: The internal processing pipeline does not utilize any collection-level
- * configuration settings specified in the [coll] parameter beacuse the resulting document is not expected
- * to be the same type of the one defined in the [Coll.commonContainer]
- *
- * @param coll The collection to perform the lookup on. It should be a valid reference to a collection
- * derived from the `ICommonContainer` interface.
- * @param localField The local field in the current collection to match with the field in the foreign collection.
- * Defaults to `null` if not specified.
- * @param foreignField The field in the foreign collection to match with the local field. Defaults to `null`
- * if not specified.
- * @param let A list of variables to be defined in the aggregation pipeline for use in the lookup query. Defaults
- * to `null` if not set.
- * @param pipeline An optional list of additional aggregation pipeline stages to apply in the lookup transformation.
- * Defaults to `null` if not provided.
- * @param resultField The field in the resulting documents where the lookup results will be stored.
- * @param preserveNullAndEmptyArrays Indicates whether to include documents that match the lookup criteria
- * but where no matches are found (resulting in `null` or an empty array). Defaults to `true`.
- * @param addStages An optional list of additional BSON aggregation stages to apply after the lookup.
- * @return A `LookupPipelineBuilder` instance configured to perform the defined lookup with optional field
- * mappings and pipeline procedures.
+ * @param coll the collection representing the foreign data source for the lookup.
+ * @param localField the field in the local collection that is used for matching with the foreignField in the foreign collection.
+ * @param foreignField the field in the foreign collection that matches the value in the localField in the local collection.
+ * @param let an optional list of variables that can be used in the lookup pipeline stages.
+ * @param pipeline an optional list of aggregation stages to apply to the foreign collection matching documents.
+ * @param resultField the output field where the lookup result will be stored.
+ * @param preserveNullAndEmptyArrays determines whether to include or exclude documents where the array resulting from the lookup is empty or null.
+ * @param resultUnit determines the result type (e.g., single or multiple documents) to return from the lookup.
+ * @param addStages additional stages to apply after the default lookup pipeline.
+ * @return a `LookupPipelineBuilder` for further configuration or execution of the lookup operation.
  */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
@@ -117,6 +103,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, Any?>,
     preserveNullAndEmptyArrays: Boolean = true,
+    resultUnit: Coll.ResultUnit = Coll.ResultUnit.Single,
     addStages: List<Bson>? = null,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
     coll = coll,
@@ -127,7 +114,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
     resultProperty = resultField,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = 1,
-    resultUnit = Coll.ResultUnit.Single,
+    resultUnit = resultUnit,
     isAnyResult = true,
     addStages = addStages,
 ) {}
