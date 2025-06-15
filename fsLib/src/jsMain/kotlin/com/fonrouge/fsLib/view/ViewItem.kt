@@ -739,8 +739,22 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         return item2
     }
 
+    /**
+     * Retrieves a TabulatorItem corresponding to the given property.
+     *
+     * @param property The property for which the TabulatorItem is to be retrieved.
+     * @return The TabulatorItem associated with the specified property, or null if none exists.
+     */
+    fun <V : Any> getTabulator(property: KProperty1<in T, V>): TabulatorItem<*>? = tabulators[property.name]
+
+    /**
+     * Retrieves the tabulator value associated with the given property.
+     *
+     * @param property The property whose associated tabulator value is to be retrieved.
+     * @return The tabulator value of the specified property, or null if no value is found.
+     */
     @OptIn(ExperimentalSerializationApi::class)
-    fun <V: Any> getTabulatorValue(
+    inline fun <reified V : Any> getTabulatorValue(
         property: KProperty1<in T, V>
     ): V? {
         return tabulators[property.name]?.tabulator?.getData() as V?
