@@ -180,6 +180,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     final override var periodicUpdateDataView: Boolean? = periodicUpdateDataView
         get() = field ?: KVWebManager.periodicUpdateDataViewItem
 
+    val tabulators: MutableMap<String, TabulatorItem<*>> = mutableMapOf()
+
     /**
      * A nullable map property that stores key-value pairs where keys are of type String and values are nullable Strings.
      * It is used to manage and hold configuration or form field data within the class. The map can be null, and its contents
@@ -189,6 +191,28 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     var valueMap: Map<String, String?>? = null
         private set
+
+    data class CustomMapValue<F : FormControl, V>(
+        val formControl: F,
+        val toControlValue: (V?) -> String?,
+        var serialized: String? = null
+    ) {
+        fun setValue(value: V?) {
+            toControlValue(value)?.let { formControl.setValue(it) } ?: formControl.setValue(null)
+        }
+    }
+
+    data class TabulatorItem<T : Any>(
+        val tabulator: Tabulator<T>,
+        val kClass: KClass<T>
+    ) {
+        @OptIn(InternalSerializationApi::class)
+        fun toPlainObj(): dynamic {
+            val x: List<T>? = tabulator.getData()
+            val s = ListSerializer(kClass.serializer())
+            return JSON.parse(Json.encodeToString(s, x as List<T>))
+        }
+    }
 
     /**
      * Executes an "upsert" action (either update or insert) for the current item, using form validation,
@@ -320,20 +344,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
     }
 
-    val tabulators: MutableMap<String, TabulatorItem<*>> = mutableMapOf()
-
-    data class TabulatorItem<T : Any>(
-        val tabulator: Tabulator<T>,
-        val kClass: KClass<T>
-    ) {
-        @OptIn(InternalSerializationApi::class)
-        fun toPlainObj(): dynamic {
-            val x: List<T>? = tabulator.getData()
-            val s = ListSerializer(kClass.serializer())
-            return JSON.parse(Json.encodeToString(s, x as List<T>))
-        }
-    }
-
     /**
      * Binds the provided property to the Tabulator, extracting its data and updating the Tabulator's content.
      *
@@ -350,13 +360,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
         tabulators[property.name] = TabulatorItem(this, V::class)
         return this
-    }
-
-    @OptIn(ExperimentalSerializationApi::class)
-    fun <V> getTabulatorValue(
-        property: KProperty1<in T, V>
-    ): V? {
-        return tabulators[property.name]?.tabulator?.getData() as V?
     }
 
     /**
@@ -379,46 +382,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         setValue(toControlValue(item?.let { property.get(it) }))
     }
 
-    data class CustomMapValue<F : FormControl, V>(
-        val formControl: F,
-        val toControlValue: (V?) -> String?,
-        var serialized: String? = null
-    ) {
-        fun setValue(value: V?) {
-            toControlValue(value)?.let { formControl.setValue(it) } ?: formControl.setValue(null)
-        }
-    }
-
-    /**
-     * Retrieves a custom value of type [V] for a specified property from the custom map values.
-     *
-     * This function attempts to find the serialized value in the `customMapValues` using the property's name
-     * as the key. If a serialized value is found, it is deserialized into the specified type [V].
-     *
-     * @param property the property for which to retrieve the custom value
-     * @return the custom value of type [V] if present and successfully deserialized, or null otherwise
-     */
-    inline fun <reified V> getCustomValue(property: KProperty1<in T, V?>): V? =
-        customMapValues[property.name]?.serialized?.let {
-            Json.decodeFromString(it)
-        }
-
-    /**
-     * Sets a custom value for a given property. This function updates the value in the associated control
-     * and serializes the given value into the custom map.
-     *
-     * @param property The property whose value needs to be updated.
-     * @param value The new value to be set for the property.
-     */
-    inline fun <reified V> setCustomValue(property: KProperty1<in T, V?>, value: V?) {
-        @Suppress("UNCHECKED_CAST")
-        (customMapValues[property.name]?.toControlValue as ((V?) -> String?)?)?.let {
-            customMapValues[property.name]?.formControl?.setValue(
-                it(value)
-            )
-        }
-        customMapValues[property.name]?.serialized = Json.encodeToString(value)
-    }
 
     /**
      * Updates the data in the view based on the current CRUD task.
@@ -737,6 +700,20 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
+     * Retrieves a custom value of type [V] for a specified property from the custom map values.
+     *
+     * This function attempts to find the serialized value in the `customMapValues` using the property's name
+     * as the key. If a serialized value is found, it is deserialized into the specified type [V].
+     *
+     * @param property the property for which to retrieve the custom value
+     * @return the custom value of type [V] if present and successfully deserialized, or null otherwise
+     */
+    inline fun <reified V> getCustomValue(property: KProperty1<in T, V?>): V? =
+        customMapValues[property.name]?.serialized?.let {
+            Json.decodeFromString(it)
+        }
+
+    /**
      * Retrieves data by merging the serialized form data and custom map values.
      *
      * The method serializes the form panel data, adds the custom map values
@@ -760,6 +737,13 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         val s2 = js("Object.assign({}, s0, s1)")
         val item2 = Json.decodeFromDynamic(configView.commonContainer.itemSerializer, s2)
         return item2
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    fun <V: Any> getTabulatorValue(
+        property: KProperty1<in T, V>
+    ): V? {
+        return tabulators[property.name]?.tabulator?.getData() as V?
     }
 
     /**
@@ -795,6 +779,23 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @return A FormPanel of type T, which serves as the main container for the page item body.
      */
     abstract fun Container.pageItemBody(): FormPanel<T>
+
+    /**
+     * Sets a custom value for a given property. This function updates the value in the associated control
+     * and serializes the given value into the custom map.
+     *
+     * @param property The property whose value needs to be updated.
+     * @param value The new value to be set for the property.
+     */
+    inline fun <reified V> setCustomValue(property: KProperty1<in T, V?>, value: V?) {
+        @Suppress("UNCHECKED_CAST")
+        (customMapValues[property.name]?.toControlValue as ((V?) -> String?)?)?.let {
+            customMapValues[property.name]?.formControl?.setValue(
+                it(value)
+            )
+        }
+        customMapValues[property.name]?.serialized = Json.encodeToString(value)
+    }
 
     /**
      * Transforms the given input data and returns the transformed result.
