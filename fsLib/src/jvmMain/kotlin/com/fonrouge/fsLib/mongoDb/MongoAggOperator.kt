@@ -24,6 +24,7 @@ enum class MongoAggOperator {
     toInt,
     toLong,
     toObjectId,
+    toString,
     ;
 
     override fun toString(): String {
