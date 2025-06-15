@@ -745,7 +745,9 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @param property The property for which the TabulatorItem is to be retrieved.
      * @return The TabulatorItem associated with the specified property, or null if none exists.
      */
-    fun <V : Any> getTabulator(property: KProperty1<in T, V>): TabulatorItem<*>? = tabulators[property.name]
+    @Suppress("UNCHECKED_CAST")
+    fun <V : Any> getTabulator(property: KProperty1<in T, Collection<V>>): Tabulator<V>? =
+        tabulators[property.name]?.tabulator as? Tabulator<V>?
 
     /**
      * Retrieves the tabulator value associated with the given property.
