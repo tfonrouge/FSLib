@@ -27,6 +27,7 @@ import io.kvision.html.div
 import io.kvision.panel.flexPanel
 import io.kvision.panel.vPanel
 import io.kvision.state.ObservableValue
+import io.kvision.tabulator.Tabulator
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
@@ -42,10 +43,12 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.json.encodeToDynamic
+import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 import kotlin.collections.set
 import kotlin.js.json
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 /**
@@ -224,7 +227,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         val crudAction = crudTask
         if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
             if (formPanel.validate()) {
-                val data = transformData(formPanel.getData())
+                val data = transformData(getData())
                 val simpleState = formPanelValidate(data)
                 if (simpleState.state == State.Ok) {
                     configView.commonContainer.callItemService(
@@ -297,7 +300,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             try {
                 val s1 = Json.encodeToString(
                     configView.commonContainer.itemSerializer,
-                    transformData(formPanel.getData())
+                    transformData(getData())
                 )
                 val s2 =
                     item?.let { Json.encodeToString(configView.commonContainer.itemSerializer, it) }
@@ -315,6 +318,45 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 window.close()
             }
         }
+    }
+
+    val tabulators: MutableMap<String, TabulatorItem<*>> = mutableMapOf()
+
+    data class TabulatorItem<T : Any>(
+        val tabulator: Tabulator<T>,
+        val kClass: KClass<T>
+    ) {
+        @OptIn(InternalSerializationApi::class)
+        fun toPlainObj(): dynamic {
+            val x: List<T>? = tabulator.getData()
+            val s = ListSerializer(kClass.serializer())
+            return JSON.parse(Json.encodeToString(s, x as List<T>))
+        }
+    }
+
+    /**
+     * Binds the provided property to the Tabulator, extracting its data and updating the Tabulator's content.
+     *
+     * @param property The property from the parent object that holds a collection of type V.
+     *                 The data within this collection is used to update the Tabulator.
+     * @return The Tabulator itself after binding, allowing for method chaining.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    inline fun <reified V : Any> Tabulator<V>.bind(
+        property: KProperty1<in T, Collection<V>>,
+    ): Tabulator<V> {
+        item?.let { property.get(it) }?.let { x ->
+            setData(x.toTypedArray())
+        }
+        tabulators[property.name] = TabulatorItem(this, V::class)
+        return this
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    fun <V> getTabulatorValue(
+        property: KProperty1<in T, V>
+    ): V? {
+        return tabulators[property.name]?.tabulator?.getData() as V?
     }
 
     /**
@@ -500,7 +542,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     formPanel.setData(it)
                     origSerialized = Json.encodeToString(
                         configView.commonContainer.itemSerializer,
-                        transformData(formPanel.getData())
+                        transformData(getData())
                     )
                 }
             }
@@ -695,13 +737,30 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
-     * Retrieves and transforms the data from the form panel.
+     * Retrieves data by merging the serialized form data and custom map values.
      *
-     * This method applies the `transformData` function to the data retrieved from the `formPanel`.
+     * The method serializes the form panel data, adds the custom map values
+     * (if any), and deserializes the resulting object to produce the final data.
      *
-     * @return The transformed data of type `T`.
+     * @return The combined data of type T obtained after processing form panel data
+     *         and custom map values.
      */
-    fun getData(): T = transformData(formPanel.getData())
+    @OptIn(ExperimentalSerializationApi::class)
+    fun getData(): T {
+        val item1 = formPanel.getData()
+        if (customMapValues.isEmpty() && tabulators.isEmpty()) return item1
+        @Suppress("UnusedVariable") val s0 = Json.encodeToDynamic(configView.commonContainer.itemSerializer, item1)
+        val s1 = json()
+        customMapValues.forEach { (key: String, mapValue): Map.Entry<String, CustomMapValue<*, *>> ->
+            s1[key] = mapValue.serialized?.let { JSON.parse(it) }
+        }
+        tabulators.forEach { (key: String, tabulatorItem: TabulatorItem<*>) ->
+            s1[key] = tabulatorItem.toPlainObj()
+        }
+        val s2 = js("Object.assign({}, s0, s1)")
+        val item2 = Json.decodeFromDynamic(configView.commonContainer.itemSerializer, s2)
+        return item2
+    }
 
     /**
      * This method is triggered after the form associated with the given CRUD task has been displayed.
@@ -738,24 +797,10 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     abstract fun Container.pageItemBody(): FormPanel<T>
 
     /**
-     * Transforms the given data item by applying custom modifications based on defined map values.
-     * If there are no custom map values provided, the original item is returned unchanged.
+     * Transforms the given input data and returns the transformed result.
      *
-     * @param item The data item of type T to be transformed. Represents the original input data that may
-     *             undergo modification based on custom logic.
-     * @return The transformed data item of type T after applying the custom map values. If no modifications
-     *         are applied, the original item is returned.
+     * @param item The input data of type T to be transformed.
+     * @return The transformed data of type T.
      */
-    @OptIn(ExperimentalSerializationApi::class)
-    open fun transformData(item: T): T {
-        if (customMapValues.isEmpty()) return item
-        @Suppress("UnusedVariable") val s0 = Json.encodeToDynamic(configView.commonContainer.itemSerializer, item)
-        val s1 = json()
-        customMapValues.forEach { (key, mapValue) ->
-            s1[key] = mapValue.serialized?.let { JSON.parse(it) }
-        }
-        val s2 = js("Object.assign({}, s0, s1)")
-        val item2 = Json.decodeFromDynamic(configView.commonContainer.itemSerializer, s2)
-        return item2
-    }
+    open fun transformData(item: T): T = item
 }
