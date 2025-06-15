@@ -26,6 +26,7 @@ import io.kvision.html.button
 import io.kvision.html.div
 import io.kvision.panel.flexPanel
 import io.kvision.panel.vPanel
+import io.kvision.state.ObservableList
 import io.kvision.state.ObservableValue
 import io.kvision.tabulator.Tabulator
 import io.kvision.toast.Toast
@@ -345,19 +346,20 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
-     * Binds the provided property to the Tabulator, extracting its data and updating the Tabulator's content.
+     * Binds the given property to the provided observable list and associates it with the tabulator.
      *
-     * @param property The property from the parent object that holds a collection of type V.
-     *                 The data within this collection is used to update the Tabulator.
-     *                 It is recommended to use an ObservableList type for automatic UI updates.
-     * @return The Tabulator itself after binding, allowing for method chaining.
+     * @param property The property of type `KProperty1` that refers to a collection of items to bind.
+     * @param data The observable list that will be populated with the values from the provided property.
+     *      This data can be assigned to the Tabulator data property
+     * @return The current instance of the `Tabulator` to allow for method chaining.
      */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified V : Any> Tabulator<V>.bind(
         property: KProperty1<in T, Collection<V>>,
+        data: ObservableList<V>
     ): Tabulator<V> {
         item?.let { property.get(it) }?.let { x ->
-            setData(x.toTypedArray())
+            data.addAll(x)
         }
         tabulators[property.name] = TabulatorItem(this, V::class)
         return this
