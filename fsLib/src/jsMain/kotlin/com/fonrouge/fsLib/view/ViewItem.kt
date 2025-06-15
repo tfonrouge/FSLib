@@ -349,6 +349,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      *
      * @param property The property from the parent object that holds a collection of type V.
      *                 The data within this collection is used to update the Tabulator.
+     *                 It is recommended to use an ObservableList type for automatic UI updates.
      * @return The Tabulator itself after binding, allowing for method chaining.
      */
     @OptIn(ExperimentalSerializationApi::class)
