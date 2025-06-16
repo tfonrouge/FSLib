@@ -115,7 +115,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param property The property within the dependent document that references items in this collection
      */
     data class Dependency<T : BaseDoc<*>, ID : Any>(
-        val common: ICommonContainer<out T, *, *>,
+        val common: ICommonContainer<T, *, *>,
         val property: KProperty1<out T, ID?>
     )
 
