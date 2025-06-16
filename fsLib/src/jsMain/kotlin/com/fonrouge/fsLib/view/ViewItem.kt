@@ -190,7 +190,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      *
      * This property is private for setting, ensuring controlled access and consistency when updating its data.
      */
-    var valueMap: Map<String, String?>? = null
+    var valueMap: Map<String, String?> = emptyMap()
         private set
 
     data class CustomMapValue<F : FormControl, V>(
@@ -488,9 +488,9 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             CrudTask.Create -> {
                 item?.let {
                     formPanel.setData(it)
-                } ?: valueMap?.let {
-                    formSetDataWithValueMap(it)
-                }
+                } ?: if (valueMap.isNotEmpty()) {
+                    formSetDataWithValueMap(valueMap)
+                } else Unit
             }
 
             CrudTask.Read -> {
@@ -728,9 +728,12 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     @OptIn(ExperimentalSerializationApi::class)
     fun getData(): T {
         val item1 = formPanel.getData()
-        if (customMapValues.isEmpty() && tabulators.isEmpty()) return item1
+        if (valueMap.isEmpty() && tabulators.isEmpty()) return item1
         @Suppress("UnusedVariable") val s0 = Json.encodeToDynamic(configView.commonContainer.itemSerializer, item1)
         val s1 = json()
+        valueMap.forEach { (key, value) ->
+            s1[key] = value?.let { JSON.parse(it) }
+        }
         customMapValues.forEach { (key: String, mapValue): Map.Entry<String, CustomMapValue<*, *>> ->
             s1[key] = mapValue.serialized?.let { JSON.parse(it) }
         }
