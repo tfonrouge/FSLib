@@ -86,9 +86,9 @@ data class ApiRequestParams(
                 Array<String>::class, String::class, StringId::class -> {
                     when (remoteFilter.type) {
                         "like" -> BsonDocument(
-                            "\$regex",
+                            $$"$regex",
                             BsonString(remoteFilter.value)
-                        ).append("\$options", BsonString("i"))
+                        ).append($$"$options", BsonString("i"))
 
                         else -> BsonString(remoteFilter.value)
                     }
