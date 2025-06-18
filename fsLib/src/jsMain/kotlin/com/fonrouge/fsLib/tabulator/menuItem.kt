@@ -17,9 +17,13 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> MutableList<TabulatorMenuItem>.menuItem(
     configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>,
     apiItem: ApiItem<T, ID, FILT>,
+    icon: String? = null,
+    disabled: Boolean? = null,
 ) {
     menuItem(
         label = configViewItem.label,
+        icon = icon,
+        disabled = disabled,
         url = configViewItem.viewItemUrl(
             apiItem = apiItem
         )
@@ -40,9 +44,13 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> MutableList<TabulatorMenuItem>.menuItem(
     configViewList: ConfigViewList<CC, T, ID, *, FILT, *, *>,
     apiFilter: FILT = configViewList.commonContainer.apiFilterInstance(),
+    icon: String? = null,
+    disabled: Boolean? = null,
 ) {
     menuItem(
         label = configViewList.label,
+        icon = icon,
+        disabled = disabled,
         url = configViewList.viewListUrl(
             apiFilter = apiFilter
         )
