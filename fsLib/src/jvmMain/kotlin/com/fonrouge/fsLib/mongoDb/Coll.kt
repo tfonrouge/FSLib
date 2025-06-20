@@ -545,11 +545,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     .associateBy { it.resultProperty.name }
             )
         lookupPipelineBuilders.forEach { (_, lookupPipelineBuilder) ->
-            val lookupWrapper: LookupWrapper<*, *>? = lookupWrappers.find { lookupWrapper ->
+            val lookupWrapper: LookupWrapper<*, *>? = lookupWrappers.find { lookupWrapper: LookupWrapper<*, *> ->
                 val kProperty1 = lookupPipelineBuilder.resultProperty
                 val owner1 = kProperty1.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
                 when (lookupWrapper) {
                     is LookupByProperty<*, *> -> lookupWrapper.resultProperty //as PropertyReference1Impl
+                    is LookupByPropertyList<*, *> -> lookupWrapper.resultProperty
                     is LookupByPipeline<*, *, *> -> lookupWrapper.pipeline.resultProperty as PropertyReference1Impl
                     else -> null
                 }?.let { kProperty2 ->
@@ -571,21 +572,25 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 else
                     resultFieldStack[resultField] = times - 1
             } else {
-                fixedLookupList(apiFilter)?.find { kProperty1 -> kProperty1 == lookupPipelineBuilder.resultProperty }
-                    ?.let {
-                        val resultField = ResultField(kResultField = lookupPipelineBuilder.resultProperty)
-                        val times = resultFieldStack[resultField]?.inc() ?: 1
-                        resultFieldStack[resultField] = times
-                        if (times > MAX_RECURSIVE_RESULT_FIELD) {
-                            outErr(resultField, times)
-                        } else {
-                            pipeline += lookupPipelineBuilder.toPipeline()
-                        }
-                        if (times == 1)
-                            resultFieldStack.remove(resultField)
-                        else
-                            resultFieldStack[resultField] = times - 1
+                fixedLookupList(apiFilter)?.find { kProperty2 ->
+                    val kProperty1 = lookupPipelineBuilder.resultProperty
+                    val owner1 = kProperty1.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
+                    val owner2 = kProperty2.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
+                    owner2.isSubclassOf(owner1) && kProperty2.name == kProperty1.name
+                }?.let {
+                    val resultField = ResultField(kResultField = lookupPipelineBuilder.resultProperty)
+                    val times = resultFieldStack[resultField]?.inc() ?: 1
+                    resultFieldStack[resultField] = times
+                    if (times > MAX_RECURSIVE_RESULT_FIELD) {
+                        outErr(resultField, times)
+                    } else {
+                        pipeline += lookupPipelineBuilder.toPipeline()
                     }
+                    if (times == 1)
+                        resultFieldStack.remove(resultField)
+                    else
+                        resultFieldStack[resultField] = times - 1
+                }
             }
         }
         return pipeline

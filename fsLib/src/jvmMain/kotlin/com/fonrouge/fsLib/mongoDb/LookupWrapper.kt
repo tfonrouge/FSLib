@@ -34,6 +34,24 @@ class LookupByProperty<T : BaseDoc<*>, U : BaseDoc<*>>(
 ) : LookupWrapper<T, U>()
 
 /**
+ * A class for performing lookups on a collection-type property of a document.
+ *
+ * This class extends `LookupWrapper` to facilitate nested lookups on a property
+ * of type `Collection<U>?` within a document of type `T`. It enables recursive
+ * lookups into related collections where both `T` and `U` are types extending
+ * from `BaseDoc`.
+ *
+ * @param T The primary document type extending from `BaseDoc`.
+ * @param U The type of documents present in the collection property, also extending from `BaseDoc`.
+ * @property resultProperty A reference to a property of type `Collection<U>?` within `T`, on which the lookup is performed.
+ * @property lookupWrappers A list of `LookupWrapper` instances for performing nested lookups on the `U` type documents.
+ */
+class LookupByPropertyList<T : BaseDoc<*>, U : BaseDoc<*>>(
+    val resultProperty: KProperty1<T, Collection<U>?>,
+    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
+) : LookupWrapper<T, U>()
+
+/**
  * A class for building and executing lookup pipelines in a MongoDB aggregation framework.
  *
  * The class is a specialized form of [LookupWrapper] that constructs complex lookup pipelines
