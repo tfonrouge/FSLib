@@ -104,14 +104,35 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
      * @return the opened [Window] instance if the URL is successfully resolved and opened, or `null` if the URL cannot be resolved
      */
     @Suppress("unused")
-    fun navigateTo(apiItem: ApiItem<T, ID, FILT>, target: String = "_blank"): Window? {
-        return viewItemUrl(apiItem)?.let { url ->
-            window.open(
-                url = url,
-                target = target
-            )
-        }
+    fun navigateTo(
+        apiItem: ApiItem<T, ID, FILT>, target: String = "_blank"
+    ): Window? = viewItemUrl(apiItem)?.let { url ->
+        window.open(
+            url = url,
+            target = target
+        )
     }
+
+    /**
+     * Navigates to the URL associated with the given item identifier in a specified target window or tab.
+     *
+     * @param id The identifier of the item to retrieve and navigate to.
+     * @param apiFilter An optional filter of type `FILT` to customize the API query; defaults to a new instance of `FILT`.
+     * @param target The target window or tab where the URL should be opened; default is "_blank".
+     * @return The opened [Window] instance if the URL is successfully resolved and opened, or `null` if the URL cannot be resolved.
+     */
+    @Suppress("unused")
+    fun navigateTo(
+        id: ID,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        target: String = "_blank"
+    ): Window? = navigateTo(
+        apiItem = commonContainer.apiItemQueryRead(
+            id = id,
+            apiFilter = apiFilter
+        ),
+        target = target
+    )
 
     @Suppress("unused")
     val urlCreate: String
