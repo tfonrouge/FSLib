@@ -388,7 +388,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         setValue(toControlValue(item?.let { property.get(it) }))
     }
 
-
     /**
      * Updates the data in the view based on the current CRUD task.
      *
@@ -770,7 +769,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     @OptIn(ExperimentalSerializationApi::class)
     fun getData(): T {
         val item1 = formPanel.getData()
-        if (valueMap.isEmpty() && tabulators.isEmpty()) return item1
+        if (valueMap.isEmpty() && customMapValues.isEmpty() && tabulators.isEmpty()) return item1
         @Suppress("UnusedVariable") val s0 = Json.encodeToDynamic(configView.commonContainer.itemSerializer, item1)
         val s1 = json()
         valueMap.forEach { (key, value) ->
