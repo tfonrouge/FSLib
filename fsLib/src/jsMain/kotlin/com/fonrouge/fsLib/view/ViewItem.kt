@@ -21,9 +21,12 @@ import io.kvision.form.FormControl
 import io.kvision.form.FormPanel
 import io.kvision.form.KFilesFormControl
 import io.kvision.html.Button
+import io.kvision.html.ButtonSize
 import io.kvision.html.ButtonStyle
 import io.kvision.html.button
 import io.kvision.html.div
+import io.kvision.i18n.tr
+import io.kvision.navbar.Nav
 import io.kvision.panel.flexPanel
 import io.kvision.panel.vPanel
 import io.kvision.state.ObservableList
@@ -71,7 +74,7 @@ import kotlin.reflect.KProperty1
 abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, FILT, *>,
     periodicUpdateDataView: Boolean? = null,
-    private var debug: Boolean = false
+    private var debug: Boolean = false,
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
 ) {
@@ -196,7 +199,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     data class CustomMapValue<F : FormControl, V>(
         val formControl: F,
         val toControlValue: (V?) -> String?,
-        var serialized: String? = null
+        var serialized: String? = null,
     ) {
         fun setValue(value: V?) {
             toControlValue(value)?.let { formControl.setValue(it) } ?: formControl.setValue(null)
@@ -205,7 +208,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     data class TabulatorItem<T : Any>(
         val tabulator: Tabulator<T>,
-        val kClass: KClass<T>
+        val kClass: KClass<T>,
     ) {
         @OptIn(InternalSerializationApi::class)
         fun toPlainObj(): dynamic {
@@ -247,7 +250,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     options = toastOptions
                 )
             }
-        }
+        },
     ) {
         val crudAction = crudTask
         if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
@@ -302,7 +305,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     @Suppress("unused")
     fun Container.addViewList(
         viewList: ViewList<ICommonContainer<*, *, out IApiFilter<ID>>, *, *, out IApiFilter<ID>, ID>,
-        init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null
+        init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null,
     ) {
         viewList.apply { startDisplayPage() }
         viewList.masterViewItem = this@ViewItem
@@ -356,7 +359,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified V : Any> Tabulator<V>.bind(
         property: KProperty1<in T, Collection<V>>,
-        data: ObservableList<V>
+        data: ObservableList<V>,
     ): Tabulator<V> {
         item?.let { property.get(it) }?.let { x ->
             data.addAll(x)
@@ -422,6 +425,45 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     open fun Container.displayDefault(urlParams: UrlParams?) {
         centeredMessage("no CRUD action ...")
+    }
+
+    /**
+     * Displays an edit button with a specified style, icon, and functionality.
+     * This button includes a tooltip and an onClick event to navigate to a specific update view.
+     *
+     * The button:
+     * - Is styled using the OUTLINESUCCESS button style.
+     * - Includes a "fas fa-edit" icon.
+     * - Displays a tooltip with a localized "Edit" message and a label.
+     *
+     * Behavior:
+     * - Stops the click event from propagating further when clicked.
+     * - Extracts the item's ID and navigates to the update view if the ID is available.
+     *
+     * This function relies on the `tr` method for translations, the `configView` for navigation configuration,
+     * and expects an item and its `_id` to be accessible in the current context.
+     */
+    fun Nav.displayEditButton() {
+        button(
+            text = " ",
+            icon = "fas fa-edit",
+            style = ButtonStyle.OUTLINESUCCESS
+        ) {
+            size = ButtonSize.SMALL
+            this.enableTooltip(TooltipOptions(title = "${tr("Edit")} ${configView.commonContainer.labelItem}"))
+            onClick {
+                it.stopPropagation()
+                item?._id?.let { id ->
+                    configView.navigateTo(
+                        apiItem = configView.commonContainer.apiItemQueryUpdate(
+                            id = id,
+                            apiFilter = apiFilter,
+                        ),
+                        target = "_self"
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -763,7 +805,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified V : Any> getTabulatorValue(
-        property: KProperty1<in T, V>
+        property: KProperty1<in T, V>,
     ): V? {
         return tabulators[property.name]?.tabulator?.getData() as V?
     }

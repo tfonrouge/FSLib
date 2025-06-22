@@ -178,7 +178,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     @Suppress("unused")
     fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.addPageListBody(
         viewList: ViewList<CC, T, ID, FILT, MID>,
-        init: (ViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null
+        init: (ViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,
     ) {
         with(viewList) {
             pageListBody()
@@ -218,7 +218,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     fun <FILT : IApiFilter<MID>, MID : Any> Container.addViewList(
         viewList: ViewList<ICommonContainer<*, *, FILT>, *, *, FILT, MID>,
         masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
-        init: ((ViewList<ICommonContainer<*, *, FILT>, *, *, FILT, MID>).() -> Unit)? = null
+        init: ((ViewList<ICommonContainer<*, *, FILT>, *, *, FILT, MID>).() -> Unit)? = null,
     ) {
         viewList.apply { startDisplayPage() }
         masterViewItem?.let {
@@ -375,7 +375,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      *
      * @param onUpdatePageBannerLink A lambda function that gets called with the updated link information.
      */
-    fun Container.pageBanner(onUpdatePageBannerLink: ((Link) -> Unit)? = null) {
+    fun Container.pageBanner() {
         /* TODO: find out how make horizontally scrollable */
         navbar(bgColor = BsBgColor.LIGHT).bind(
             observableState = pageBannerUpdateObservable,
@@ -444,12 +444,10 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                                     this@View.acceptUpsertAction()
                                 }
                             }
+                    } else if (crudTask == CrudTask.Read) {
+                        displayEditButton()
                     }
                 }
-            }
-            onUpdatePageBannerLink?.let {
-//                onUpdatePageBannerLink = it
-                pageBannerLink?.let { link -> onUpdatePageBannerLink(link) }
             }
             marginBottom = 1.em
         }
