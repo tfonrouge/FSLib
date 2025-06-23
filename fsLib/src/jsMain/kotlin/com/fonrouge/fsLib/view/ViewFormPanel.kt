@@ -146,12 +146,14 @@ class ViewFormPanel<K : BaseDoc<*>>(
      * This function attempts to find the serialized value in the `customMapValues` using the property's name
      * as the key. If a serialized value is found, it is deserialized into the specified type [V].
      *
+     * Throws an error if the property is not managed as a custom mapped value with [bindCustomValue]
+     *
      * @param property the property for which to retrieve the custom value
      * @return the custom value of type [V] if present and successfully deserialized, or null otherwise
      */
     @Suppress("unused")
     inline fun <reified V> getCustomValue(property: KProperty1<in K, V?>): V? =
-        customMapValues[property.name]?.getValue() as? V
+        customMapValues[property.name]!!.getValue() as? V
 
     /**
      * Validates the form controls within the panel, ensuring they adhere to their respective validation requirements.
