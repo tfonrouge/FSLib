@@ -16,10 +16,7 @@ import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
 import io.kvision.core.*
-import io.kvision.form.DateFormControl
-import io.kvision.form.FormControl
-import io.kvision.form.FormPanel
-import io.kvision.form.KFilesFormControl
+import io.kvision.form.*
 import io.kvision.html.Button
 import io.kvision.html.ButtonSize
 import io.kvision.html.ButtonStyle
@@ -41,13 +38,11 @@ import io.kvision.utils.em
 import js.date.Date
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.json.encodeToDynamic
-import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 import kotlin.collections.set
@@ -196,13 +191,40 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     var valueMap: Map<String, String?> = emptyMap()
         private set
 
+    /**
+     * A data class that represents a custom map structure for managing a form control with associated
+     * serialization and transformation logic for its value.
+     *
+     * @param F The type of the form control.
+     * @param V The type of the value associated with the form control.
+     * @property formControl The form control instance used to interact with the value.
+     * @property serializer The serializer used for encoding and decoding the value.
+     * @property valueToControl A transformation function to convert the value of type [V]
+     * to a string representation for the form control.
+     * @property valueFromControl A transformation function to convert a string representation from
+     * the form control back to a value of type [V].
+     */
     data class CustomMapValue<F : FormControl, V>(
         val formControl: F,
-        val toControlValue: (V?) -> String?,
-        var serialized: String? = null,
+        val serializer: KSerializer<V?>,
+        val valueToControl: ((V?) -> String?),
+        val valueFromControl: ((String?) -> String?),
     ) {
         fun setValue(value: V?) {
-            toControlValue(value)?.let { formControl.setValue(it) } ?: formControl.setValue(null)
+            val x: String? = value?.let { valueToControl(it) }
+            formControl.setValue(x)
+        }
+
+        fun getValue(): V? {
+            return formControl.getValue()?.toString()?.let { it ->
+                valueFromControl(it)?.let {
+                    Json.decodeFromString(deserializer = serializer, string = it)
+                }
+            }
+        }
+
+        fun getSerializedValue(): String? {
+            return getValue()?.let { Json.encodeToString(serializer = serializer, value = it) }
         }
     }
 
@@ -369,23 +391,49 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
-     * Binds a custom value from a property to a form control, allowing transformation of the property value
-     * into a form control-compatible representation.
+     * Binds a custom value to a form control through serialization and deserialization.
+     * This allows a custom transformation between the value stored in the control and
+     * its representation in the form's data model.
      *
-     * @param property The property from which the value is to be obtained.
-     * @param toControlValue A transformation function that converts the property's value to a string compatible with the control.
+     * @param property The property of the model object to bind this control to.
+     * @param serializer The serializer to be used for serializing and deserializing the bound value.
+     *                   Defaults to the serializer for the value's type.
+     * @param valueToControl A function to transform the model's value to a string representation for the control.
+     *                       Defaults to encoding the value with the provided serializer.
+     * @param valueFromControl A function to transform the control's string value back into the model's value.
+     *                         Defaults to returning the string as-is.
      */
     @OptIn(InternalSerializationApi::class)
     inline fun <F : FormControl, reified V> F.bindCustomValue(
         property: KProperty1<in T, V?>,
-        noinline toControlValue: (V?) -> String?,
+        serializer: KSerializer<V?> = serializer<V?>(),
+        noinline valueToControl: ((V?) -> String?) = { v: V? -> Json.encodeToString(serializer, v) },
+        noinline valueFromControl: ((String?) -> String?) = { s: String? -> s },
     ) {
-        customMapValues[property.name] = CustomMapValue(
+        val customMapValue = CustomMapValue<F, V>(
             formControl = this,
-            toControlValue = toControlValue,
-            serialized = item?.let { property.get(it) }?.let { it: V? -> Json.encodeToString(it) }
+            serializer = serializer,
+            valueToControl = valueToControl,
+            valueFromControl = valueFromControl,
         )
-        setValue(toControlValue(item?.let { property.get(it) }))
+
+        if (this is Widget) {
+            if (this is GenericFormComponent<*>) {
+                @Suppress("TYPE_INTERSECTION_AS_REIFIED_WARNING")
+                onChange {
+                    (value as? String?)?.let {
+                        valueFromControl(it)?.let {
+                            Json.decodeFromString(serializer, it)
+                        }
+                    }?.let {
+                        customMapValue.setValue(it)
+                    }
+                }
+            }
+        }
+
+        customMapValues[property.name] = customMapValue
+        customMapValue.setValue(item?.let { property.get(it) })
     }
 
     /**
@@ -752,10 +800,19 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @param property the property for which to retrieve the custom value
      * @return the custom value of type [V] if present and successfully deserialized, or null otherwise
      */
-    inline fun <reified V> getCustomValue(property: KProperty1<in T, V?>): V? =
-        customMapValues[property.name]?.serialized?.let {
-            Json.decodeFromString(it)
+    inline fun <reified V> getCustomValue(property: KProperty1<in T, V?>): V? {
+        return customMapValues[property.name]?.let { customMapValue: CustomMapValue<*, *> ->
+            customMapValue.formControl.getValue()?.toString()?.let { value ->
+                customMapValue.valueFromControl(value)?.let { value ->
+                    console.warn("getCustomMapValue = ", value)
+                    Serialization.plain.decodeFromString(
+                        deserializer = customMapValue.serializer as DeserializationStrategy<V?>,
+                        string = value
+                    )
+                }
+            }
         }
+    }
 
     /**
      * Retrieves data by merging the serialized form data and custom map values.
@@ -776,7 +833,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             s1[key] = value?.let { JSON.parse(it) }
         }
         customMapValues.forEach { (key: String, mapValue): Map.Entry<String, CustomMapValue<*, *>> ->
-            s1[key] = mapValue.serialized?.let { JSON.parse(it) }
+            s1[key] = mapValue.getSerializedValue()?.let { JSON.parse(it) }
         }
         tabulators.forEach { (key: String, tabulatorItem: TabulatorItem<*>) ->
             s1[key] = tabulatorItem.toPlainObj()
@@ -842,23 +899,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @return A FormPanel of type T, which serves as the main container for the page item body.
      */
     abstract fun Container.pageItemBody(): FormPanel<T>
-
-    /**
-     * Sets a custom value for a given property. This function updates the value in the associated control
-     * and serializes the given value into the custom map.
-     *
-     * @param property The property whose value needs to be updated.
-     * @param value The new value to be set for the property.
-     */
-    inline fun <reified V> setCustomValue(property: KProperty1<in T, V?>, value: V?) {
-        @Suppress("UNCHECKED_CAST")
-        (customMapValues[property.name]?.toControlValue as ((V?) -> String?)?)?.let {
-            customMapValues[property.name]?.formControl?.setValue(
-                it(value)
-            )
-        }
-        customMapValues[property.name]?.serialized = Json.encodeToString(value)
-    }
 
     /**
      * Transforms the given input data and returns the transformed result.
