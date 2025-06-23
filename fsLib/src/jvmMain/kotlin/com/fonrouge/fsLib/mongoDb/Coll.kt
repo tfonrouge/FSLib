@@ -88,7 +88,7 @@ val KClass<out BaseDoc<*>>.collectionName: String
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val commonContainer: CC,
     mongoDbBuilder: MongoDbBuilder? = null,
-    private var debug: Boolean = false
+    private var debug: Boolean = false,
 ) {
     companion object {
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
@@ -116,7 +116,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     data class Dependency<T : BaseDoc<*>, ID : Any>(
         val common: ICommonContainer<T, *, *>,
-        val property: KProperty1<out T, ID?>
+        val property: KProperty1<out T, ID?>,
     )
 
     /**
@@ -178,7 +178,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The state of the created item after the insertion, encapsulated in an ItemState object.
      */
     protected open suspend fun actionCreate(
-        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>
+        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
     ): ItemState<T> = insertOne(
         apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
     )
@@ -504,7 +504,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         countType: CountType = CountType.PreLookup,
         debug: Boolean = this.debug,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        postProcessList: ((List<T>) -> List<T>)? = null
+        postProcessList: ((List<T>) -> List<T>)? = null,
     ): ListState<T> {
         return apiListProcess(
             call = call,
@@ -598,7 +598,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
     private data class ResultField(
         val threadId: Long = Thread.currentThread().threadId(),
-        val kResultField: KProperty1<*, *>
+        val kResultField: KProperty1<*, *>,
     )
 
     /**
@@ -633,12 +633,19 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun T.copyItemWithPrimaryConstructorParameters(
-        vararg fieldAssignments: AssignTo<T, *> = emptyArray()
+        vararg fieldAssignments: AssignTo<T, *> = emptyArray(),
     ): T {
-        val mp = commonContainer.itemKClass.memberProperties.associateBy { it.name }
-        val cp = commonContainer.itemKClass.primaryConstructor?.parameters?.mapNotNull { it.name } ?: emptyList()
-        val o = fieldAssignments.associate { it.kField.name to it.value }
-        val values = cp.map { o.getOrElse(it) { mp[it]?.get(this) } }
+        val mp: Map<String, KProperty1<T, *>> = commonContainer.itemKClass.memberProperties.associateBy { it.name }
+        val cp: List<String> = commonContainer.itemKClass.primaryConstructor?.parameters?.mapNotNull { it.name }
+            ?: emptyList()
+        val o: Map<String, Any?> = fieldAssignments.associate { it.kField.name to it.value }
+        val values: List<Any?> = cp.map {
+            if (o.containsKey(it)) {
+                o[it]
+            } else {
+                mp[it]?.get(this)
+            }
+        }
         return commonContainer.itemKClass.primaryConstructor?.call(*values.toTypedArray())
             ?: commonContainer.itemKClass.createInstance() //throw Exception("Unable to copy item")
     }
@@ -781,7 +788,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun findItemState(
         apiItem: ApiItem<T, ID, FILT>,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     ): ItemState<T> {
         val id: ID = when (apiItem) {
             is ApiItem.Upsert.Create.Query -> null
@@ -813,7 +820,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         id: ID?,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         filter: Bson? = findItemFilter(apiFilter),
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList()
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     ): ItemState<T> {
         return try {
             ItemState(
@@ -911,7 +918,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * that match the criteria defined by the provided API filter.
      */
     open fun fixedLookupList(
-        apiFilter: FILT = commonContainer.apiFilterInstance()
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
     ): List<KProperty1<in T, *>>? = null
 
     /**
@@ -1091,7 +1098,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     open suspend fun onAfterDeleteAction(
         apiItem: ApiItem.Delete.Action<T, ID, FILT>,
-        result: Boolean
+        result: Boolean,
     ) = Unit
 
     /**
@@ -1111,7 +1118,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     open suspend fun onAfterUpsertAction(
         apiItem: ApiItem.Upsert<T, ID, FILT>,
-        result: Boolean
+        result: Boolean,
     ) = Unit
 
     /**
@@ -1122,7 +1129,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     open suspend fun onAfterUpsertCreateAction(
         apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
-        result: Boolean
+        result: Boolean,
     ) = Unit
 
     /**
@@ -1135,7 +1142,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     open suspend fun onAfterUpsertUpdateAction(
         apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
-        result: Boolean
+        result: Boolean,
     ) = Unit
 
     open suspend fun onBeforeDeleteAction(apiItem: ApiItem.Delete.Action<T, ID, FILT>): ItemState<T> =
@@ -1547,7 +1554,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     suspend fun updateOne(
         apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
         filter: Bson? = null,
-        updateOptions: UpdateOptions = UpdateOptions()
+        updateOptions: UpdateOptions = UpdateOptions(),
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
