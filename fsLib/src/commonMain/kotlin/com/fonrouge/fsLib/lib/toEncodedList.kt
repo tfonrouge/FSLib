@@ -36,7 +36,7 @@ fun String.toEncodedStringList(transform: (List<String>.() -> Collection<String>
 @Suppress("unused")
 fun String.toEncodedIntList(transform: (List<Int>.() -> Collection<Int>) = { this }): String =
     this.split(",")
-        .mapNotNull { it.toIntOrNull() }
+        .mapNotNull { it.trim().toIntOrNull() }
         .transform()
         .joinToString(
             separator = ",",
