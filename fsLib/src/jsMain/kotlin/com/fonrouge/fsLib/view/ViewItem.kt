@@ -38,11 +38,14 @@ import io.kvision.utils.em
 import js.date.Date
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.json.encodeToDynamic
+import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
 import kotlin.collections.set
@@ -800,19 +803,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @param property the property for which to retrieve the custom value
      * @return the custom value of type [V] if present and successfully deserialized, or null otherwise
      */
-    inline fun <reified V> getCustomValue(property: KProperty1<in T, V?>): V? {
-        return customMapValues[property.name]?.let { customMapValue: CustomMapValue<*, *> ->
-            customMapValue.formControl.getValue()?.toString()?.let { value ->
-                customMapValue.valueFromControl(value)?.let { value ->
-                    console.warn("getCustomMapValue = ", value)
-                    Serialization.plain.decodeFromString(
-                        deserializer = customMapValue.serializer as DeserializationStrategy<V?>,
-                        string = value
-                    )
-                }
-            }
-        }
-    }
+    inline fun <reified V> getCustomValue(property: KProperty1<in T, V?>): V? =
+        customMapValues[property.name]?.getValue() as? V
 
     /**
      * Retrieves data by merging the serialized form data and custom map values.
