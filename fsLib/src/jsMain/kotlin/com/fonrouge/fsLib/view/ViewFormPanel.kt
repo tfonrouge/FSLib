@@ -124,6 +124,23 @@ class ViewFormPanel<K : BaseDoc<*>>(
     }
 
     /**
+     * Retrieves the value of a form control associated with the specified property.
+     * The value is first searched in the custom map values; if not found, it falls back to the form's fields.
+     *
+     * @param property The property of the model object for which the control value should be retrieved.
+     * @return The retrieved value of the form control, or null if no value is found.
+     */
+    @Suppress("unused")
+    fun getControlValue(property: KProperty1<in K, *>): Any? {
+        val c = customMapValues[property.name]
+        return if (c != null) {
+            c.formControl.getValue()
+        } else {
+            form.fields[property.name]?.getValue()
+        }
+    }
+
+    /**
      * Retrieves a custom value of type [V] for a specified property from the custom map values.
      *
      * This function attempts to find the serialized value in the `customMapValues` using the property's name
@@ -135,4 +152,22 @@ class ViewFormPanel<K : BaseDoc<*>>(
     @Suppress("unused")
     inline fun <reified V> getCustomValue(property: KProperty1<in K, V?>): V? =
         customMapValues[property.name]?.getValue() as? V
+
+    /**
+     * Validates the form controls within the panel, ensuring they adhere to their respective validation requirements.
+     * Updates the form's field mapping with custom values before validation and restores it afterward.
+     *
+     * @param markFields A boolean indicating whether the invalid fields should be visually marked during validation.
+     * @return A boolean result of the validation process, where true indicates successful validation and false indicates failure.
+     */
+    override fun validate(markFields: Boolean): Boolean {
+        customMapValues.forEach { (name, customMapValue) ->
+            form.fields[name] = customMapValue.formControl
+        }
+        return singleRender {
+            val result = super.validate(markFields)
+            customMapValues.forEach { (name, _) -> form.fields.remove(name) }
+            result
+        }
+    }
 }
