@@ -82,7 +82,7 @@ data class SimpleState(
     constructor(
         isOk: Boolean,
         msgOk: String? = MSG_OK,
-        msgError: String? = MSG_ERROR
+        msgError: String? = MSG_ERROR,
     ) : this(
         state = if (isOk) {
             State.Ok
@@ -116,7 +116,7 @@ data class SimpleState(
  * @param msgError An optional error message for the error state. Defaults to the constant `MSG_ERROR`.
  */
 @Suppress("unused")
-fun simpleErrorState(msgError: String = MSG_ERROR) = SimpleState(State.Error, msgError)
+fun simpleErrorState(msgError: String = MSG_ERROR) = SimpleState(state = State.Error, msgError = msgError)
 
 /**
  * Creates an instance of `SimpleState` with a `Warn` state and a specified warning message.
@@ -128,4 +128,4 @@ fun simpleErrorState(msgError: String = MSG_ERROR) = SimpleState(State.Error, ms
  * @return A `SimpleState` instance with a `Warn` state and the specified warning message.
  */
 @Suppress("unused")
-fun simpleWarnState(msgWarn: String = MSG_ERROR) = SimpleState(State.Warn, msgWarn)
+fun simpleWarnState(msgWarn: String = MSG_ERROR) = SimpleState(state = State.Warn, msgError = msgWarn)
