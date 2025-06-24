@@ -20,15 +20,15 @@ import kotlin.reflect.KProperty1
  */
 @Suppress("unused")
 fun <T> cellEditorNumeric(
-    field: KProperty1<T, Number>,
+    field: KProperty1<T, Number?>,
     init: (NumericInput.(Number?) -> Unit)? = null,
-    onSuccess: ((Number?, Tabulator.CellComponent) -> Unit)? = null
+    onSuccess: ((Number?, Tabulator.CellComponent) -> Unit)? = null,
 ): (
     cell: Tabulator.CellComponent,
     onRendered: (() -> Unit) -> Unit,
     success: (Number?) -> Unit,
     cancel: (Number?) -> Unit,
-    T
+    T,
 ) -> NumericInput {
     return { cell, onRendered, success, cancel, data ->
         var successCalled = false
