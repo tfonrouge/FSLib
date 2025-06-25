@@ -28,7 +28,7 @@ fun Container.formRow(
         }
     }
     val div = Div(className = "row", init = init)
-    div.alignItems = AlignItems.CENTER
+    div.alignItems = AlignItems.BASELINE
     this.add(div)
     return div
 }
