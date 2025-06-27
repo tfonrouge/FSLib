@@ -285,7 +285,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
 
             is ApiItem.Read -> {
-                val itemState = findItemStateById(id = apiItem.id)
+                val itemState = findItemStateById(id = apiItem.id, apiFilter = apiItem.apiFilter)
                 onPermissionRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
                 val item = itemState.item
                 if (itemState.hasError || item == null) return itemState
@@ -296,7 +296,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
                 when (apiItem) {
                     is ApiItem.Delete.Query -> {
-                        val itemState = findItemStateById(apiItem.id)
+                        val itemState = findItemStateById(id = apiItem.id, apiFilter = apiItem.apiFilter)
                         val item = itemState.item
                         if (itemState.hasError || item == null) return itemState
                         findChildrenNot(item).also { if (it.hasError) return it }
@@ -363,7 +363,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiRequestParams?.let { requestParams ->
             val pageCountInfo: PageCountInfo = when (countType) {
                 CountType.PreLookup -> PageCountInfo(
-                    match = matchStage(apiFilter),
+                    match = matchStage(apiFilter = apiFilter, resultUnit = resultUnit),
                     countType = countType
                 )
 
@@ -1069,7 +1069,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter The filter of type FILT used to construct the match stage.
      * @return A BSON object representing the match stage, or null if the filter could not be processed.
      */
-    open fun matchStage(apiFilter: FILT): Bson? = null
+    open fun matchStage(apiFilter: FILT, resultUnit: ResultUnit): Bson? = null
 
     /**
      * Transforms data in the pipeline before lookups are created, allowing aggregation and restructuring
@@ -1266,7 +1266,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val bsonSorters: ApiRequestParams.SortLists? = apiRequestParams?.bsonSorters()
 
         var bson: Bson = EMPTY_BSON
-        matchStage(apiFilter)?.let {
+        matchStage(apiFilter = apiFilter, resultUnit = resultUnit)?.let {
             if (Document.parse(it.json).isNotEmpty()) bson = it
         }
         // combine matchStage() result with apiRequestParams pre lookup doc
@@ -1274,13 +1274,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             if (Document.parse(it.json).isNotEmpty()) pipeline.add(match(it))
         }
 
-        bson = EMPTY_BSON
-        sortStage(apiFilter)?.let {
-            if (Document.parse(it.json).isNotEmpty()) bson = it
-        }
-        // combine sortStage() result with apiRequestParams pre sort doc
-        document(bson, bsonSorters?.preMainLookup ?: EMPTY_BSON).also {
-            if (Document.parse(it.json).isNotEmpty()) pipeline.add(sort(it))
+        // sort is only meaningful when a list is collected
+        if (resultUnit == ResultUnit.List) {
+            bson = EMPTY_BSON
+            sortStage(apiFilter = apiFilter)?.let {
+                if (Document.parse(it.json).isNotEmpty()) bson = it
+            }
+            // combine sortStage() result with apiRequestParams pre sort doc
+            document(bson, bsonSorters?.preMainLookup ?: EMPTY_BSON).also {
+                if (Document.parse(it.json).isNotEmpty()) pipeline.add(sort(it))
+            }
         }
 
         // build the main lookups stage
