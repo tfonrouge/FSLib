@@ -55,7 +55,7 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
     @Suppress("unused")
     fun navigateTo(
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        target: String = "_blank"
+        target: String = "_blank",
     ): Window? {
         val url = if (this is ConfigViewList<*, *, *, *, FILT, *, *>) {
             viewListUrl(apiFilter)
@@ -89,6 +89,9 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
 //        console.warn("v", v)
         return v.apply {
             this.urlParams = urlParams ?: UrlParams()
+            apiFilterFromUrl?.let {
+                apiFilter = it
+            }
             init?.invoke(this)
         }
     }

@@ -94,7 +94,6 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * Set to true to don't display the [pageBanner]
      */
     var noPageBanner = false
-    var pageBannerLink: Link? = null
 
     /**
      * Indicates whether the data view should perform periodic updates.
@@ -131,7 +130,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * updates to the filtering logic, which may impact the displayed data or UI components.
      */
     val apiFilterObservable: ObservableValue<FILT> by lazy {
-        ObservableValue(apiFilterFromUrl ?: configView.commonContainer.apiFilterInstance())
+        ObservableValue(configView.commonContainer.apiFilterInstance())
     }
 
     /**
@@ -148,7 +147,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             apiFilterObservable.value = value
         }
 
-    protected val apiFilterFromUrl: FILT?
+    val apiFilterFromUrl: FILT?
         get() = urlParams.pullUrlParam(
             serializer = configView.commonContainer.apiFilterSerializer,
             key = "apiFilter"
@@ -252,7 +251,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     }
 
     /**
-     * Allows to describe a display that will be shown next to the view link banner
+     * Allows describing a display that will be shown next to the view link banner
      * it can be triggered with [updateBanner] function.
      * Note: don't try to update [apiFilterObservable] inside this, or you'll get a recursive infinite loop
      */

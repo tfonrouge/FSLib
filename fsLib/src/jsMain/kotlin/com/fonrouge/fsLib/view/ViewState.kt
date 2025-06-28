@@ -13,7 +13,7 @@ import io.kvision.core.Container
  */
 class ViewState(
     val configView: ConfigView<*, *, *>,
-    val urlParams: UrlParams?
+    val urlParams: UrlParams?,
 )
 
 /**
