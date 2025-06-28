@@ -20,6 +20,7 @@ import io.kvision.utils.em
 @Suppress("unused")
 fun Container.formRow(
     text: String? = null,
+    alignItems: AlignItems? = AlignItems.BASELINE,
     init: (Div.() -> Unit)? = null
 ): Div {
     text?.let { content ->
@@ -28,7 +29,7 @@ fun Container.formRow(
         }
     }
     val div = Div(className = "row", init = init)
-    div.alignItems = AlignItems.BASELINE
+    div.alignItems = alignItems
     this.add(div)
     return div
 }

@@ -215,7 +215,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter a filter object containing the conditions or criteria for the lookup match stage.
      * @return a BSON object representing the result of the operation, or null if no processing is performed.
      */
-    open fun afterLookupMatchStage(apiFilter: FILT): Bson? = null
+    open fun afterLookupMatchStage(apiFilter: FILT, resultUnit: ResultUnit): Bson? = null
 
     /**
      * Executes a sort stage to be performed after a lookup stage in the pipeline.
@@ -237,6 +237,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     suspend fun apiItemProcess(
         iApiItem: IApiItem<T, ID, FILT>,
         call: ApplicationCall?,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     ): ItemState<T> {
         val apiItem: ApiItem<T, ID, FILT> = asApiItem(
             apiItem = iApiItem.asApiItem(commonContainer, call),
@@ -269,7 +270,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
                     is ApiItem.Upsert.Update -> when (apiItem) {
                         is ApiItem.Upsert.Update.Query -> {
-                            val itemState = findItemState(apiItem)
+                            val itemState = findItemState(apiItem = apiItem, lookupWrappers = lookupWrappers)
                             val item = itemState.item
                             if (itemState.hasError || item == null) return itemState
                             onPermissionUpsertUpdate(
@@ -285,7 +286,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             }
 
             is ApiItem.Read -> {
-                val itemState = findItemStateById(id = apiItem.id, apiFilter = apiItem.apiFilter)
+                val itemState = findItemStateById(
+                    id = apiItem.id,
+                    apiFilter = apiItem.apiFilter,
+                    lookupWrappers = lookupWrappers
+                )
                 onPermissionRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
                 val item = itemState.item
                 if (itemState.hasError || item == null) return itemState
@@ -296,7 +301,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
                 when (apiItem) {
                     is ApiItem.Delete.Query -> {
-                        val itemState = findItemStateById(id = apiItem.id, apiFilter = apiItem.apiFilter)
+                        val itemState = findItemStateById(
+                            id = apiItem.id,
+                            apiFilter = apiItem.apiFilter,
+                            lookupWrappers = lookupWrappers
+                        )
                         val item = itemState.item
                         if (itemState.hasError || item == null) return itemState
                         findChildrenNot(item).also { if (it.hasError) return it }
@@ -1298,7 +1307,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
         val postLookupMatchDoc = mutableListOf<Bson>()
         // first, afterLookupMatchStage()
-        afterLookupMatchStage(apiFilter)?.let {
+        afterLookupMatchStage(apiFilter = apiFilter, resultUnit = resultUnit)?.let {
             postLookupMatchDoc += it
         }
         // second, remote matches
