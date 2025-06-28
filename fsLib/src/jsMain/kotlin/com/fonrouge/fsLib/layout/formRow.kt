@@ -7,14 +7,14 @@ import io.kvision.html.div
 import io.kvision.utils.em
 
 /**
- * Creates a row-style form group within the container.
+ * Creates a horizontal row within a container to group form elements or content.
  *
- * This method generates a `Div` element with predefined styles and allows
- * customization through an optional text label and initialization block.
- * The returned `Div` is aligned centrally by default.
+ * This method generates a `Div` element with a specified alignment and optional label.
+ * Additional customization can be provided through a configurable initialization block.
  *
- * @param text Optional label text to be displayed above the row.
- * @param init An optional lambda function to further configure the created `Div`.
+ * @param text The optional label text to be displayed above the form row.
+ * @param alignItems The alignment of the items within the row. Defaults to `AlignItems.BASELINE`.
+ * @param init A lambda function to configure the `Div` element.
  * @return The created `Div` element representing the form row.
  */
 @Suppress("unused")
