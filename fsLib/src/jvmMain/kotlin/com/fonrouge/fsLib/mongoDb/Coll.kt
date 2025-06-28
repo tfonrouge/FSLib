@@ -226,12 +226,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open fun afterLookupSortStage(apiFilter: FILT): Bson? = null
 
     /**
-     * Processes the provided API item based on its type and performs the corresponding
-     * CRUD operations or validations.
+     * Processes an API item by handling various actions including create, read, update, delete,
+     * and other operations based on the item's type and state.
      *
-     * @param iApiItem The API item to be processed.
-     * @param call The ApplicationCall context (nullable).
-     * @return The resulting state of the item after processing.
+     * @param iApiItem The API item to process, implementing the [IApiItem] interface.
+     * @param call The [ApplicationCall] context associated with the API request, if available.
+     * @param lookupWrappers A list of lookup wrappers for resolving additional references or filters. Defaults to an empty list.
+     * @return [ItemState] representing the success, error state, and relevant data or messages after processing the API item.
      */
     @Suppress("unused")
     suspend fun apiItemProcess(
