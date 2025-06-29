@@ -2,6 +2,7 @@ package com.fonrouge.fsLib.layout
 
 import io.kvision.core.*
 import io.kvision.html.span
+import io.kvision.panel.GridPanel
 import io.kvision.panel.gridPanel
 import io.kvision.utils.rem
 
@@ -18,8 +19,9 @@ import io.kvision.utils.rem
  * in the first column, and the component will be displayed in the second column.
  */
 @Suppress("unused")
-fun Container.labelControlGrid(vararg entry: Pair<String, Component>) {
+fun Container.labelControlGrid(vararg entry: Pair<String, Component>, init: (GridPanel.() -> Unit)? = null) {
     gridPanel(templateColumns = "auto 1fr", columnGap = 5, rowGap = 5) {
+        init?.invoke(this)
         entry.forEach {
             span("${it.first}:") {
                 display = Display.FLEX
