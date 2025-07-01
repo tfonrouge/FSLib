@@ -3,10 +3,7 @@ package com.fonrouge.fsLib.view
 import com.fonrouge.fsLib.model.base.BaseDoc
 import io.kvision.core.Widget
 import io.kvision.core.onChange
-import io.kvision.form.FormControl
-import io.kvision.form.FormPanel
-import io.kvision.form.FormType
-import io.kvision.form.GenericFormComponent
+import io.kvision.form.*
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -61,6 +58,27 @@ class ViewFormPanel<K : BaseDoc<*>>(
         fun getSerializedValue(): String? {
             return getValue()?.let { Json.encodeToString(serializer = serializer, value = it) }
         }
+    }
+
+    /**
+     * Binds a custom value to a form control with additional options for validation and layout configuration.
+     *
+     * @param key The key used to identify the control in the binding process.
+     * @param required Indicates whether the field is mandatory. Default is false.
+     * @param requiredMessage The message displayed when the field is required but not filled. Default is null.
+     * @param layoutType The type of layout used for the control. Default is null.
+     * @param validatorMessage A function that provides a custom validation message for the control. Default is null.
+     * @param validator A function that performs custom validation logic for the control. Default is null.
+     * @return The control itself, allowing for method chaining.
+     */
+    @Suppress("unused")
+    fun <C : StringFormControl> C.bindCustom(
+        key: String, required: Boolean = false, requiredMessage: String? = null,
+        layoutType: FormType? = null,
+        validatorMessage: ((C) -> String?)? = null,
+        validator: ((C) -> Boolean?)? = null
+    ): C {
+        return bind(key, required, requiredMessage, layoutType, validatorMessage, validator)
     }
 
     /**
