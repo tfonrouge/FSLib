@@ -210,10 +210,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> = deleteOne(apiItem)
 
     /**
-     * Executes a match stage to be performed after a lookup stage in the pipeline.
+     * Executes actions or transformations after a lookup match stage.
      *
-     * @param apiFilter a filter object containing the conditions or criteria for the lookup match stage.
-     * @return a BSON object representing the result of the operation, or null if no processing is performed.
+     * @param call The optional current application call context, which could be null when not applicable.
+     * @param apiFilter The filter parameter of type `FILT` used for API filtering operations.
+     * @param resultUnit The result unit of type `ResultUnit` used to process the outcome.
+     * @return A BSON object resulting from the operation, or null if nothing is produced.
      */
     open fun afterLookupMatchStage(
         call: ApplicationCall? = null,
@@ -222,25 +224,27 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): Bson? = null
 
     /**
-     * Executes a sort stage to be performed after a lookup stage in the pipeline.
+     * Executes the sorting stage after a lookup operation, potentially applying additional filtering logic.
      *
-     * @param apiFilter the filter criteria to be applied in the lookup or sort stage.
-     * @return a BSON object representing the result of the operations, or null if no modifications are made.
+     * @param call An optional `ApplicationCall` object that may contain necessary request context or parameters.
+     * @param apiFilter The filter criteria of type `FILT` to apply to the lookup results.
+     * @return A `Bson` object representing the sorting and filtering operations to be applied, or `null` if no operations are needed.
      */
     open fun afterLookupSortStage(call: ApplicationCall? = null, apiFilter: FILT): Bson? = null
 
     /**
-     * Constructs and executes an aggregation pipeline to generate an `AggregatePublisher` result based on the
-     * provided parameters like filter, pagination, custom lookups, and debug settings.
+     * Aggregates a MongoDB query pipeline and returns an `AggregatePublisher` for querying a collection.
      *
-     * @param pipeline The initial pipeline to use. Defaults to an empty mutable list.
-     * @param lookupWrappers A list of custom lookup wrappers to include in the aggregation pipeline. Defaults to an empty list.
-     * @param apiFilter The API filter instance to apply over the aggregation pipeline. Defaults to a common container filter instance.
-     * @param apiRequestParams Request parameters for API calls, including pagination details. Can be null.
-     * @param countType Specifies the type of count operation to use, such as `PreLookup` or `PostLookup`. Default is `CountType.PreLookup`.
-     * @param debug Flag to enable or disable debug information for the aggregation pipeline execution. Defaults to the class-level debug configuration.
-     * @param pageStateInfoFun A callback function that provides `PageCountInfo` details based on the count type and pipeline state. Can be null.
-     * @return An `AggregatePublisher` containing the result of executing the aggregation pipeline.
+     * @param call Optionally specifies the `ApplicationCall` instance for the current request context.
+     * @param pipeline A mutable list of `Bson` stages representing the aggregation pipeline; defaults to an empty list.
+     * @param lookupWrappers A list of `LookupWrapper` objects used for constructing lookup stages in the pipeline.
+     * @param apiFilter An instance of the filter applicable for the aggregation; default is provided by `commonContainer.apiFilterInstance()`.
+     * @param apiRequestParams Optional parameters for customizing the API request, such as pagination.
+     * @param countType Specifies the counting strategy used in the pipeline, such as pre-lookup or post-lookup.
+     * @param resultUnit Specifies the unit of the resulting data, often used to define the data structure of the results.
+     * @param debug A flag indicating whether debug information, such as the pipeline, should be printed; defaults to the class-level debug setting.
+     * @param pageStateInfoFun An optional function that is invoked with `PageCountInfo` to provide state about paginated results.
+     * @return An `AggregatePublisher` instance for querying the MongoDB collection with the constructed aggregation pipeline.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun aggregateLookupPublisher(
@@ -318,18 +322,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Processes an API item by handling various actions including create, read, update, delete,
-     * and other operations based on the item's type and state.
+     * Processes an API item request by handling CRUD operations and permission checks.
      *
-     * @param iApiItem The API item to process, implementing the [IApiItem] interface.
-     * @param call The [ApplicationCall] context associated with the API request, if available.
-     * @param lookupWrappers A list of lookup wrappers for resolving additional references or filters. Defaults to an empty list.
-     * @return [ItemState] representing the success, error state, and relevant data or messages after processing the API item.
+     * @param call The ApplicationCall instance representing the current HTTP call, or null if not available.
+     * @param iApiItem The API item to be processed, which contains the operation type (e.g., create, read, update, delete).
+     * @param lookupWrappers A list of LookupWrapper objects used for managing relationships or additional query constraints.
+     * @return An ItemState representing the result of the operation, containing the processed item or an error state.
      */
     @Suppress("unused")
     suspend fun apiItemProcess(
-        iApiItem: IApiItem<T, ID, FILT>,
         call: ApplicationCall?,
+        iApiItem: IApiItem<T, ID, FILT>,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     ): ItemState<T> {
         val apiItem: ApiItem<T, ID, FILT> = asApiItem(
@@ -1083,8 +1086,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     /**
      * Builds a BSON representation of the given filter to be used in a MongoDB aggregation match stage.
      *
-     * @param apiFilter The filter of type FILT used to construct the match stage.
-     * @return A BSON object representing the match stage, or null if the filter could not be processed.
+     * @param call The optional ApplicationCall instance that may be used during matching. Defaults to null.
+     * @param apiFilter The filter criteria of type FILT used for the matching process.
+     * @param resultUnit The result unit of type ResultUnit utilized in the matching operation.
+     * @return A Bson object representing the matched result or null if no match is found.
      */
     open fun matchStage(
         call: ApplicationCall? = null,
@@ -1098,6 +1103,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * or reshape document structure. An typical application is using a mongodb group stage or a projection of
      * resulting fields, or adding new calculated fields.
      *
+     * @param call The optional ApplicationCall instance that may be used during matching. Defaults to null.
      * @param pipeline The mutable list of BSON objects representing the pipeline that needs to be processed.
      * @param apiFilter The filter instance to be applied during the morphing stage. Defaults to a common container's API filter instance.
      * @param apiRequestParams The parameters of the API request used for modifying or adapting the pipeline.
@@ -1261,6 +1267,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     /**
      * Constructs and modifies a MongoDB aggregation pipeline based on class-defined match and sort stages.
      *
+     * @param call The optional ApplicationCall instance that may be used during matching. Defaults to null.
      * @param apiFilter The filter object used to determine match and sort stages. Defaults to the common container's API filter instance.
      * @param apiRequestParams Optional request parameters that may include post-lookup match conditions.
      * @param lookupWrappers A list of lookup wrapper objects used to build lookup stages. Defaults to an empty list.
@@ -1436,6 +1443,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     /**
      * Refactors the given pipeline right after the [buildLookupList] fun by applying a result unit and an API filter.
      *
+     * @param call The optional ApplicationCall instance that may be used during matching. Defaults to null.
      * @param pipeline a mutable list of Bson elements representing the data pipeline
      * @param resultUnit an instance of the ResultUnit to apply to the pipeline
      * @param apiFilter an instance of FILT filter to apply to the pipeline, with a default of commonContainer.apiFilterInstance()
@@ -1453,6 +1461,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     /**
      * Generates a MongoDB BSON sort stage based on the provided filter.
      *
+     * @param call The optional ApplicationCall instance that may be used during matching. Defaults to null.
      * @param apiFilter the filter object specifying the sorting configuration.
      * @return a BSON object representing the sort stage, or null if no sort stage is defined.
      */
@@ -1547,6 +1556,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param filter The filter to identify the item to be updated. Defaults to null.
      * @param apiFilter The API filter instance for the update operation. Defaults to a common API filter instance.
      * @param updateOptions Options to apply during the update operation. Defaults to an instance of UpdateOptions.
+     * @param call The optional ApplicationCall instance that may be used during matching. Defaults to null.
      * @return The state of the item after the update operation.
      */
     @Suppress("unused")
