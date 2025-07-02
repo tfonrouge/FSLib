@@ -215,7 +215,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter a filter object containing the conditions or criteria for the lookup match stage.
      * @return a BSON object representing the result of the operation, or null if no processing is performed.
      */
-    open fun afterLookupMatchStage(apiFilter: FILT, resultUnit: ResultUnit): Bson? = null
+    open fun afterLookupMatchStage(
+        call: ApplicationCall? = null,
+        apiFilter: FILT,
+        resultUnit: ResultUnit,
+    ): Bson? = null
 
     /**
      * Executes a sort stage to be performed after a lookup stage in the pipeline.
@@ -223,7 +227,95 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter the filter criteria to be applied in the lookup or sort stage.
      * @return a BSON object representing the result of the operations, or null if no modifications are made.
      */
-    open fun afterLookupSortStage(apiFilter: FILT): Bson? = null
+    open fun afterLookupSortStage(call: ApplicationCall? = null, apiFilter: FILT): Bson? = null
+
+    /**
+     * Constructs and executes an aggregation pipeline to generate an `AggregatePublisher` result based on the
+     * provided parameters like filter, pagination, custom lookups, and debug settings.
+     *
+     * @param pipeline The initial pipeline to use. Defaults to an empty mutable list.
+     * @param lookupWrappers A list of custom lookup wrappers to include in the aggregation pipeline. Defaults to an empty list.
+     * @param apiFilter The API filter instance to apply over the aggregation pipeline. Defaults to a common container filter instance.
+     * @param apiRequestParams Request parameters for API calls, including pagination details. Can be null.
+     * @param countType Specifies the type of count operation to use, such as `PreLookup` or `PostLookup`. Default is `CountType.PreLookup`.
+     * @param debug Flag to enable or disable debug information for the aggregation pipeline execution. Defaults to the class-level debug configuration.
+     * @param pageStateInfoFun A callback function that provides `PageCountInfo` details based on the count type and pipeline state. Can be null.
+     * @return An `AggregatePublisher` containing the result of executing the aggregation pipeline.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun aggregateLookupPublisher(
+        call: ApplicationCall? = null,
+        pipeline: MutableList<Bson> = mutableListOf(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        apiRequestParams: ApiRequestParams? = null,
+        countType: CountType = CountType.PreLookup,
+        resultUnit: ResultUnit,
+        debug: Boolean = this.debug,
+        pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
+    ): AggregatePublisher<T> {
+        pipeline += pipeline(
+            call = call,
+            apiFilter = apiFilter,
+            apiRequestParams = apiRequestParams,
+            lookupWrappers = lookupWrappers,
+            resultUnit = resultUnit
+        )
+        apiRequestParams?.let { requestParams ->
+            val pageCountInfo: PageCountInfo = when (countType) {
+                CountType.PreLookup -> PageCountInfo(
+                    match = matchStage(apiFilter = apiFilter, resultUnit = resultUnit),
+                    countType = countType
+                )
+
+                CountType.PostLookup -> PageCountInfo(
+                    pipeline = pipeline + Aggregates.count(),
+                    countType = countType
+                )
+
+                CountType.Estimated -> PageCountInfo(countType = countType)
+                CountType.Unknown -> PageCountInfo(countType = countType)
+            }
+            pageStateInfoFun?.invoke(pageCountInfo)
+            requestParams.pageSize?.let { pageSize ->
+                if (pageSize > 0) {
+                    (pageSize * ((requestParams.page ?: 1) - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
+                    pipeline.add(limit(pageSize))
+                }
+            }
+        }
+        if (debug) {
+            printOutPipeline(pipeline)
+        }
+        return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
+    }
+
+    /**
+     * Performs an aggregation operation on a MongoDB collection using the specified pipeline,
+     * lookup wrappers, and API filter, and returns an `AggregatePublisher` for further processing.
+     *
+     * @param pipeline Optional list of aggregation stages represented as a list of `Bson`.
+     *                 If null, a default pipeline is generated based on the `apiFilter`, `lookupWrappers`, and `ResultUnit.Single`.
+     * @param lookupWrappers A list of `LookupWrapper` instances to specify lookup operations during aggregation. Defaults to an empty list.
+     * @param apiFilter An instance of `FILT` used to apply specific filters as part of the aggregation. Defaults to the common container's API filter instance.
+     * @return An `AggregatePublisher` representing the result of the aggregation operation.
+     */
+    @Suppress("unused")
+    fun aggregateSingleLookup(
+        pipeline: List<Bson>? = null,
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+    ): AggregatePublisher<T> {
+        val pipeline1 = pipeline ?: pipeline(
+            apiFilter = apiFilter,
+            lookupWrappers = lookupWrappers,
+            resultUnit = ResultUnit.Single
+        )
+        if (debug) {
+            printOutPipeline(pipeline1)
+        }
+        return mongoColl.aggregate(pipeline1, commonContainer.itemKClass.java)
+    }
 
     /**
      * Processes an API item by handling various actions including create, read, update, delete,
@@ -331,102 +423,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Converts the provided `ApiItem` into an `ItemState` containing the given `ApiItem` instance.
-     *
-     * @param apiItem The API item to be wrapped in an ItemState.
-     * @return An ItemState object that contains the given ApiItem.
-     */
-    open suspend fun asApiItem(
-        apiItem: ApiItem<T, ID, FILT>,
-    ): ItemState<ApiItem<T, ID, FILT>> = ItemState(item = apiItem)
-
-    /**
-     * Constructs and executes an aggregation pipeline to generate an `AggregatePublisher` result based on the
-     * provided parameters like filter, pagination, custom lookups, and debug settings.
-     *
-     * @param pipeline The initial pipeline to use. Defaults to an empty mutable list.
-     * @param lookupWrappers A list of custom lookup wrappers to include in the aggregation pipeline. Defaults to an empty list.
-     * @param apiFilter The API filter instance to apply over the aggregation pipeline. Defaults to a common container filter instance.
-     * @param apiRequestParams Request parameters for API calls, including pagination details. Can be null.
-     * @param countType Specifies the type of count operation to use, such as `PreLookup` or `PostLookup`. Default is `CountType.PreLookup`.
-     * @param debug Flag to enable or disable debug information for the aggregation pipeline execution. Defaults to the class-level debug configuration.
-     * @param pageStateInfoFun A callback function that provides `PageCountInfo` details based on the count type and pipeline state. Can be null.
-     * @return An `AggregatePublisher` containing the result of executing the aggregation pipeline.
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun aggregateLookupPublisher(
-        pipeline: MutableList<Bson> = mutableListOf(),
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        apiRequestParams: ApiRequestParams? = null,
-        countType: CountType = CountType.PreLookup,
-        resultUnit: ResultUnit,
-        debug: Boolean = this.debug,
-        pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
-    ): AggregatePublisher<T> {
-        pipeline += pipeline(
-            apiFilter = apiFilter,
-            apiRequestParams = apiRequestParams,
-            lookupWrappers = lookupWrappers,
-            resultUnit = resultUnit
-        )
-        apiRequestParams?.let { requestParams ->
-            val pageCountInfo: PageCountInfo = when (countType) {
-                CountType.PreLookup -> PageCountInfo(
-                    match = matchStage(apiFilter = apiFilter, resultUnit = resultUnit),
-                    countType = countType
-                )
-
-                CountType.PostLookup -> PageCountInfo(
-                    pipeline = pipeline + Aggregates.count(),
-                    countType = countType
-                )
-
-                CountType.Estimated -> PageCountInfo(countType = countType)
-                CountType.Unknown -> PageCountInfo(countType = countType)
-            }
-            pageStateInfoFun?.invoke(pageCountInfo)
-            requestParams.pageSize?.let { pageSize ->
-                if (pageSize > 0) {
-                    (pageSize * ((requestParams.page ?: 1) - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
-                    pipeline.add(limit(pageSize))
-                }
-            }
-        }
-        if (debug) {
-            printOutPipeline(pipeline)
-        }
-        return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
-    }
-
-    /**
-     * Performs an aggregation operation on a MongoDB collection using the specified pipeline,
-     * lookup wrappers, and API filter, and returns an `AggregatePublisher` for further processing.
-     *
-     * @param pipeline Optional list of aggregation stages represented as a list of `Bson`.
-     *                 If null, a default pipeline is generated based on the `apiFilter`, `lookupWrappers`, and `ResultUnit.Single`.
-     * @param lookupWrappers A list of `LookupWrapper` instances to specify lookup operations during aggregation. Defaults to an empty list.
-     * @param apiFilter An instance of `FILT` used to apply specific filters as part of the aggregation. Defaults to the common container's API filter instance.
-     * @return An `AggregatePublisher` representing the result of the aggregation operation.
-     */
-    @Suppress("unused")
-    fun aggregateSingleLookup(
-        pipeline: List<Bson>? = null,
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-    ): AggregatePublisher<T> {
-        val pipeline1 = pipeline ?: pipeline(
-            apiFilter = apiFilter,
-            lookupWrappers = lookupWrappers,
-            resultUnit = ResultUnit.Single
-        )
-        if (debug) {
-            printOutPipeline(pipeline1)
-        }
-        return mongoColl.aggregate(pipeline1, commonContainer.itemKClass.java)
-    }
-
-    /**
      * Processes a list for an API call, applying various stages, lookups, filters, and post-processing steps.
      *
      * @param call Optional ApplicationCall that might be used to fetch user session information.
@@ -458,6 +454,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         var pageCountInfo: PageCountInfo? = null
         val publisher = aggregateLookupPublisher(
+            call = call,
             lookupWrappers = lookupWrappers,
             apiFilter = apiFilter,
             apiRequestParams = apiRequestParams,
@@ -531,6 +528,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             postProcessList = postProcessList
         )
     }
+
+    /**
+     * Converts the provided `ApiItem` into an `ItemState` containing the given `ApiItem` instance.
+     *
+     * @param apiItem The API item to be wrapped in an ItemState.
+     * @return An ItemState object that contains the given ApiItem.
+     */
+    open suspend fun asApiItem(
+        apiItem: ApiItem<T, ID, FILT>,
+    ): ItemState<ApiItem<T, ID, FILT>> = ItemState(item = apiItem)
 
     /**
      * Builds a lookup pipeline list based on the provided lookup wrappers and API filter.
@@ -1079,7 +1086,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter The filter of type FILT used to construct the match stage.
      * @return A BSON object representing the match stage, or null if the filter could not be processed.
      */
-    open fun matchStage(apiFilter: FILT, resultUnit: ResultUnit): Bson? = null
+    open fun matchStage(
+        call: ApplicationCall? = null,
+        apiFilter: FILT,
+        resultUnit: ResultUnit,
+    ): Bson? = null
 
     /**
      * Transforms data in the pipeline before lookups are created, allowing aggregation and restructuring
@@ -1093,6 +1104,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param resultUnit The resulting unit specifying the output or transformation target of the morphing process.
      */
     open fun morphingStage(
+        call: ApplicationCall? = null,
         pipeline: MutableList<Bson>,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams?,
@@ -1256,6 +1268,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return A mutable list of Bson objects representing the constructed and refined aggregation pipeline.
      */
     fun pipeline(
+        call: ApplicationCall? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
@@ -1266,6 +1279,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
         // Execute pipeline transformations before any other pipeline stages
         morphingStage(
+            call = call,
             pipeline = pipeline,
             apiFilter = apiFilter,
             apiRequestParams = apiRequestParams,
@@ -1276,7 +1290,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val bsonSorters: ApiRequestParams.SortLists? = apiRequestParams?.bsonSorters()
 
         var bson: Bson = EMPTY_BSON
-        matchStage(apiFilter = apiFilter, resultUnit = resultUnit)?.let {
+        matchStage(call = call, apiFilter = apiFilter, resultUnit = resultUnit)?.let {
             if (Document.parse(it.json).isNotEmpty()) bson = it
         }
         // combine matchStage() result with apiRequestParams pre lookup doc
@@ -1287,7 +1301,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         // sort is only meaningful when a list is collected
         if (resultUnit == ResultUnit.List) {
             bson = EMPTY_BSON
-            sortStage(apiFilter = apiFilter)?.let {
+            sortStage(call = call, apiFilter = apiFilter)?.let {
                 if (Document.parse(it.json).isNotEmpty()) bson = it
             }
             // combine sortStage() result with apiRequestParams pre sort doc
@@ -1300,6 +1314,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         pipeline += buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter)
 
         refactorPipeline(
+            call = call,
             pipeline = pipeline,
             apiFilter = apiFilter,
             apiRequestParams = apiRequestParams,
@@ -1308,7 +1323,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
         val postLookupMatchDoc = mutableListOf<Bson>()
         // first, afterLookupMatchStage()
-        afterLookupMatchStage(apiFilter = apiFilter, resultUnit = resultUnit)?.let {
+        afterLookupMatchStage(call = call, apiFilter = apiFilter, resultUnit = resultUnit)?.let {
             postLookupMatchDoc += it
         }
         // second, remote matches
@@ -1322,7 +1337,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         // first, remote sorts
         val bson1: BsonDocument = bsonSorters?.postMainLookup ?: BsonDocument()
         // second, afterLookupSortStage()
-        afterLookupSortStage(apiFilter)?.let {
+        afterLookupSortStage(call = call, apiFilter = apiFilter)?.let {
             val doc = Document.parse(it.json)
             if (doc.isNotEmpty()) {
                 doc.forEach { (key, value) ->
@@ -1427,6 +1442,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return the refactored pipeline as a mutable list of Bson elements
      */
     open fun refactorPipeline(
+        call: ApplicationCall? = null,
         pipeline: MutableList<Bson> = mutableListOf(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         apiRequestParams: ApiRequestParams? = null,
@@ -1440,7 +1456,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter the filter object specifying the sorting configuration.
      * @return a BSON object representing the sort stage, or null if no sort stage is defined.
      */
-    open fun sortStage(apiFilter: FILT): Bson? = null
+    open fun sortStage(call: ApplicationCall? = null, apiFilter: FILT): Bson? = null
 
     /**
      * Updates specific fields of an item identified by its ID.
