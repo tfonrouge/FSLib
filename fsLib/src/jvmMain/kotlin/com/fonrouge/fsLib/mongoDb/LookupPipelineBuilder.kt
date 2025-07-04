@@ -110,6 +110,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
     lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     preserveNullAndEmptyArrays: Boolean = true,
     resultUnit: Coll.ResultUnit = Coll.ResultUnit.Single,
+    unwind: Boolean? = null,
     addStages: List<Bson>? = null,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
     coll = coll,
@@ -122,6 +123,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = 1,
     resultUnit = resultUnit,
+    unwind = unwind,
     isAnyResult = true,
     addStages = addStages,
 ) {}
@@ -205,6 +207,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     internal val preserveNullAndEmptyArrays: Boolean,
     internal val limit: Int?,
     val resultUnit: Coll.ResultUnit,
+    val unwind: Boolean? = null,
     private val isAnyResult: Boolean = false,
     val addStages: List<Bson>? = null,
 ) {
@@ -260,7 +263,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 pipeline = pip2.toTypedArray()
             )
         }
-        if (resultUnit == Coll.ResultUnit.Single) {
+        if (unwind == null || resultUnit == Coll.ResultUnit.Single || unwind) {
             resultProperty.let {
                 pipeline += resultProperty.unwind(
                     UnwindOptions().preserveNullAndEmptyArrays(
