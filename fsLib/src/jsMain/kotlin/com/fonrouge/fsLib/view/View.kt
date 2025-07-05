@@ -370,9 +370,22 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         hPanel(alignItems = AlignItems.CENTER, className = "container-fluid")
 
     /**
-     * Configures and displays a page banner within the container.
+     * Configures and displays a horizontal page banner within a given container.
      *
-     * @param onUpdatePageBannerLink A lambda function that gets called with the updated link information.
+     * The banner is created using a light-themed Bootstrap navbar and dynamically updates
+     * based on observable state changes. It includes navigation links, buttons, and
+     * additional elements for filtering and actions dependent on the view state and user interactions.
+     *
+     * Features:
+     * - A dynamically updating label and URL link based on observable states associated with the current view.
+     * - Configurable navigation buttons for actions such as back, cancel, or accept, depending on the CRUD task and context.
+     * - Optional edit button display in read-only contexts for updating entities.
+     * - Capability to include an off-canvas filter for enhanced filtering functionality, which can be shown upon user interaction.
+     *
+     * Note: This function is intended to be used within a `Container` and assumes that certain contextual data members are available in the surrounding scope.
+     *
+     * Known Limitation:
+     * - Horizontal scrollability for the banner has not been fully implemented and requires additional development.
      */
     fun Container.pageBanner() {
         /* TODO: find out how make horizontally scrollable */
