@@ -57,11 +57,13 @@ class FieldCollapsablePanel(
         }
         onClick {
             it.stopPropagation()
-            children?.forEach { it: Component ->
-                if (useAnimation && it is Widget) {
-                    if (showStateObs.value.not()) it.showAnim() else it.hideAnim()
-                } else {
-                    it.visible = showStateObs.value.not()
+            singleRender {
+                children?.forEach { it: Component ->
+                    if (useAnimation && it is Widget) {
+                        if (showStateObs.value.not()) it.showAnim() else it.hideAnim()
+                    } else {
+                        it.visible = showStateObs.value.not()
+                    }
                 }
             }
             showStateObs.value = !showStateObs.value
