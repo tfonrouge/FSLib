@@ -38,7 +38,7 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     commonContainer: CC,
     val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     viewKClass: KClass<out V>,
-    baseUrl: String? = null
+    baseUrl: String? = null,
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
     commonContainer = commonContainer,
     viewKClass = viewKClass,
@@ -68,20 +68,20 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     override val labelUrl: Pair<String, String> by lazy { commonContainer.labelItem to url }
 
     /**
-     * Makes an API query to retrieve an item by its identifier, applies a filter and a transformation
-     * function to process the result, and returns the transformed output as a Promise.
+     * Executes a query to fetch a specific item using its identifier and processes the resulting state.
      *
-     * @param id The identifier of the item to retrieve.
-     * @param apiFilter An optional filter of type `FILT` to customize the API query; defaults to a new instance of `FILT`.
-     * @param transform A function that processes the resulting `ItemState` and transforms it into the desired type `T?`.
-     * @return A `Promise` containing the transformed output of type `T?`, or `null` if the transformation or retrieval fails.
+     * @param R The return type of the transformation function applied to the resulting [ItemState].
+     * @param id The identifier of the item to be queried.
+     * @param apiFilter An optional filter of type `FILT` to refine the API query; defaults to a new instance of `FILT`.
+     * @param transform A function that processes the resulting [ItemState] and transforms it into the desired type [R].
+     * @return A `Promise` wrapping the result of the `transform` function applied to the queried item's [ItemState].
      */
     @Suppress("unused")
-    fun apiQueryReadCall(
+    fun <R> apiQueryReadCall(
         id: ID,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        transform: (ItemState<T>) -> Unit
-    ): Promise<Unit> {
+        transform: (ItemState<T>) -> R,
+    ): Promise<R> {
         return commonContainer.apiItemQueryReadCall(
             apiItemFun = apiItemFun,
             id = id,
@@ -105,7 +105,7 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
      */
     @Suppress("unused")
     fun navigateTo(
-        apiItem: ApiItem<T, ID, FILT>, target: String = "_blank"
+        apiItem: ApiItem<T, ID, FILT>, target: String = "_blank",
     ): Window? = viewItemUrl(apiItem)?.let { url ->
         window.open(
             url = url,
@@ -125,7 +125,7 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     fun navigateTo(
         id: ID,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        target: String = "_blank"
+        target: String = "_blank",
     ): Window? = navigateTo(
         apiItem = commonContainer.apiItemQueryRead(
             id = id,
@@ -227,7 +227,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem
     viewKClass: KClass<out V>,
     commonContainer: CC,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
-    baseUrl: String? = null
+    baseUrl: String? = null,
 ): ConfigViewItem<CC, T, ID, V, FILT, AIS> = object : ConfigViewItem<CC, T, ID, V, FILT, AIS>(
     commonContainer = commonContainer,
     apiItemFun = apiItemFun,
