@@ -85,19 +85,20 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
 ) {}
 
 /**
- * Constructs a `LookupPipelineBuilder` to perform a MongoDB aggregation framework lookup operation.
+ * Builds a lookup pipeline for querying related fields between collections and returns a `LookupPipelineBuilder` instance.
  *
- * @param coll the collection that serves as the target of the lookup operation
- * @param localField the local field in the current collection to use for the lookup, optional
- * @param foreignField the foreign field in the target collection to match with the local field, optional
- * @param let variables that can be referenced in the pipeline stages of the lookup, optional
- * @param pipeline additional aggregation pipeline stages to be applied to the foreign collection in the lookup, optional
- * @param resultField the property to map the resulting lookup results to
- * @param lookupWrappers a list of additional lookup wrappers for customization, defaults to an empty list
- * @param preserveNullAndEmptyArrays whether to include results when no matches are found (true) or exclude them (false), defaults to true
- * @param resultUnit the unit type indicating how the results should be produced (single or multiple), defaults to single
- * @param addStages additional aggregation stages to be appended after the primary lookup operation, optional
- * @return a `LookupPipelineBuilder` configured for the specified lookup operation
+ * @param coll The collection containing the data to be queried.
+ * @param localField The field in the local collection to match when performing the lookup (optional).
+ * @param foreignField The field in the foreign collection to match when performing the lookup (optional).
+ * @param let A list of variables that can be referenced in the pipeline stages (optional).
+ * @param pipeline Additional MongoDB aggregation pipeline stages (optional).
+ * @param resultField The target property in the local collection to store the lookup result.
+ * @param lookupWrappers A list of `LookupWrapper` objects to manage nested lookups (optional, defaults to an empty list).
+ * @param preserveNullAndEmptyArrays Whether to include documents with no matching foreign documents (defaults to true).
+ * @param resultUnit Specifies whether the lookup result is a single document or an array of documents.
+ * @param unwind Whether to automatically unwind the results of the lookup (optional).
+ * @param addStages Additional stages to be appended to the pipeline (optional).
+ * @return An instance of `LookupPipelineBuilder` representing the constructed lookup query.
  */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
@@ -172,29 +173,29 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
 ) {}
 
 /**
- * A builder for constructing MongoDB aggregation pipelines incorporating lookups and transformations.
+ * A builder class for constructing MongoDB aggregation pipelines involving lookup stages.
  *
- * This class is designed to create dynamic aggregation pipelines based on predefined configurations,
- * relationships between fields in collections, and result handling parameters. It allows for the
- * specification of lookup fields, conditional pipeline stages, and other MongoDB aggregation behaviors.
+ * This class provides functionality to dynamically create pipelines using various parameters like
+ * local and foreign fields, additional stages, nested lookups, and other configurations. It is
+ * intended to facilitate the generation of robust aggregation pipelines for collections with
+ * structured relationships.
  *
- * @param T The type of the main document involved in the aggregation pipeline. Inherits from BaseDoc.
- * @param U The type of the foreign document referenced in the lookup. Inherits from BaseDoc.
- * @param ID The type of identifier used by the documents in the collections.
- * @param coll The collection interface for accessing the foreign collection involved in the lookup.
- * @param localField The local field in the main collection that establishes the relationship with the foreign collection.
- *                   Can be null if using alternative lookup mechanisms.
- * @param foreignField The foreign field in the referenced collection that establishes the relationship with the main document.
- *                     Can be null if using alternative lookup mechanisms.
- * @param let Variables to pass to the lookup pipeline as part of a `$lookup` stage.
- * @param pipeline The aggregation stages to integrate with the lookup pipeline.
- * @param resultProperty The property in the main document where lookup results are stored.
- * @param lookupWrappers A list of nested lookup wrappers to create complex join logic.
- * @param preserveNullAndEmptyArrays A flag indicating whether to preserve null or empty arrays in the resulting joined data.
- * @param limit An optional limit to apply to the aggregation results.
- * @param resultUnit Specifies the unit of result extraction (e.g., single or multiple).
- * @param isAnyResult A flag to indicate whether the lookup should consider any result as valid.
- * @param addStages Additional BSON stages to append to the final aggregation pipeline.
+ * @param T The type of the primary document associated with this pipeline builder. It must extend the `BaseDoc` interface.
+ * @param U The type of the foreign document being referenced in the lookup. It must extend the `BaseDoc` interface.
+ * @param ID The type of the identifier used for the documents.
+ * @param coll The target collection associated with the foreign documents.
+ * @param localField The field in the local collection used for matching documents.
+ * @param foreignField The field in the foreign collection being matched against.
+ * @param let Optional variables to define within the aggregation pipeline.
+ * @param pipeline An optional list of BSON objects representing additional predefined stages.
+ * @param resultProperty The property in the local document to store the lookup results.
+ * @param lookupWrappers A list of nested `LookupWrapper` instances used for additional lookup stages.
+ * @param preserveNullAndEmptyArrays A flag indicating whether to preserve null or empty arrays in the result.
+ * @param limit An optional limit to apply to the number of foreign results.
+ * @param resultUnit The result type, determining whether a single document or multiple documents are returned.
+ * @param unwind An optional flag to determine whether to apply an unwind stage to the lookup results.
+ * @param isAnyResult A flag indicating if any results are expected from the lookup stage.
+ * @param addStages A list of additional BSON stages to be added to the final pipeline.
  */
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     private val coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
