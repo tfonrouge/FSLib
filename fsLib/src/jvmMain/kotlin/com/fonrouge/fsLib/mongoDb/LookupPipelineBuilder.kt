@@ -263,7 +263,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 pipeline = pip2.toTypedArray()
             )
         }
-        if (unwind == null || resultUnit == Coll.ResultUnit.Single || unwind) {
+        if ((unwind == null && resultUnit == Coll.ResultUnit.Single) || unwind == true) {
             resultProperty.let {
                 pipeline += resultProperty.unwind(
                     UnwindOptions().preserveNullAndEmptyArrays(
