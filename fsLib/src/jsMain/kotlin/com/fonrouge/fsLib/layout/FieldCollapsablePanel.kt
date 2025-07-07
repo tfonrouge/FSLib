@@ -49,8 +49,10 @@ class FieldCollapsablePanel(
             marginRight = 0.25.rem
             showStateObs.subscribe {
                 icon = if (it) {
+                    this@Tag.title = "Collapse"
                     "fas fa-caret-up"
                 } else {
+                    this@Tag.title = "Expand"
                     "fas fa-caret-down"
                 }
             }
