@@ -216,6 +216,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     open fun columnDefaults(): ColumnDefinition<T>? = ColumnDefinition(
         title = "",
+        headerHozAlign = Align.CENTER,
         headerTooltip = true,
         headerSort = false,
         tooltip = true,
