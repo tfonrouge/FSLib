@@ -77,9 +77,7 @@ class ViewFormPanel<K : BaseDoc<*>>(
         layoutType: FormType? = null,
         validatorMessage: ((C) -> String?)? = null,
         validator: ((C) -> Boolean?)? = null
-    ): C {
-        return bind(key, required, requiredMessage, layoutType, validatorMessage, validator)
-    }
+    ): C = bind(key, required, requiredMessage, layoutType, validatorMessage, validator)
 
     /**
      * Binds a custom value to a form control through serialization and deserialization.
