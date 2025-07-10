@@ -76,7 +76,7 @@ class ViewFormPanel<K : BaseDoc<*>>(
         key: String, required: Boolean = false, requiredMessage: String? = null,
         layoutType: FormType? = null,
         validatorMessage: ((C) -> String?)? = null,
-        validator: ((C) -> Boolean?)? = null
+        validator: ((C) -> Boolean?)? = null,
     ): C {
         return bind(key, required, requiredMessage, layoutType, validatorMessage, validator)
     }
@@ -172,6 +172,22 @@ class ViewFormPanel<K : BaseDoc<*>>(
     @Suppress("unused")
     inline fun <reified V> getCustomValue(property: KProperty1<in K, V?>): V? =
         customMapValues[property.name]!!.getValue() as? V
+
+    /**
+     * Sets a custom value for a specified property in the custom map values.
+     *
+     * This method updates the value associated with a property in the custom map values by applying
+     * the provided transformation logic, if applicable, and pushing the resulting value to the associated
+     * form control.
+     *
+     * @param property The property for which the custom value is being set.
+     * @param value The value to be set for the specified property. Can be null.
+     */
+    @Suppress("unused")
+    inline fun <reified V> setCustomValue(property: KProperty1<in K, V>, value: V?) {
+        @Suppress("UNCHECKED_CAST")
+        (customMapValues[property.name] as? CustomMapValue<*, V>)?.setValue(value)
+    }
 
     /**
      * Validates the form controls within the panel, ensuring they adhere to their respective validation requirements.
