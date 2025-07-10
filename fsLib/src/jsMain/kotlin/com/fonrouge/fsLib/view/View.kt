@@ -133,6 +133,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         ObservableValue(configView.commonContainer.apiFilterInstance())
     }
 
+    private var apiFilterInitialized = false
+
     /**
      * A variable representing the current API filter used within the view.
      *
@@ -141,6 +143,10 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     var apiFilter: FILT
         get() {
+            if (!apiFilterInitialized) {
+                apiFilterInitialized = true
+                apiFilterInit()?.let { apiFilterObservable.value = it }
+            }
             return apiFilterObservable.value
         }
         set(value) {
@@ -298,7 +304,6 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             addBeforeDisposeHook {
                 onBeforeDispose()
             }
-            apiFilterInit()?.let { apiFilter = it }
             onBeforeDisplayPage(this@startDisplayPage)
             this@startDisplayPage.displayPage()
             bind(apiFilterObservable) {
