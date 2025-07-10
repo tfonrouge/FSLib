@@ -37,7 +37,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             @Serializable
             data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 val serializedId: String?,
-                override val serializedApiFilter: String
+                override val serializedApiFilter: String,
             ) : Create<T, ID, FILT>() {
                 override val callType: CallType = CallType.Query
                 override fun asApiItem(
@@ -58,7 +58,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             @Serializable
             data class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 val serializedItem: String,
-                override val serializedApiFilter: String
+                override val serializedApiFilter: String,
             ) : Create<T, ID, FILT>() {
                 override val callType: CallType = CallType.Action
                 override fun asApiItem(
@@ -107,7 +107,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             data class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                 val serializedItem: String,
                 override val serializedApiFilter: String,
-                val serializedOrig: String?
+                val serializedOrig: String?,
             ) : Update<T, ID, FILT>() {
                 override val callType: CallType = CallType.Action
                 override fun asApiItem(
@@ -136,7 +136,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     @Serializable
     data class Read<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
         val serializedId: String,
-        override val serializedApiFilter: String
+        override val serializedApiFilter: String,
     ) : IApiItem<T, ID, FILT>() {
         override val crudTask: CrudTask = CrudTask.Read
         override val callType: CallType = CallType.Query
@@ -159,7 +159,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
         @Serializable
         data class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             val serializedId: String,
-            override val serializedApiFilter: String
+            override val serializedApiFilter: String,
         ) : Delete<T, ID, FILT>() {
             override val callType: CallType = CallType.Query
             override fun asApiItem(
@@ -177,7 +177,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
         @Serializable
         data class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             val serializedItem: String,
-            override val serializedApiFilter: String
+            override val serializedApiFilter: String,
         ) : Delete<T, ID, FILT>() {
             override val callType: CallType = CallType.Action
             override fun asApiItem(

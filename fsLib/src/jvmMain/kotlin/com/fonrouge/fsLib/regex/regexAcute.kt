@@ -13,7 +13,7 @@ import kotlin.reflect.KProperty
  * @return The transformed string with regex patterns.
  */
 fun String.regexAcute(
-    spaceAsStar: Boolean = true
+    spaceAsStar: Boolean = true,
 ): String {
     var result = ""
     forEach {
@@ -49,7 +49,7 @@ fun String.regexAcute(
 fun KProperty<String?>.regexAcute(
     search: String,
     spaceAsStar: Boolean = true,
-    ignoreCase: Boolean = true
+    ignoreCase: Boolean = true,
 ) = if (ignoreCase)
     regex(Regex(search.regexAcute(spaceAsStar = spaceAsStar), option = RegexOption.IGNORE_CASE))
 else

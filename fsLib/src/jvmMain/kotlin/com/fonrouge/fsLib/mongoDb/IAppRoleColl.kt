@@ -22,13 +22,13 @@ import org.litote.kmongo.eq
  * @param commonContainer The common container instance used by this collection.
  */
 abstract class IAppRoleColl<CC : ICommonContainer<T, ID, FILT>, T : IAppRole<ID>, ID : Any, FILT : IApiFilter<*>>(
-    commonContainer: CC
+    commonContainer: CC,
 ) : Coll<CC, T, ID, FILT>(
     commonContainer = commonContainer
 ) {
     open suspend fun insertSingleActionRole(
         classOwner: String,
-        funcName: String
+        funcName: String,
     ): ItemState<T> = ItemState(isOk = false)
 
     open suspend fun insertCrudRole(

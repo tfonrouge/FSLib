@@ -22,7 +22,7 @@ private val DEFAULT_TIMEOUT = DEFAULT_TIMEOUT_MS.milliseconds
 suspend fun <R> withMutexTimeout(
     mutex: Mutex,
     timeoutDuration: Duration = DEFAULT_TIMEOUT,
-    operation: suspend () -> R
+    operation: suspend () -> R,
 ): R? = try {
     withTimeout(timeoutDuration) {
         mutex.withLock {

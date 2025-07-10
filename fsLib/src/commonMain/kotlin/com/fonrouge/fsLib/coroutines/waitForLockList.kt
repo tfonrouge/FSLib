@@ -31,7 +31,7 @@ suspend fun <T, R> waitForLockList(
     attempts: Int = 10,
     delay: Int = 100,
     releaseLock: Boolean = true,
-    onLock: (suspend () -> R)
+    onLock: (suspend () -> R),
 ): R? {
     var counter = attempts
     return mutex.withLock {

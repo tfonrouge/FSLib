@@ -23,7 +23,7 @@ fun lookup5(
     foreignField: KProperty<Any?>,
     let: List<Variable<out Any>>? = null,
     resultField: KProperty<Any?>,
-    pipeline: List<Bson>
+    pipeline: List<Bson>,
 ): Bson = lookup5(
     from = from,
     localField = localField,
@@ -50,7 +50,7 @@ fun lookup5(
     foreignField: KProperty<Any?>,
     let: List<Variable<out Any>>? = null,
     resultField: String,
-    pipeline: List<Bson>
+    pipeline: List<Bson>,
 ): Bson {
     val validVarName =
         (if (localField.name[0] == '_') localField.name.substring(1) else localField.name)

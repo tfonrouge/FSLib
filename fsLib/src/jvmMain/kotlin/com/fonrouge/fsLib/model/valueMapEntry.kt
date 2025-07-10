@@ -20,7 +20,7 @@ import kotlin.reflect.KProperty1
 @Suppress("unused")
 inline fun <T : BaseDoc<*>, @OnlyInputTypes reified V> valueMapEntry(
     property: KProperty1<in T, V?>,
-    value: V?
+    value: V?,
 ): Map<String, String?> = mapOf(
     property.name to when (value) {
 //        is OffsetDateTime -> value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)

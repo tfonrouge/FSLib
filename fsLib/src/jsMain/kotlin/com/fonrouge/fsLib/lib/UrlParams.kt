@@ -19,7 +19,7 @@ external fun encodeURIComponent(uri: String): String
  */
 data class UrlParams(
     val match: Match? = null,
-    var params: Json = json()
+    var params: Json = json(),
 ) {
 
     constructor(vararg urlParams: Pair<String, String>) : this() {

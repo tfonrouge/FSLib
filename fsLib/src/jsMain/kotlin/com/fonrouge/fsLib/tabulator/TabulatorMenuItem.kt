@@ -67,7 +67,7 @@ fun MutableList<TabulatorMenuItem>.menuItem(
                 features = features
             )
         }
-    }
+    },
 ): TabulatorMenuItem {
     val tabulatorMenuItem = TabulatorMenuItem(
         label = label,

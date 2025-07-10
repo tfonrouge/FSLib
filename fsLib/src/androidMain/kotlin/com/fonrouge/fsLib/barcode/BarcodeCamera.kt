@@ -91,7 +91,7 @@ class BarcodeCamera {
         imageCapture: ImageCapture,
         onReadBarcode: (CodeEntry) -> Unit,
         onFilter: ((Barcode) -> Boolean)? = null,
-        vmCamera: VMCamera
+        vmCamera: VMCamera,
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -172,7 +172,7 @@ class BarcodeCamera {
         imageProxy: ImageProxy,
         onReadBarcode: (CodeEntry) -> Unit,
         onFilter: ((Barcode) -> Boolean)? = null,
-        vmCamera: VMCamera
+        vmCamera: VMCamera,
     ) {
         imageProxy.image?.let { image ->
             val inputImage =
@@ -213,7 +213,7 @@ class BarcodeCamera {
     fun takePhoto(
         context: Context,
         imageCapture: ImageCapture,
-        onSuccess: (Uri) -> Unit
+        onSuccess: (Uri) -> Unit,
     ) {
         val name = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             .format(System.currentTimeMillis())

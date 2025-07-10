@@ -236,7 +236,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
     private fun buildSimpleState(
         baseRolePermission: BaseRolePermission,
         appRole: IAppRole<*>,
-        crudTask: CrudTask?
+        crudTask: CrudTask?,
     ): SimpleState {
         val granted = baseRolePermission == BaseRolePermission.Allow
         val preLabel = "${appRole.roleType} ${crudTask?.let { "[" + it.name + "]" } ?: ""} ${appRole.description}"
@@ -329,7 +329,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
 @Serializable
 private data class GroupOfUser(
     override val _id: OId<GroupOfUser>,
-    override val description: String
+    override val description: String,
 ) : IGroupOfUser<GroupOfUser>
 
 @Serializable

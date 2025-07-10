@@ -31,7 +31,7 @@ import kotlin.js.Promise
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, R : Any?> ICommonContainer<T, ID, FILT>.getItemState(
     apiItemFun: Function<*>,
     apiItem: ApiItem<T, ID, FILT>,
-    transform: (ItemState<T>) -> R
+    transform: (ItemState<T>) -> R,
 ): Promise<R> {
     val (url, method) = ConfigViewItem.serviceManager.requireCall(apiItemFun)
     val callAgent = CallAgent()

@@ -5,7 +5,7 @@ import kotlin.reflect.KProperty1
 
 data class AssignTo<T, @OnlyInputTypes V>(
     val kField: KProperty1<T, V?>,
-    val value: V?
+    val value: V?,
 )
 
 @Suppress("unused")

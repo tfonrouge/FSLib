@@ -40,7 +40,7 @@ fun cellTooltipAsString(value: String): String = value
  */
 @Suppress("unused")
 fun cellTooltipAsFun(
-    init: (event: MouseEvent, cell: Tabulator.CellComponent, onRendered: () -> Unit) -> Any?
+    init: (event: MouseEvent, cell: Tabulator.CellComponent, onRendered: () -> Unit) -> Any?,
 ): (MouseEvent, Tabulator.CellComponent, () -> Unit) -> Any? =
     { e: MouseEvent, cell: Tabulator.CellComponent, onRendered: () -> Unit ->
         init(e, cell, onRendered)

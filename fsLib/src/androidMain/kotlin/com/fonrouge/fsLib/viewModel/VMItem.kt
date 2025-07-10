@@ -18,7 +18,7 @@ import kotlin.reflect.KSuspendFunction1
 @Suppress("unused")
 abstract class VMItem<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     final override val commonContainer: CC,
-    val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>
+    val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>,
 ) : VMContainer<CC, T, ID, FILT>() {
     var item: T? by mutableStateOf(null)
     var crudTask: CrudTask by mutableStateOf(CrudTask.Read)

@@ -31,7 +31,7 @@ external interface CellLookupFormatterParamsAsFun {
  */
 @Suppress("unused")
 fun cellLookupFormatterParamsAsFun(
-    block: CellLookupFormatterParamsAsFun.(cell: Tabulator.CellComponent) -> Unit
+    block: CellLookupFormatterParamsAsFun.(cell: Tabulator.CellComponent) -> Unit,
 ): (Tabulator.CellComponent) -> Json {
     return {
         val result = unsafeJso<CellLookupFormatterParamsAsFun>()

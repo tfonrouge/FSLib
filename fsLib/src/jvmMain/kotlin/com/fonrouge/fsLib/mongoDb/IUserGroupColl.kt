@@ -21,7 +21,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
  * @param commonContainer The common container instance for this collection.
  */
 abstract class IUserGroupColl<UG : IUserGroup<U, UID, GOU, GR>, U : IUser<out UID>, UID : Any, GOU : IGroupOfUser<*>, GR : IRoleInGroup<*, GOU>, FILT : IApiFilter<*>>(
-    commonContainer: ICommonContainer<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>
+    commonContainer: ICommonContainer<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>,
 ) : Coll<ICommonContainer<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>, UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>(
     commonContainer = commonContainer
 ) {

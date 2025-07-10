@@ -21,7 +21,7 @@ import io.kvision.utils.em
 fun Container.formRow(
     text: String? = null,
     alignItems: AlignItems? = AlignItems.BASELINE,
-    init: (Div.() -> Unit)? = null
+    init: (Div.() -> Unit)? = null,
 ): Div {
     text?.let { content ->
         div(content = content, className = "row-label-group") {

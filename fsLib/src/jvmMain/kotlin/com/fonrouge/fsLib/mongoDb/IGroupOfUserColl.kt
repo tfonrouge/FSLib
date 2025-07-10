@@ -17,7 +17,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
  */
 @Suppress("unused")
 abstract class IGroupOfUserColl<CC : ICommonContainer<GOU, OId<T>, FILT>, GOU : IGroupOfUser<T>, T : Any, FILT : IApiFilter<*>>(
-    commonContainer: CC
+    commonContainer: CC,
 ) : Coll<CC, GOU, OId<T>, FILT>(
     commonContainer = commonContainer
 ) {

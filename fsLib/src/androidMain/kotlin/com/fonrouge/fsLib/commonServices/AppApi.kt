@@ -42,7 +42,7 @@ object AppApi {
 
     private fun getEngine(
         engine: Engine?,
-        block: HttpClientConfig<*>.() -> Unit = {}
+        block: HttpClientConfig<*>.() -> Unit = {},
     ): HttpClient {
         return when (engine) {
             Engine.Android -> HttpClient(engineFactory = Android, block = block)
@@ -98,7 +98,7 @@ object AppApi {
 
     suspend inline fun <reified T : IUser<*>> loginForm(
         loginUrl: String,
-        userLogin: UserLogin
+        userLogin: UserLogin,
     ): ItemState<T> {
         serializedIUser = null
         val httpResponse = try {

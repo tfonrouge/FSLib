@@ -33,7 +33,7 @@ abstract class VMList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
     apiFilter: FILT,
     final override val commonContainer: CC,
     val listStateFun: KSuspendFunction1<ApiList<FILT>, ListState<T>>,
-    val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>? = null
+    val itemStateFun: KSuspendFunction1<IApiItem<T, ID, FILT>, ItemState<T>>? = null,
 ) : VMContainer<CC, T, ID, FILT>() {
     companion object {
         var lastRequest: Long = 0L
@@ -103,7 +103,7 @@ abstract class VMList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
 
     @Suppress("unused")
     suspend fun deleteItem(
-        item: T
+        item: T,
     ) {
         itemStateFun?.let { itemStateFun ->
             val apiItem = ApiItem.Delete.Query<T, ID, FILT>(

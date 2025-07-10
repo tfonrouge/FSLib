@@ -24,7 +24,7 @@ import kotlin.reflect.KProperty1
 fun <T : BaseDoc<*>> columnDefinitionDateTime(
     kProperty1: KProperty1<T, OffsetDateTime?>,
     title: String = kProperty1.name,
-    cellEdited: ((Tabulator.CellComponent) -> Unit)? = null
+    cellEdited: ((Tabulator.CellComponent) -> Unit)? = null,
 ): ColumnDefinition<T> = ColumnDefinition(
     title = "<i class=\"fa-solid fa-calendar\"></i> $title",
     headerHozAlign = Align.CENTER,

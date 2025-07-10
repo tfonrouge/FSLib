@@ -42,7 +42,7 @@ fun Container.buttonMenu(
     className: String? = null,
     menuOpen: ObservableValue<Boolean> = ObservableValue(false),
     options: List<Pair<String, String>> = listOf(),
-    init: (Button.() -> Unit)? = null
+    init: (Button.() -> Unit)? = null,
 ) {
     vPanel(alignItems = AlignItems.CENTER) {
         button(

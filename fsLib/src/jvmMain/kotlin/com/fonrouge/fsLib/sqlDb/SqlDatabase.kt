@@ -43,7 +43,7 @@ import kotlin.reflect.full.memberProperties
 @OptIn(ExperimentalSerializationApi::class)
 @Suppress("unused")
 abstract class SqlDatabase(
-    val database: Database
+    val database: Database,
 ) {
 
     /**
@@ -263,7 +263,7 @@ abstract class SqlDatabase(
         debug: Boolean = false,
         crossinline doBlock: (ResultSet) -> T? = { resultSet ->
             sqlEntityTo<T>(resultSet)
-        }
+        },
     ): List<T> {
         return forEachResult<T>(
             sql = sql,
@@ -358,7 +358,7 @@ abstract class SqlDatabase(
         kClass: KClass<*>? = field?.returnType?.classifier as? KClass<*>,
         resultSet: ResultSet,
         index: Int,
-        jsonObjectBuilder: JsonObjectBuilder? = null
+        jsonObjectBuilder: JsonObjectBuilder? = null,
     ): Any? {
         if (resultSet.getObject(index) == null) {
             field?.let { kCallable ->

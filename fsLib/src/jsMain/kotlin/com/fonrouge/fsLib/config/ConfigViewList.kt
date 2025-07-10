@@ -31,7 +31,7 @@ abstract class ConfigViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     commonContainer: CC,
     val apiListFun: suspend ALS.(ApiList<FILT>) -> ListState<T>,
     viewKClass: KClass<out V>,
-    baseUrl: String? = null
+    baseUrl: String? = null,
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
     commonContainer = commonContainer,
     viewKClass = viewKClass,

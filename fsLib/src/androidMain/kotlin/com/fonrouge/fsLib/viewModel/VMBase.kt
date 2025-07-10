@@ -31,7 +31,7 @@ abstract class VMBase : ViewModel() {
         confirmText: String,
         onNo: (() -> Unit)? = null,
         onDismissRequest: () -> Unit = {},
-        onConfirm: () -> Unit
+        onConfirm: () -> Unit,
     ) {
         _confirmAlert.value = ConfirmAlert(
             type = ConfirmAlert.Type.YesNoConfirm(
@@ -47,7 +47,7 @@ abstract class VMBase : ViewModel() {
         confirmText: String,
         onCancel: (() -> Unit)? = null,
         onDismissRequest: () -> Unit = {},
-        onConfirm: () -> Unit
+        onConfirm: () -> Unit,
     ) {
         _confirmAlert.value = ConfirmAlert(
             type = ConfirmAlert.Type.YesCancelConfirm(
@@ -122,7 +122,7 @@ data class StateAlert(
         open val onCancel: (() -> Unit)? = null,
     ) {
         data class Info(
-            override val onAccept: (() -> Unit)? = null
+            override val onAccept: (() -> Unit)? = null,
         ) : Type()
 
         data class Warn(

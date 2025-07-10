@@ -67,7 +67,7 @@ fun CameraXCoreReaderScreen1(
     vmCamera: VMCamera = viewModel(),
     onReadBarcode: (CodeEntry) -> Unit = {},
     onFilter: ((Barcode) -> Boolean)? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     if (cameraPermissionState.status.isGranted) {
@@ -187,7 +187,7 @@ private fun MainContent(
 @Composable
 fun CameraScreen1(
     vmCamera: VMCamera = viewModel(),
-    onReadBarcode: (CodeEntry) -> Unit = {}
+    onReadBarcode: (CodeEntry) -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
@@ -311,7 +311,7 @@ fun CameraScreen1(
 @Preview
 @Composable
 private fun NoPermissionScreen(
-    onRequestPermission: () -> Unit = {}
+    onRequestPermission: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),

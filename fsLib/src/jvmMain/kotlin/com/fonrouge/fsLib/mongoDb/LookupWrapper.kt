@@ -14,7 +14,7 @@ import kotlin.reflect.KProperty1
  * @property lookupWrappers A list of nested LookupWrapper instances.
  */
 open class LookupWrapper<T : BaseDoc<*>, U : BaseDoc<*>>(
-    open val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
+    open val lookupWrappers: List<LookupWrapper<U, *>> = emptyList(),
 )
 
 /**
@@ -30,7 +30,7 @@ open class LookupWrapper<T : BaseDoc<*>, U : BaseDoc<*>>(
  */
 class LookupByProperty<T : BaseDoc<*>, U : BaseDoc<*>>(
     val resultProperty: KProperty1<T, U?>,
-    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
+    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList(),
 ) : LookupWrapper<T, U>()
 
 /**
@@ -48,7 +48,7 @@ class LookupByProperty<T : BaseDoc<*>, U : BaseDoc<*>>(
  */
 class LookupByPropertyList<T : BaseDoc<*>, U : BaseDoc<*>>(
     val resultProperty: KProperty1<T, Collection<U>?>,
-    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
+    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList(),
 ) : LookupWrapper<T, U>()
 
 /**
@@ -66,5 +66,5 @@ class LookupByPropertyList<T : BaseDoc<*>, U : BaseDoc<*>>(
  */
 class LookupByPipeline<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     val pipeline: LookupPipelineBuilder<T, U, ID>,
-    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList()
+    override val lookupWrappers: List<LookupWrapper<U, *>> = emptyList(),
 ) : LookupWrapper<T, U>()

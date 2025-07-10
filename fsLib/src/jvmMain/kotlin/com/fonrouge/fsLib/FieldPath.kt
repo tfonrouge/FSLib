@@ -15,7 +15,7 @@ import kotlin.reflect.*
  */
 data class FieldPath<T : BaseDoc<*>, R>(
     val previous: FieldPath<T, *>?,
-    val property: KProperty1<*, R?>
+    val property: KProperty1<*, R?>,
 ) : KProperty1<T, R> {
 
     @Suppress("UNCHECKED_CAST")

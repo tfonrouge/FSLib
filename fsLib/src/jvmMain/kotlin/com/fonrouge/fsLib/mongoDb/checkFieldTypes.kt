@@ -100,7 +100,7 @@ class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
     private suspend fun fixNumericFieldValue(
         filter: Bson,
         kProperty1: KProperty1<T, *>,
-        fieldKClass: KClass<*>
+        fieldKClass: KClass<*>,
     ): ItemState<Long> {
         val itemState = countInvalidFields(filter, kProperty1)
         if (itemState.hasError.not()) {
@@ -221,7 +221,8 @@ class CheckFieldTypes<K : KClass<T>, T : BaseDoc<ID>, ID : Any>(
                     Int::class,
                     IntId::class,
                     Long::class,
-                    LongId::class -> {
+                    LongId::class,
+                        -> {
                         when (kProperty1.returnType.classifier) {
                             Double::class, Float::class -> "double"
                             Int::class -> "int"

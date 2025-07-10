@@ -52,7 +52,7 @@ inline fun <reified VML : VMList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, 
     floatingActionButtonPosition: FabPosition = FabPosition.End,
     noinline modalNavigationDrawerContent: @Composable ColumnScope.(DrawerState) -> Unit = {},
     drawerState: DrawerState,
-    noinline bodyListContent: @Composable (T?) -> Unit
+    noinline bodyListContent: @Composable (T?) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -92,7 +92,7 @@ inline fun <reified VML : VMList<CC, T, ID, FILT>, CC : ICommonContainer<T, ID, 
 @Composable
 fun ScreenFilter1(
     drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
-    content: @Composable ColumnScope.(DrawerState) -> Unit = {}
+    content: @Composable ColumnScope.(DrawerState) -> Unit = {},
 ) {
     ModalDrawerSheet(
         modifier = Modifier

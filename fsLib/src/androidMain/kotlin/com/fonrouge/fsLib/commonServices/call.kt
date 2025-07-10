@@ -87,7 +87,7 @@ suspend inline fun <A : IApiCommonService, reified PAR1, reified RET : Any> A.ca
 @Suppress("unused")
 suspend inline fun <A : IApiCommonService, reified PAR1, reified PAR2, reified RET : Any> A.call(
     p1: PAR1,
-    p2: PAR2
+    p2: PAR2,
 ): RET {
     val s1 = serialize(p1)
     val s2 = serialize(p2)

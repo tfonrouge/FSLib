@@ -41,7 +41,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     /* ApiItem */
     fun apiItemQueryCreate(
         id: ID? = null,
-        apiFilter: FILT = apiFilterInstance()
+        apiFilter: FILT = apiFilterInstance(),
     ): ApiItem.Upsert.Create.Query<T, ID, FILT> = ApiItem.Upsert.Create.Query(
         id = id,
         apiFilter = apiFilter,
@@ -49,7 +49,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
 
     fun apiItemQueryRead(
         id: ID,
-        apiFilter: FILT = apiFilterInstance()
+        apiFilter: FILT = apiFilterInstance(),
     ): ApiItem.Read<T, ID, FILT> = ApiItem.Read(
         id = id,
         apiFilter = apiFilter,
@@ -57,7 +57,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
 
     fun apiItemQueryUpdate(
         id: ID,
-        apiFilter: FILT = apiFilterInstance()
+        apiFilter: FILT = apiFilterInstance(),
     ): ApiItem.Upsert.Update.Query<T, ID, FILT> = ApiItem.Upsert.Update.Query(
         id = id,
         apiFilter = apiFilter,
@@ -65,7 +65,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
 
     fun apiItemQueryDelete(
         id: ID,
-        apiFilter: FILT = apiFilterInstance()
+        apiFilter: FILT = apiFilterInstance(),
     ): ApiItem.Delete.Query<T, ID, FILT> = ApiItem.Delete.Query(
         id = id,
         apiFilter = apiFilter,
@@ -73,7 +73,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
 
     fun apiItemActionCreate(
         item: T,
-        apiFilter: FILT = apiFilterInstance()
+        apiFilter: FILT = apiFilterInstance(),
     ): ApiItem.Upsert.Create.Action<T, ID, FILT> = ApiItem.Upsert.Create.Action(
         item = item,
         apiFilter = apiFilter,
@@ -82,7 +82,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun apiItemActionUpdate(
         item: T,
         apiFilter: FILT = apiFilterInstance(),
-        orig: T?
+        orig: T?,
     ): ApiItem.Upsert.Update.Action<T, ID, FILT> = ApiItem.Upsert.Update.Action(
         item = item,
         apiFilter = apiFilter,
@@ -91,7 +91,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
 
     fun apiItemActionDelete(
         item: T,
-        apiFilter: FILT = apiFilterInstance()
+        apiFilter: FILT = apiFilterInstance(),
     ): ApiItem.Delete.Action<T, ID, FILT> = ApiItem.Delete.Action(
         item = item,
         apiFilter = apiFilter,
@@ -105,7 +105,7 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
  * @return The converted API item as an instance of [IApiItem].
  */
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FILT>.toIApiItem(
-    apiItem: ApiItem<T, ID, FILT>
+    apiItem: ApiItem<T, ID, FILT>,
 ): IApiItem<T, ID, FILT> =
     when (apiItem) {
         is ApiItem.Upsert.Create.Query -> IApiItem.Upsert.Create.Query(

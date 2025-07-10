@@ -50,7 +50,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
     ),
     minToolbarSize: Boolean = true,
     noinline editable: (() -> Boolean)? = null,
-    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
+    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
 ): ViewList<CC, T, ID, FILT, MID> {
     masterViewItem?.let {
         viewList.masterViewItem = it

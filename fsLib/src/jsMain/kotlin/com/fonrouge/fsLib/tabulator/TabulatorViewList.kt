@@ -317,7 +317,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
     className: String? = null,
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
-    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null
+    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
 ): TabulatorViewList<T, ID, FILT, MID> {
     val tabulatorViewList: TabulatorViewList<T, ID, FILT, MID> =
         TabulatorViewList(

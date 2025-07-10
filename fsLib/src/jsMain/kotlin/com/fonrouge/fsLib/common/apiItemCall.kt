@@ -20,7 +20,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID? = null,
     apiFilter: FILT = apiFilterInstance(),
-    transform: ((ItemState<T>) -> R)
+    transform: ((ItemState<T>) -> R),
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
     apiItem = apiItemQueryCreate(id = id, apiFilter = apiFilter),
@@ -42,7 +42,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
-    transform: ((ItemState<T>) -> R)
+    transform: ((ItemState<T>) -> R),
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
     apiItem = apiItemQueryRead(id, apiFilter),
@@ -63,7 +63,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
-    transform: ((ItemState<T>) -> R)
+    transform: ((ItemState<T>) -> R),
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
     apiItem = apiItemQueryUpdate(id, apiFilter),
@@ -84,7 +84,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
-    transform: ((ItemState<T>) -> R)
+    transform: ((ItemState<T>) -> R),
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
     apiItem = apiItemQueryDelete(id, apiFilter),
@@ -105,7 +105,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
-    transform: ((ItemState<T>) -> R)
+    transform: ((ItemState<T>) -> R),
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
     apiItem = apiItemActionCreate(item, apiFilter),
@@ -133,7 +133,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     item: T,
     apiFilter: FILT = apiFilterInstance(),
     orig: T?,
-    transform: ((ItemState<T>) -> R)
+    transform: ((ItemState<T>) -> R),
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
     apiItem = apiItemActionUpdate(item, apiFilter, orig),
@@ -154,7 +154,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
-    transform: ((ItemState<T>) -> R)
+    transform: ((ItemState<T>) -> R),
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
     apiItem = apiItemActionDelete(item, apiFilter),

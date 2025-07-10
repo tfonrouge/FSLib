@@ -23,7 +23,7 @@ val ICommonContainer<*, *, *>.routeList: String get() = "ViewList$name?apiFilter
 @Composable
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> CC.DecodeRouteItemParams(
     navBackStackEntry: NavBackStackEntry,
-    function: @Composable (apiItem: ApiItem<T, ID, FILT>) -> Unit
+    function: @Composable (apiItem: ApiItem<T, ID, FILT>) -> Unit,
 ) {
     /*
         val iApiItem = navBackStackEntry.arguments?.getString("apiItem")?.let {
@@ -40,7 +40,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 @Composable
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> CC.DecodeRouteListParams(
     navBackStackEntry: NavBackStackEntry,
-    function: @Composable (apiFilter: FILT) -> Unit
+    function: @Composable (apiFilter: FILT) -> Unit,
 ) {
     val serializedApiFilter =
         navBackStackEntry.arguments?.getString("apiFilter")?.removePrefix("\"")?.removeSuffix("\"")
@@ -82,7 +82,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> CC.navigateCreateItem(
     navHostController: NavHostController,
-    apiFilter: FILT = apiFilterInstance()
+    apiFilter: FILT = apiFilterInstance(),
 ) {
     /*
         val serializedApiItem = Json.encodeToString(

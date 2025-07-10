@@ -20,7 +20,7 @@ suspend fun <T : BaseDoc<ID>, ID : Any> CoroutineCollection<T>.updateById(
     id: ID,
     update: Any,
     options: UpdateOptions = UpdateOptions(),
-    updateOnlyNotNullProperties: Boolean = UpdateConfiguration.updateOnlyNotNullProperties
+    updateOnlyNotNullProperties: Boolean = UpdateConfiguration.updateOnlyNotNullProperties,
 ): UpdateResult {
     return updateOneById(
         id = id,

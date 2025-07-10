@@ -58,7 +58,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     paddingValues: PaddingValues? = null,
     vmList: VMList<CC, T, ID, FILT>,
     pullRefreshState: PullRefreshState,
-    content: @Composable (T?) -> Unit
+    content: @Composable (T?) -> Unit,
 ) {
     Box(
         modifier = Modifier
