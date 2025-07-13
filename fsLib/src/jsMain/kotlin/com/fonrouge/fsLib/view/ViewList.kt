@@ -424,9 +424,24 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
     }
 
-    open fun MutableList<TabulatorMenuItem>.contextRowMenu(item: T?) {}
+    /**
+     * Generates a context menu for a specific row item.
+     *
+     * @param item The item for which the context menu is being generated. It can be null if no specific item is selected.
+     * @return A list of TabulatorMenuItem representing the context menu options, or null if no menu is available.
+     */
+    open fun contextRowMenu(item: T?): List<TabulatorMenuItem>? = null
 
-    fun contextRowMenuGenerator(): Array<TabulatorMenuItem> {
+    /**
+     * Generates a context menu for a specific row in a Tabulator table, based on the provided configuration
+     * and the current state.
+     *
+     * The menu includes options such as viewing details, creating, updating, and deleting records,
+     * as well as custom menu items defined in the configuration or by specific logic.
+     *
+     * @return An array of [TabulatorMenuItem] objects representing the context menu for the row.
+     */
+    private fun contextRowMenuGenerator(): Array<TabulatorMenuItem> {
         val item: T? = overItem?.let {
             try {
                 tabulator?.toKotlinObj(it)
@@ -438,48 +453,54 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
         val configViewItem = configViewItem()
         val menu = mutableListOf<TabulatorMenuItem>()
-        with(menu) {
-            val labelId = configViewItem?.commonContainer?.labelId?.invoke(item) ?: ""
-            menuItem(
-                label = " <font size=\"+1\">${configViewItem?.label ?: ""}</font>: <b>$labelId</b>",
-                disabled = false,
-                header = true
+        val labelId = configViewItem?.commonContainer?.labelId?.invoke(item) ?: ""
+        menu += menuItem(
+            label = " <font size=\"+1\">${configViewItem?.label ?: ""}</font>: <b>$labelId</b>",
+            disabled = false,
+            header = true
+        )
+        menu += menuItem(separator = true)
+        if (showDefaultContextRowMenu()) {
+            menu += menuItem(
+                label = gettext("Detail of"),
+                icon = iconCrud(CrudTask.Read),
+                action = { _, _ ->
+                    goActionUrl(CrudTask.Read, item)
+                }
             )
-            menuItem(separator = true)
-            if (showDefaultContextRowMenu()) {
-                menuItem(
-                    label = gettext("Detail of"),
-                    icon = iconCrud(CrudTask.Read),
-                    action = { _, _ ->
-                        goActionUrl(CrudTask.Read, item)
-                    }
-                )
+        }
+        if (editable() && showDefaultContextRowMenu()) {
+            menu += menuItem(separator = true)
+            menu += menuItem(
+                label = gettext("Create"),
+                icon = iconCrud(CrudTask.Create),
+                action = { _, _ ->
+                    goActionUrl(CrudTask.Create, item)
+                }
+            )
+            menu += menuItem(
+                label = gettext("Update"),
+                icon = iconCrud(CrudTask.Update),
+                action = { _, _ ->
+                    goActionUrl(CrudTask.Update, item)
+                }
+            )
+            menu += menuItem(
+                label = gettext("Delete"),
+                icon = iconCrud(CrudTask.Delete),
+                action = { _, _ ->
+                    goActionUrl(CrudTask.Delete, item)
+                }
+            )
+        }
+        contextRowMenu(item)?.let {
+            menu += it
+        }
+        configViewItem?.contextMenuItems?.let { f: (T) -> List<TabulatorMenuItem> ->
+            item?.let {
+                menu += menuItem(separator = true)
+                menu += f(item)
             }
-            if (editable() && showDefaultContextRowMenu()) {
-                menuItem(separator = true)
-                menuItem(
-                    label = gettext("Create"),
-                    icon = iconCrud(CrudTask.Create),
-                    action = { _, _ ->
-                        goActionUrl(CrudTask.Create, item)
-                    }
-                )
-                menuItem(
-                    label = gettext("Update"),
-                    icon = iconCrud(CrudTask.Update),
-                    action = { _, _ ->
-                        goActionUrl(CrudTask.Update, item)
-                    }
-                )
-                menuItem(
-                    label = gettext("Delete"),
-                    icon = iconCrud(CrudTask.Delete),
-                    action = { _, _ ->
-                        goActionUrl(CrudTask.Delete, item)
-                    }
-                )
-            }
-            contextRowMenu(item)
         }
         return menu.toTypedArray()
     }

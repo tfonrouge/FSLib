@@ -9,8 +9,11 @@ import com.fonrouge.fsLib.lib.toEncodedUrlString
 import com.fonrouge.fsLib.model.apiData.CrudTask
 import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
 import com.fonrouge.fsLib.view.KVWebManager.frontEndAppName
 import io.kvision.core.*
+import io.kvision.dropdown.dropDown
+import io.kvision.dropdown.header
 import io.kvision.html.*
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
@@ -372,7 +375,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * @return the container with specified alignment and class.
      */
     open fun Container.bannerLeggendContainer(): Container =
-        hPanel(alignItems = AlignItems.CENTER, className = "container-fluid")
+        hPanel(justify = JustifyContent.FLEXSTART, alignItems = AlignItems.CENTER, className = "container-fluid")
 
     /**
      * Configures and displays a horizontal page banner within a given container.
@@ -399,6 +402,43 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             removeChildren = true
         ) {
             bannerLeggendContainer().apply {
+                if (this@View is ViewItem<*, *, *, FILT> && this@View.crudTask == CrudTask.Read) {
+                    dropDown(
+                        text = "",
+                        icon = "fas fa-bars",
+                        style = ButtonStyle.OUTLINEDARK,
+//                        arrowVisible = false,
+                        className = "tabulator-menu"
+                    ) {
+                        this@View.dropDownElementsObs.subscribe { elements ->
+                            removeAll()
+                            if (elements.isNullOrEmpty()) {
+                                hide()
+                            } else {
+                                show()
+                                elements.forEach { tabulatorMenuItem: TabulatorMenuItem ->
+                                    label(
+                                        content = " ${tabulatorMenuItem.rawLabel}",
+                                        className = "tabulator-menu-item"
+                                    ) {
+                                        tabulatorMenuItem.icon?.let { icon ->
+                                            icon(icon)
+                                        }
+                                        onClick {
+                                            tabulatorMenuItem.action(it, null)
+                                        }
+                                    }
+                                    div(className = "tabulator-menu-separator") {}
+                                }
+                            }
+                        }
+                        size = ButtonSize.XSMALL
+                        marginRight = 0.5.em
+//                        enableTooltip(options = TooltipOptions("Context Menu"))
+                        title = "Context Menu"
+                        header("Actions")
+                    }
+                }
                 link(
                     label = this@View.label,
                     url = navigoUrlWithParams,

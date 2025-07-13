@@ -10,6 +10,7 @@ import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.apiData.IApiItem
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
+import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
 import com.fonrouge.fsLib.view.KVWebManager.configViewItemMap
 import com.fonrouge.fsLib.view.ViewItem
 import dev.kilua.rpc.RpcServiceManager
@@ -21,23 +22,27 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 /**
- * Abstract class providing configuration and utility functions for managing view items in a web-based application.
+ * Represents an abstract configuration view item that integrates with a common container, enabling interaction
+ * with items and views in a structured manner. It provides utilities for managing URLs, navigating views, and
+ * querying API-related operations.
  *
- * @param CC Type of the container responsible for handling data and API interaction. Must extend ICommonContainer.
- * @param T Type of the data model for the view item. Must extend BaseDoc.
- * @param ID Type of the unique identifier for the data model.
- * @param V Type of the view item associated with the configuration class.
- * @param FILT Type of the API filter for querying data. Must extend IApiFilter.
- * @param AIS Type for any additional custom handler logic, typically a service-related class.
- * @property commonContainer The shared container managing API and data interactions.
- * @property apiItemFun A suspend function allowing interaction with custom API logic.
- * @property viewKClass Reference to the Kotlin class associated with the view item.
- * @property baseUrl Configurable base endpoint URL. Defaults to the simple name of the associated view class.
+ * @param CC The type of the common container that manages item interactions.
+ * @param T The type of the item or document being processed.
+ * @param ID The type of the identifier associated with the item or document.
+ * @param V The type of the view item associated with the configuration.
+ * @param FILT The type of API filter used for queries.
+ * @param AIS The type of the asynchronous item service.
+ * @param commonContainer The common container instance responsible for managing items and their corresponding views.
+ * @param apiItemFun A suspending function for fetching item states using an API query.
+ * @param viewKClass The class of the view item associated with this configuration.
+ * @param contextMenuItems An optional function providing context menu items for a specific item.
+ * @param baseUrl The base URL for the configuration; defaults to the name of the view class if not specified.
  */
 abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any>(
     commonContainer: CC,
     val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     viewKClass: KClass<out V>,
+    val contextMenuItems: ((T) -> List<TabulatorMenuItem>)? = null,
     baseUrl: String? = null,
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
     commonContainer = commonContainer,
@@ -214,23 +219,26 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
 }
 
 /**
- * Configures and creates a `ConfigViewItem` instance for managing view items in a specific context.
+ * Configures a custom view item by combining the provided parameters into a configuration object.
  *
- * @param viewKClass The KClass instance representing the view item type.
- * @param commonContainer An instance of `ICommonContainer` that manages the API items of a specific type.
- * @param apiItemFun A suspend function to process API items and determine their state.
- * @param baseUrl An optional base URL for the configuration; defaults to null.
- * @return A configured `ConfigViewItem` instance for the specified parameters.
+ * @param viewKClass The Kotlin class of the view item to be configured. This specifies the type of the view.
+ * @param commonContainer The container managing the API items and facilitating interaction with the provided items.
+ * @param apiItemFun A suspending function that processes API items and returns their corresponding item states.
+ * @param contextMenuItems An optional lambda function to generate a list of context menu items for a given item of type T.
+ * @param baseUrl An optional base URL to be used in the configuration of the view item.
+ * @return A configuration object of the type ConfigViewItem for the provided generic parameters.
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any> configViewItem(
     viewKClass: KClass<out V>,
     commonContainer: CC,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
+    contextMenuItems: ((T) -> List<TabulatorMenuItem>)? = null,
     baseUrl: String? = null,
 ): ConfigViewItem<CC, T, ID, V, FILT, AIS> = object : ConfigViewItem<CC, T, ID, V, FILT, AIS>(
     commonContainer = commonContainer,
     apiItemFun = apiItemFun,
     viewKClass = viewKClass,
+    contextMenuItems = contextMenuItems,
     baseUrl = baseUrl
 ) {}

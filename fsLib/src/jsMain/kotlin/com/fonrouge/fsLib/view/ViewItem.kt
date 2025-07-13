@@ -15,6 +15,7 @@ import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.model.state.ItemState
 import com.fonrouge.fsLib.model.state.SimpleState
 import com.fonrouge.fsLib.model.state.State
+import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
 import io.kvision.core.*
 import io.kvision.form.DateFormControl
 import io.kvision.form.KFilesFormControl
@@ -80,6 +81,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
 
+    val dropDownElementsObs = ObservableValue<List<TabulatorMenuItem>?>(null)
+
     /**
      * Holds a reference to a FormPanel instance that is used to manage the display
      * and handling of form inputs for a specified data type.
@@ -117,7 +120,9 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 }
                 formPanel.setData(item)
                 if (mainView) updateTitle()
-                onChangeItemObservable(it)
+            }
+            dropDownElementsObs.value = it?.let { item ->
+                configView.contextMenuItems?.invoke(item)
             }
         }
     }
@@ -774,15 +779,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @param crudTask The CRUD operation context (e.g., Create, Read, Update, Delete) for which the form is about to be displayed.
      */
     open suspend fun onBeforeDisplayForm(crudTask: CrudTask) {}
-
-    /**
-     * Called when an observable item of type T changes. This method can be overridden to provide custom
-     * behavior or handling for changes in an observably tracked item.
-     *
-     * @param item The item of type T that has changed. Use this parameter to access details or to react
-     *             to updates in the item's state.
-     */
-    open fun onChangeItemObservable(item: T) {}
 
     /**
      * Builds and returns a FormPanel component within the current container.
