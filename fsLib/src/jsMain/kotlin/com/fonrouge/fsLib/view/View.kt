@@ -22,6 +22,7 @@ import io.kvision.panel.hPanel
 import io.kvision.state.ObservableValue
 import io.kvision.state.bind
 import io.kvision.utils.em
+import io.kvision.utils.perc
 import io.kvision.utils.px
 import kotlinx.coroutines.launch
 import web.dom.document
@@ -410,6 +411,9 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
 //                        arrowVisible = false,
                         className = "tabulator-menu"
                     ) {
+                        enableTooltip(options = TooltipOptions("Context Menu", triggers = listOf(Trigger.HOVER)))
+                        size = ButtonSize.XSMALL
+                        marginRight = 0.5.em
                         this@View.dropDownElementsObs.subscribe { elements ->
                             removeAll()
                             if (elements.isNullOrEmpty()) {
@@ -424,6 +428,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                                             content = " ${tabulatorMenuItem.rawLabel}",
                                             className = "tabulator-menu-item"
                                         ) {
+                                            width = 100.perc
                                             tabulatorMenuItem.icon?.let { icon ->
                                                 icon(icon)
                                             }
@@ -436,11 +441,6 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                                 }
                             }
                         }
-                        size = ButtonSize.XSMALL
-                        marginRight = 0.5.em
-//                        enableTooltip(options = TooltipOptions("Context Menu"))
-                        title = "Context Menu"
-                        header("Actions")
                     }
                 }
                 link(
