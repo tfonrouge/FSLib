@@ -417,15 +417,19 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                             } else {
                                 show()
                                 elements.forEach { tabulatorMenuItem: TabulatorMenuItem ->
-                                    label(
-                                        content = " ${tabulatorMenuItem.rawLabel}",
-                                        className = "tabulator-menu-item"
-                                    ) {
-                                        tabulatorMenuItem.icon?.let { icon ->
-                                            icon(icon)
-                                        }
-                                        onClick {
-                                            tabulatorMenuItem.action(it, null)
+                                    if (tabulatorMenuItem.header) {
+                                        header(tabulatorMenuItem.rawLabel)
+                                    } else {
+                                        label(
+                                            content = " ${tabulatorMenuItem.rawLabel}",
+                                            className = "tabulator-menu-item"
+                                        ) {
+                                            tabulatorMenuItem.icon?.let { icon ->
+                                                icon(icon)
+                                            }
+                                            onClick {
+                                                tabulatorMenuItem.action(it, null)
+                                            }
                                         }
                                     }
                                     div(className = "tabulator-menu-separator") {}
