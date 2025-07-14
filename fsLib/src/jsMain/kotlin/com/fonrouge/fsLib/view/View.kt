@@ -13,7 +13,6 @@ import com.fonrouge.fsLib.tabulator.TabulatorMenuItem
 import com.fonrouge.fsLib.view.KVWebManager.frontEndAppName
 import io.kvision.core.*
 import io.kvision.dropdown.dropDown
-import io.kvision.dropdown.header
 import io.kvision.html.*
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
@@ -428,16 +427,20 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                                             content = " ${tabulatorMenuItem.rawLabel}",
                                             className = "tabulator-menu-item"
                                         ) {
+                                            paddingLeft = 1.em
+                                            paddingRight = 1.em
                                             width = 100.perc
                                             tabulatorMenuItem.icon?.let { icon ->
-                                                icon(icon)
+                                                icon(icon) {
+                                                    marginRight = 0.5.em
+                                                }
                                             }
                                             onClick {
                                                 tabulatorMenuItem.action(it, null)
                                             }
                                         }
                                     }
-                                    div(className = "tabulator-menu-separator") {}
+                                    div(className = "tabulator-menu-separator")
                                 }
                             }
                         }
