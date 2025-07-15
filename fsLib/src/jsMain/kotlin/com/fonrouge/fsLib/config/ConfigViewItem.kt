@@ -119,6 +119,27 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     }
 
     /**
+     * Navigates to the creation query URL for a specific item using an optional identifier and a filter.
+     *
+     * @param id The optional identifier of the item to include in the creation query; defaults to `null`.
+     * @param apiFilter An optional filter of type `FILT` to customize the creation query; defaults to a new instance of `FILT`.
+     * @param target The target window or tab where the creation query URL should be opened; default is "_blank".
+     * @return The opened [Window] instance if the URL is successfully resolved and opened, or `null` if the URL cannot be resolved.
+     */
+    @Suppress("unused")
+    fun navigateToQueryCreate(
+        id: ID? = null,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        target: String = "_blank",
+    ): Window? = navigateTo(
+        apiItem = commonContainer.apiItemQueryCreate(
+            id = id,
+            apiFilter = apiFilter
+        ),
+        target = target
+    )
+
+    /**
      * Navigates to the URL associated with the given item identifier in a specified target window or tab.
      *
      * @param id The identifier of the item to retrieve and navigate to.
@@ -127,12 +148,33 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
      * @return The opened [Window] instance if the URL is successfully resolved and opened, or `null` if the URL cannot be resolved.
      */
     @Suppress("unused")
-    fun navigateTo(
+    fun navigateToQueryRead(
         id: ID,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         target: String = "_blank",
     ): Window? = navigateTo(
         apiItem = commonContainer.apiItemQueryRead(
+            id = id,
+            apiFilter = apiFilter
+        ),
+        target = target
+    )
+
+    /**
+     * Navigates to the update query URL for a specific item using its identifier and an optional filter.
+     *
+     * @param id The identifier of the item for which the update query URL will be generated.
+     * @param apiFilter An optional filter of type `FILT` to customize the update query; defaults to a new instance of `FILT`.
+     * @param target The target window or tab where the update query URL should be opened; default is "_blank".
+     * @return The opened [Window] instance if the URL is successfully resolved and opened, or `null` if the URL cannot be resolved.
+     */
+    @Suppress("unused")
+    fun navigateToQueryUpdate(
+        id: ID,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        target: String = "_blank",
+    ): Window? = navigateTo(
+        apiItem = commonContainer.apiItemQueryUpdate(
             id = id,
             apiFilter = apiFilter
         ),
