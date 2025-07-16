@@ -64,7 +64,7 @@ kotlin {
             implementation(kotlin("reflect"))
             api(libs.kotlinx.serialization.json)
             api(libs.kotlinx.datetime)
-            api(libs.kilua.rpc.ktor.koin)
+            implementation(libs.kilua.rpc.ktor)
             api(libs.kvision.common.remote)
         }
 
