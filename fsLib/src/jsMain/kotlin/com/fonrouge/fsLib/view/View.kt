@@ -405,9 +405,9 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 if (this@View is ViewItem<*, *, *, FILT> && this@View.crudTask == CrudTask.Read) {
                     dropDown(
                         text = "",
-                        icon = "fas fa-bars",
+                        icon = "fas fa-ellipsis-vertical",
                         style = ButtonStyle.OUTLINEDARK,
-//                        arrowVisible = false,
+                        arrowVisible = false,
                         className = "tabulator-menu"
                     ) {
                         enableTooltip(options = TooltipOptions("Context Menu", triggers = listOf(Trigger.HOVER)))
