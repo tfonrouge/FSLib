@@ -419,7 +419,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                                 hide()
                             } else {
                                 show()
-                                elements.forEach { tabulatorMenuItem: TabulatorMenuItem ->
+                                elements.forEachIndexed { index: Int, tabulatorMenuItem: TabulatorMenuItem ->
                                     if (tabulatorMenuItem.header) {
                                         header(tabulatorMenuItem.rawLabel)
                                     } else {
@@ -440,7 +440,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                                             }
                                         }
                                     }
-                                    div(className = "tabulator-menu-separator")
+                                    if (index < elements.lastIndex)
+                                        div(className = "tabulator-menu-separator")
                                 }
                             }
                         }
