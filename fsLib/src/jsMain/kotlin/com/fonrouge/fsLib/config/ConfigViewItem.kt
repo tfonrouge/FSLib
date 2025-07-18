@@ -83,7 +83,8 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
          *
          * It is nullable, meaning the default context menu may not always be configured.
          */
-        var contextMenuDefault: (ConfigViewItem<*, *, *, *, *, *>.(BaseDoc<*>) -> List<TabulatorMenuItem>?)? = null
+        var contextMenuDefault: (ConfigViewItem<*, *, *, *, *, *>.() -> List<TabulatorMenuItem>?)? =
+            null
     }
 
     override val baseUrl: String
@@ -91,9 +92,25 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             return _baseUrl ?: viewKClass.simpleName!!
         }
 
+    var item: T? = null
+
     override val label: String get() = commonContainer.labelItem
 
+    @Suppress("unused")
+    val labelId get() = commonContainer.labelItemId(item)
+
+    @Suppress("unused")
+    val labelItemId get() = commonContainer.labelItemId(item)
+
     override val labelUrl: Pair<String, String> by lazy { commonContainer.labelItem to url }
+
+    /**
+     * Provides the serialized identifier of the current item using the provided ID serializer.
+     * The serialization process is performed only if the `item` property is not null.
+     * Returns the JSON-encoded string of the item's identifier.
+     */
+    @Suppress("unused")
+    val serializedId get() = item?.let { Json.encodeToString(commonContainer.idSerializer, it._id) }
 
     /**
      * Executes a query to fetch a specific item using its identifier and processes the resulting state.

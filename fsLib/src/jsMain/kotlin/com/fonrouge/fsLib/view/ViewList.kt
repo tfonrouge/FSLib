@@ -493,7 +493,8 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             )
         }
         configViewItem?.let {
-            ConfigViewItem.contextMenuDefault?.invoke(configViewItem, item as BaseDoc<*>)?.let {
+            configViewItem.item = item
+            ConfigViewItem.contextMenuDefault?.invoke(configViewItem)?.let {
                 if (it.isNotEmpty()) {
                     if (menu.isNotEmpty()) menu += menuItem(separator = true)
                     menu += it

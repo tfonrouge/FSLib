@@ -105,11 +105,13 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     /**
      * Helper to get the item property from the [ItemState]
+     * TODO: is worth to move this property to ConfigViewItem ?
      */
     var item: T?
         get() = itemObservable.value
         set(value) {
             itemObservable.value = value
+            configView.item = value
         }
 
     init {
@@ -122,7 +124,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 if (mainView) updateTitle()
             }
             dropDownElementsObs.value = it?.let { item ->
-                val x = ConfigViewItem.contextMenuDefault?.invoke(configView, item)
+                configView.item = item
+                val x = ConfigViewItem.contextMenuDefault?.invoke(configView)
                 configView.contextMenuItems?.invoke(item)?.let {
                     x?.plus(it) ?: it
                 } ?: x
