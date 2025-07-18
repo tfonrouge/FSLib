@@ -39,6 +39,20 @@ abstract class ConfigViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
 ) {
     companion object {
         private var dataListServiceManager: RpcServiceManager<*>? = null
+
+        /**
+         * A delegating property used to manage the `RpcServiceManager` instance for the `ConfigViewList` class.
+         *
+         * - The `serviceManager` property must be explicitly initialized before any instance of `ConfigViewList` is created.
+         * - Failing to initialize this property will result in an `IllegalStateException` being thrown when attempting to access it.
+         *
+         * This property internally delegates its value to `dataListServiceManager`.
+         * If the value is not set, it throws an exception and shows an alert message with the exception details.
+         *
+         * @throws IllegalStateException if the property is accessed before it is initialized.
+         *
+         * @see RpcServiceManager
+         */
         var serviceManager: RpcServiceManager<*>
             get() = dataListServiceManager
                 ?: throw IllegalStateException("serviceManager is null. Please set ConfigViewList.serviceManager value before instantiating any ConfigViewList.".also {

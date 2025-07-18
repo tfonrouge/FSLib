@@ -470,7 +470,6 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             )
         }
         if (editable() && showDefaultContextRowMenu()) {
-            menu += menuItem(separator = true)
             menu += menuItem(
                 label = gettext("Create"),
                 icon = iconCrud(CrudTask.Create),
@@ -493,13 +492,21 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 }
             )
         }
+        configViewItem?.let {
+            ConfigViewItem.contextMenuDefault?.invoke(configViewItem, item as BaseDoc<*>)?.let {
+                if (it.isNotEmpty()) {
+                    if (menu.isNotEmpty()) menu += menuItem(separator = true)
+                    menu += it
+                }
+            }
+        }
         contextRowMenu(item)?.let {
             menu += it
         }
-        configViewItem?.contextMenuItems?.let { f: (T) -> List<TabulatorMenuItem> ->
+        configViewItem?.contextMenuItems?.let { function: (T) -> List<TabulatorMenuItem> ->
             item?.let {
                 menu += menuItem(separator = true)
-                menu += f(item)
+                menu += function(item)
             }
         }
         return menu.toTypedArray()

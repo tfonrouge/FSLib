@@ -113,7 +113,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         }
 
     init {
-        itemObservable.subscribe {
+        itemObservable.subscribe { it ->
             it?.let { item ->
                 if (debug) {
                     console.warn("itemObservable.subscribe:", item)
@@ -122,7 +122,10 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 if (mainView) updateTitle()
             }
             dropDownElementsObs.value = it?.let { item ->
-                configView.contextMenuItems?.invoke(item)
+                val x = ConfigViewItem.contextMenuDefault?.invoke(configView, item)
+                configView.contextMenuItems?.invoke(item)?.let {
+                    x?.plus(it) ?: it
+                } ?: x
             }
         }
     }

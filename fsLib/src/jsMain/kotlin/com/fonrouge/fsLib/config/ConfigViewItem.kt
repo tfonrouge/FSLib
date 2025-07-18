@@ -51,6 +51,17 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
 ) {
     companion object {
         private var dataItemServiceManager: RpcServiceManager<*>? = null
+
+        /**
+         * Manages the RPC service manager instance associated with the `ConfigViewItem`.
+         *
+         * This variable handles the retrieval and assignment of a `RpcServiceManager` instance.
+         * Attempting to access the property without setting a value will throw an `IllegalStateException`
+         * and trigger an alert with the associated error message.
+         *
+         * Throws:
+         * - `IllegalStateException` if accessed before being initialized.
+         */
         var serviceManager: RpcServiceManager<*>
             get() = dataItemServiceManager
                 ?: throw IllegalStateException("serviceManager is null. Please set ConfigViewItem.serviceManager value before instantiating any ConfigViewItem.".also {
@@ -61,6 +72,18 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             set(value) {
                 dataItemServiceManager = value
             }
+
+        /**
+         * Defines a default context menu provider for a `ConfigViewItem`. This variable is a higher-order function
+         * that generates a list of `TabulatorMenuItem` for a given context represented by a `BaseDoc`.
+         *
+         * The function takes in a `BaseDoc` instance and applies it to the `ConfigViewItem` context
+         * to produce an optional list of tabular menu items. This list can define actions, separators,
+         * or hierarchies displayed as part of the context menu.
+         *
+         * It is nullable, meaning the default context menu may not always be configured.
+         */
+        var contextMenuDefault: (ConfigViewItem<*, *, *, *, *, *>.(BaseDoc<*>) -> List<TabulatorMenuItem>?)? = null
     }
 
     override val baseUrl: String
