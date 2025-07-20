@@ -6,3 +6,4 @@ out/
 *.iws
 *.idea
 logs/
+gradle/
