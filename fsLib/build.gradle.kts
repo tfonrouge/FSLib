@@ -98,7 +98,6 @@ kotlin {
         }
 
         jsMain.dependencies {
-            api(libs.kmongo.id)
             api(libs.kvision)
             api(libs.kvision.bootstrap)
             api(libs.kvision.bootstrap.icons)
