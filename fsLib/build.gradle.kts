@@ -12,10 +12,8 @@ plugins {
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-val libVersion = "1.6.6"
-
 group = "com.fonrouge.fsLib"
-version = libVersion
+version = libs.versions.fsLib.get()
 
 repositories {
     google()
