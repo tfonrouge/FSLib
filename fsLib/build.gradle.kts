@@ -2,20 +2,15 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-//    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.serialization)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kilua.rpc)
     id("maven-publish")
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-val libVersion = "1.6.6"
-
 group = "com.fonrouge.fsLib"
-version = libVersion
+version = libs.versions.fsLib.get()
 
 repositories {
     google()
@@ -61,16 +56,15 @@ kotlin {
     */
     sourceSets {
         commonMain.dependencies {
-            implementation(kotlin("reflect"))
-            api(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.serialization.json)
             api(libs.kotlinx.datetime)
             implementation(libs.kilua.rpc.ktor)
             api(libs.kvision.common.remote)
         }
 
         jvmMain.dependencies {
-            compose.runtime
-            implementation(compose.runtime)
+            implementation(kotlin("reflect"))
+            implementation(kotlin("stdlib-jdk8"))
             api(libs.ktor.client.core)
             api(libs.ktor.client.cio)
             api(libs.ktor.client.auth)
@@ -105,8 +99,6 @@ kotlin {
         }
 
         jsMain.dependencies {
-            implementation(compose.runtime)
-            api(libs.kmongo.id)
             api(libs.kvision)
             api(libs.kvision.bootstrap)
             api(libs.kvision.bootstrap.icons)
