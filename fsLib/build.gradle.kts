@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.serialization)
@@ -20,8 +18,6 @@ repositories {
     maven { url = uri("https://jitpack.io") }
 }
 
-val mainClassName = "io.ktor.server.netty.EngineMain"
-
 kotlin {
 //    jvmToolchain(21)
     jvm {
@@ -30,10 +26,6 @@ kotlin {
                 "-Xjsr305=strict",
                 "-Xallow-kotlin-package",
             )
-        }
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        mainRun {
-            mainClass.set(mainClassName)
         }
     }
     js(IR) {
