@@ -56,7 +56,6 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(kotlin("reflect"))
-            implementation(kotlin("stdlib-jdk8"))
             api(libs.ktor.client.core)
             api(libs.ktor.client.cio)
             api(libs.ktor.client.auth)
