@@ -7,15 +7,11 @@ plugins {
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-group = "com.fonrouge.fsLib"
+group = "com.fonrouge.backendLib"
 version = libs.versions.fsLib.get()
 
 repositories {
-    google()
     mavenCentral()
-    mavenLocal()
-    gradlePluginPortal()
-    maven { url = uri("https://jitpack.io") }
 }
 
 kotlin {
@@ -24,6 +20,7 @@ kotlin {
         compilerOptions {
             freeCompilerArgs = listOf(
                 "-Xjsr305=strict",
+                "-Xallow-kotlin-package",
             )
         }
     }
@@ -42,6 +39,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":fsLib"))
             implementation(libs.kotlinx.serialization.json)
             api(libs.kotlinx.datetime)
             implementation(libs.kilua.rpc.ktor)

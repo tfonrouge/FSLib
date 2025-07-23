@@ -11,7 +11,7 @@ composeMaterial3Pullrefresh = "1.1.1"
 coreKtx = "1.15.0"
 espressoCore = "3.6.1"
 exposedCore = "0.58.0"
-fsLib = "1.6.8"
+fsLib = "1.7.0"
 jtds = "1.3.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -137,4 +137,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kvision = { id = "io.kvision", version.ref = "kvision" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

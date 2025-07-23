@@ -1,26 +1,11 @@
 package com.example.fstest1
 
-import io.kvision.Application
-import io.kvision.CoreModule
-import io.kvision.DatetimeModule
-import io.kvision.RichTextModule
-import io.kvision.TomSelectModule
-import io.kvision.ImaskModule
-import io.kvision.ToastifyModule
-import io.kvision.FontAwesomeModule
-import io.kvision.BootstrapIconsModule
-import io.kvision.PrintModule
-import io.kvision.ChartModule
-import io.kvision.TabulatorModule
-import io.kvision.TabulatorCssBootstrapModule
-import io.kvision.MaterialModule
-import io.kvision.Hot
+import io.kvision.*
 import io.kvision.html.Span
 import io.kvision.i18n.DefaultI18nManager
 import io.kvision.i18n.I18n
 import io.kvision.panel.root
 import io.kvision.remote.registerRemoteTypes
-import io.kvision.startApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
