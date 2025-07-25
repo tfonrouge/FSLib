@@ -31,6 +31,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     sealed class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : IApiItem<T, ID, FILT>() {
         override val callType: CallType = CallType.Query
 
+        @Serializable
         data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             val serializedId: String?,
             override val serializedApiFilter: String,
@@ -65,6 +66,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             )
         }
 
+        @Serializable
         data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             val serializedId: String,
             override val serializedApiFilter: String,
@@ -105,6 +107,7 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     sealed class Action<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : IApiItem<T, ID, FILT>() {
         override val callType: CallType = CallType.Action
 
+        @Serializable
         data class Create<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             val serializedItem: String,
             override val serializedApiFilter: String,
