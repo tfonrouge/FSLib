@@ -132,7 +132,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             override val crudTask: CrudTask = CrudTask.Create
 
             /** Converts this action into a [Query.Create] object. */
-            override val asQuery: ApiItem<T, ID, FILT>
+            override val asQuery: Query<T, ID, FILT>
                 get() = Query.Create(
                     id = item._id,
                     apiFilter = apiFilter,
@@ -158,7 +158,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             override val crudTask: CrudTask = CrudTask.Update
 
             /** Converts this action into a [Query.Update] object. */
-            override val asQuery: ApiItem<T, ID, FILT>
+            override val asQuery: Query<T, ID, FILT>
                 get() = Query.Update(
                     id = item._id,
                     apiFilter = apiFilter,
@@ -182,7 +182,7 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
             override val crudTask: CrudTask = CrudTask.Delete
 
             /** Converts this action into a [Query.Delete] object. */
-            override val asQuery: ApiItem<T, ID, FILT>
+            override val asQuery: Query<T, ID, FILT>
                 get() = Query.Delete(
                     id = item._id,
                     apiFilter = apiFilter,
