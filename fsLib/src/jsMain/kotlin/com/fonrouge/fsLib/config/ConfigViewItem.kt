@@ -258,7 +258,7 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
 
     fun viewItemUrl(apiItem: ApiItem<T, ID, FILT>): String? {
         val url: String? = when (apiItem) {
-            is ApiItem.Upsert.Create.Query -> listOf(
+            is ApiItem.Query.Create -> listOf(
                 "action" to CrudTask.Create.name,
             ) + (apiItem.id?.let {
                 listOf(
@@ -266,17 +266,17 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
                 )
             } ?: emptyList())
 
-            is ApiItem.Read -> listOf(
+            is ApiItem.Query.Read -> listOf(
                 "action" to apiItem.crudTask.name,
                 "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
             )
 
-            is ApiItem.Upsert.Update.Query -> listOf(
+            is ApiItem.Query.Update -> listOf(
                 "action" to apiItem.crudTask.name,
                 "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
             )
 
-            is ApiItem.Delete.Query -> listOf(
+            is ApiItem.Query.Delete -> listOf(
                 "action" to apiItem.crudTask.name,
                 "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
             )

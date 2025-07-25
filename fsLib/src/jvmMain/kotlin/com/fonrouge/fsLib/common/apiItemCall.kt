@@ -22,7 +22,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
     service,
-    IApiItem.Upsert.Create.Query(
+    IApiItem.Query.Create(
         serializedId = id?.let { Json.encodeToString(idSerializer, id) },
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -52,7 +52,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
     service,
-    IApiItem.Read(
+    IApiItem.Query.Read(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -80,7 +80,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
     service,
-    IApiItem.Upsert.Update.Query(
+    IApiItem.Query.Update(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -103,7 +103,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
     service,
-    IApiItem.Delete.Query(
+    IApiItem.Query.Delete(
         serializedId = Json.encodeToString(idSerializer, id),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -131,7 +131,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
     service,
-    IApiItem.Upsert.Create.Action(
+    IApiItem.Action.Create(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )
@@ -162,7 +162,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     orig: T?,
 ): ItemState<T> = apiItemFun(
     service,
-    IApiItem.Upsert.Update.Action(
+    IApiItem.Action.Update(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter),
         serializedOrig = orig?.let { Json.encodeToString(itemSerializer, orig) }
@@ -186,7 +186,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     apiFilter: FILT = apiFilterInstance(),
 ): ItemState<T> = apiItemFun(
     service,
-    IApiItem.Delete.Action(
+    IApiItem.Action.Delete(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter)
     )

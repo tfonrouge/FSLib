@@ -177,8 +177,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The API item containing the data and parameters required for the creation action.
      * @return The state of the created item after the insertion, encapsulated in an ItemState object.
      */
-    protected open suspend fun actionCreate(
-        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
+    protected suspend fun actionCreate(
+        apiItem: ApiItem.Action.Create<T, ID, FILT>,
     ): ItemState<T> = insertOne(
         apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
     )
@@ -189,8 +189,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The update action containing the necessary data and filters to perform the update operation.
      * @return The state of the updated item after the operation is completed.
      */
-    protected open suspend fun actionUpdate(
-        apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
+    protected suspend fun actionUpdate(
+        apiItem: ApiItem.Action.Update<T, ID, FILT>,
     ): ItemState<T> = updateOne(
         apiItem.copy(
             item = apiItem.item.copyItemWithPrimaryConstructorParameters(),
@@ -205,8 +205,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *                including the item to be deleted and related information.
      * @return The state of the item after the delete action has been performed.
      */
-    protected open suspend fun actionDelete(
-        apiItem: ApiItem.Delete.Action<T, ID, FILT>,
+    protected suspend fun actionDelete(
+        apiItem: ApiItem.Action.Delete<T, ID, FILT>,
     ): ItemState<T> = deleteOne(apiItem)
 
     /**
@@ -351,38 +351,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         ).also {
             if (it.state == State.Error) return ItemState(it)
         }
+        if (apiItem !is ApiItem.Query.Read && readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         return when (apiItem) {
-            is ApiItem.Upsert -> {
-                if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-                onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
-                when (apiItem) {
-                    is ApiItem.Upsert.Create -> when (apiItem) {
-                        is ApiItem.Upsert.Create.Query -> {
-                            onPermissionUpsertCreate(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
-                            queryCreate(apiItem = apiItem)
-                        }
-
-                        is ApiItem.Upsert.Create.Action -> actionCreate(apiItem = apiItem)
-                    }
-
-                    is ApiItem.Upsert.Update -> when (apiItem) {
-                        is ApiItem.Upsert.Update.Query -> {
-                            val itemState = findItemState(apiItem = apiItem, lookupWrappers = lookupWrappers)
-                            val item = itemState.item
-                            if (itemState.hasError || item == null) return itemState
-                            onPermissionUpsertUpdate(
-                                apiItem = apiItem,
-                                item = item
-                            ).also { if (it.hasError) return it.asItemState() }
-                            queryUpdate(apiItem = apiItem, item = item)
-                        }
-
-                        is ApiItem.Upsert.Update.Action -> actionUpdate(apiItem = apiItem)
-                    }
-                }
+            is ApiItem.Query.Create<T, ID, FILT> -> {
+                onPermissionCreate(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
+                queryCreate(apiItem = apiItem)
             }
 
-            is ApiItem.Read -> {
+            is ApiItem.Query.Read<T, ID, FILT> -> {
                 val itemState = findItemStateById(
                     id = apiItem.id,
                     apiFilter = apiItem.apiFilter,
@@ -394,35 +370,36 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 queryRead(apiItem = apiItem, item = item)
             }
 
-            is ApiItem.Delete -> {
-                if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-                when (apiItem) {
-                    is ApiItem.Delete.Query -> {
-                        val itemState = findItemStateById(
-                            id = apiItem.id,
-                            apiFilter = apiItem.apiFilter,
-                            lookupWrappers = lookupWrappers
-                        )
-                        val item = itemState.item
-                        if (itemState.hasError || item == null) return itemState
-                        findChildrenNot(item).also { if (it.hasError) return it }
-                        onPermissionDelete(
-                            apiItem = apiItem,
-                            item = item
-                        ).also { if (it.hasError) return it.asItemState() }
-                        queryDelete(apiItem = apiItem, item = item)
-                    }
-
-                    is ApiItem.Delete.Action -> {
-                        findChildrenNot(apiItem.item).also { if (it.hasError) return it }
-                        onPermissionDelete(
-                            apiItem = apiItem,
-                            item = apiItem.item
-                        ).also { if (it.hasError) return it.asItemState() }
-                        actionDelete(apiItem = apiItem)
-                    }
-                }
+            is ApiItem.Query.Update<T, ID, FILT> -> {
+                val itemState = findItemState(apiItem = apiItem, lookupWrappers = lookupWrappers)
+                val item = itemState.item
+                if (itemState.hasError || item == null) return itemState
+                onPermissionUpdate(
+                    apiItem = apiItem,
+                    item = item
+                ).also { if (it.hasError) return it.asItemState() }
+                queryUpdate(apiItem = apiItem, item = item)
             }
+
+            is ApiItem.Query.Delete<T, ID, FILT> -> {
+                val itemState = findItemStateById(
+                    id = apiItem.id,
+                    apiFilter = apiItem.apiFilter,
+                    lookupWrappers = lookupWrappers
+                )
+                val item = itemState.item
+                if (itemState.hasError || item == null) return itemState
+                findChildrenNot(item).also { if (it.hasError) return it }
+                onPermissionDelete(
+                    apiItem = apiItem,
+                    item = item
+                ).also { if (it.hasError) return it.asItemState() }
+                queryDelete(apiItem = apiItem, item = item)
+            }
+
+            is ApiItem.Action.Create<T, ID, FILT> -> actionCreate(apiItem = apiItem)
+            is ApiItem.Action.Update<T, ID, FILT> -> actionUpdate(apiItem = apiItem)
+            is ApiItem.Action.Delete<T, ID, FILT> -> actionDelete(apiItem = apiItem)
         }
     }
 
@@ -684,7 +661,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
     ): ItemState<T> {
         return deleteOne(
-            apiItem = ApiItem.Delete.Action(
+            apiItem = ApiItem.Action.Delete(
                 item = coroutine.findOneById(id) ?: return ItemState(),
                 apiFilter = commonContainer.apiFilterInstance(),
             ),
@@ -703,12 +680,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun deleteOne(
-        apiItem: ApiItem.Delete.Action<T, ID, FILT>,
+        apiItem: ApiItem.Action.Delete<T, ID, FILT>,
         filter: Bson? = null,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         findChildrenNot(apiItem.item).also { if (it.hasError) return it }
-        onPermissionDelete(apiItem = apiItem, item = apiItem.item).also { if (it.hasError) return it.asItemState() }
+        onPermissionDelete(
+            apiItem = apiItem.asQuery as ApiItem.Query.Delete,
+            item = apiItem.item
+        ).also { if (it.hasError) return it.asItemState() }
         onBeforeDeleteAction(apiItem = apiItem).also { if (it.hasError) return it }
         var result: Boolean? = null
         return try {
@@ -812,13 +792,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     ): ItemState<T> {
         val id: ID = when (apiItem) {
-            is ApiItem.Upsert.Create.Query -> null
-            is ApiItem.Upsert.Create.Action -> apiItem.item._id
-            is ApiItem.Read -> apiItem.id
-            is ApiItem.Upsert.Update.Query -> apiItem.id
-            is ApiItem.Upsert.Update.Action -> apiItem.item._id
-            is ApiItem.Delete.Query -> apiItem.id
-            is ApiItem.Delete.Action -> apiItem.item._id
+            is ApiItem.Query.Create -> null
+            is ApiItem.Query.Read -> apiItem.id
+            is ApiItem.Query.Update -> apiItem.id
+            is ApiItem.Query.Delete -> apiItem.id
+            is ApiItem.Action.Create -> apiItem.item._id
+            is ApiItem.Action.Update -> apiItem.item._id
+            is ApiItem.Action.Delete -> apiItem.item._id
         } ?: return ItemState(isOk = false)
         return findItemStateById(
             id = id,
@@ -1001,7 +981,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         call: ApplicationCall? = null,
     ): ItemState<T> = insertOne(
-        apiItem = ApiItem.Upsert.Create.Action(
+        apiItem = ApiItem.Action.Create(
             item = item,
             apiFilter = apiFilter,
             call = call,
@@ -1017,11 +997,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("unused")
     suspend fun insertOne(
-        apiItem: ApiItem.Upsert.Create.Query<T, ID, FILT>,
+        apiItem: ApiItem.Query.Create<T, ID, FILT>,
         item: T,
     ): ItemState<T> {
         val itemState = insertOne(
-            apiItem = ApiItem.Upsert.Create.Action(item = item, apiFilter = apiItem.apiFilter),
+            apiItem = ApiItem.Action.Create(item = item, apiFilter = apiItem.apiFilter),
         )
         return itemState.copy(itemAlreadyOn = true)
     }
@@ -1034,17 +1014,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun insertOne(
-        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
+        apiItem: ApiItem.Action.Create<T, ID, FILT>,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
-        onPermissionUpsertCreate(apiItem).also { if (it.hasError) return it.asItemState() }
+        onPermissionCreate(apiItem.asQuery as ApiItem.Query.Create).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
-        onBeforeUpsertAction(apiItem1).also { it ->
-            if (it.hasError) return it
-            it.item?.let { apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters()) }
-        }
-        onBeforeUpsertCreateAction(apiItem1).also { it ->
+        onBeforeCreateAction(apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let { apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters()) }
         }
@@ -1060,8 +1035,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } catch (e: Exception) {
             ItemState(isOk = false, msgError = e.message)
         } finally {
-            onAfterUpsertCreateAction(apiItem = apiItem1, result = result == true)
-            onAfterUpsertAction(apiItem = apiItem1, result = result == true)
+            onAfterCreateAction(apiItem = apiItem1, result = result == true)
         }
     }
 
@@ -1126,7 +1100,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param result The result of the delete action, where true indicates success and false indicates failure.
      */
     open suspend fun onAfterDeleteAction(
-        apiItem: ApiItem.Delete.Action<T, ID, FILT>,
+        apiItem: ApiItem.Action.Delete<T, ID, FILT>,
         result: Boolean,
     ) = Unit
 
@@ -1139,25 +1113,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun onAfterOpen() = Unit
 
     /**
-     * This method is executed after the upsert action is performed.
-     *
-     * @param apiItem The item that was involved in the upsert action containing
-     *                Upsert details such as the type T, identifier ID, and filters FILT.
-     * @param result  The result of the upsert action as a Boolean value.
-     */
-    open suspend fun onAfterUpsertAction(
-        apiItem: ApiItem.Upsert<T, ID, FILT>,
-        result: Boolean,
-    ) = Unit
-
-    /**
      * This method is invoked after the "upsert create" action takes place.
      *
      * @param apiItem the API item that represents the "upsert create" action.
      * @param result a boolean indicating the success or failure of the action.
      */
-    open suspend fun onAfterUpsertCreateAction(
-        apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>,
+    open suspend fun onAfterCreateAction(
+        apiItem: ApiItem.Action.Create<T, ID, FILT>,
         result: Boolean,
     ) = Unit
 
@@ -1169,23 +1131,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *                 update operation and relevant parameters.
      * @param result   A boolean indicating whether the upsert update action was successful.
      */
-    open suspend fun onAfterUpsertUpdateAction(
-        apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
+    open suspend fun onAfterUpdateAction(
+        apiItem: ApiItem.Action.Update<T, ID, FILT>,
         result: Boolean,
     ) = Unit
 
-    open suspend fun onBeforeDeleteAction(apiItem: ApiItem.Delete.Action<T, ID, FILT>): ItemState<T> =
+    open suspend fun onBeforeDeleteAction(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> =
         ItemState(isOk = true)
-
-    /**
-     * This method is invoked before an upsert operation is performed. It allows for custom processing
-     * or validation on the input item and provides a mechanism to prevent the upsert operation if necessary.
-     *
-     * @param apiItem The upsert operation request containing the item data, its ID, and any applied filters.
-     * @return An instance of [ItemState] indicating whether the upsert operation should proceed (`isOk` set to true)
-     *         or be halted (`isOk` set to false).
-     */
-    open suspend fun onBeforeUpsertAction(apiItem: ApiItem.Upsert<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
 
     /**
      * This method is called before the upsert create action.
@@ -1194,7 +1146,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The ApiItem containing the upsert create action details, including the item and its associated metadata.
      * @return The resulting state of the item after any necessary transformations or validations.
      */
-    open suspend fun onBeforeUpsertCreateAction(apiItem: ApiItem.Upsert.Create.Action<T, ID, FILT>): ItemState<T> =
+    open suspend fun onBeforeCreateAction(apiItem: ApiItem.Action.Create<T, ID, FILT>): ItemState<T> =
         ItemState(isOk = true)
 
     /**
@@ -1204,7 +1156,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The update action item containing the item to be updated and related metadata.
      * @return The state of the item after the preprocessing or validation step.
      */
-    open suspend fun onBeforeUpsertUpdateAction(apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>): ItemState<T> =
+    open suspend fun onBeforeUpdateAction(apiItem: ApiItem.Action.Update<T, ID, FILT>): ItemState<T> =
         ItemState(isOk = true)
 
     /**
@@ -1214,7 +1166,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param item The item that the delete permission affects.
      * @return The state of the item after the delete operation.
      */
-    open suspend fun onPermissionDelete(apiItem: ApiItem.Delete<T, ID, FILT>, item: T): SimpleState =
+    open suspend fun onPermissionDelete(apiItem: ApiItem.Query.Delete<T, ID, FILT>, item: T): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1224,18 +1176,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * It contains the item details and the ID.
      * @return The current state of the item after checking the read permission.
      */
-    open suspend fun onPermissionRead(apiItem: ApiItem.Read<T, ID, FILT>): SimpleState =
+    open suspend fun onPermissionRead(apiItem: ApiItem.Query.Read<T, ID, FILT>): SimpleState =
         SimpleState(isOk = true)
-
-    /**
-     * Handles the upsert operation for the given permission.
-     *
-     * @param apiItem The API item representing the upsert operation, which includes the item
-     * itself, its identifier, and the filter criteria.
-     * @return The state of the item after the upsert operation, containing whether the operation
-     * was successful.
-     */
-    open suspend fun onPermissionUpsert(apiItem: ApiItem.Upsert<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
 
     /**
      * Handles the creation or update of a permission in the system.
@@ -1243,7 +1185,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The entity that contains the data required for creating or updating the permission.
      * @return The state of the item after the upsert operation.
      */
-    open suspend fun onPermissionUpsertCreate(apiItem: ApiItem.Upsert.Create<T, ID, FILT>): SimpleState =
+    open suspend fun onPermissionCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1253,7 +1195,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param item The item to be updated.
      * @return The state of the item after the update operation.
      */
-    open suspend fun onPermissionUpsertUpdate(apiItem: ApiItem.Upsert.Update<T, ID, FILT>, item: T): SimpleState =
+    open suspend fun onPermissionUpdate(apiItem: ApiItem.Query.Update<T, ID, FILT>, item: T): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1263,7 +1205,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param item The item of type T that needs to be validated.
      * @return A SimpleState object indicating the validation result, with isOk set to true if valid.
      */
-    open suspend fun onValidate(apiItem: ApiItem.Upsert<T, ID, FILT>, item: T): SimpleState = SimpleState(isOk = true)
+    open suspend fun onValidate(apiItem: ApiItem.Action<T, ID, FILT>, item: T): SimpleState =
+        SimpleState(isOk = true)
 
     /**
      * Constructs and modifies a MongoDB aggregation pipeline based on class-defined match and sort stages.
@@ -1402,7 +1345,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return An instance of [ItemState] representing the result of the creation operation.
      */
     protected open suspend fun queryCreate(
-        apiItem: ApiItem.Upsert.Create.Query<T, ID, FILT>,
+        apiItem: ApiItem.Query.Create<T, ID, FILT>,
     ): ItemState<T> = ItemState(isOk = true)
 
     /**
@@ -1413,7 +1356,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The resulting item state containing the processed item.
      */
     protected open suspend fun queryRead(
-        apiItem: ApiItem.Read<T, ID, FILT>,
+        apiItem: ApiItem.Query.Read<T, ID, FILT>,
         item: T,
     ): ItemState<T> = ItemState(item = item)
 
@@ -1425,7 +1368,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The updated state of the item wrapped in an ItemState.
      */
     protected open suspend fun queryUpdate(
-        apiItem: ApiItem.Upsert.Update.Query<T, ID, FILT>,
+        apiItem: ApiItem.Query.Update<T, ID, FILT>,
         item: T,
     ): ItemState<T> = ItemState(item = item)
 
@@ -1437,7 +1380,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return The resulting state of the item after the delete operation.
      */
     protected open suspend fun queryDelete(
-        apiItem: ApiItem.Delete.Query<T, ID, FILT>,
+        apiItem: ApiItem.Query.Delete<T, ID, FILT>,
         item: T,
     ): ItemState<T> = ItemState(item = item)
 
@@ -1501,7 +1444,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
         val item = coroutine.findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
-        var apiItem = ApiItem.Upsert.Update.Action(
+        var apiItem = ApiItem.Action.Update(
             item = item.copyItemWithPrimaryConstructorParameters(
                 *fieldAssignments
             ),
@@ -1509,15 +1452,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             orig = item,
             call = call,
         )
-        onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
-        onPermissionUpsertUpdate(apiItem, apiItem.item).also { if (it.hasError) return it.asItemState() }
-        onBeforeUpsertAction(apiItem = apiItem).also { it ->
-            if (it.hasError) return it
-            it.item?.let {
-                apiItem = apiItem.copy(item = it.copyItemWithPrimaryConstructorParameters())
-            }
-        }
-        onBeforeUpsertUpdateAction(apiItem = apiItem).also { it ->
+        onPermissionUpdate(
+            apiItem.asQuery as ApiItem.Query.Update,
+            apiItem.item
+        ).also { if (it.hasError) return it.asItemState() }
+        onBeforeUpdateAction(apiItem = apiItem).also { it ->
             if (it.hasError) return it
             it.item?.let {
                 apiItem = apiItem.copy(item = it.copyItemWithPrimaryConstructorParameters())
@@ -1529,14 +1468,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 isOk = false,
                 msgError = "Update skipped - no changes detected in item"
             )
-            onValidate(apiItem, apiItem.item).also { if (it.hasError) return it.asItemState() }
+            onValidate(
+                apiItem.asApiItem as ApiItem.Action,
+                apiItem.item
+            ).also { if (it.hasError) return it.asItemState() }
             coroutine.updateOne(
                 filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
                 target = apiItem.item,
             )
         } catch (e: Exception) {
-            onAfterUpsertUpdateAction(apiItem = apiItem, result = false)
-            onAfterUpsertAction(apiItem = apiItem, result = false)
+            onAfterUpdateAction(apiItem = apiItem, result = false)
             return ItemState(isOk = false, msgError = e.message)
         }
         val itemState = when (result.modifiedCount) {
@@ -1544,8 +1485,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             0L -> ItemState(state = State.Warn, msgError = "Field not modified")
             else -> ItemState(isOk = false)
         }
-        onAfterUpsertUpdateAction(apiItem = apiItem, result = itemState.hasError.not())
-        onAfterUpsertAction(apiItem = apiItem, result = itemState.hasError.not())
+        onAfterUpdateAction(apiItem = apiItem, result = itemState.hasError.not())
         return itemState
     }
 
@@ -1570,7 +1510,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         call: ApplicationCall? = null,
     ): ItemState<T> {
         return updateOne(
-            apiItem = ApiItem.Upsert.Update.Action(
+            apiItem = ApiItem.Action.Update(
                 item = item.copyItemWithPrimaryConstructorParameters(),
                 apiFilter = apiFilter,
                 orig = orig,
@@ -1592,24 +1532,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun updateOne(
-        apiItem: ApiItem.Upsert.Update.Action<T, ID, FILT>,
+        apiItem: ApiItem.Action.Update<T, ID, FILT>,
         filter: Bson? = null,
         updateOptions: UpdateOptions = UpdateOptions(),
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        onPermissionUpsert(apiItem).also { if (it.hasError) return it.asItemState() }
-        onPermissionUpsertUpdate(
-            apiItem = apiItem,
+        onPermissionUpdate(
+            apiItem = apiItem.asQuery as ApiItem.Query.Update,
             item = apiItem.item
         ).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
-        onBeforeUpsertAction(apiItem = apiItem1).also { it ->
-            if (it.hasError) return it
-            it.item?.let {
-                apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters())
-            }
-        }
-        onBeforeUpsertUpdateAction(apiItem = apiItem1).also { it ->
+        onBeforeUpdateAction(apiItem = apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let {
                 apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters())
@@ -1622,15 +1555,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 isOk = false,
                 msgError = "Update skipped - no changes detected in item"
             )
-            onValidate(apiItem1, apiItem1.item).also { if (it.hasError) return it.asItemState() }
+            onValidate(
+                apiItem1.asApiItem as ApiItem.Action,
+                apiItem1.item
+            ).also { if (it.hasError) return it.asItemState() }
             mongoColl.coroutine.updateOne(
                 filter = filter1,
                 target = apiItem1.item,
                 options = updateOptions
             )
         } catch (e: Exception) {
-            onAfterUpsertUpdateAction(apiItem = apiItem1, result = false)
-            onAfterUpsertAction(apiItem = apiItem1, result = false)
+            onAfterUpdateAction(apiItem = apiItem1, result = false)
             return ItemState(isOk = false, msgError = e.message)
         }
         val state: State
@@ -1652,8 +1587,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 noDataModified = true
             }
         }
-        onAfterUpsertUpdateAction(apiItem = apiItem1, result = state != State.Error)
-        onAfterUpsertAction(apiItem = apiItem1, result = state != State.Error)
+        onAfterUpdateAction(apiItem = apiItem1, result = state != State.Error)
         return if (state != State.Error) {
             ItemState(
                 item = apiItem1.item,
