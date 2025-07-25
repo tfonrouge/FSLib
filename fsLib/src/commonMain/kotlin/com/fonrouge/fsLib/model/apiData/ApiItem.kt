@@ -15,7 +15,6 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
     abstract val crudTask: CrudTask
     abstract val apiFilter: FILT
     abstract val call: ApplicationCall?
-    val asApiItem: ApiItem<T, ID, FILT> get() = this
 
     sealed class Query<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> : ApiItem<T, ID, FILT>() {
         abstract val id: ID?

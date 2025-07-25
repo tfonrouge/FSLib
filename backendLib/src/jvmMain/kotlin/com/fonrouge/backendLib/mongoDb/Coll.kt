@@ -1469,7 +1469,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 msgError = "Update skipped - no changes detected in item"
             )
             onValidate(
-                apiItem.asApiItem as ApiItem.Action,
+                apiItem,
                 apiItem.item
             ).also { if (it.hasError) return it.asItemState() }
             coroutine.updateOne(
@@ -1556,7 +1556,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 msgError = "Update skipped - no changes detected in item"
             )
             onValidate(
-                apiItem1.asApiItem as ApiItem.Action,
+                apiItem1,
                 apiItem1.item
             ).also { if (it.hasError) return it.asItemState() }
             mongoColl.coroutine.updateOne(
