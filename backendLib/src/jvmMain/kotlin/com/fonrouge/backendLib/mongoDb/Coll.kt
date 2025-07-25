@@ -177,7 +177,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The API item containing the data and parameters required for the creation action.
      * @return The state of the created item after the insertion, encapsulated in an ItemState object.
      */
-    protected suspend fun actionCreate(
+    protected open suspend fun actionCreate(
         apiItem: ApiItem.Action.Create<T, ID, FILT>,
     ): ItemState<T> = insertOne(
         apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
@@ -189,7 +189,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The update action containing the necessary data and filters to perform the update operation.
      * @return The state of the updated item after the operation is completed.
      */
-    protected suspend fun actionUpdate(
+    protected open suspend fun actionUpdate(
         apiItem: ApiItem.Action.Update<T, ID, FILT>,
     ): ItemState<T> = updateOne(
         apiItem.copy(
@@ -205,7 +205,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *                including the item to be deleted and related information.
      * @return The state of the item after the delete action has been performed.
      */
-    protected suspend fun actionDelete(
+    protected open suspend fun actionDelete(
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
     ): ItemState<T> = deleteOne(apiItem)
 
