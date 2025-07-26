@@ -7,7 +7,7 @@ import com.fonrouge.fsLib.types.OId
  *
  * @param U The type of user extending from `IUser`.
  * @param UID The type of the user identifier.
- * @param GOU The type of group of user extending from `IGroupOfUser`.
+ * @param GOU The type of group of users extending from `IGroupOfUser`.
  * @param GR The type of role in group extending from `IRoleInGroup`.
  */
 interface IUserGroup<U : IUser<out UID>, UID : Any, GOU : IGroupOfUser<*>, GR : IRoleInGroup<*, GOU>> :
