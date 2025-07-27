@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package com.fonrouge.fsLib.tabulator
 
 import com.fonrouge.fsLib.common.ICommonContainer
@@ -22,7 +20,6 @@ import io.kvision.utils.vh
 import kotlinx.browser.window
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import org.w3c.dom.events.Event
 
 /**
@@ -37,8 +34,9 @@ import org.w3c.dom.events.Event
  * @param init An optional initializer lambda to customize the behaviors and configurations of the `TabulatorViewList`.
  * @return The configured `ViewList` with the Tabulator and options applied.
  */
+@Suppress("unused")
 @OptIn(InternalSerializationApi::class)
-inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : Any, reified FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
     viewList: ViewList<CC, T, ID, FILT, MID>,
     masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
     tabulatorOptions: TabulatorOptions<T> = viewList.defaultTabulatorOptions(),
@@ -49,8 +47,8 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
         TableType.SMALL
     ),
     minToolbarSize: Boolean = true,
-    noinline editable: (() -> Boolean)? = null,
-    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
+    editable: (() -> Boolean)? = null,
+    init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
 ): ViewList<CC, T, ID, FILT, MID> {
     masterViewItem?.let {
         viewList.masterViewItem = it
@@ -76,7 +74,7 @@ inline fun <CC : ICommonContainer<T, ID, FILT>, reified T : BaseDoc<ID>, ID : An
                     viewList = viewList,
                     apiListBlock = apiListBlock,
                     apiListSerialize = apiListSerialize,
-                    serializer = T::class.serializer(),
+                    serializer = viewList.configView.commonContainer.itemSerializer,
                     tabulatorOptions = tabulatorOptions,
                     types = types,
                 ) {

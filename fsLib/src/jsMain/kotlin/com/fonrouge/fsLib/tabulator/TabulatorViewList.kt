@@ -308,16 +308,16 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
  * @param init An optional initialization block applied to the TabulatorViewList instance. Defaults to null.
  * @return An instance of TabulatorViewList configured with the provided parameters, added to the container.
  */
-inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
     viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
-    noinline apiListBlock: (() -> ApiList<FILT>),
-    noinline apiListSerialize: (ApiList<FILT>) -> String?,
+    apiListBlock: (() -> ApiList<FILT>),
+    apiListSerialize: (ApiList<FILT>) -> String?,
     tabulatorOptions: TabulatorOptions<T> = viewList.defaultTabulatorOptions(),
     types: Set<TableType> = setOf(),
     className: String? = null,
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
-    noinline init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
+    init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
 ): TabulatorViewList<T, ID, FILT, MID> {
     val tabulatorViewList: TabulatorViewList<T, ID, FILT, MID> =
         TabulatorViewList(
@@ -327,7 +327,7 @@ inline fun <reified T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any
             tabulatorOptions = tabulatorOptions,
             types = types,
             className = className,
-            kClass = T::class,
+            kClass = viewList.configView.commonContainer.itemKClass,
             serializer = serializer,
             module = module,
         )
