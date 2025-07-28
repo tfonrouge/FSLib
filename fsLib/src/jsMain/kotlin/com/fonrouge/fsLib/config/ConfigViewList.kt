@@ -30,7 +30,7 @@ import kotlin.reflect.KClass
 abstract class ConfigViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, FILT : IApiFilter<MID>, MID : Any, ALS : Any>(
     commonContainer: CC,
     val apiListFun: suspend ALS.(ApiList<FILT>) -> ListState<T>,
-    viewKClass: KClass<out V>,
+    viewKClass: KClass<V>,
     baseUrl: String? = null,
 ) : ConfigViewContainer<CC, T, ID, V, FILT>(
     commonContainer = commonContainer,
@@ -108,7 +108,7 @@ abstract class ConfigViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
  */
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, FILT : IApiFilter<MID>, MID : Any, ALS : Any> configViewList(
-    viewKClass: KClass<out V>,
+    viewKClass: KClass<V>,
     commonContainer: CC,
     apiListFun: suspend ALS.(ApiList<FILT>) -> ListState<T>,
     baseUrl: String? = null,
