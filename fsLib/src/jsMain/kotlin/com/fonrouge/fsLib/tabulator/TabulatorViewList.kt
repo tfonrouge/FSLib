@@ -51,8 +51,8 @@ import kotlin.reflect.KClass
  * @param module A [SerializersModule] to support custom and polymorphic serialization.
  */
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
-    val viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
+class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
+    val viewList: ViewList<CC, T, ID, FILT, MID>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListSerialize: (ApiList<FILT>) -> String?,
     tabulatorOptions: TabulatorOptions<T>,
@@ -308,8 +308,8 @@ class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID :
  * @param init An optional initialization block applied to the TabulatorViewList instance. Defaults to null.
  * @return An instance of TabulatorViewList configured with the provided parameters, added to the container.
  */
-fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
-    viewList: ViewList<ICommonContainer<T, ID, FILT>, T, ID, FILT, MID>,
+fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
+    viewList: ViewList<CC, T, ID, FILT, MID>,
     apiListBlock: (() -> ApiList<FILT>),
     apiListSerialize: (ApiList<FILT>) -> String?,
     tabulatorOptions: TabulatorOptions<T> = viewList.defaultTabulatorOptions(),
@@ -317,9 +317,9 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tab
     className: String? = null,
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
-    init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
-): TabulatorViewList<T, ID, FILT, MID> {
-    val tabulatorViewList: TabulatorViewList<T, ID, FILT, MID> =
+    init: (TabulatorViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,
+): TabulatorViewList<CC, T, ID, FILT, MID> {
+    val tabulatorViewList: TabulatorViewList<CC, T, ID, FILT, MID> =
         TabulatorViewList(
             viewList = viewList,
             apiListBlock = apiListBlock,

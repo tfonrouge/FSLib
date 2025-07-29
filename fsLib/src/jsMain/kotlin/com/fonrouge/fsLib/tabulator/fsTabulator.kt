@@ -48,7 +48,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     ),
     minToolbarSize: Boolean = true,
     editable: (() -> Boolean)? = null,
-    init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
+    init: (TabulatorViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,
 ): ViewList<CC, T, ID, FILT, MID> {
     masterViewItem?.let {
         viewList.masterViewItem = it
@@ -70,7 +70,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
         bind(viewList.errorStateObs) { errorState ->
             viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
             if (!errorState) {
-                viewList.tabulator = tabulatorViewList(
+                viewList.tabulator = tabulatorViewList<CC, T, ID, FILT, MID>(
                     viewList = viewList,
                     apiListBlock = apiListBlock,
                     apiListSerialize = apiListSerialize,

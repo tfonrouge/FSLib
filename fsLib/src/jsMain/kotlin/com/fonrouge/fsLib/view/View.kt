@@ -224,9 +224,9 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     @Suppress("unused")
     fun <FILT : IApiFilter<MID>, MID : Any> Container.addViewList(
-        viewList: ViewList<ICommonContainer<*, *, FILT>, *, *, FILT, MID>,
+        viewList: ViewList<out ICommonContainer<*, *, FILT>, *, *, FILT, MID>,
         masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
-        init: ((ViewList<ICommonContainer<*, *, FILT>, *, *, FILT, MID>).() -> Unit)? = null,
+        init: ((ViewList<out ICommonContainer<*, *, FILT>, *, *, FILT, MID>).() -> Unit)? = null,
     ) {
         viewList.apply { startDisplayPage() }
         masterViewItem?.let {

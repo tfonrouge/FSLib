@@ -40,8 +40,8 @@ import org.w3c.dom.events.Event
  * @param MID Type representing the master item identifier.
  */
 @Suppress("unused")
-abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
-    final override val configView: ConfigViewList<CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, FILT, MID, *>,
+abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
+    final override val configView: ConfigViewList<out CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, FILT, MID, *>,
     configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = null,
     periodicUpdateDataView: Boolean? = null,
     var editable: (() -> Boolean) = { true },
@@ -363,7 +363,7 @@ abstract class ViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     /**
      * the tabulator list
      */
-    var tabulator: TabulatorViewList<T, ID, FILT, MID>? = null
+    var tabulator: TabulatorViewList<CC, T, ID, FILT, MID>? = null
 
     /**
      * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem

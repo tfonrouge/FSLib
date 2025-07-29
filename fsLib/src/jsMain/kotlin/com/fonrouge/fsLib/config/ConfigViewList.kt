@@ -27,7 +27,7 @@ import kotlin.reflect.KClass
  * @param viewKClass The KClass instance of the view list class, representing the specific view type.
  * @param baseUrl Optional; a custom base URL for the configuration. Defaults to the simple name of the view class.
  */
-abstract class ConfigViewList<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, FILT : IApiFilter<MID>, MID : Any, ALS : Any>(
+abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, FILT : IApiFilter<MID>, MID : Any, ALS : Any>(
     commonContainer: CC,
     val apiListFun: suspend ALS.(ApiList<FILT>) -> ListState<T>,
     viewKClass: KClass<V>,
