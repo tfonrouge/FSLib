@@ -1155,7 +1155,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The update action item containing the item to be updated and related metadata.
      * @return The state of the item after the preprocessing or validation step.
      */
-    open suspend fun onBeforeUpdateAction(apiItem: ApiItem.Action.Update<T, ID, FILT>): ItemState<T> =
+    open suspend fun onBeforeUpdateAction(
+        apiItem: ApiItem.Action.Update<T, ID, FILT>,
+        orig: T,
+    ): ItemState<T> =
         ItemState(isOk = true)
 
     /**
@@ -1457,7 +1460,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             apiItem = apiItem.asQuery as ApiItem.Query.Update,
             orig = orig
         ).also { if (it.hasError) return it.asItemState() }
-        onBeforeUpdateAction(apiItem = apiItem).also { it ->
+        onBeforeUpdateAction(apiItem = apiItem, orig = orig).also { it ->
             if (it.hasError) return it
             it.item?.let {
                 apiItem = apiItem.copy(item = it.copyItemWithPrimaryConstructorParameters())
@@ -1545,7 +1548,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             orig = orig
         ).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
-        onBeforeUpdateAction(apiItem = apiItem1).also { it ->
+        onBeforeUpdateAction(apiItem = apiItem1, orig = orig).also { it ->
             if (it.hasError) return it
             it.item?.let {
                 apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters())
