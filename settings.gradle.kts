@@ -19,3 +19,5 @@ rootProject.name = "fsLib"
 include(":backendLib")
 include(":fsLib")
 include(":fsTest1")
+include(":fsUtils")
+include(":modelUtils")
