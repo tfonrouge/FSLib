@@ -11,3 +11,5 @@
 /kotlin-js-store/yarn.lock
 /.kotlin/
 /backendLib/build
+/fsUtils/build/
+/modelUtils/build/
