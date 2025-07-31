@@ -1430,6 +1430,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         call: ApplicationCall? = null,
         id: ID,
         vararg fieldAssignments: AssignTo<T, *>,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
         filter: Bson? = null,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
@@ -1453,7 +1454,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             item = orig.copyItemWithPrimaryConstructorParameters(
                 *fieldAssignments
             ),
-            apiFilter = commonContainer.apiFilterInstance(),
+            apiFilter = apiFilter,
             call = call,
         )
         onBeforeUpdateQuery(
@@ -1468,8 +1469,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         val result: UpdateResult = try {
             apiItem = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
+
             if (apiItem.item.json == orig.json) return ItemState(
-                isOk = false,
+                state = State.Warn,
                 msgError = "Update skipped - no changes detected in item"
             )
             onValidate(
@@ -1558,7 +1560,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val updateResult = try {
             apiItem1 = apiItem1.copy(item = apiItem1.item.copyItemWithPrimaryConstructorParameters())
             if (apiItem1.item.json == orig.json) return ItemState(
-                isOk = false,
+                state = State.Warn,
                 msgError = "Update skipped - no changes detected in item"
             )
             onValidate(
