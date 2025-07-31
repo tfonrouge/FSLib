@@ -353,7 +353,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (apiItem !is ApiItem.Query.Read && readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         return when (apiItem) {
             is ApiItem.Query.Create<T, ID, FILT> -> {
-                onPermissionCreate(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
+                onBeforeCreateQuery(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
                 queryCreate(apiItem = apiItem)
             }
 
@@ -363,7 +363,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     apiFilter = apiItem.apiFilter,
                     lookupWrappers = lookupWrappers
                 )
-                onPermissionRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
+                onBeforeReadQuery(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
                 val item = itemState.item
                 if (itemState.hasError || item == null) return itemState
                 queryRead(apiItem = apiItem, item = item)
@@ -373,7 +373,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 val itemState = findItemState(apiItem = apiItem, lookupWrappers = lookupWrappers)
                 val orig = itemState.item?.copyItemWithPrimaryConstructorParameters()
                 if (itemState.hasError || orig == null) return itemState
-                onPermissionUpdate(
+                onBeforeUpdateQuery(
                     apiItem = apiItem,
                     orig = orig
                 ).also { if (it.hasError) return it.asItemState() }
@@ -389,7 +389,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 val item = itemState.item
                 if (itemState.hasError || item == null) return itemState
                 findChildrenNot(item).also { if (it.hasError) return it }
-                onPermissionDelete(
+                onBeforeDeleteQuery(
                     apiItem = apiItem,
                     item = item
                 ).also { if (it.hasError) return it.asItemState() }
@@ -684,7 +684,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         findChildrenNot(apiItem.item).also { if (it.hasError) return it }
-        onPermissionDelete(
+        onBeforeDeleteQuery(
             apiItem = apiItem.asQuery as ApiItem.Query.Delete,
             item = apiItem.item
         ).also { if (it.hasError) return it.asItemState() }
@@ -1016,7 +1016,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Action.Create<T, ID, FILT>,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        onPermissionCreate(apiItem.asQuery as ApiItem.Query.Create).also { if (it.hasError) return it.asItemState() }
+        onBeforeCreateQuery(apiItem.asQuery as ApiItem.Query.Create).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
         onBeforeCreateAction(apiItem1).also { it ->
             if (it.hasError) return it
@@ -1168,7 +1168,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param item The item that the delete permission affects.
      * @return The state of the item after the delete operation.
      */
-    open suspend fun onPermissionDelete(apiItem: ApiItem.Query.Delete<T, ID, FILT>, item: T): SimpleState =
+    open suspend fun onBeforeDeleteQuery(apiItem: ApiItem.Query.Delete<T, ID, FILT>, item: T): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1178,7 +1178,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * It contains the item details and the ID.
      * @return The current state of the item after checking the read permission.
      */
-    open suspend fun onPermissionRead(apiItem: ApiItem.Query.Read<T, ID, FILT>): SimpleState =
+    open suspend fun onBeforeReadQuery(apiItem: ApiItem.Query.Read<T, ID, FILT>): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1187,7 +1187,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The entity that contains the data required for creating or updating the permission.
      * @return The state of the item after the upsert operation.
      */
-    open suspend fun onPermissionCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState =
+    open suspend fun onBeforeCreateQuery(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1197,7 +1197,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param orig The item to be updated.
      * @return The state of the item after the update operation.
      */
-    open suspend fun onPermissionUpdate(apiItem: ApiItem.Query.Update<T, ID, FILT>, orig: T): SimpleState =
+    open suspend fun onBeforeUpdateQuery(apiItem: ApiItem.Query.Update<T, ID, FILT>, orig: T): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1456,7 +1456,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             apiFilter = commonContainer.apiFilterInstance(),
             call = call,
         )
-        onPermissionUpdate(
+        onBeforeUpdateQuery(
             apiItem = apiItem.asQuery as ApiItem.Query.Update,
             orig = orig
         ).also { if (it.hasError) return it.asItemState() }
@@ -1543,7 +1543,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             filter = filter,
             apiFilter = apiItem.apiFilter
         )?.copyItemWithPrimaryConstructorParameters() ?: return ItemState(isOk = false, msgError = "Item not found")
-        onPermissionUpdate(
+        onBeforeUpdateQuery(
             apiItem = apiItem.asQuery as ApiItem.Query.Update,
             orig = orig
         ).also { if (it.hasError) return it.asItemState() }
