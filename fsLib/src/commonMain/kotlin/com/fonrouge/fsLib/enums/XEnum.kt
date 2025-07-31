@@ -17,6 +17,24 @@ interface XEnum {
 }
 
 /**
+ * Converts a comma-separated string into a set of enum values based on the provided enum entries.
+ * The input string is parsed, and each element is mapped to its corresponding enum value
+ * using the `encoded` property of the `XEnum` interface.
+ *
+ * @param e The collection of enum entries of type `E` representing the enumeration to be used for conversion.
+ *          Each entry must implement the `XEnum` interface and have a unique `encoded` value.
+ * @return A set of enum values of type `E` that correspond to the encoded values in the input string.
+ *         If no matching enum values are found, an empty set is returned.
+ */
+@Suppress("unused")
+fun <E> String.toEnumSet(e: EnumEntries<E>): Set<E> where E : Enum<E>, E : XEnum {
+    val x: List<E> = split(',').mapNotNull { encoded ->
+        e.find { it.encoded == encoded }
+    }
+    return x.toSet()
+}
+
+/**
  * Retrieves the encoded string representation associated with the given `XEnum` instance
  * from the `EnumEntries`. If no matching encoded value is found, returns `null`.
  *
