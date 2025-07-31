@@ -10,6 +10,6 @@ package com.fonrouge.fsLib.lib
  * It receives the calling collection as its parameter.
  */
 @Suppress("unused")
-fun <T : Collection<E>, E : Any> (T).ifIsNotEmpty(block: (T) -> Unit) {
-    if (isNotEmpty()) block(this)
+fun <T : Collection<E>, E : Any, R> (T).ifIsNotEmpty(block: (T) -> R): R? {
+    return if (isNotEmpty()) block(this) else null
 }
