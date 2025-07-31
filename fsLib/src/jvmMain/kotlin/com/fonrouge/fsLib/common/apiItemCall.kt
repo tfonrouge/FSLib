@@ -150,7 +150,6 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @param apiItemFun A suspendable function defining the update logic for a given API item.
  * @param item The item to update.
  * @param apiFilter The API filter to be applied during the update operation. Defaults to an instance of the filter type.
- * @param orig The original version of the item before the update, used for comparison or additional context. Can be null.
  * @return The resulting state of the item after the update action.
  */
 @Suppress("unused")
@@ -159,13 +158,11 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
-    orig: T?,
 ): ItemState<T> = apiItemFun(
     service,
     IApiItem.Action.Update(
         serializedItem = Json.encodeToString(itemSerializer, item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiFilter),
-        serializedOrig = orig?.let { Json.encodeToString(itemSerializer, orig) }
     )
 )
 

@@ -121,7 +121,6 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @param item The item of type [T] to be updated.
  * @param apiFilter The API filter of type [FILT] to be used in the operation.
  *                  Defaults to an instance created by `apiFilterInstance()`.
- * @param orig The original version of the item prior to the update, if applicable. Can be null.
  * @param transform A lambda function to transform the resulting [ItemState] into a different
  *                  type [R] if needed.
  *
@@ -132,11 +131,10 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
-    orig: T?,
     transform: ((ItemState<T>) -> R),
 ): Promise<R> = getItemState(
     apiItemFun = apiItemFun,
-    apiItem = apiItemActionUpdate(item, apiFilter, orig),
+    apiItem = apiItemActionUpdate(item, apiFilter),
     transform = transform
 )
 

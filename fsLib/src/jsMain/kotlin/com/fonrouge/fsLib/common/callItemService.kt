@@ -24,7 +24,6 @@ import kotlinx.serialization.json.Json
  * @param callType The type of API call (Query or Action).
  * @param id The unique identifier of the item, or null if not applicable.
  * @param item The item to be used for the operation, or null if not applicable.
- * @param orig The original item before any updates, or null if not applicable.
  * @param apiFilter The API filter used to customize queries, defaults to an instance created from the container's apiFilterInstance method.
  * @param block A lambda to process the result of the operation, receiving the item state as input and returning the modified item state.
  */
@@ -35,7 +34,6 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
     callType: CallType,
     id: ID? = null,
     item: T? = null,
-    orig: T? = null,
     apiFilter: FILT = apiFilterInstance(),
     block: (ItemState<T>) -> ItemState<T>,
 ) {
@@ -62,7 +60,6 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
                 apiItemActionUpdate(
                     item,
                     apiFilter,
-                    orig
                 )
             }
 

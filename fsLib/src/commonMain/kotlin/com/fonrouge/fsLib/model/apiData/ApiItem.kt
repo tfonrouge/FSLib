@@ -145,13 +145,11 @@ sealed class ApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
          *
          * @property item The document with the updated data.
          * @property apiFilter The filter criteria for the operation.
-         * @property orig The original state of the document before updates, if available.
          * @property call The optional application call context.
          */
         data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             override val item: T,
             override val apiFilter: FILT,
-            val orig: T?,
             override val call: ApplicationCall? = null,
         ) : Action<T, ID, FILT>() {
             /** The CRUD task, fixed to [CrudTask.Update]. */

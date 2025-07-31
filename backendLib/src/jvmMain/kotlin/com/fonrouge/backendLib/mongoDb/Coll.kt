@@ -194,7 +194,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> = updateOne(
         apiItem.copy(
             item = apiItem.item.copyItemWithPrimaryConstructorParameters(),
-            orig = apiItem.orig?.copyItemWithPrimaryConstructorParameters()
         )
     )
 
@@ -372,13 +371,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
             is ApiItem.Query.Update<T, ID, FILT> -> {
                 val itemState = findItemState(apiItem = apiItem, lookupWrappers = lookupWrappers)
-                val item = itemState.item
-                if (itemState.hasError || item == null) return itemState
+                val orig = itemState.item?.copyItemWithPrimaryConstructorParameters()
+                if (itemState.hasError || orig == null) return itemState
                 onPermissionUpdate(
                     apiItem = apiItem,
-                    item = item
+                    orig = orig
                 ).also { if (it.hasError) return it.asItemState() }
-                queryUpdate(apiItem = apiItem, item = item)
+                queryUpdate(apiItem = apiItem, item = orig)
             }
 
             is ApiItem.Query.Delete<T, ID, FILT> -> {
@@ -1124,15 +1123,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ) = Unit
 
     /**
-     * This method is called after an upsert update action is performed, allowing for any necessary
-     * post-processing or logging based on the result of the action.
+     * Executes custom logic after an update action has been performed.
      *
-     * @param apiItem  The upsert update action that was performed. This includes the specific
-     *                 update operation and relevant parameters.
-     * @param result   A boolean indicating whether the upsert update action was successful.
+     * @param apiItem The API update action details, including its parameters and context.
+     * @param orig The original item before the update operation.
+     * @param result The result of the update operation, indicating success or failure.
      */
     open suspend fun onAfterUpdateAction(
         apiItem: ApiItem.Action.Update<T, ID, FILT>,
+        orig: T,
         result: Boolean,
     ) = Unit
 
@@ -1192,10 +1191,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Handles the update operation for a given item with permissions.
      *
      * @param apiItem The API item update operation containing necessary information.
-     * @param item The item to be updated.
+     * @param orig The item to be updated.
      * @return The state of the item after the update operation.
      */
-    open suspend fun onPermissionUpdate(apiItem: ApiItem.Query.Update<T, ID, FILT>, item: T): SimpleState =
+    open suspend fun onPermissionUpdate(apiItem: ApiItem.Query.Update<T, ID, FILT>, orig: T): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1443,18 +1442,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             val s: SimpleState = getCrudPermission(call = it, crudTask = CrudTask.Update)
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
-        val item = coroutine.findById(id = id) ?: return ItemState(isOk = false, msgError = "Item not found")
+        val orig = findById(id = id, filter = filter)?.copyItemWithPrimaryConstructorParameters() ?: return ItemState(
+            isOk = false,
+            msgError = "Item not found"
+        )
         var apiItem = ApiItem.Action.Update(
-            item = item.copyItemWithPrimaryConstructorParameters(
+            item = orig.copyItemWithPrimaryConstructorParameters(
                 *fieldAssignments
             ),
             apiFilter = commonContainer.apiFilterInstance(),
-            orig = item,
             call = call,
         )
         onPermissionUpdate(
-            apiItem.asQuery as ApiItem.Query.Update,
-            apiItem.item
+            apiItem = apiItem.asQuery as ApiItem.Query.Update,
+            orig = orig
         ).also { if (it.hasError) return it.asItemState() }
         onBeforeUpdateAction(apiItem = apiItem).also { it ->
             if (it.hasError) return it
@@ -1464,7 +1465,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         val result: UpdateResult = try {
             apiItem = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
-            if (apiItem.item.json == apiItem.orig?.json) return ItemState(
+            if (apiItem.item.json == orig.json) return ItemState(
                 isOk = false,
                 msgError = "Update skipped - no changes detected in item"
             )
@@ -1477,7 +1478,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 target = apiItem.item,
             )
         } catch (e: Exception) {
-            onAfterUpdateAction(apiItem = apiItem, result = false)
+            onAfterUpdateAction(apiItem = apiItem, orig = orig, result = false)
             return ItemState(isOk = false, msgError = e.message)
         }
         val itemState = when (result.modifiedCount) {
@@ -1485,7 +1486,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             0L -> ItemState(state = State.Warn, msgError = "Field not modified")
             else -> ItemState(isOk = false)
         }
-        onAfterUpdateAction(apiItem = apiItem, result = itemState.hasError.not())
+        onAfterUpdateAction(apiItem = apiItem, orig = orig, result = itemState.hasError.not())
         return itemState
     }
 
@@ -1493,7 +1494,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Updates a single item in the database.
      *
      * @param item The item to be updated.
-     * @param orig The original item before update, if available. Defaults to null.
      * @param filter The filter to identify the item to be updated. Defaults to null.
      * @param apiFilter The API filter instance for the update operation. Defaults to a common API filter instance.
      * @param updateOptions Options to apply during the update operation. Defaults to an instance of UpdateOptions.
@@ -1503,7 +1503,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     @Suppress("unused")
     suspend fun updateOne(
         item: T,
-        orig: T? = null,
         filter: Bson? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         updateOptions: UpdateOptions = UpdateOptions(),
@@ -1513,7 +1512,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             apiItem = ApiItem.Action.Update(
                 item = item.copyItemWithPrimaryConstructorParameters(),
                 apiFilter = apiFilter,
-                orig = orig,
                 call = call,
             ),
             filter = filter,
@@ -1537,9 +1535,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         updateOptions: UpdateOptions = UpdateOptions(),
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
+        val orig: T = findById(
+            id = apiItem.item._id,
+            filter = filter,
+            apiFilter = apiItem.apiFilter
+        )?.copyItemWithPrimaryConstructorParameters() ?: return ItemState(isOk = false, msgError = "Item not found")
         onPermissionUpdate(
             apiItem = apiItem.asQuery as ApiItem.Query.Update,
-            item = apiItem.item
+            orig = orig
         ).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
         onBeforeUpdateAction(apiItem = apiItem1).also { it ->
@@ -1551,7 +1554,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         val filter1 = and(BaseDoc<ID>::_id eq apiItem1.item._id, filter ?: EMPTY_BSON)
         val updateResult = try {
             apiItem1 = apiItem1.copy(item = apiItem1.item.copyItemWithPrimaryConstructorParameters())
-            if (apiItem1.item.json == apiItem1.orig?.json) return ItemState(
+            if (apiItem1.item.json == orig.json) return ItemState(
                 isOk = false,
                 msgError = "Update skipped - no changes detected in item"
             )
@@ -1565,7 +1568,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 options = updateOptions
             )
         } catch (e: Exception) {
-            onAfterUpdateAction(apiItem = apiItem1, result = false)
+            onAfterUpdateAction(apiItem = apiItem1, orig = orig, result = false)
             return ItemState(isOk = false, msgError = e.message)
         }
         val state: State
@@ -1587,7 +1590,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 noDataModified = true
             }
         }
-        onAfterUpdateAction(apiItem = apiItem1, result = state != State.Error)
+        onAfterUpdateAction(apiItem = apiItem1, orig = orig, result = state != State.Error)
         return if (state != State.Error) {
             ItemState(
                 item = apiItem1.item,

@@ -82,11 +82,9 @@ abstract class ICommonContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
     fun apiItemActionUpdate(
         item: T,
         apiFilter: FILT = apiFilterInstance(),
-        orig: T?,
     ): ApiItem.Action.Update<T, ID, FILT> = ApiItem.Action.Update(
         item = item,
         apiFilter = apiFilter,
-        orig = orig,
     )
 
     fun apiItemActionDelete(
@@ -135,7 +133,6 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
     is ApiItem.Action.Update -> IApiItem.Action.Update(
         serializedItem = Json.encodeToString(itemSerializer, apiItem.item),
         serializedApiFilter = Json.encodeToString(apiFilterSerializer, apiItem.apiFilter),
-        serializedOrig = apiItem.orig?.let { Json.encodeToString(itemSerializer, it) }
     )
 
     is ApiItem.Action.Delete -> IApiItem.Action.Delete(

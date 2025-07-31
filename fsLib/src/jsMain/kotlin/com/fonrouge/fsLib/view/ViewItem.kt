@@ -259,12 +259,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                         callType = CallType.Action,
                         id = item?._id,
                         item = data,
-                        orig = origSerialized?.let {
-                            Json.decodeFromString(
-                                deserializer = configView.commonContainer.itemSerializer,
-                                string = it
-                            )
-                        },
                         apiFilter = apiFilter,
                     ) { itemResponse ->
                         block?.invoke(itemResponse)
@@ -325,9 +319,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     configView.commonContainer.itemSerializer,
                     transformData(getData())
                 )
-                val s2 =
-                    item?.let { Json.encodeToString(configView.commonContainer.itemSerializer, it) }
-                if (s1 != s2) {
+                if (s1 != origSerialized) {
                     proceedClose = confirm("Cancel and forget current changes ?")
                 }
             } catch (e: Exception) {
@@ -521,11 +513,11 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 //                    linkBanner?.label = labelBanner(apiFilter)
 //                }
                 item?.let {
-                    formPanel.setData(it)
                     origSerialized = Json.encodeToString(
-                        configView.commonContainer.itemSerializer,
-                        transformData(getData())
+                        serializer = configView.commonContainer.itemSerializer,
+                        value = it
                     )
+                    formPanel.setData(it)
                 }
             }
 

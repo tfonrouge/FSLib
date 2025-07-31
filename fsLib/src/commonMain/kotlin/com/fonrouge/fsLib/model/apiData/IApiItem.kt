@@ -130,7 +130,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
         data class Update<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             val serializedItem: String,
             override val serializedApiFilter: String,
-            val serializedOrig: String?,
         ) : Action<T, ID, FILT>() {
             override val crudTask: CrudTask = CrudTask.Update
             override fun asApiItem(
@@ -142,12 +141,6 @@ sealed class IApiItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> {
                     cc.apiFilterSerializer,
                     serializedApiFilter
                 ),
-                orig = serializedOrig?.let {
-                    Json.decodeFromString(
-                        cc.itemSerializer,
-                        serializedOrig
-                    )
-                },
                 call = call,
             )
         }
