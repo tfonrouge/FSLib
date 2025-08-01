@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.serialization)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.kilua.rpc)
     id("maven-publish")
     id("org.jetbrains.dokka") version "2.0.0"
 }
@@ -107,8 +105,4 @@ kotlin {
             api(libs.kvision.tom.select.remote)
         }
     }
-}
-
-tasks.named("sourcesJar") {
-    dependsOn("kspCommonMainKotlinMetadata")
 }
