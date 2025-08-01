@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.serialization)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.kilua.rpc)
     id("maven-publish")
 }
 
@@ -46,8 +44,4 @@ kotlin {
 
         }
     }
-}
-
-tasks.named("sourcesJar") {
-    dependsOn("kspCommonMainKotlinMetadata")
 }
