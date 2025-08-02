@@ -62,7 +62,6 @@ kotlin {
             dependencies {
                 implementation(libs.ktor.server.netty)
                 implementation(libs.ktor.server.compression)
-                implementation(libs.logback.classic)
             }
         }
         val jvmTest by getting {
