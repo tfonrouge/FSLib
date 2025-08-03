@@ -41,9 +41,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)
-            api(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kilua.rpc.ktor)
-            api(libs.kvision.common.remote)
+            implementation(libs.kvision.common.remote)
         }
 
         jvmMain.dependencies {

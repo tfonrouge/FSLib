@@ -36,6 +36,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":fsLib"))
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.kvision.common.remote)
         }
         jvmMain.dependencies {
 
