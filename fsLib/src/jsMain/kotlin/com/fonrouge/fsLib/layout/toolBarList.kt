@@ -1,7 +1,10 @@
 package com.fonrouge.fsLib.layout
 
+import com.fonrouge.fsLib.common.ICommonContainer
+import com.fonrouge.fsLib.config.ConfigViewItem
 import com.fonrouge.fsLib.lib.iconCrud
 import com.fonrouge.fsLib.model.apiData.CrudTask
+import com.fonrouge.fsLib.model.apiData.IApiFilter
 import com.fonrouge.fsLib.model.base.BaseDoc
 import com.fonrouge.fsLib.view.ViewList
 import io.kvision.core.Container
@@ -26,7 +29,7 @@ import io.kvision.state.bind
  * @return The constructed `Navbar` containing the toolbar with the configured actions.
  */
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
-    viewList: ViewList<*, T, ID, *, *>,
+    viewList: ViewList<out ICommonContainer<T,ID, out IApiFilter<out Any>>, T, ID, out IApiFilter<out Any>, *>,
     minToolbarSize: Boolean = true,
 ): Navbar {
     val delay = 300
@@ -74,7 +77,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             }
         }
         nav {
-            viewList.configViewItem()?.let { configViewItem ->
+            viewList.configViewItem()?.let { configViewItem: ConfigViewItem<ICommonContainer<T, ID, out IApiFilter<out Any>>, T, ID, *, out IApiFilter<out Any>, *> ->
                 if (viewList.editable()) {
                     dropDown(
                         text = tr("Edit"),
