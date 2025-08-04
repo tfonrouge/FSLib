@@ -44,7 +44,6 @@ kotlin {
 
         }
         jsMain.dependencies {
-
         }
     }
 }

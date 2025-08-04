@@ -41,10 +41,17 @@ kotlin {
             implementation(libs.kotlinx.html)
         }
         jvmMain.dependencies {
-
+            implementation(libs.ktor.server.core)
+            implementation(libs.kmongo.coroutine.serialization)
+            implementation(libs.ktor.server.sessions)
         }
         jsMain.dependencies {
+            implementation(libs.kvision)
+            implementation(libs.kvision.bootstrap)
+            implementation(libs.kvision.bootstrap.upload)
+            implementation(libs.kvision.tabulator)
 
+            implementation(libs.kvision.react)
         }
     }
 }
