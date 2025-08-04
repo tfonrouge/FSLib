@@ -59,7 +59,8 @@ kotlin {
             implementation(libs.ktor.server.auth.jwt)
             implementation(libs.ktor.server.call.logging)
             implementation(libs.ktor.server.compression)
-            implementation(libs.ktor.server.core)
+            // TODO: change api for implementation. api allows to export ApplicationCall class needed on IApiItem
+            api(libs.ktor.server.core)
             implementation(libs.ktor.server.default.headers)
             implementation(libs.ktor.server.forwarded.header)
             implementation(libs.ktor.server.netty)
