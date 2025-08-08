@@ -10,3 +10,6 @@ package com.fonrouge.fsLib.types
  */
 @Suppress("unused")
 fun <T : Any> Int.toIntId(): IntId<T> = IntId(this)
+
+@Suppress("unused")
+fun <T : Any> Int?.toIntIdOrNull(): IntId<T>? = this?.let { IntId(it) }

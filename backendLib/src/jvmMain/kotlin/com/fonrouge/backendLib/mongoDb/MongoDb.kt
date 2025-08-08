@@ -7,6 +7,8 @@ import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
 import org.litote.kmongo.reactivestreams.KMongo.createClient
 import org.litote.kmongo.serialization.registerSerializer
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 internal var mongoDbBuilder: MongoDbBuilder = MongoDbBuilder()
@@ -89,16 +91,35 @@ data class MongoDbBuilder(
     var locale: String = Locale.getDefault().language,
 ) {
 
+    private var cachedClient: com.mongodb.reactivestreams.client.MongoClient? = null
+
     val connectionString
-        get() = "mongodb://" + if (user != null || password != null) {
-            "$user:$password@"
-        } else {
-            ""
-        }.let {
-            "$it$serverUrl:$serverPort" + if (authSource != null) "/?authSource=$authSource" else ""
+        get() = buildString {
+            append("mongodb://")
+            val username = user?.takeIf { it.isNotBlank() }
+            val pwd = password?.takeIf { it.isNotBlank() }
+            if (username != null || pwd != null) {
+                val encUser = username?.let { URLEncoder.encode(it, StandardCharsets.UTF_8) } ?: ""
+                val encPwd = pwd?.let { URLEncoder.encode(it, StandardCharsets.UTF_8) } ?: ""
+                append(encUser)
+                if (encUser.isNotEmpty() || encPwd.isNotEmpty()) append(":")
+                append(encPwd)
+                append("@")
+            }
+            val host = serverUrl ?: "localhost"
+            append(host)
+            append(":")
+            append(serverPort)
+            authSource?.takeIf { it.isNotBlank() }?.let {
+                append("/?authSource=")
+                append(it)
+            }
         }
 
-    fun getMongoDb(): MongoDatabase = createClient(connectionString).getDatabase(database)
+    fun getMongoDb(): MongoDatabase {
+        val client = cachedClient ?: createClient(connectionString).also { cachedClient = it }
+        return client.getDatabase(database)
+    }
 
     companion object {
         init {

@@ -10,3 +10,6 @@ package com.fonrouge.fsLib.types
  */
 @Suppress("unused")
 fun <T : Any> Long.toLongId(): LongId<T> = LongId(this)
+
+@Suppress("unused")
+fun <T : Any> Long?.toLongIdOrNull(): LongId<T>? = this?.let { LongId(it) }

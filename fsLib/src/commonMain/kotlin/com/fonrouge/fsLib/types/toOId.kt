@@ -10,3 +10,6 @@ package com.fonrouge.fsLib.types
  */
 @Suppress("unused")
 fun <T> String.toOId(): OId<T> = OId(this)
+
+@Suppress("unused")
+fun <T> String?.toOIdOrNull(): OId<T>? = this?.let { OId(it) }

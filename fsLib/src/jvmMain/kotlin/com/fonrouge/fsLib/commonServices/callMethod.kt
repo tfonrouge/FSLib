@@ -3,6 +3,7 @@ package com.fonrouge.fsLib.commonServices
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.*
@@ -18,7 +19,23 @@ import kotlin.reflect.full.functions
  */
 @Suppress("UNCHECKED_CAST", "unused")
 suspend fun <API : IApiCommonService> callMethod(api: API, methodName: String?) {
-    val f1 = api::class.functions.find { it.name == methodName } ?: return
+    if (methodName.isNullOrBlank()) {
+        api.call.respondText(
+            text = "Missing method name",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.BadRequest
+        )
+        return
+    }
+    val f1 = api::class.functions.find { it.name == methodName }
+    if (f1 == null) {
+        api.call.respondText(
+            text = "Method '$methodName' not found",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.NotFound
+        )
+        return
+    }
     when (f1.parameters.size) {
         1 -> respond1(api, f1 as KSuspendFunction1<API, Any>)
         2 -> respond2(api, f1 as KSuspendFunction2<API, *, Any>)
@@ -26,7 +43,11 @@ suspend fun <API : IApiCommonService> callMethod(api: API, methodName: String?) 
         4 -> respond4(api, f1 as KSuspendFunction4<API, *, *, *, Any>)
         5 -> respond5(api, f1 as KSuspendFunction5<API, *, *, *, *, Any>)
         6 -> respond6(api, f1 as KSuspendFunction6<API, *, *, *, *, *, Any>)
-        else -> throw Exception("Method not supported: too many parameters...")
+        else -> api.call.respondText(
+            text = "Method not supported: too many parameters",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.BadRequest
+        )
     }
 }
 
@@ -50,9 +71,24 @@ suspend fun <API : IApiCommonService> respond2(
     func: KSuspendFunction2<API, *, Any>,
 ) {
     val plist = api.call.receive<List<String?>>()
+    if (plist.size < 1 || plist[0] == null) {
+        api.call.respondText(
+            text = "Missing required parameter #1",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.BadRequest
+        )
+        return
+    }
     val s1 = Json.serializersModule.serializer(func.parameters[1].type)
-    val pp1 = plist[0]!!
-    val p1 = pp1.let { Json.decodeFromString(s1, it) }
+    val pp1 = plist[0]
+    val p1 = try { Json.decodeFromString(s1, pp1!!) } catch (e: SerializationException) {
+        api.call.respondText(
+            text = "Invalid parameter #1: ${e.message}",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.BadRequest
+        )
+        return
+    }
 
     val ret = func.callSuspend(api, p1)
 
@@ -70,12 +106,24 @@ suspend fun <API : IApiCommonService> respond3(
     func: KSuspendFunction3<API, *, *, Any>,
 ) {
     val plist = api.call.receive<List<String?>>()
+    if (plist.size < 2 || plist[0] == null || plist[1] == null) {
+        api.call.respondText(
+            text = "Missing required parameters",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.BadRequest
+        )
+        return
+    }
     val s1 = Json.serializersModule.serializer(func.parameters[1].type)
     val s2 = Json.serializersModule.serializer(func.parameters[2].type)
-    val pp1 = plist[0]!!
-    val pp2 = plist[1]!!
-    val p1 = pp1.let { Json.decodeFromString(s1, it) }
-    val p2 = pp2.let { Json.decodeFromString(s2, it) }
+    val pp1 = plist[0]
+    val pp2 = plist[1]
+    val p1 = try { Json.decodeFromString(s1, pp1!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #1: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p2 = try { Json.decodeFromString(s2, pp2!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #2: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
 
     val ret = func.callSuspend(api, p1, p2)
 
@@ -93,15 +141,29 @@ suspend fun <API : IApiCommonService> respond4(
     func: KSuspendFunction4<API, *, *, *, Any>,
 ) {
     val plist = api.call.receive<List<String?>>()
+    if (plist.size < 3 || plist[0] == null || plist[1] == null || plist[2] == null) {
+        api.call.respondText(
+            text = "Missing required parameters",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.BadRequest
+        )
+        return
+    }
     val s1 = Json.serializersModule.serializer(func.parameters[1].type)
     val s2 = Json.serializersModule.serializer(func.parameters[2].type)
     val s3 = Json.serializersModule.serializer(func.parameters[3].type)
-    val pp1 = plist[0]!!
-    val pp2 = plist[1]!!
-    val pp3 = plist[2]!!
-    val p1 = pp1.let { Json.decodeFromString(s1, it) }
-    val p2 = pp2.let { Json.decodeFromString(s2, it) }
-    val p3 = pp3.let { Json.decodeFromString(s3, it) }
+    val pp1 = plist[0]
+    val pp2 = plist[1]
+    val pp3 = plist[2]
+    val p1 = try { Json.decodeFromString(s1, pp1!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #1: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p2 = try { Json.decodeFromString(s2, pp2!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #2: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p3 = try { Json.decodeFromString(s3, pp3!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #3: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
 
     val ret = func.callSuspend(api, p1, p2, p3)
 
@@ -119,18 +181,34 @@ suspend fun <API : IApiCommonService> respond5(
     func: KSuspendFunction5<API, *, *, *, *, Any>,
 ) {
     val plist = api.call.receive<List<String?>>()
+    if (plist.size < 4 || plist[0] == null || plist[1] == null || plist[2] == null || plist[3] == null) {
+        api.call.respondText(
+            text = "Missing required parameters",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.BadRequest
+        )
+        return
+    }
     val s1 = Json.serializersModule.serializer(func.parameters[1].type)
     val s2 = Json.serializersModule.serializer(func.parameters[2].type)
     val s3 = Json.serializersModule.serializer(func.parameters[3].type)
     val s4 = Json.serializersModule.serializer(func.parameters[4].type)
-    val pp1 = plist[0]!!
-    val pp2 = plist[1]!!
-    val pp3 = plist[2]!!
-    val pp4 = plist[3]!!
-    val p1 = pp1.let { Json.decodeFromString(s1, it) }
-    val p2 = pp2.let { Json.decodeFromString(s2, it) }
-    val p3 = pp3.let { Json.decodeFromString(s3, it) }
-    val p4 = pp4.let { Json.decodeFromString(s4, it) }
+    val pp1 = plist[0]
+    val pp2 = plist[1]
+    val pp3 = plist[2]
+    val pp4 = plist[3]
+    val p1 = try { Json.decodeFromString(s1, pp1!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #1: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p2 = try { Json.decodeFromString(s2, pp2!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #2: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p3 = try { Json.decodeFromString(s3, pp3!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #3: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p4 = try { Json.decodeFromString(s4, pp4!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #4: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
 
     val ret = func.callSuspend(api, p1, p2, p3, p4)
 
@@ -148,21 +226,46 @@ suspend fun <API : IApiCommonService> respond6(
     func: KSuspendFunction6<API, *, *, *, *, *, Any>,
 ) {
     val plist = api.call.receive<List<String?>>()
+    if (
+        plist.size < 5 ||
+        plist[0] == null ||
+        plist[1] == null ||
+        plist[2] == null ||
+        plist[3] == null ||
+        plist[4] == null
+    ) {
+        api.call.respondText(
+            text = "Missing required parameters",
+            contentType = ContentType.Text.Plain,
+            status = HttpStatusCode.BadRequest
+        )
+        return
+    }
     val s1 = Json.serializersModule.serializer(func.parameters[1].type)
     val s2 = Json.serializersModule.serializer(func.parameters[2].type)
     val s3 = Json.serializersModule.serializer(func.parameters[3].type)
     val s4 = Json.serializersModule.serializer(func.parameters[4].type)
     val s5 = Json.serializersModule.serializer(func.parameters[5].type)
-    val pp1 = plist[0]!!
-    val pp2 = plist[1]!!
-    val pp3 = plist[2]!!
-    val pp4 = plist[3]!!
-    val pp5 = plist[4]!!
-    val p1 = pp1.let { Json.decodeFromString(s1, it) }
-    val p2 = pp2.let { Json.decodeFromString(s2, it) }
-    val p3 = pp3.let { Json.decodeFromString(s3, it) }
-    val p4 = pp4.let { Json.decodeFromString(s4, it) }
-    val p5 = pp5.let { Json.decodeFromString(s5, it) }
+    val pp1 = plist[0]
+    val pp2 = plist[1]
+    val pp3 = plist[2]
+    val pp4 = plist[3]
+    val pp5 = plist[4]
+    val p1 = try { Json.decodeFromString(s1, pp1!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #1: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p2 = try { Json.decodeFromString(s2, pp2!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #2: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p3 = try { Json.decodeFromString(s3, pp3!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #3: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p4 = try { Json.decodeFromString(s4, pp4!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #4: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
+    val p5 = try { Json.decodeFromString(s5, pp5!!) } catch (e: SerializationException) {
+        api.call.respondText("Invalid parameter #5: ${e.message}", ContentType.Text.Plain, HttpStatusCode.BadRequest); return
+    }
 
     val ret = func.callSuspend(api, p1, p2, p3, p4, p5)
 
