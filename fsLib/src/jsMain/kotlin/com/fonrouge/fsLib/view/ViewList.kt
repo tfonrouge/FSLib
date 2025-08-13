@@ -460,39 +460,39 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             header = true
         )
         menu += menuItem(separator = true)
-        if (showDefaultContextRowMenu()) {
-            menu += menuItem(
-                label = gettext("Detail of"),
-                icon = iconCrud(CrudTask.Read),
-                action = { _, _ ->
-                    goActionUrl(CrudTask.Read, item)
-                }
-            )
-        }
-        if (editable() && showDefaultContextRowMenu()) {
-            menu += menuItem(
-                label = gettext("Create"),
-                icon = iconCrud(CrudTask.Create),
-                action = { _, _ ->
-                    goActionUrl(CrudTask.Create, item)
-                }
-            )
-            menu += menuItem(
-                label = gettext("Update"),
-                icon = iconCrud(CrudTask.Update),
-                action = { _, _ ->
-                    goActionUrl(CrudTask.Update, item)
-                }
-            )
-            menu += menuItem(
-                label = gettext("Delete"),
-                icon = iconCrud(CrudTask.Delete),
-                action = { _, _ ->
-                    goActionUrl(CrudTask.Delete, item)
-                }
-            )
-        }
         configViewItem?.let {
+            if (showDefaultContextRowMenu()) {
+                menu += menuItem(
+                    label = gettext("Detail of"),
+                    icon = iconCrud(CrudTask.Read),
+                    action = { _, _ ->
+                        goActionUrl(CrudTask.Read, item)
+                    }
+                )
+                if (editable()) {
+                    menu += menuItem(
+                        label = gettext("Create"),
+                        icon = iconCrud(CrudTask.Create),
+                        action = { _, _ ->
+                            goActionUrl(CrudTask.Create, item)
+                        }
+                    )
+                    menu += menuItem(
+                        label = gettext("Update"),
+                        icon = iconCrud(CrudTask.Update),
+                        action = { _, _ ->
+                            goActionUrl(CrudTask.Update, item)
+                        }
+                    )
+                    menu += menuItem(
+                        label = gettext("Delete"),
+                        icon = iconCrud(CrudTask.Delete),
+                        action = { _, _ ->
+                            goActionUrl(CrudTask.Delete, item)
+                        }
+                    )
+                }
+            }
             configViewItem.item = item
             ConfigViewItem.contextMenuDefault?.invoke(configViewItem)?.let {
                 if (it.isNotEmpty()) {
