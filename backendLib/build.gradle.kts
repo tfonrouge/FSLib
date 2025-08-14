@@ -66,13 +66,13 @@ kotlin {
             api(libs.ktor.server.content.negotiation)
             api(libs.kmongo.coroutine.serialization)
             api(libs.kmongo.id.serialization)
-            implementation(libs.exposed.core)
-            implementation(libs.exposed.dao)
-            implementation(libs.exposed.jdbc)
-            implementation(libs.exposed.java.time)
-            implementation(libs.kotlinx.datetime.jvm)
-            implementation(libs.jtds)
-            implementation(libs.mssql.jdbc)
+            api(libs.exposed.core)
+            api(libs.exposed.dao)
+            api(libs.exposed.jdbc)
+            api(libs.exposed.java.time)
+            api(libs.kotlinx.datetime.jvm)
+            api(libs.jtds)
+            api(libs.mssql.jdbc)
         }
 
         jsMain.dependencies {
