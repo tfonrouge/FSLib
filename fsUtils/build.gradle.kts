@@ -39,6 +39,7 @@ kotlin {
             implementation(project(":modelUtils"))
             implementation(project(":backendLib"))
             implementation(libs.kotlinx.html)
+            implementation(libs.kvision.common.remote)
         }
         jvmMain.dependencies {
             implementation(libs.ktor.server.core)
