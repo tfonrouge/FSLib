@@ -48,7 +48,6 @@ abstract class IWorkLogBaseColl<ChgLogColl : IChangeLogColl<CmnChgLog, ChgLog, U
         }
         val json1 = Json.encodeToJsonElement(commonContainer.itemSerializer, items.first) as JsonObject
         val orig = items.second?.let { Json.encodeToJsonElement(commonContainer.itemSerializer, it) as JsonObject }
-        println(json1)
         fun getValue(jsonElement: JsonElement?): String? {
             return when (jsonElement) {
                 is JsonPrimitive -> if (jsonElement == JsonNull) null else jsonElement.content
