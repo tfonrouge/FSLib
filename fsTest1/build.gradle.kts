@@ -47,7 +47,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
 //                implementation(libs.fonrouge.fslib)
-                api(project(":fsLib"))
+                api(project(":base"))
                 implementation(libs.kilua.rpc.ktor)
                 implementation(libs.kvision.common.remote)
             }

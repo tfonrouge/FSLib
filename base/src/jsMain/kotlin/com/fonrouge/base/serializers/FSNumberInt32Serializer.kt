@@ -1,0 +1,22 @@
+package com.fonrouge.base.serializers
+
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+
+@Suppress("unused", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+actual object FSNumberInt32Serializer : KSerializer<Int> {
+    actual override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("Number as Int Serializer", PrimitiveKind.DOUBLE)
+
+    actual override fun deserialize(decoder: Decoder): Int {
+        return decoder.decodeInt()
+    }
+
+    actual override fun serialize(encoder: Encoder, value: Int) {
+        encoder.encodeInt(value = value)
+    }
+}

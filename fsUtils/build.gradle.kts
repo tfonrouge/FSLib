@@ -35,9 +35,8 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":fsLib"))
-            implementation(project(":modelUtils"))
-            implementation(project(":backendLib"))
+            implementation(project(":base"))
+            implementation(project(":fullStack"))
             implementation(libs.kotlinx.html)
             implementation(libs.kvision.common.remote)
         }

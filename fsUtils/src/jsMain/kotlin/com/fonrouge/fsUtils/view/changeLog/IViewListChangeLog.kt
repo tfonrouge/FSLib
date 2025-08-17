@@ -2,21 +2,21 @@ package com.fonrouge.fsUtils.view.changeLog
 
 import com.fonrouge.backendLib.config.ConfigViewItem
 import com.fonrouge.backendLib.config.ConfigViewList
-import com.fonrouge.fsLib.enums.find
-import com.fonrouge.fsLib.fieldName
+import com.fonrouge.base.enums.find
+import com.fonrouge.base.fieldName
 import com.fonrouge.backendLib.layout.addPageListBody
-import com.fonrouge.fsLib.lib.toDateTimeString
-import com.fonrouge.fsLib.model.IUser
+import com.fonrouge.base.lib.toDateTimeString
+import com.fonrouge.base.model.IUser
 import com.fonrouge.backendLib.tabulator.fsTabulator
 import com.fonrouge.backendLib.tabulator.getDataDate
 import com.fonrouge.backendLib.tabulator.getDataValue
 import com.fonrouge.backendLib.tabulator.menuItem
-import com.fonrouge.fsLib.types.OId
+import com.fonrouge.base.types.OId
 import com.fonrouge.backendLib.view.ViewList
 import com.fonrouge.backendLib.common.ICommonChangeLog
 import com.fonrouge.backendLib.model.ChangeLogFilter
 import com.fonrouge.backendLib.model.IChangeLog
-import com.fonrouge.modelUtils.model.IWorkLogBase
+import com.fonrouge.fsUtils.model.IWorkLogBase
 import io.kvision.core.Container
 import io.kvision.form.text.textAreaInput
 import io.kvision.html.span

@@ -2,15 +2,15 @@ package com.fonrouge.fsUtils.collections
 
 import com.fonrouge.backendLib.mongoDb.Coll
 import com.fonrouge.backendLib.mongoDb.IChangeLogColl
-import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.api.ApiItem
-import com.fonrouge.fsLib.api.IApiFilter
-import com.fonrouge.fsLib.model.IUser
-import com.fonrouge.fsLib.offsetDateTimeNow
-import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
+import com.fonrouge.base.common.ICommonContainer
+import com.fonrouge.base.api.ApiItem
+import com.fonrouge.base.api.IApiFilter
+import com.fonrouge.base.model.IUser
+import com.fonrouge.base.offsetDateTimeNow
+import com.fonrouge.base.serializers.FSOffsetDateTimeSerializer
 import com.fonrouge.backendLib.common.ICommonChangeLog
 import com.fonrouge.backendLib.model.IChangeLog
-import com.fonrouge.modelUtils.model.IWorkLogBase
+import com.fonrouge.fsUtils.model.IWorkLogBase
 import io.ktor.server.sessions.*
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.*

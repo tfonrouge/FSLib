@@ -16,8 +16,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "fsLib"
-include(":backendLib")
-include(":fsLib")
-include(":fsTest1")
+include(":base")
+include(":fullStack")
 include(":fsUtils")
-include(":modelUtils")
+include(":fsTest1")
