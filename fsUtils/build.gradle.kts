@@ -4,7 +4,7 @@ plugins {
     id("maven-publish")
 }
 
-group = "com.fonrouge.fsUtils"
+group = "com.fonrouge.fsLib"
 version = libs.versions.fsLib.get()
 
 repositories {

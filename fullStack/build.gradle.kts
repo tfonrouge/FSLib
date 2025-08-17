@@ -5,7 +5,7 @@ plugins {
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-group = "com.fonrouge.backendLib"
+group = "com.fonrouge.fsLib"
 version = libs.versions.fsLib.get()
 
 repositories {
