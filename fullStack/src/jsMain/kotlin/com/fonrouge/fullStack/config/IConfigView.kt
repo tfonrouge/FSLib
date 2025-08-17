@@ -1,4 +1,4 @@
-package com.fonrouge.base.config
+package com.fonrouge.fullStack.config
 
 /**
  * Interface representing a configuration view.

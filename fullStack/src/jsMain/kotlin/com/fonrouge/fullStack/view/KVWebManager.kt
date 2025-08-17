@@ -2,10 +2,10 @@
 
 package com.fonrouge.fullStack.view
 
-import com.fonrouge.base.config.IConfigView
 import com.fonrouge.fullStack.config.ConfigView
 import com.fonrouge.fullStack.config.ConfigViewItem
 import com.fonrouge.fullStack.config.ConfigViewList
+import com.fonrouge.fullStack.config.IConfigView
 import com.fonrouge.fullStack.routing.initialize
 import io.kvision.routing.Routing
 import io.kvision.state.ObservableValue
