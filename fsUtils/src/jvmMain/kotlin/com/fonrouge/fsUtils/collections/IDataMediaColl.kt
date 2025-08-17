@@ -7,8 +7,8 @@ import com.fonrouge.base.types.StringId
 import com.fonrouge.fsUtils.common.ICommonDataMedia
 import com.fonrouge.fsUtils.model.DataMediaFilter
 import com.fonrouge.fsUtils.model.IDataMedia
-import com.fonrouge.fullStack.common.ICommonChangeLog
-import com.fonrouge.fullStack.model.IChangeLog
+import com.fonrouge.base.common.ICommonChangeLog
+import com.fonrouge.base.model.IChangeLog
 import com.fonrouge.fullStack.mongoDb.AssignTo
 import com.fonrouge.fullStack.mongoDb.IChangeLogColl
 import com.fonrouge.fullStack.mongoDb.LookupPipelineBuilder

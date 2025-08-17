@@ -1,4 +1,4 @@
-package com.fonrouge.fullStack.model
+package com.fonrouge.base.model
 
 import com.fonrouge.base.api.IApiFilter
 import kotlinx.serialization.Serializable

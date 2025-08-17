@@ -1,8 +1,6 @@
-package com.fonrouge.fullStack.model
+package com.fonrouge.base.model
 
 import com.fonrouge.base.enums.XEnum
-import com.fonrouge.base.model.BaseDoc
-import com.fonrouge.base.model.IUser
 import com.fonrouge.base.types.OId
 import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.SerialName

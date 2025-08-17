@@ -1,10 +1,9 @@
-package com.fonrouge.fullStack.common
+package com.fonrouge.base.common
 
-import com.fonrouge.base.common.ICommonContainer
+import com.fonrouge.base.model.ChangeLogFilter
+import com.fonrouge.base.model.IChangeLog
 import com.fonrouge.base.model.IUser
 import com.fonrouge.base.types.OId
-import com.fonrouge.fullStack.model.ChangeLogFilter
-import com.fonrouge.fullStack.model.IChangeLog
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 

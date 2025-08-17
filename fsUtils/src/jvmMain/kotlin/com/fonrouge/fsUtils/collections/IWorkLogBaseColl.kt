@@ -7,8 +7,8 @@ import com.fonrouge.base.model.IUser
 import com.fonrouge.base.offsetDateTimeNow
 import com.fonrouge.base.serializers.FSOffsetDateTimeSerializer
 import com.fonrouge.fsUtils.model.IWorkLogBase
-import com.fonrouge.fullStack.common.ICommonChangeLog
-import com.fonrouge.fullStack.model.IChangeLog
+import com.fonrouge.base.common.ICommonChangeLog
+import com.fonrouge.base.model.IChangeLog
 import com.fonrouge.fullStack.mongoDb.Coll
 import com.fonrouge.fullStack.mongoDb.IChangeLogColl
 import io.ktor.server.sessions.*

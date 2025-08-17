@@ -3,9 +3,9 @@ package com.fonrouge.fullStack.mongoDb
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.IUser
 import com.fonrouge.base.types.OId
-import com.fonrouge.fullStack.common.ICommonChangeLog
-import com.fonrouge.fullStack.model.ChangeLogFilter
-import com.fonrouge.fullStack.model.IChangeLog
+import com.fonrouge.base.common.ICommonChangeLog
+import com.fonrouge.base.model.ChangeLogFilter
+import com.fonrouge.base.model.IChangeLog
 import io.ktor.server.application.*
 import org.bson.conversions.Bson
 import org.litote.kmongo.and
