@@ -1,11 +1,5 @@
 package com.fonrouge.fullStack.view
 
-import com.fonrouge.fullStack.config.ConfigViewItem
-import com.fonrouge.fullStack.config.ConfigViewList
-import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
-import com.fonrouge.fullStack.tabulator.TabulatorViewList
-import com.fonrouge.fullStack.tabulator.menuItem
-import com.fonrouge.fullStack.view.KVWebManager.configViewItemMap
 import com.fonrouge.base.api.ApiItem
 import com.fonrouge.base.api.CrudTask
 import com.fonrouge.base.api.IApiFilter
@@ -17,6 +11,12 @@ import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.state.State
+import com.fonrouge.fullStack.config.ConfigViewItem
+import com.fonrouge.fullStack.config.ConfigViewList
+import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
+import com.fonrouge.fullStack.tabulator.TabulatorViewList
+import com.fonrouge.fullStack.tabulator.menuItem
+import com.fonrouge.fullStack.view.KVWebManager.configViewItemMap
 import io.kvision.core.Container
 import io.kvision.i18n.I18n.gettext
 import io.kvision.navbar.Navbar

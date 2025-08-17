@@ -1,17 +1,11 @@
 package com.fonrouge.fullStack.mongoDb
 
-import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.api.CrudTask
 import com.fonrouge.base.api.IApiFilter
-import com.fonrouge.base.model.IAppRole
-import com.fonrouge.base.model.IGroupOfUser
-import com.fonrouge.base.model.IRoleInGroup
-import com.fonrouge.base.model.IRoleInUser
-import com.fonrouge.base.model.IUser
+import com.fonrouge.base.common.ICommonContainer
+import com.fonrouge.base.model.*
 import com.fonrouge.base.model.IAppRole.BaseRolePermission
 import com.fonrouge.base.model.IAppRole.RoleType
-import com.fonrouge.base.model.IUserGroup
-import com.fonrouge.base.model.PermissionType
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.types.OId

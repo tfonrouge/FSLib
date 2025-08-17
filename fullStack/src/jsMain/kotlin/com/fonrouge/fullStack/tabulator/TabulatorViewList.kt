@@ -1,12 +1,12 @@
 package com.fonrouge.fullStack.tabulator
 
-import com.fonrouge.fullStack.config.ConfigViewList
-import com.fonrouge.fullStack.view.ViewList
 import com.fonrouge.base.api.ApiList
 import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.State
+import com.fonrouge.fullStack.config.ConfigViewList
+import com.fonrouge.fullStack.view.ViewList
 import dev.kilua.rpc.*
 import io.kvision.core.Container
 import io.kvision.core.KVScope

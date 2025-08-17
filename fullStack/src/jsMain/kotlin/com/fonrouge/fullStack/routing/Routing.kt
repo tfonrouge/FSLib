@@ -1,12 +1,12 @@
 package com.fonrouge.fullStack.routing
 
+import com.fonrouge.base.lib.UrlParams
 import com.fonrouge.fullStack.config.ConfigView.Companion.configViewMap
 import com.fonrouge.fullStack.view.KVWebManager.configViewHome
 import com.fonrouge.fullStack.view.KVWebManager.configViewItemMap
 import com.fonrouge.fullStack.view.KVWebManager.configViewListMap
 import com.fonrouge.fullStack.view.KVWebManager.viewStateObservableValue
 import com.fonrouge.fullStack.view.ViewState
-import com.fonrouge.base.lib.UrlParams
 import io.kvision.navigo.Navigo
 
 /**

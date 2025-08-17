@@ -51,7 +51,7 @@ data class FieldPath<T : BaseDoc<*>, R>(
         TODO("Not yet implemented")
     }
 
-    override fun getDelegate(receiver: T): Any? {
+    override fun getDelegate(receiver: T): Any {
         TODO("Not yet implemented")
     }
 

@@ -1,22 +1,22 @@
 package com.fonrouge.fsUtils.view.changeLog
 
-import com.fonrouge.fullStack.config.ConfigViewItem
-import com.fonrouge.fullStack.config.ConfigViewList
 import com.fonrouge.base.enums.find
 import com.fonrouge.base.fieldName
-import com.fonrouge.fullStack.layout.addPageListBody
 import com.fonrouge.base.lib.toDateTimeString
 import com.fonrouge.base.model.IUser
+import com.fonrouge.base.types.OId
+import com.fonrouge.fsUtils.model.IWorkLogBase
+import com.fonrouge.fullStack.common.ICommonChangeLog
+import com.fonrouge.fullStack.config.ConfigViewItem
+import com.fonrouge.fullStack.config.ConfigViewList
+import com.fonrouge.fullStack.layout.addPageListBody
+import com.fonrouge.fullStack.model.ChangeLogFilter
+import com.fonrouge.fullStack.model.IChangeLog
 import com.fonrouge.fullStack.tabulator.fsTabulator
 import com.fonrouge.fullStack.tabulator.getDataDate
 import com.fonrouge.fullStack.tabulator.getDataValue
 import com.fonrouge.fullStack.tabulator.menuItem
-import com.fonrouge.base.types.OId
 import com.fonrouge.fullStack.view.ViewList
-import com.fonrouge.fullStack.common.ICommonChangeLog
-import com.fonrouge.fullStack.model.ChangeLogFilter
-import com.fonrouge.fullStack.model.IChangeLog
-import com.fonrouge.fsUtils.model.IWorkLogBase
 import io.kvision.core.Container
 import io.kvision.form.text.textAreaInput
 import io.kvision.html.span
@@ -79,7 +79,7 @@ abstract class IViewListChangeLog<CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, 
                                 addPageListBody(viewListChangeLog)
                                 textAreaInput(rows = 10) {
                                     readonly = true
-                                    viewListChangeLog.selectedItemObs.subscribe { it ->
+                                    viewListChangeLog.selectedItemObs.subscribe {
                                         val x = when (it?.action) {
                                             IChangeLog.Action.Create,
                                             IChangeLog.Action.Delete,

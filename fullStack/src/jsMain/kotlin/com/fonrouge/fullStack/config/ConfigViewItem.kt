@@ -1,9 +1,5 @@
 package com.fonrouge.fullStack.config
 
-import com.fonrouge.fullStack.apiItemQueryReadCall
-import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
-import com.fonrouge.fullStack.view.KVWebManager.configViewItemMap
-import com.fonrouge.fullStack.view.ViewItem
 import com.fonrouge.base.api.ApiItem
 import com.fonrouge.base.api.CrudTask
 import com.fonrouge.base.api.IApiFilter
@@ -13,6 +9,10 @@ import com.fonrouge.base.lib.UrlParams
 import com.fonrouge.base.lib.toEncodedUrlString
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.ItemState
+import com.fonrouge.fullStack.apiItemQueryReadCall
+import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
+import com.fonrouge.fullStack.view.KVWebManager.configViewItemMap
+import com.fonrouge.fullStack.view.ViewItem
 import dev.kilua.rpc.RpcServiceManager
 import kotlinx.browser.window
 import kotlinx.serialization.json.Json

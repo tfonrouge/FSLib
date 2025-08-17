@@ -1,12 +1,12 @@
 package com.fonrouge.fullStack.layout
 
-import com.fonrouge.fullStack.config.ConfigViewItem
-import com.fonrouge.fullStack.view.ViewList
 import com.fonrouge.base.api.CrudTask
 import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.lib.iconCrud
 import com.fonrouge.base.model.BaseDoc
+import com.fonrouge.fullStack.config.ConfigViewItem
+import com.fonrouge.fullStack.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.disableTooltip

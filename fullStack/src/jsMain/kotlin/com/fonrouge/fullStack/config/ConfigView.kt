@@ -1,9 +1,9 @@
 package com.fonrouge.fullStack.config
 
+import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommon
 import com.fonrouge.base.lib.UrlParams
 import com.fonrouge.base.lib.encodeURIComponent
-import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.fullStack.view.View
 import io.kvision.utils.createInstance
 import kotlinx.browser.window

@@ -1,11 +1,11 @@
 package com.fonrouge.fullStack.tabulator
 
-import com.fonrouge.fullStack.config.ConfigViewItem
-import com.fonrouge.fullStack.config.ConfigViewList
 import com.fonrouge.base.api.ApiItem
 import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
+import com.fonrouge.fullStack.config.ConfigViewItem
+import com.fonrouge.fullStack.config.ConfigViewList
 
 /**
  * Creates a Tabulator menu item based on the provided configuration and API item.

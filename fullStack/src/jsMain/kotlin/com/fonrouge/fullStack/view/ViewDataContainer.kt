@@ -1,7 +1,5 @@
 package com.fonrouge.fullStack.view
 
-import com.fonrouge.fullStack.callItemService
-import com.fonrouge.fullStack.config.ConfigViewContainer
 import com.fonrouge.base.api.CallType
 import com.fonrouge.base.api.CrudTask
 import com.fonrouge.base.api.IApiFilter
@@ -9,6 +7,8 @@ import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.lib.toast
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.ItemState
+import com.fonrouge.fullStack.callItemService
+import com.fonrouge.fullStack.config.ConfigViewContainer
 import io.kvision.i18n.gettext
 import io.kvision.modal.Confirm
 import io.kvision.modal.ModalSize

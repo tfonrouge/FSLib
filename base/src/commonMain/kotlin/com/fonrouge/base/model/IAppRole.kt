@@ -1,7 +1,7 @@
 package com.fonrouge.base.model
 
-import com.fonrouge.base.enums.XEnum
 import com.fonrouge.base.api.CrudTask
+import com.fonrouge.base.enums.XEnum
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

@@ -1,14 +1,14 @@
 package com.fonrouge.fullStack.tabulator
 
+import com.fonrouge.base.api.ApiList
+import com.fonrouge.base.api.IApiFilter
+import com.fonrouge.base.common.ICommonContainer
+import com.fonrouge.base.model.BaseDoc
+import com.fonrouge.fullStack.layout.centeredMessage
 import com.fonrouge.fullStack.layout.toolBarList
 import com.fonrouge.fullStack.view.ViewDataContainer
 import com.fonrouge.fullStack.view.ViewItem
 import com.fonrouge.fullStack.view.ViewList
-import com.fonrouge.base.api.ApiList
-import com.fonrouge.base.api.IApiFilter
-import com.fonrouge.base.common.ICommonContainer
-import com.fonrouge.fullStack.layout.centeredMessage
-import com.fonrouge.base.model.BaseDoc
 import io.kvision.core.*
 import io.kvision.panel.vPanel
 import io.kvision.state.bind

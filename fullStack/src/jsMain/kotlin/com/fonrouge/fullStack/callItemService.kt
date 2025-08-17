@@ -6,9 +6,9 @@ import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.api.IApiItem
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.common.toIApiItem
-import com.fonrouge.fullStack.config.ConfigViewItem
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.ItemState
+import com.fonrouge.fullStack.config.ConfigViewItem
 import dev.kilua.rpc.CallAgent
 import io.kvision.core.KVScope
 import io.kvision.toast.Toast

@@ -3,10 +3,10 @@ package com.fonrouge.fullStack
 import com.fonrouge.base.api.ApiList
 import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
-import com.fonrouge.fullStack.config.ConfigViewList
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.ListState
 import com.fonrouge.base.state.State
+import com.fonrouge.fullStack.config.ConfigViewList
 import dev.kilua.rpc.CallAgent
 import io.kvision.core.KVScope
 import kotlinx.coroutines.asPromise

@@ -1,8 +1,5 @@
 package com.fonrouge.fullStack.view
 
-import com.fonrouge.fullStack.config.ConfigView
-import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
-import com.fonrouge.fullStack.view.KVWebManager.frontEndAppName
 import com.fonrouge.base.api.CrudTask
 import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommon
@@ -11,6 +8,9 @@ import com.fonrouge.base.lib.UrlParams
 import com.fonrouge.base.lib.iconCrud
 import com.fonrouge.base.lib.toEncodedUrlString
 import com.fonrouge.base.model.BaseDoc
+import com.fonrouge.fullStack.config.ConfigView
+import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
+import com.fonrouge.fullStack.view.KVWebManager.frontEndAppName
 import io.kvision.core.*
 import io.kvision.dropdown.dropDown
 import io.kvision.html.*
