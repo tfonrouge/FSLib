@@ -1,16 +1,16 @@
 package com.fonrouge.fsUtils.collections
 
 import com.fonrouge.backendLib.mongoDb.AssignTo
+import com.fonrouge.backendLib.mongoDb.IChangeLogColl
 import com.fonrouge.backendLib.mongoDb.LookupPipelineBuilder
-import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.model.apiData.ApiItem
-import com.fonrouge.fsLib.model.base.IUser
-import com.fonrouge.fsLib.model.state.SimpleState
+import com.fonrouge.fsLib.api.ApiItem
+import com.fonrouge.fsLib.model.IUser
+import com.fonrouge.fsLib.state.SimpleState
 import com.fonrouge.fsLib.types.StringId
-import com.fonrouge.modelUtils.common.ICommonChangeLog
+import com.fonrouge.backendLib.common.ICommonChangeLog
 import com.fonrouge.modelUtils.common.ICommonDataMedia
 import com.fonrouge.modelUtils.model.DataMediaFilter
-import com.fonrouge.modelUtils.model.IChangeLog
+import com.fonrouge.backendLib.model.IChangeLog
 import com.fonrouge.modelUtils.model.IDataMedia
 import io.ktor.server.application.*
 import org.bson.conversions.Bson
@@ -24,13 +24,10 @@ import kotlin.reflect.KProperty1
 @Suppress("unused")
 abstract class IDataMediaColl<ChgLogColl : IChangeLogColl<CmnChgLog, ChgLog, U, UID>, CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, ChgLog : IChangeLog<U, UID>, CC : ICommonDataMedia<DM, U, UID>, DM : IDataMedia<U, UID>, U : IUser<UID>, UID : Any>(
     commonContainer: CC,
-    commonContainerUser: ICommonContainer<U, UID, *>,
     changeLogColl: () -> ChgLogColl,
 ) : IWorkLogBaseColl<ChgLogColl, CmnChgLog, ChgLog, U, UID, CC, DM, StringId<IDataMedia<U, UID>>, DataMediaFilter>(
     commonContainer = commonContainer,
-    commonContainerUser = commonContainerUser,
     changeLogColl = changeLogColl,
-    userInfo = { user -> "${user?._id}" }
 ) {
     override fun fixedLookupList(apiFilter: DataMediaFilter): List<KProperty1<in IDataMedia<U, UID>, *>>? = listOf(
         IDataMedia<*, *>::user,

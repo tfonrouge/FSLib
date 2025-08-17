@@ -39,6 +39,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":fsLib"))
             implementation(libs.kilua.rpc.ktor)
+            implementation(libs.kvision.common.remote)
         }
 
         jvmMain.dependencies {

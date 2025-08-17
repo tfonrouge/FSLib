@@ -1,13 +1,19 @@
 package com.fonrouge.backendLib.mongoDb
 
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.model.apiData.CrudTask
-import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.base.*
-import com.fonrouge.fsLib.model.base.IAppRole.BaseRolePermission
-import com.fonrouge.fsLib.model.base.IAppRole.RoleType
-import com.fonrouge.fsLib.model.state.ItemState
-import com.fonrouge.fsLib.model.state.SimpleState
+import com.fonrouge.fsLib.api.CrudTask
+import com.fonrouge.fsLib.api.IApiFilter
+import com.fonrouge.fsLib.model.IAppRole
+import com.fonrouge.fsLib.model.IGroupOfUser
+import com.fonrouge.fsLib.model.IRoleInGroup
+import com.fonrouge.fsLib.model.IRoleInUser
+import com.fonrouge.fsLib.model.IUser
+import com.fonrouge.fsLib.model.IAppRole.BaseRolePermission
+import com.fonrouge.fsLib.model.IAppRole.RoleType
+import com.fonrouge.fsLib.model.IUserGroup
+import com.fonrouge.fsLib.model.PermissionType
+import com.fonrouge.fsLib.state.ItemState
+import com.fonrouge.fsLib.state.SimpleState
 import com.fonrouge.fsLib.types.OId
 import com.mongodb.client.model.UnwindOptions
 import io.ktor.server.application.*

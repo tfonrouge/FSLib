@@ -1,7 +1,7 @@
 package com.fonrouge.modelUtils.common
 
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.model.base.IUser
+import com.fonrouge.fsLib.model.IUser
 import com.fonrouge.fsLib.types.StringId
 import com.fonrouge.modelUtils.model.DataMediaFilter
 import com.fonrouge.modelUtils.model.IDataMedia

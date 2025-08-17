@@ -1,7 +1,6 @@
 package com.fonrouge.fsLib.model
 
-import com.fonrouge.fsLib.model.apiData.ApiItem
-import com.fonrouge.fsLib.model.base.IUser
+import com.fonrouge.fsLib.api.ApiItem
 import com.fonrouge.fsLib.services.getUser
 
 /**

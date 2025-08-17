@@ -1,6 +1,6 @@
 package com.fonrouge.modelUtils.model
 
-import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.api.IApiFilter
 import kotlinx.serialization.Serializable
 
 @Serializable

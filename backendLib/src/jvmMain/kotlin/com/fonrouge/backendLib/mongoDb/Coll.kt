@@ -1,17 +1,18 @@
 package com.fonrouge.backendLib.mongoDb
 
 import com.fonrouge.backendLib.FieldPath
+import com.fonrouge.backendLib.model.IChangeLog
 import com.fonrouge.fsLib.annotations.Collection
+import com.fonrouge.fsLib.api.*
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.model.apiData.*
-import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.base.IAppRole
-import com.fonrouge.fsLib.model.base.IAppRole.RoleType
-import com.fonrouge.fsLib.model.base.IUser
-import com.fonrouge.fsLib.model.state.ItemState
-import com.fonrouge.fsLib.model.state.ListState
-import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.model.state.State
+import com.fonrouge.fsLib.model.BaseDoc
+import com.fonrouge.fsLib.model.IAppRole
+import com.fonrouge.fsLib.model.IAppRole.RoleType
+import com.fonrouge.fsLib.model.IUser
+import com.fonrouge.fsLib.state.ItemState
+import com.fonrouge.fsLib.state.ListState
+import com.fonrouge.fsLib.state.SimpleState
+import com.fonrouge.fsLib.state.State
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
@@ -94,6 +95,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
         var MAX_RECURSIVE_RESULT_FIELD = 1
     }
+
+    open val changeLogCol: (() -> IChangeLog<*, *>)? = null
 
     /**
      * Provides a list of dependencies that reference this collection.

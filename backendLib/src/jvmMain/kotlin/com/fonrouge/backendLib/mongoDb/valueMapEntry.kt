@@ -1,7 +1,7 @@
 package com.fonrouge.backendLib.mongoDb
 
 import com.fonrouge.backendLib.internal.OnlyInputTypes
-import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.BaseDoc
 import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
 import kotlinx.serialization.json.Json
 import java.time.OffsetDateTime

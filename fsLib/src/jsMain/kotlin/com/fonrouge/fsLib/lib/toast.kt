@@ -1,7 +1,7 @@
 package com.fonrouge.fsLib.lib
 
-import com.fonrouge.fsLib.model.state.ISimpleState
-import com.fonrouge.fsLib.model.state.State
+import com.fonrouge.fsLib.state.ISimpleState
+import com.fonrouge.fsLib.state.State
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 

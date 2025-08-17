@@ -1,6 +1,6 @@
 package com.fonrouge.backendLib.mongoDb
 
-import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.BaseDoc
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.result.UpdateResult
 import org.litote.kmongo.coroutine.CoroutineCollection

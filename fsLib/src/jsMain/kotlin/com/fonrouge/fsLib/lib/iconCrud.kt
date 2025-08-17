@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.lib
 
-import com.fonrouge.fsLib.model.apiData.CrudTask
+import com.fonrouge.fsLib.api.CrudTask
 
 /**
  * Maps a CRUD task to its corresponding Font Awesome icon class.

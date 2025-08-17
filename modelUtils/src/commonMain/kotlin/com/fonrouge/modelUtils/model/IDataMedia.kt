@@ -1,6 +1,6 @@
 package com.fonrouge.modelUtils.model
 
-import com.fonrouge.fsLib.model.base.IUser
+import com.fonrouge.fsLib.model.IUser
 import com.fonrouge.fsLib.types.StringId
 import com.fonrouge.modelUtils.common.ICommonDataMedia
 import io.kvision.types.OffsetDateTime

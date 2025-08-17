@@ -3,9 +3,9 @@ package com.fonrouge.fsLib.sqlDb
 import com.fonrouge.fsLib.annotations.SqlField
 import com.fonrouge.fsLib.annotations.SqlIgnoreField
 import com.fonrouge.fsLib.annotations.SqlOneToOne
-import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.SimpleState
+import com.fonrouge.fsLib.model.BaseDoc
 import com.fonrouge.fsLib.serializers.KV_DEFAULT_DATETIME_FORMAT
+import com.fonrouge.fsLib.state.SimpleState
 import com.fonrouge.fsLib.types.IntId
 import com.fonrouge.fsLib.types.LongId
 import com.fonrouge.fsLib.types.StringId

@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.services
 
-import com.fonrouge.fsLib.model.base.IUser
+import com.fonrouge.fsLib.model.IUser
 import dev.kilua.rpc.ServiceException
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*

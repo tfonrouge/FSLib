@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.common
 
-import com.fonrouge.fsLib.model.apiData.IApiFilter
+import com.fonrouge.fsLib.api.IApiFilter
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json

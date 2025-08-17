@@ -1,11 +1,11 @@
 package com.fonrouge.backendLib.mongoDb
 
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.model.apiData.CrudTask
-import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.base.IAppRole
-import com.fonrouge.fsLib.model.base.IAppRole.RoleType
-import com.fonrouge.fsLib.model.state.ItemState
+import com.fonrouge.fsLib.api.CrudTask
+import com.fonrouge.fsLib.api.IApiFilter
+import com.fonrouge.fsLib.model.IAppRole
+import com.fonrouge.fsLib.model.IAppRole.RoleType
+import com.fonrouge.fsLib.state.ItemState
 import com.mongodb.client.model.IndexOptions
 import org.litote.kmongo.eq
 

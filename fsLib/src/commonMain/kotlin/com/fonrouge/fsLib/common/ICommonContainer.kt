@@ -1,9 +1,9 @@
 package com.fonrouge.fsLib.common
 
-import com.fonrouge.fsLib.model.apiData.ApiItem
-import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.apiData.IApiItem
-import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.api.ApiItem
+import com.fonrouge.fsLib.api.IApiFilter
+import com.fonrouge.fsLib.api.IApiItem
+import com.fonrouge.fsLib.model.BaseDoc
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json

@@ -1,9 +1,9 @@
 package com.fonrouge.backendLib.mongoDb
 
-import com.fonrouge.fsLib.model.base.BaseDoc
-import com.fonrouge.fsLib.model.state.ItemState
-import com.fonrouge.fsLib.model.state.SimpleState
-import com.fonrouge.fsLib.model.state.State
+import com.fonrouge.fsLib.model.BaseDoc
+import com.fonrouge.fsLib.state.ItemState
+import com.fonrouge.fsLib.state.SimpleState
+import com.fonrouge.fsLib.state.State
 import com.fonrouge.fsLib.types.IntId
 import com.fonrouge.fsLib.types.LongId
 import com.fonrouge.fsLib.types.StringId

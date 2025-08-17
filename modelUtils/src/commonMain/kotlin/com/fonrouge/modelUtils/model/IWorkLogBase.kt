@@ -1,5 +1,5 @@
 package com.fonrouge.modelUtils.model
 
-import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.BaseDoc
 
 interface IWorkLogBase<ID> : BaseDoc<ID>

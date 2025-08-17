@@ -1,6 +1,6 @@
 package com.fonrouge.fsLib.lib
 
-import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.BaseDoc
 import io.kvision.form.FormControl
 import io.kvision.form.FormPanel
 import kotlin.reflect.KProperty1

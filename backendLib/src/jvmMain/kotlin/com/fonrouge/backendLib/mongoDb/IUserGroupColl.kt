@@ -1,11 +1,11 @@
 package com.fonrouge.backendLib.mongoDb
 
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.base.IGroupOfUser
-import com.fonrouge.fsLib.model.base.IRoleInGroup
-import com.fonrouge.fsLib.model.base.IUser
-import com.fonrouge.fsLib.model.base.IUserGroup
+import com.fonrouge.fsLib.api.IApiFilter
+import com.fonrouge.fsLib.model.IGroupOfUser
+import com.fonrouge.fsLib.model.IRoleInGroup
+import com.fonrouge.fsLib.model.IUser
+import com.fonrouge.fsLib.model.IUserGroup
 import com.fonrouge.fsLib.types.OId
 import org.litote.kmongo.coroutine.CoroutineCollection
 

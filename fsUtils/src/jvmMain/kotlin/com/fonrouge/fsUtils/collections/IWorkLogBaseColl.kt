@@ -1,14 +1,15 @@
 package com.fonrouge.fsUtils.collections
 
 import com.fonrouge.backendLib.mongoDb.Coll
+import com.fonrouge.backendLib.mongoDb.IChangeLogColl
 import com.fonrouge.fsLib.common.ICommonContainer
-import com.fonrouge.fsLib.model.apiData.ApiItem
-import com.fonrouge.fsLib.model.apiData.IApiFilter
-import com.fonrouge.fsLib.model.base.IUser
+import com.fonrouge.fsLib.api.ApiItem
+import com.fonrouge.fsLib.api.IApiFilter
+import com.fonrouge.fsLib.model.IUser
 import com.fonrouge.fsLib.offsetDateTimeNow
 import com.fonrouge.fsLib.serializers.FSOffsetDateTimeSerializer
-import com.fonrouge.modelUtils.common.ICommonChangeLog
-import com.fonrouge.modelUtils.model.IChangeLog
+import com.fonrouge.backendLib.common.ICommonChangeLog
+import com.fonrouge.backendLib.model.IChangeLog
 import com.fonrouge.modelUtils.model.IWorkLogBase
 import io.ktor.server.sessions.*
 import kotlinx.serialization.InternalSerializationApi
@@ -17,9 +18,7 @@ import kotlinx.serialization.serializer
 
 abstract class IWorkLogBaseColl<ChgLogColl : IChangeLogColl<CmnChgLog, ChgLog, U, UID>, CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, ChgLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any, CC : ICommonContainer<T, ID, FILT>, T : IWorkLogBase<ID>, ID : Any, FILT : IApiFilter<*>>(
     commonContainer: CC,
-    val commonContainerUser: ICommonContainer<U, UID, *>,
     val changeLogColl: () -> ChgLogColl,
-    val userInfo: ((U?) -> String),
 ) : Coll<CC, T, ID, FILT>(
     commonContainer = commonContainer
 ) {
@@ -29,19 +28,19 @@ abstract class IWorkLogBaseColl<ChgLogColl : IChangeLogColl<CmnChgLog, ChgLog, U
             is ApiItem.Action.Create<T, ID, FILT> -> Triple(
                 apiItem.item to null,
                 IChangeLog.Action.Create,
-                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
+                apiItem.call?.sessions?.get(changeLogColl().commonContainerUser.itemKClass)
             )
 
             is ApiItem.Action.Update<T, ID, FILT> -> Triple(
                 apiItem.item to orig,
                 IChangeLog.Action.Update,
-                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
+                apiItem.call?.sessions?.get(changeLogColl().commonContainerUser.itemKClass)
             )
 
             is ApiItem.Action.Delete<T, ID, FILT> -> Triple(
                 apiItem.item to null,
                 IChangeLog.Action.Delete,
-                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
+                apiItem.call?.sessions?.get(changeLogColl().commonContainerUser.itemKClass)
             )
 
             else -> return null
@@ -100,8 +99,13 @@ abstract class IWorkLogBaseColl<ChgLogColl : IChangeLogColl<CmnChgLog, ChgLog, U
                         apiItem.call?.request?.let { "${it.headers["Origin"]}; ${it.headers["User-Agent"]}" })
                     put(
                         "userId",
-                        user?._id?.let { Json.encodeToJsonElement(commonContainerUser.idSerializer, it) } ?: JsonNull)
-                    put("userInfo", userInfo(user))
+                        user?._id?.let {
+                            Json.encodeToJsonElement(
+                                serializer = changeLogColl().commonContainerUser.idSerializer,
+                                value = it
+                            )
+                        } ?: JsonNull)
+                    put("userInfo", changeLogColl().userInfo(user))
                     put("data", Json.encodeToJsonElement(data))
                 }
             )

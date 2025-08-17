@@ -1,6 +1,6 @@
 package com.fonrouge.backendLib
 
-import com.fonrouge.fsLib.model.base.BaseDoc
+import com.fonrouge.fsLib.model.BaseDoc
 import org.litote.kmongo.path
 import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.*
