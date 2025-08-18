@@ -30,6 +30,15 @@ abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLo
     abstract val commonContainerUser: ICommonContainer<U, UID, *>
     abstract val userInfo: ((U?) -> String)
 
+    /**
+     * Builds a change log entry for the given action and API item, storing details about changes
+     * made to the item, including the user and other contextual information.
+     *
+     * @param cc The common container managing the items of type T.
+     * @param apiItem The API action and item involved in the change.
+     * @param orig The original item before the change, if applicable.
+     * @return A SimpleState object indicating the success or failure of the operation.
+     */
     @OptIn(InternalSerializationApi::class)
     suspend fun <CC : ICommonContainer<T, ID, *>, T : BaseDoc<ID>, ID : Any> buildChangeLog(
         cc: CC,
@@ -58,8 +67,6 @@ abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLo
                 IChangeLog.Action.Delete,
                 apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
             )
-
-            else -> return SimpleState(isOk = false, msgError = "Unknown action.")
         }
         val json1 = Json.encodeToJsonElement(cc.itemSerializer, items.first) as JsonObject
         val orig = items.second?.let { Json.encodeToJsonElement(cc.itemSerializer, it) as JsonObject }

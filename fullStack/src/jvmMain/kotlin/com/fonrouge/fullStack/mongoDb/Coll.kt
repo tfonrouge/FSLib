@@ -95,7 +95,19 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         var MAX_RECURSIVE_RESULT_FIELD = 1
     }
 
-    open val changeLogCol: (() -> IChangeLogColl<*, *, *, *>?) = { null }
+    /**
+     * A property representing a function that returns an optional implementation
+     * of `IChangeLogColl<*, *, *, *>`. By default, it is a lambda returning `null`.
+     *
+     * This function is intended to be overridden to provide a specific implementation
+     * of `IChangeLogColl` if required. It can be used in scenarios where a
+     * change log collection is needed for specific operations or tracking changes
+     * in a collection-like structure.
+     *
+     * The return type, `IChangeLogColl<*, *, *, *>?`, allows for flexibility with
+     * various types of change log collections while supporting optional behavior.
+     */
+    open val changeLogCollFun: (() -> IChangeLogColl<*, *, *, *>?) = { null }
 
     /**
      * Provides a list of dependencies that reference this collection.
@@ -713,7 +725,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } finally {
             onAfterDeleteAction(apiItem = apiItem, result = result == true)
             if (result == true) {
-                changeLogCol()?.buildChangeLog(cc = commonContainer, apiItem = apiItem, orig = null)
+                changeLogCollFun()?.buildChangeLog(cc = commonContainer, apiItem = apiItem, orig = null)
             }
         }
     }
@@ -1054,7 +1066,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } finally {
             onAfterCreateAction(apiItem = apiItem1, result = result == true)
             onAfterUpsertAction(apiItem = apiItem1, orig = null, result = result == true)
-            changeLogCol()?.buildChangeLog(cc = commonContainer, apiItem = apiItem1, orig = null)
+            changeLogCollFun()?.buildChangeLog(cc = commonContainer, apiItem = apiItem1, orig = null)
         }
     }
 
@@ -1574,7 +1586,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         onAfterUpdateAction(apiItem = apiItem, orig = orig, result = itemState.hasError.not())
         onAfterUpsertAction(apiItem = apiItem, orig = orig, result = itemState.hasError.not())
         if (itemState.hasError.not()) {
-            changeLogCol()?.buildChangeLog(cc = commonContainer, apiItem = apiItem, orig = orig)
+            changeLogCollFun()?.buildChangeLog(cc = commonContainer, apiItem = apiItem, orig = orig)
         }
         return itemState
     }
@@ -1701,7 +1713,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         orig?.let { onAfterUpdateAction(apiItem = apiItem1, orig = orig, result = state != State.Error) }
         onAfterUpsertAction(apiItem = apiItem1, orig = orig, result = state != State.Error)
         if (state != State.Error) {
-            changeLogCol()?.buildChangeLog(cc = commonContainer, apiItem = apiItem1, orig = orig)
+            changeLogCollFun()?.buildChangeLog(cc = commonContainer, apiItem = apiItem1, orig = orig)
         }
         return if (state != State.Error) {
             ItemState(
