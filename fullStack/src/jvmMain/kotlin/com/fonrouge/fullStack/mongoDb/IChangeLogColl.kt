@@ -1,26 +1,135 @@
 package com.fonrouge.fullStack.mongoDb
 
+import com.fonrouge.base.api.ApiItem
 import com.fonrouge.base.common.ICommonChangeLog
 import com.fonrouge.base.common.ICommonContainer
+import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.ChangeLogFilter
 import com.fonrouge.base.model.IChangeLog
 import com.fonrouge.base.model.IUser
+import com.fonrouge.base.offsetDateTimeNow
+import com.fonrouge.base.serializers.FSOffsetDateTimeSerializer
+import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.types.OId
 import io.ktor.server.application.*
+import io.ktor.server.sessions.*
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.*
+import kotlinx.serialization.serializer
 import org.bson.conversions.Bson
 import org.litote.kmongo.and
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.descending
 import org.litote.kmongo.eq
 
-abstract class IChangeLogColl<CC : ICommonChangeLog<CHL, U, UID>, CHL : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
+abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
     commonContainer: CC,
-) : Coll<CC, CHL, OId<IChangeLog<U, UID>>, ChangeLogFilter>(
+) : Coll<CC, ChangeLog, OId<IChangeLog<U, UID>>, ChangeLogFilter>(
     commonContainer = commonContainer
 ) {
     abstract val commonContainerUser: ICommonContainer<U, UID, *>
     abstract val userInfo: ((U?) -> String)
-    override suspend fun CoroutineCollection<CHL>.indexes() {
+
+    @OptIn(InternalSerializationApi::class)
+    suspend fun <CC : ICommonContainer<T, ID, *>, T : BaseDoc<ID>, ID : Any> buildChangeLog(
+        cc: CC,
+        apiItem: ApiItem.Action<T, ID, *>,
+        orig: T?
+    ): SimpleState {
+        if (apiItem.item is IChangeLog<*, *>) return SimpleState(
+            isOk = false,
+            msgError = "Item is already a change log."
+        )
+        val (items, action, user: U?) = when (apiItem) {
+            is ApiItem.Action.Create<T, ID, *> -> Triple(
+                apiItem.item to null,
+                IChangeLog.Action.Create,
+                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
+            )
+
+            is ApiItem.Action.Update<T, ID, *> -> Triple(
+                apiItem.item to orig,
+                IChangeLog.Action.Update,
+                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
+            )
+
+            is ApiItem.Action.Delete<T, ID, *> -> Triple(
+                apiItem.item to null,
+                IChangeLog.Action.Delete,
+                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
+            )
+
+            else -> return SimpleState(isOk = false, msgError = "Unknown action.")
+        }
+        val json1 = Json.encodeToJsonElement(cc.itemSerializer, items.first) as JsonObject
+        val orig = items.second?.let { Json.encodeToJsonElement(cc.itemSerializer, it) as JsonObject }
+        fun getValue(jsonElement: JsonElement?): String? {
+            return when (jsonElement) {
+                is JsonPrimitive -> if (jsonElement == JsonNull) null else jsonElement.content
+                is JsonArray -> jsonElement.toString()
+                is JsonObject -> jsonElement.toString()
+                else -> null
+            }
+        }
+
+        val data: Map<String, Pair<String?, String?>> = orig?.let {
+            val map = mutableMapOf<String, Pair<String?, String?>>()
+            json1.map { entry ->
+                val v1 = getValue(entry.value)
+                val v2 = getValue(orig[entry.key])
+                if (v1 != v2) {
+                    map[entry.key] = Pair(v1, v2)
+                }
+            }
+            orig.map { entry ->
+                val v1 = getValue(json1[entry.key])
+                val v2 = getValue(entry.value)
+                if (v1 != v2) {
+                    map[entry.key] = Pair(v1, v2)
+                }
+            }
+            map
+        } ?: json1.mapValues {
+            Pair(
+                first = when (it.value) {
+                    is JsonArray -> it.value.jsonArray.toString()
+                    is JsonObject -> it.value.toString()
+                    else -> it.value.jsonPrimitive.content
+                },
+                second = null
+            )
+        }
+        return if (data.isNotEmpty()) {
+            val changeLog = Json.decodeFromJsonElement(
+                deserializer = commonContainer.itemKClass.serializer(),
+                element = buildJsonObject {
+                    put(
+                        "serializedId",
+                        Json.encodeToString(serializer = cc.idSerializer, value = items.first._id)
+                    )
+                    put("className", cc.itemKClass.java.simpleName)
+                    put("dateTime", Json.encodeToJsonElement(FSOffsetDateTimeSerializer, offsetDateTimeNow()))
+                    put("action", Json.encodeToJsonElement(action))
+                    put(
+                        "clientInfo",
+                        apiItem.call?.request?.let { "${it.headers["Origin"]}; ${it.headers["User-Agent"]}" })
+                    put(
+                        "userId",
+                        user?._id?.let {
+                            Json.encodeToJsonElement(
+                                serializer = commonContainerUser.idSerializer,
+                                value = it
+                            )
+                        } ?: JsonNull)
+                    put("userInfo", userInfo(user))
+                    put("data", Json.encodeToJsonElement(data))
+                }
+            )
+            insertOne(changeLog).asSimpleState
+        } else SimpleState(isOk = false, msgError = "No data changed.")
+    }
+
+    override suspend fun CoroutineCollection<ChangeLog>.indexes() {
         ensureIndex(IChangeLog<*, *>::className, IChangeLog<*, *>::serializedId, IChangeLog<*, *>::dateTime)
     }
 

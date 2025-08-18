@@ -1,8 +1,6 @@
 package com.fonrouge.fsUtils.collections
 
 import com.fonrouge.base.api.ApiItem
-import com.fonrouge.base.common.ICommonChangeLog
-import com.fonrouge.base.model.IChangeLog
 import com.fonrouge.base.model.IUser
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.types.StringId
@@ -10,7 +8,7 @@ import com.fonrouge.fsUtils.common.ICommonDataMedia
 import com.fonrouge.fsUtils.model.DataMediaFilter
 import com.fonrouge.fsUtils.model.IDataMedia
 import com.fonrouge.fullStack.mongoDb.AssignTo
-import com.fonrouge.fullStack.mongoDb.IChangeLogColl
+import com.fonrouge.fullStack.mongoDb.Coll
 import com.fonrouge.fullStack.mongoDb.LookupPipelineBuilder
 import io.ktor.server.application.*
 import org.bson.conversions.Bson
@@ -22,12 +20,10 @@ import java.io.File
 import kotlin.reflect.KProperty1
 
 @Suppress("unused")
-abstract class IDataMediaColl<ChgLogColl : IChangeLogColl<CmnChgLog, ChgLog, U, UID>, CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, ChgLog : IChangeLog<U, UID>, CC : ICommonDataMedia<DM, U, UID>, DM : IDataMedia<U, UID>, U : IUser<UID>, UID : Any>(
+abstract class IDataMediaColl<CC : ICommonDataMedia<DM, U, UID>, DM : IDataMedia<U, UID>, U : IUser<UID>, UID : Any>(
     commonContainer: CC,
-    changeLogColl: () -> ChgLogColl,
-) : IWorkLogBaseColl<ChgLogColl, CmnChgLog, ChgLog, U, UID, CC, DM, StringId<IDataMedia<U, UID>>, DataMediaFilter>(
-    commonContainer = commonContainer,
-    changeLogColl = changeLogColl,
+) : Coll<CC, DM, StringId<IDataMedia<U, UID>>, DataMediaFilter>(
+    commonContainer = commonContainer
 ) {
     override fun fixedLookupList(apiFilter: DataMediaFilter): List<KProperty1<in IDataMedia<U, UID>, *>>? = listOf(
         IDataMedia<*, *>::user,

@@ -8,7 +8,6 @@ import com.fonrouge.base.model.ChangeLogFilter
 import com.fonrouge.base.model.IChangeLog
 import com.fonrouge.base.model.IUser
 import com.fonrouge.base.types.OId
-import com.fonrouge.fsUtils.model.IWorkLogBase
 import com.fonrouge.fullStack.config.ConfigViewItem
 import com.fonrouge.fullStack.config.ConfigViewList
 import com.fonrouge.fullStack.layout.addPageListBody
@@ -60,7 +59,7 @@ abstract class IViewListChangeLog<CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, 
         @Suppress("unused")
         fun initializeChangeLogMenuItem(viewListChangeLog: IViewListChangeLog<*, *, *, *>) {
             ConfigViewItem.contextMenuDefault = {
-                if (item is IWorkLogBase<*>) {
+                if (true) {
                     listOf(
                         menuItem(
                             label = viewListChangeLog.configView.commonContainer.labelList,

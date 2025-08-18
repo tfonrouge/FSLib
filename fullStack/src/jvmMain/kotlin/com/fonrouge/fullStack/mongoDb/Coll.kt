@@ -6,7 +6,6 @@ import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.IAppRole
 import com.fonrouge.base.model.IAppRole.RoleType
-import com.fonrouge.base.model.IChangeLog
 import com.fonrouge.base.model.IUser
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.ListState
@@ -96,7 +95,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         var MAX_RECURSIVE_RESULT_FIELD = 1
     }
 
-    open val changeLogCol: (() -> IChangeLog<*, *>)? = null
+    open val changeLogCol: (() -> IChangeLogColl<*, *, *, *>?) = { null }
 
     /**
      * Provides a list of dependencies that reference this collection.
@@ -713,6 +712,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             ItemState(isOk = false, msgError = e.message)
         } finally {
             onAfterDeleteAction(apiItem = apiItem, result = result == true)
+            if (result == true) {
+                changeLogCol()?.buildChangeLog(cc = commonContainer, apiItem = apiItem, orig = null)
+            }
         }
     }
 
@@ -1052,6 +1054,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } finally {
             onAfterCreateAction(apiItem = apiItem1, result = result == true)
             onAfterUpsertAction(apiItem = apiItem1, orig = null, result = result == true)
+            changeLogCol()?.buildChangeLog(cc = commonContainer, apiItem = apiItem1, orig = null)
         }
     }
 
@@ -1570,6 +1573,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         onAfterUpdateAction(apiItem = apiItem, orig = orig, result = itemState.hasError.not())
         onAfterUpsertAction(apiItem = apiItem, orig = orig, result = itemState.hasError.not())
+        if (itemState.hasError.not()) {
+            changeLogCol()?.buildChangeLog(cc = commonContainer, apiItem = apiItem, orig = orig)
+        }
         return itemState
     }
 
@@ -1694,6 +1700,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         orig?.let { onAfterUpdateAction(apiItem = apiItem1, orig = orig, result = state != State.Error) }
         onAfterUpsertAction(apiItem = apiItem1, orig = orig, result = state != State.Error)
+        if (state != State.Error) {
+            changeLogCol()?.buildChangeLog(cc = commonContainer, apiItem = apiItem1, orig = orig)
+        }
         return if (state != State.Error) {
             ItemState(
                 item = apiItem1.item,
