@@ -54,7 +54,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
      * @param userId The user to check for root privileges.
      * @return A Boolean indicating whether the user has root privileges, or null if the check could not be performed.
      */
-    open fun rootUser(userId: Any?): Boolean? = null
+    open suspend fun rootUser(userId: Any?): Boolean? = null
 
     /**
      * Retrieves the single action permission for a user based on the provided `ApplicationCall` and an optional `KCallable` or `StackTraceElement`.
