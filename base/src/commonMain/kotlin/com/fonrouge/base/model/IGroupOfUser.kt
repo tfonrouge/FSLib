@@ -7,7 +7,7 @@ import com.fonrouge.base.types.OId
  *
  * @param T The type parameter extending from `Any`.
  */
-interface IGroupOfUser<T : Any> : BaseDoc<OId<T>> {
+interface IGroupOfUser<T : Any> : BaseDoc<OId<T>>, IUserUiParams {
     override val _id: OId<T>
     val description: String
 }

@@ -15,5 +15,5 @@ interface IUserGroup<U : IUser<out UID>, UID : Any, GOU : IGroupOfUser<*>, GR : 
     override val _id: OId<IUserGroup<U, UID, GOU, GR>>
     val userId: UID
     val groupOfUserId: OId<GOU>
-    var roleInGroups: List<GR>
+    val roleInGroups: List<GR>
 }

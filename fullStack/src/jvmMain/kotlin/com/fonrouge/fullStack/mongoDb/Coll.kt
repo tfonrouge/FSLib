@@ -6,7 +6,7 @@ import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.IAppRole
 import com.fonrouge.base.model.IAppRole.RoleType
-import com.fonrouge.base.model.IUser
+import com.fonrouge.base.model.UserSession
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.ListState
 import com.fonrouge.base.state.SimpleState
@@ -443,7 +443,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean = this.debug,
         postProcessList: ((List<T>) -> List<T>)? = null,
     ): ListState<T> {
-        call?.let { privateRoleInUserColl?.let { call.sessions.get(it.userKClass) } }?.let {
+        call?.let {
             getCrudPermission(
                 call = call,
                 crudTask = CrudTask.Read,
@@ -954,16 +954,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         call: ApplicationCall?,
         crudTask: CrudTask,
     ): SimpleState {
-        val user: IUser<*>? = privateRoleInUserColl?.let { call?.sessions?.get(it.userKClass) }
+        val userSession: UserSession<*>? = privateRoleInUserColl?.let { call?.sessions?.get(UserSession::class) }
         val roleInUserColl = privateRoleInUserColl ?: return SimpleState(isOk = true)
-        if (user == null) return SimpleState(isOk = false, msgError = "Empty user.")
+        if (userSession == null) return SimpleState(isOk = false, msgError = "Empty user.")
         val matchDoc = and(
             IAppRole<*>::roleType eq RoleType.CrudTask,
             IAppRole<*>::classOwner eq commonContainer.name
         )
         return roleInUserColl.permissionState(
             roleType = RoleType.CrudTask,
-            user = user,
+            userSession = userSession,
             crudTask = crudTask
         ) {
             roleInUserColl.appRoleColl.findOne(matchDoc)?.let {

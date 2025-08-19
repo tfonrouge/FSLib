@@ -8,6 +8,7 @@ import com.fonrouge.base.lib.UrlParams
 import com.fonrouge.base.lib.iconCrud
 import com.fonrouge.base.lib.toEncodedUrlString
 import com.fonrouge.base.model.BaseDoc
+import com.fonrouge.base.model.IUserUiParams
 import com.fonrouge.fullStack.config.ConfigView
 import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
 import com.fonrouge.fullStack.view.KVWebManager.frontEndAppName
@@ -23,8 +24,12 @@ import io.kvision.state.bind
 import io.kvision.utils.em
 import io.kvision.utils.perc
 import io.kvision.utils.px
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import web.dom.document
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * Represents an abstract base class for creating views with configurable display elements.
@@ -39,6 +44,12 @@ import web.dom.document
 abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open val configView: ConfigView<CC, *, FILT>,
 ) {
+    companion object {
+        var userUiParams: IUserUiParams? = object : IUserUiParams {
+            override val inactivityUiSecsToNoRefresh: Int = 60
+        }
+    }
+
     /**
      * Represents a set of URL parameters associated with the `View` class.
      *
@@ -84,6 +95,9 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         }
 
     open val label: String get() = configView.label
+
+    @OptIn(ExperimentalTime::class)
+    internal var lastUiActivity: Instant = Clock.System.now()
     var mainView: Boolean = false
     var navButtonCancel: Button? = null
     var navButtonAccept: Button? = null
@@ -301,12 +315,21 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * @param mainView A boolean indicating whether the current view should be treated as the main view.
      *                 If true, the API filter will be added to the URL parameters upon changes.
      */
+    @OptIn(ExperimentalTime::class)
     fun Container.startDisplayPage(mainView: Boolean = false) {
         this@View.mainView = mainView
         div {
             addBeforeDisposeHook {
                 onBeforeDispose()
             }
+            window.addEventListener("mousemove", {
+                lastUiActivity = Clock.System.now()
+                console.warn("mouse movement")
+            })
+            window.addEventListener("keydown", {
+                lastUiActivity = Clock.System.now()
+                console.warn("key down")
+            })
             onBeforeDisplayPage(this@startDisplayPage)
             this@startDisplayPage.displayPage()
             bind(apiFilterObservable) {

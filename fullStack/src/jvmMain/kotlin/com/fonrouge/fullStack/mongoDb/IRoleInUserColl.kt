@@ -30,12 +30,10 @@ import kotlin.reflect.KClass
  * @param GOU The type of the group of users.
  * @param FILT The type of the API filter.
  * @param commonContainer A common container object.
- * @param userKClass The KClass instance representing the user type.
  */
 @Suppress("unused")
 abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UID : Any, GR : IRoleInGroup<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<RIU, OId<IRoleInUser<U, UID>>, FILT>,
-    internal val userKClass: KClass<U>,
 ) : Coll<ICommonContainer<RIU, OId<IRoleInUser<U, UID>>, FILT>, RIU, OId<IRoleInUser<U, UID>>, FILT>(
     commonContainer = commonContainer
 ) {
@@ -53,10 +51,10 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
     /**
      * Determines whether the given user has root privileges.
      *
-     * @param iUser The user to check for root privileges.
+     * @param userId The user to check for root privileges.
      * @return A Boolean indicating whether the user has root privileges, or null if the check could not be performed.
      */
-    open fun rootUser(iUser: IUser<*>?): Boolean? = null
+    open fun rootUser(userId: Any?): Boolean? = null
 
     /**
      * Retrieves the single action permission for a user based on the provided `ApplicationCall` and an optional `KCallable` or `StackTraceElement`.
@@ -70,13 +68,13 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
         call: ApplicationCall?,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
-    ): Pair<U?, SimpleState> {
-        val user = call?.sessions?.get(klass = userKClass) ?: return null to SimpleState(
+    ): Pair<UserSession<UID>?, SimpleState> {
+        val userSession: UserSession<UID> = call?.sessions?.get() ?: return null to SimpleState(
             isOk = false,
             msgError = "User not valid"
         )
-        return user to getSingleActionPermission(
-            user = user,
+        return userSession to getSingleActionPermission(
+            userSession = userSession,
             kCallable = kCallable,
             stackTraceElement = stackTraceElement
         )
@@ -85,13 +83,13 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
     /**
      * Suspends and retrieves the single action permission for a user based on the provided `user` object and an optional `KCallable` or `StackTraceElement`.
      *
-     * @param user The user for whom the permission is being checked.
+     * @param userSession The user for whom the permission is being checked.
      * @param kCallable An optional callable reference for the method whose permission is being checked. Defaults to null.
      * @param stackTraceElement The stack trace element from which the calling method's information is derived. Defaults to the caller's context.
      * @return A SimpleState object representing the permission state for the user.
      */
     suspend fun getSingleActionPermission(
-        user: U?,
+        userSession: UserSession<UID>?,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
@@ -105,7 +103,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
             funcName = stackTraceElement.methodName
         }
         return getSingleActionPermission(
-            user = user,
+            userSession = userSession,
             classOwner = classOwner,
             funcName = funcName
         )
@@ -114,18 +112,18 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
     /**
      * Retrieves the single action permission for a user based on the provided class owner and function name.
      *
-     * @param user The user for whom the permission is being checked. Can be null.
+     * @param userSession The user for whom the permission is being checked. Can be null.
      * @param classOwner The name of the class that owns the function for which permission is being checked.
      * @param funcName The name of the function for which permission is being checked.
      * @return A SimpleState object representing the permission state for the user.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun getSingleActionPermission(
-        user: U?,
+        userSession: UserSession<UID>?,
         classOwner: String,
         funcName: String,
     ): SimpleState {
-        user ?: return SimpleState(isOk = false, msgError = "User not valid")
+        userSession ?: return SimpleState(isOk = false, msgError = "User not valid")
         val (matchLabel, matchAppRole) = "${classOwner}::${funcName}" to and(
             IAppRole<*>::roleType eq RoleType.SingleAction,
             IAppRole<*>::classOwner eq classOwner,
@@ -133,7 +131,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
         )
         return permissionState(
             roleType = RoleType.SingleAction,
-            user = user,
+            userSession = userSession,
             crudTask = null
         ) {
             appRoleColl.coroutine.findOne(matchAppRole)?.let {
@@ -154,18 +152,18 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
      * Retrieves the permission state for a specified user based on their role and a potential CRUD task.
      *
      * @param roleType The type of role being checked.
-     * @param user The user for whom the permission is being checked.
+     * @param userSession The user for whom the permission is being checked.
      * @param crudTask An optional CRUD task that may further specify the permission being checked. Defaults to null.
      * @param appRoleBlock A suspending block that provides the state of an application role.
      * @return A SimpleState object representing the permission state for the user.
      */
     suspend fun permissionState(
         roleType: RoleType,
-        user: IUser<*>,
+        userSession: UserSession<*>,
         crudTask: CrudTask? = null,
         appRoleBlock: suspend () -> ItemState<out IAppRole<*>>,
     ): SimpleState {
-        if (rootUser(iUser = user) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
+        if (rootUser(userId = userSession) == true) return SimpleState(isOk = true, msgOk = "as rootUser")
         val appRole: IAppRole<*> = appRoleBlock().let { itemState ->
             itemState.item ?: return SimpleState(
                 isOk = false,
@@ -174,7 +172,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
         }
         val roleInUser: RIU? = coroutine.find(
             filter = and(
-                IRoleInUser<U, UID>::userId eq user._id,
+                IRoleInUser<U, UID>::userId eq userSession.userId,
                 IRoleInUser<U, UID>::appRoleId eq appRole._id
             )
         ).first()
@@ -205,7 +203,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
         return when (roleType) {
             RoleType.SingleAction -> buildSimpleState(
                 baseRolePermission = getGroupPermission(
-                    user = user,
+                    userSession = userSession,
                     appRole = appRole,
                     crudTask = crudTask
                 ),
@@ -215,7 +213,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
 
             RoleType.CrudTask -> buildSimpleState(
                 baseRolePermission = getGroupPermission(
-                    user = user,
+                    userSession = userSession,
                     appRole = appRole,
                     crudTask = crudTask
                 ),
@@ -272,20 +270,20 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
     /**
      * Retrieves the group-level permission for a specified user and application role.
      *
-     * @param user The user whose group permissions are being checked.
+     * @param userSession The user whose group permissions are being checked.
      * @param appRole The application role for which the group's permission is being determined.
      * @param crudTask An optional CRUD task that further specifies the permission being checked. Defaults to null.
      * @return The base role permission (Allow, Deny, or Default) for the user's group with respect to the specified application role and CRUD task.
      */
     private suspend fun getGroupPermission(
-        user: IUser<*>,
+        userSession: UserSession<*>,
         appRole: IAppRole<out Any>,
         crudTask: CrudTask? = null,
     ): BaseRolePermission {
         val userGroupColl = userGroupColl
         val roleInGroupColl = this@IRoleInUserColl.roleInGroupColl
         val pipeline = mutableListOf<Bson>()
-        pipeline.add(0, match(IUserGroup<U, UID, *, *>::userId eq user._id))
+        pipeline.add(0, match(IUserGroup<U, UID, *, *>::userId eq userSession.userId))
         pipeline += lookup5(
             from = roleInGroupColl.commonContainer.itemKClass.collectionName,
             localField = IUserGroup<U, UID, *, *>::groupOfUserId,
@@ -330,6 +328,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<out UID>, UI
 private data class GroupOfUser(
     override val _id: OId<GroupOfUser>,
     override val description: String,
+    override val inactivityUiSecsToNoRefresh: Int? = null,
 ) : IGroupOfUser<GroupOfUser>
 
 @Serializable

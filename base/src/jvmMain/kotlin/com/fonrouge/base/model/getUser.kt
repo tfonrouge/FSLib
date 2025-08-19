@@ -1,15 +1,12 @@
 package com.fonrouge.base.model
 
 import com.fonrouge.base.api.ApiItem
-import com.fonrouge.base.services.getUser
+import com.fonrouge.base.services.getUserSession
 
 /**
- * Retrieves the current user of type [U] associated with the `ApiItem` instance.
+ * Retrieves the user session of type [UID] associated with the current API item's application call.
  *
- * This method uses the `ApplicationCall` object associated with the `ApiItem` to
- * fetch the user of the specified type [U] from the session if available.
- *
- * @return The user of type [U] if found in the session, or null if no user is present.
+ * @return The user session of type [UID] if available, or null if no session is associated with the call.
  */
 @Suppress("unused")
-inline fun <reified U : IUser<*>> ApiItem<*, *, *>.getUser() = this.call?.getUser<U>()
+inline fun <reified UID : Any> ApiItem<*, *, *>.getUserSession(): UserSession<UID>? = this.call?.getUserSession<UID>()

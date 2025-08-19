@@ -15,6 +15,8 @@ import io.kvision.modal.ModalSize
 import io.kvision.toast.Toast
 import kotlinx.browser.window
 import kotlin.js.Date
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * An abstract class `ViewDataContainer` which extends from the `View`. This class is designed
@@ -26,6 +28,7 @@ import kotlin.js.Date
  * @param FILT The type of the API filter used for querying, must extend `IApiFilter`.
  * @property configViewContainer The configuration object for the view container.
  */
+@OptIn(ExperimentalTime::class)
 abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     val configViewContainer: ConfigViewContainer<CC, T, ID, *, FILT>,
 ) : View<CC, FILT>(
@@ -165,7 +168,11 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
                 handler = {
                     if (periodicUpdate) {
                         val curTime = (Date().getTime() / 1000).toLong()
-                        if ((curTime - startTime) >= periodicUpdateViewInterval) {
+                        val inactivityUiSecs = userUiParams?.inactivityUiSecsToNoRefresh?.let {
+                            (Clock.System.now() - lastUiActivity).inWholeSeconds
+                        }
+                        console.warn("inactivityUiSecs = $inactivityUiSecs")
+                        if ((curTime - startTime) >= periodicUpdateViewInterval && (inactivityUiSecs == null || inactivityUiSecs < 60L)) {
                             if (!lock) {
                                 startTime = curTime
                                 lock = true

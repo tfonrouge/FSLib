@@ -12,7 +12,6 @@ import com.fonrouge.base.serializers.FSOffsetDateTimeSerializer
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.types.OId
 import io.ktor.server.application.*
-import io.ktor.server.sessions.*
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
@@ -24,6 +23,7 @@ import org.litote.kmongo.eq
 
 abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
     commonContainer: CC,
+    val userCollFun: () -> IUserColl<*, U, UID, *>,
 ) : Coll<CC, ChangeLog, OId<IChangeLog<U, UID>>, ChangeLogFilter>(
     commonContainer = commonContainer
 ) {
@@ -49,23 +49,21 @@ abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLo
             isOk = false,
             msgError = "Item is already a change log."
         )
-        val (items, action, user: U?) = when (apiItem) {
-            is ApiItem.Action.Create<T, ID, *> -> Triple(
+        val user: U? = userCollFun().userFromCall(call = apiItem.call)
+        val (items, action) = when (apiItem) {
+            is ApiItem.Action.Create<T, ID, *> -> Pair(
                 apiItem.item to null,
                 IChangeLog.Action.Create,
-                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
             )
 
-            is ApiItem.Action.Update<T, ID, *> -> Triple(
+            is ApiItem.Action.Update<T, ID, *> -> Pair(
                 apiItem.item to orig,
                 IChangeLog.Action.Update,
-                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
             )
 
-            is ApiItem.Action.Delete<T, ID, *> -> Triple(
+            is ApiItem.Action.Delete<T, ID, *> -> Pair(
                 apiItem.item to null,
                 IChangeLog.Action.Delete,
-                apiItem.call?.sessions?.get(commonContainerUser.itemKClass)
             )
         }
         val json1 = Json.encodeToJsonElement(cc.itemSerializer, items.first) as JsonObject
