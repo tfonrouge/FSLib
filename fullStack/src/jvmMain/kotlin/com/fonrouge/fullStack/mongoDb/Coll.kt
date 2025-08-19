@@ -6,7 +6,6 @@ import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.IAppRole
 import com.fonrouge.base.model.IAppRole.RoleType
-import com.fonrouge.base.model.UserSession
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.ListState
 import com.fonrouge.base.state.SimpleState
@@ -21,7 +20,6 @@ import com.mongodb.reactivestreams.client.AggregatePublisher
 import com.mongodb.reactivestreams.client.MongoCollection
 import com.mongodb.reactivestreams.client.MongoDatabase
 import io.ktor.server.application.*
-import io.ktor.server.sessions.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -954,17 +952,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         call: ApplicationCall?,
         crudTask: CrudTask,
     ): SimpleState {
-        val userSession: UserSession<*>? = privateRoleInUserColl?.let { call?.sessions?.get(UserSession::class) }
         val roleInUserColl = privateRoleInUserColl ?: return SimpleState(isOk = true)
-        if (userSession == null) return SimpleState(isOk = false, msgError = "Empty user.")
         val matchDoc = and(
             IAppRole<*>::roleType eq RoleType.CrudTask,
             IAppRole<*>::classOwner eq commonContainer.name
         )
         return roleInUserColl.permissionState(
+            call = call,
             roleType = RoleType.CrudTask,
-            userSession = userSession,
-            crudTask = crudTask
+            crudTask = crudTask,
         ) {
             roleInUserColl.appRoleColl.findOne(matchDoc)?.let {
                 ItemState(item = it)
