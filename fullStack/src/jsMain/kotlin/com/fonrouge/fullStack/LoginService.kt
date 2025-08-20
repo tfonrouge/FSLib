@@ -1,5 +1,7 @@
-package com.fonrouge.base.security
+package com.fonrouge.fullStack
 
+import com.fonrouge.base.security.Credentials
+import com.fonrouge.fullStack.view.View
 import dev.kilua.rpc.SecurityException
 import io.kvision.rest.HttpMethod
 import io.kvision.rest.ResponseBodyType
@@ -28,7 +30,11 @@ class LoginService(val loginEndpoint: String) {
                 method = HttpMethod.POST
                 contentType = "application/x-www-form-urlencoded"
                 responseBodyType = ResponseBodyType.READABLE_STREAM
-            }.then { _: dynamic -> true }.asDeferred().await()
+            }.then { _: dynamic ->
+                console.warn("LoginService: Login successful")
+                View.userSessionParams = null
+                true
+            }.asDeferred().await()
         } else {
             throw SecurityException("Credentials cannot be empty")
         }

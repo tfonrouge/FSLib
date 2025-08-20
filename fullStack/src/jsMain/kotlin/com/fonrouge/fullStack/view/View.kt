@@ -8,7 +8,7 @@ import com.fonrouge.base.lib.UrlParams
 import com.fonrouge.base.lib.iconCrud
 import com.fonrouge.base.lib.toEncodedUrlString
 import com.fonrouge.base.model.BaseDoc
-import com.fonrouge.base.model.IUserUiParams
+import com.fonrouge.base.model.UserSessionParams
 import com.fonrouge.fullStack.config.ConfigView
 import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
 import com.fonrouge.fullStack.view.KVWebManager.frontEndAppName
@@ -45,9 +45,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open val configView: ConfigView<CC, *, FILT>,
 ) {
     companion object {
-        var userUiParams: IUserUiParams? = object : IUserUiParams {
-            override val inactivityUiSecsToNoRefresh: Int = 60
-        }
+        var userSessionParams: UserSessionParams? = null
+        var updateUserSessionParams: (suspend () -> UserSessionParams)? = null
     }
 
     /**
@@ -324,11 +323,9 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             }
             window.addEventListener("mousemove", {
                 lastUiActivity = Clock.System.now()
-                console.warn("mouse movement")
             })
             window.addEventListener("keydown", {
                 lastUiActivity = Clock.System.now()
-                console.warn("key down")
             })
             onBeforeDisplayPage(this@startDisplayPage)
             this@startDisplayPage.displayPage()
@@ -573,4 +570,16 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * @return An instance of Offcanvas representing the filter view, or null if none is defined.
      */
     open fun Container.buildOffCanvasFilterView(): Offcanvas? = null
+
+    init {
+        if (userSessionParams == null) {
+            console.warn("userSessionParams is null", this::class.simpleName)
+            AppScope.launch {
+                updateUserSessionParams?.invoke()?.let {
+                    console.warn("updateUserSessionParams is not null", it)
+                    userSessionParams = it
+                }
+            }
+        }
+    }
 }

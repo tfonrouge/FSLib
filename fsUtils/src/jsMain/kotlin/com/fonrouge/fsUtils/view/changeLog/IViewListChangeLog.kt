@@ -59,60 +59,57 @@ abstract class IViewListChangeLog<CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, 
         @Suppress("unused")
         fun initializeChangeLogMenuItem(viewListChangeLog: IViewListChangeLog<*, *, *, *>) {
             ConfigViewItem.contextMenuDefault = {
-                if (true) {
-                    listOf(
-                        menuItem(
-                            label = viewListChangeLog.configView.commonContainer.labelList,
-                            icon = "fas fa-list-ul",
-                        ) { _, _ ->
-                            val viewListChangeLog = viewListChangeLog
-                            viewListChangeLog.apiFilter = ChangeLogFilter(
-                                className = commonContainer.itemKClass.simpleName,
-                                serializedId = serializedId,
-                            )
-                            val modal = Modal(
-                                caption = viewListChangeLog.configView.commonContainer.labelList,
-                                size = ModalSize.XLARGE
-                            ) {
-                                span(content = labelItemId)
-                                addPageListBody(viewListChangeLog)
-                                textAreaInput(rows = 10) {
-                                    readonly = true
-                                    viewListChangeLog.selectedItemObs.subscribe {
-                                        val x = when (it?.action) {
-                                            IChangeLog.Action.Create,
-                                            IChangeLog.Action.Delete,
-                                                -> {
-                                                val json = json()
-                                                it.data.forEach { (key, value) -> json.add(json(key to value.first)) }
-                                                json
-                                            }
+                listOf(
+                    menuItem(
+                        label = viewListChangeLog.configView.commonContainer.labelList,
+                        icon = "fas fa-list-ul",
+                    ) { _, _ ->
+                        viewListChangeLog.apiFilter = ChangeLogFilter(
+                            className = commonContainer.itemKClass.simpleName,
+                            serializedId = serializedId,
+                        )
+                        val modal = Modal(
+                            caption = viewListChangeLog.configView.commonContainer.labelList,
+                            size = ModalSize.XLARGE
+                        ) {
+                            span(content = labelItemId)
+                            addPageListBody(viewListChangeLog)
+                            textAreaInput(rows = 10) {
+                                readonly = true
+                                viewListChangeLog.selectedItemObs.subscribe {
+                                    val x = when (it?.action) {
+                                        IChangeLog.Action.Create,
+                                        IChangeLog.Action.Delete,
+                                            -> {
+                                            val json = json()
+                                            it.data.forEach { (key, value) -> json.add(json(key to value.first)) }
+                                            json
+                                        }
 
-                                            IChangeLog.Action.Update -> {
-                                                val json = json()
-                                                it.data.forEach { (key, value) ->
-                                                    json.add(
-                                                        json(
-                                                            key to json(
-                                                                "new" to value.first,
-                                                                "old" to value.second
-                                                            )
+                                        IChangeLog.Action.Update -> {
+                                            val json = json()
+                                            it.data.forEach { (key, value) ->
+                                                json.add(
+                                                    json(
+                                                        key to json(
+                                                            "new" to value.first,
+                                                            "old" to value.second
                                                         )
                                                     )
-                                                }
-                                                json
+                                                )
                                             }
-
-                                            null -> null
+                                            json
                                         }
-                                        value = JSON.stringify(x, null, "\t")
+
+                                        null -> null
                                     }
+                                    value = JSON.stringify(x, null, "\t")
                                 }
                             }
-                            modal.show()
                         }
-                    )
-                } else null
+                        modal.show()
+                    }
+                )
             }
         }
     }

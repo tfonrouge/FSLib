@@ -168,10 +168,9 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
                 handler = {
                     if (periodicUpdate) {
                         val curTime = (Date().getTime() / 1000).toLong()
-                        val inactivityUiSecs = userUiParams?.inactivityUiSecsToNoRefresh?.let {
+                        val inactivityUiSecs = userSessionParams?.inactivityUiSecsToNoRefresh?.let {
                             (Clock.System.now() - lastUiActivity).inWholeSeconds
                         }
-                        console.warn("inactivityUiSecs = $inactivityUiSecs")
                         if ((curTime - startTime) >= periodicUpdateViewInterval && (inactivityUiSecs == null || inactivityUiSecs < 60L)) {
                             if (!lock) {
                                 startTime = curTime

@@ -355,7 +355,6 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<UID>, UID : 
 private data class GroupOfUser(
     override val _id: OId<GroupOfUser>,
     override val description: String,
-    override val inactivityUiSecsToNoRefresh: Int? = null,
 ) : IGroupOfUser<GroupOfUser>
 
 @Serializable
