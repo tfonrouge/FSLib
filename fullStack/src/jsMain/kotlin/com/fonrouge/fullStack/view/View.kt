@@ -7,8 +7,10 @@ import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.lib.UrlParams
 import com.fonrouge.base.lib.iconCrud
 import com.fonrouge.base.lib.toEncodedUrlString
+import com.fonrouge.base.lib.toast
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.UserSessionParams
+import com.fonrouge.base.state.ItemState
 import com.fonrouge.fullStack.config.ConfigView
 import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
 import com.fonrouge.fullStack.view.KVWebManager.frontEndAppName
@@ -46,7 +48,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
 ) {
     companion object {
         var userSessionParams: UserSessionParams? = null
-        var updateUserSessionParams: (suspend () -> UserSessionParams)? = null
+        var updateUserSessionParams: (suspend () -> ItemState<UserSessionParams>)? = null
     }
 
     /**
@@ -575,9 +577,11 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         if (userSessionParams == null) {
             console.warn("userSessionParams is null", this::class.simpleName)
             AppScope.launch {
-                updateUserSessionParams?.invoke()?.let {
-                    console.warn("updateUserSessionParams is not null", it)
-                    userSessionParams = it
+                updateUserSessionParams?.invoke()?.let { it ->
+                    it.item?.let {
+                        console.warn("updateUserSessionParams is not null", it)
+                        userSessionParams = it
+                    } ?: it.toast()
                 }
             }
         }
