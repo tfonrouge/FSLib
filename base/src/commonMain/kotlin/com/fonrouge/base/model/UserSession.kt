@@ -10,7 +10,6 @@ import kotlinx.serialization.Serializable
  * @param UID The type of the user identifier.
  * @property userId The unique identifier of the user associated with the session.
  * @property loginTime The timestamp when the user logged in. Defaults to the current system time.
- * @property lastActivity The timestamp of the user's last activity in the session.
  * @property inactivityUiSecsToNoRefresh Represents the maximum duration in seconds of user inactivity
  * before the UI ceases to refresh. Nullable and can be used for UI inactivity threshold configuration.
  * @property sessionMaxSecs Specifies the maximum duration of the session in seconds. Nullable and
@@ -20,7 +19,6 @@ import kotlinx.serialization.Serializable
 data class UserSession<UID : Any>(
     val userId: UID,
     val loginTime: Instant = Clock.System.now(),
-    val lastActivity: Instant,
     override val inactivityUiSecsToNoRefresh: Int?,
     override val sessionMaxSecs: Int?,
 ) : IUserSessionParams
