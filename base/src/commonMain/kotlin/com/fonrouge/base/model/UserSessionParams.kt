@@ -2,7 +2,6 @@ package com.fonrouge.base.model
 
 import com.fonrouge.base.annotations.Collection
 import com.fonrouge.base.types.StringId
-import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
@@ -25,9 +24,8 @@ import kotlin.time.Duration
 @Collection(configAppCollection)
 data class UserSessionParams(
     override val _id: StringId<UserSessionParams> = userSessionParamsId,
-    @EncodeDefault(EncodeDefault.Mode.ALWAYS)
-    override val inactivityUiSecsToNoRefresh: Int? = 60,
-    override val sessionMaxSecs: Int? = Duration.parse("12h").inWholeSeconds.toInt(),
+    override val inactivityUiSecsToNoRefresh: Int?,
+    override val sessionMaxSecs: Int?,
 ) : BaseDoc<StringId<UserSessionParams>>, IUserSessionParams {
     companion object {
         val userSessionParamsId = StringId<UserSessionParams>("${UserSessionParams::class.simpleName}")

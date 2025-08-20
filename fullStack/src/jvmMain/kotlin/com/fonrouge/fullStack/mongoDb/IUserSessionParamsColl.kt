@@ -4,6 +4,7 @@ import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.common.CommonUserSessionParams
 import com.fonrouge.base.model.UserSessionParams
 import com.fonrouge.base.types.StringId
+import kotlin.time.Duration
 
 /**
  * Abstract class representing a specialized collection for managing user session parameters.
@@ -42,6 +43,11 @@ abstract class IUserSessionParamsColl(
      * present in the collection upon initialization.
      */
     override suspend fun onAfterOpen() {
-        if (coroutine.countDocuments() == 0L) coroutine.insertOne(UserSessionParams())
+        if (coroutine.countDocuments() == 0L) coroutine.insertOne(
+            UserSessionParams(
+                inactivityUiSecsToNoRefresh = 60,
+                sessionMaxSecs = Duration.parse("12h").inWholeSeconds.toInt(),
+            )
+        )
     }
 }
