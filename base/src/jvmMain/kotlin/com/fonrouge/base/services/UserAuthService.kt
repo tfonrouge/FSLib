@@ -48,8 +48,8 @@ inline fun <reified UID : Any> ApplicationCall.setUserSession(userSession: UserS
  * @throws ServiceException If no user session is associated with the current application call.
  */
 @Suppress("unused")
-inline fun <RESP, reified UID : Any> ApplicationCall.withUser(block: (UserSession<UID>) -> RESP): RESP {
+inline fun <RESP, reified UID : Any> ApplicationCall.withUserSession(block: (UserSession<UID>) -> RESP): RESP {
     return getUserSession<UID>()?.let {
         block(it)
-    } ?: throw ServiceException("App User not set!")
+    } ?: throw ServiceException("User session required")
 }
