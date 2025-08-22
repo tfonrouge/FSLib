@@ -80,21 +80,4 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
                 }
             } else pair.second
         }
-
-    /**
-     * Executes a given block of code with the user session retrieved from the specified [ApplicationCall].
-     *
-     * This function attempts to retrieve a user session of type [UserSession] from the provided application call.
-     * If a valid session is found, the specified `block` function is executed with the session as its argument,
-     * and its return value is returned. If no session is found, the function returns null.
-     *
-     * @param block A lambda function that is executed with the user session as its argument. The session is of type [UserSession].
-     * @return The result of the executed `block` function if a valid session is found, or null otherwise.
-     */
-    @Suppress("unused")
-    fun <RES> ApplicationCall.withUserSession(block: (UserSession<UID>) -> RES): RES? {
-        return userSessionFromCall(this)?.let {
-            block(it)
-        }
-    }
 }
