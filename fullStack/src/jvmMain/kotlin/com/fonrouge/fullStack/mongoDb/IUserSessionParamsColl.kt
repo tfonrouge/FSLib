@@ -28,9 +28,7 @@ abstract class IUserSessionParamsColl<UID : Any>(
      *
      * @return The retrieved [UserSessionParams] instance if found, or null if it does not exist.
      */
-    suspend fun get(): UserSessionParams? {
-        return findById(UserSessionParams.userSessionParamsId)
-    }
+    suspend fun get(): UserSessionParams? = findById(UserSessionParams.userSessionParamsId)
 
     /**
      * Invoked after the database collection is opened to ensure that the collection

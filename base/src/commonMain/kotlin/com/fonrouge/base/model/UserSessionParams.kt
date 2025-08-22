@@ -4,20 +4,17 @@ import com.fonrouge.base.annotations.Collection
 import com.fonrouge.base.types.StringId
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlin.time.Duration
 
 /**
- * Represents user interface parameters related to session and inactivity configurations with serialization support.
+ * Represents session parameters for a user, including inactivity thresholds and session limits.
  *
- * This data class extends the [BaseDoc] interface and implements the [IUserSessionParams] interface,
- * providing properties to manage session settings, such as the session's maximum duration and
- * inactivity threshold for UI refresh control.
+ * This class extends the base document structure and implements the user session configuration interface.
+ * It defines properties to manage session behavior based on user inactivity and overall session duration.
  *
- * @property _id The unique identifier for the user interface parameters of type [StringId].
- * @property inactivityUiSecsToNoRefresh The duration in seconds of user inactivity before the UI ceases to refresh.
- *                                        Defaults to 60 seconds and is always encoded in serialization.
- * @property sessionMaxSecs The maximum allowed duration for a user session, represented as a [Duration].
- *                              Defaults to 12 hours. It defines the upper limit for how long a session can remain active.
+ * @property _id The unique identifier for the session parameters.
+ * @property inactivityUiSecsToNoRefresh The maximum inactivity duration in seconds before user interface updates stop.
+ * @property inactivityUiSecsToLogout The maximum inactivity duration in seconds before the user is logged out.
+ * @property sessionMaxSecs The maximum duration of a session in seconds.
  */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
