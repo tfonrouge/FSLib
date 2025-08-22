@@ -25,6 +25,7 @@ import kotlin.time.Duration
 data class UserSessionParams(
     override val _id: StringId<UserSessionParams> = userSessionParamsId,
     override val inactivityUiSecsToNoRefresh: Int?,
+    override val inactivityUiSecsToLogout: Int?,
     override val sessionMaxSecs: Int?,
 ) : BaseDoc<StringId<UserSessionParams>>, IUserSessionParams {
     companion object {

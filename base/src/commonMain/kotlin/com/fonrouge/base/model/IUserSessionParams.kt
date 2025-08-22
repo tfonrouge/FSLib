@@ -8,6 +8,15 @@ package com.fonrouge.base.model
  */
 interface IUserSessionParams {
     /**
+     * Represents the maximum duration of inactivity in seconds before the user is automatically logged out.
+     *
+     * This property is a nullable value that defines the inactivity threshold for user sessions, after
+     * which the session will be terminated for security or resource optimization purposes. A `null` value
+     * indicates that no automatic logout is configured based on inactivity.
+     */
+    val inactivityUiSecsToLogout: Int?
+
+    /**
      * Represents the maximum duration in seconds of user inactivity before the UI ceases to refresh.
      *
      * This value may indicate the limit for inactivity in the user interface, beyond which

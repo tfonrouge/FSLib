@@ -20,5 +20,6 @@ data class UserSession<UID : Any>(
     val userId: UID,
     val loginTime: Instant = Clock.System.now(),
     override val inactivityUiSecsToNoRefresh: Int?,
+    override val inactivityUiSecsToLogout: Int?,
     override val sessionMaxSecs: Int?,
 ) : IUserSessionParams

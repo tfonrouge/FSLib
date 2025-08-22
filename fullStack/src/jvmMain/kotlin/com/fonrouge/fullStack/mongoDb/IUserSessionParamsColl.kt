@@ -45,7 +45,8 @@ abstract class IUserSessionParamsColl<UID : Any>(
     override suspend fun onAfterOpen() {
         if (coroutine.countDocuments() == 0L) coroutine.insertOne(
             UserSessionParams(
-                inactivityUiSecsToNoRefresh = 60,
+                inactivityUiSecsToNoRefresh = Duration.parse("60s").inWholeSeconds.toInt(),
+                inactivityUiSecsToLogout = Duration.parse("30m").inWholeSeconds.toInt(),
                 sessionMaxSecs = Duration.parse("12h").inWholeSeconds.toInt(),
             )
         )
