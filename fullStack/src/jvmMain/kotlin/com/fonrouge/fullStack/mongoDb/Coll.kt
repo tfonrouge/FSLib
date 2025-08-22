@@ -6,6 +6,7 @@ import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.IAppRole
 import com.fonrouge.base.model.IAppRole.RoleType
+import com.fonrouge.base.model.UserSession
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.ListState
 import com.fonrouge.base.state.SimpleState
@@ -63,27 +64,25 @@ val KClass<out BaseDoc<*>>.collectionName: String
     }
 
 /**
- * Represents a collection (Coll) with various functionalities to handle CRUD operations,
- * aggregation pipelines, and API-based data processing. The class is designed to interact
- * with a MongoDB collection, offering methods for item creation, updates, deletions,
- * and complex list processing with filters, lookups, and debug features.
+ * Represents a utility or service class for handling collections in MongoDB with support for
+ * CRUD operations, filtering, lookup, and aggregation pipelines. It also supports advanced
+ * processing configurations for handling API-driven data manipulations.
  *
- * @param commonContainer A container instance holding shared configurations or dependencies.
- * @param debug Flag indicating if debug mode is enabled for detailed logging.
- * @param dependencies A list of dependent data structures and their relationships to this collection.
- * Dependencies represent linked data structures that reference items in this collection through properties,
- * allowing tracking of relationships between collections and prevention of orphaned references.
- * Each dependency specifies the container holding the dependent items and the property that links to this collection.
- * @param coroutine The coroutine context for executing asynchronous tasks.
- * @param lookupFun A lookup function to be used in aggregation pipelines or data processing.
- * @param mongoDatabase The MongoDB database instance associated with this collection.
- * @param mongoColl The MongoDB collection instance being operated upon.
- * @param objName The name of the object or collection represented by this instance.
- * @param readOnly Flag to determine if the collection is read-only (no write operations allowed).
- * @param resultFieldStack A stack for result field tracking or state management.
- * @param readOnlyErrorMsg The error message to display when a write operation is attempted in a read-only mode.
+ * @param commonContainer Centralized container for shared resources, such as filters or configurations.
+ * @param debug Boolean flag enabling or disabling debug information and logging.
+ * @param changeLogCollFun Function or logic for handling change logs in the collection.
+ * @param dependencies Dependencies or services required by the class to operate.
+ * @param coroutine Coroutine scope or context used for asynchronous operations.
+ * @param lookupFun Functionality related to lookup management in queries or pipelines.
+ * @param mongoDatabase Instance of the MongoDB database used by this collection.
+ * @param mongoColl The MongoDB collection being managed by this class.
+ * @param objName Name of the collection or object handled by this class.
+ * @param readOnly Boolean flag indicating if the collection is in read-only mode.
+ * @param resultFieldStack Stack or configuration for handling field results during operations.
+ * @param readOnlyErrorMsg Error message used when trying to perform write operations in a read-only collection.
+ * @param userCollFun Functionality specific to user-collection interactions.
  */
-abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
     val commonContainer: CC,
     mongoDbBuilder: MongoDbBuilder? = null,
     private var debug: Boolean = false,
@@ -92,6 +91,19 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
         var MAX_RECURSIVE_RESULT_FIELD = 1
     }
+
+    /**
+     * Represents a dependency relationship between collections.
+     *
+     * @param T The type of document in the dependent collection that references this collection
+     * @param ID The type of the identifier used to reference items in this collection
+     * @param common The container managing the dependent collection's items
+     * @param property The property within the dependent document that references items in this collection
+     */
+    data class Dependency<T : BaseDoc<*>, ID : Any>(
+        val common: ICommonContainer<T, *, *>,
+        val property: KProperty1<out T, ID?>,
+    )
 
     /**
      * A property representing a function that returns an optional implementation
@@ -117,19 +129,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * are no dependencies
      */
     open val dependencies: (() -> List<Dependency<*, ID>>)? = null
-
-    /**
-     * Represents a dependency relationship between collections.
-     *
-     * @param T The type of document in the dependent collection that references this collection
-     * @param ID The type of the identifier used to reference items in this collection
-     * @param common The container managing the dependent collection's items
-     * @param property The property within the dependent document that references items in this collection
-     */
-    data class Dependency<T : BaseDoc<*>, ID : Any>(
-        val common: ICommonContainer<T, *, *>,
-        val property: KProperty1<out T, ID?>,
-    )
 
     /**
      * A coroutine-based collection instance derived from a MongoDB collection.
@@ -182,6 +181,18 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     private val resultFieldStack = mutableMapOf<ResultField, Int>()
 
     val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
+
+    /**
+     * A function that represents a collection of users, returning an optional collection instance.
+     * The returned collection implements the `IUserColl` interface with generic type parameters.
+     *
+     * This property allows for lazy or dynamic initialization of the user collection,
+     * providing flexibility in determining the collection's behavior or content.
+     *
+     * Abstract and must be implemented by subclasses with a specific implementation
+     * of the `IUserColl` interface.
+     */
+    abstract val userCollFun: () -> IUserColl<*, *, UID, *>?
 
     /**
      * Handles the creation action for a given API item and inserts it into the data store.
@@ -977,6 +988,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
+     * Retrieves the user session associated with the current API call.
+     *
+     * @return An instance of [UserSession] of type [UID] if a user session exists, or null if no session is found.
+     */
+    @Suppress("unused")
+    fun ApiItem<T, ID, FILT>.getUserSession(): UserSession<UID>? = userCollFun()?.userSessionFromCall(this.call)
+
+    /**
      * Retrieves the indexes of the documents within the collection.
      *
      * This function is a coroutine and should be called within a coroutine scope.
@@ -1750,7 +1769,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         var lastRow: Int? = null,
         val countType: CountType,
     ) {
-        suspend fun count(coll: Coll<*, *, *, *>, pageSize: Int) {
+        suspend fun count(coll: Coll<*, *, *, *, *>, pageSize: Int) {
             val count = when (countType) {
                 CountType.PreLookup ->
                     coll.mongoColl.coroutine.countDocuments(

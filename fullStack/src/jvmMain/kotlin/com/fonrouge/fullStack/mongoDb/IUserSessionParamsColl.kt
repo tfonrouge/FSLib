@@ -17,9 +17,9 @@ import kotlin.time.Duration
  * session parameter and ensuring a default document exists upon initialization.
  */
 @Suppress("unused")
-abstract class IUserSessionParamsColl(
+abstract class IUserSessionParamsColl<UID : Any>(
     debug: Boolean = false
-) : Coll<CommonUserSessionParams, UserSessionParams, StringId<UserSessionParams>, ApiFilter>(
+) : Coll<CommonUserSessionParams, UserSessionParams, StringId<UserSessionParams>, ApiFilter, UID>(
     commonContainer = CommonUserSessionParams,
     debug = debug
 ) {

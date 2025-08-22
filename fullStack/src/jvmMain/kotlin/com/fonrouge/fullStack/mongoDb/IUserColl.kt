@@ -12,11 +12,36 @@ import kotlinx.datetime.Instant
 abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, UID : Any, FILT : IApiFilter<*>>(
     commonContainer: CCU,
     debug: Boolean = false
-) : Coll<CCU, U, UID, FILT>(
+) : Coll<CCU, U, UID, FILT, UID>(
     commonContainer = commonContainer,
     debug = debug,
 ) {
     private val expireTimeUser = mutableMapOf<UID, Pair<Instant, U?>>()
+
+    override val userCollFun: () -> IUserColl<CCU, U, UID, FILT> = { this }
+
+    /**
+     * Retrieves a user entity from the application call session.
+     *
+     * This method extracts the user session from the provided [ApplicationCall], obtains the user ID from the session,
+     * and then fetches the corresponding user entity using the `findById` method. If the call or session is null, or if no
+     * user is associated with the session, the method returns null.
+     *
+     * @param call The [ApplicationCall] from which the user session will be retrieved. Can be null.
+     * @return The user entity associated with the user session, or null if no user is found or if the session is invalid.
+     */
+    suspend fun userFromCall(call: ApplicationCall?): U? = findById(call?.sessions?.get<UserSession<UID>>()?.userId)
+
+    /**
+     * Retrieves the user session from the given [ApplicationCall].
+     *
+     * This function attempts to extract a user session of type [UserSession] from the provided application call,
+     * if available. If the call or session is null, it returns null.
+     *
+     * @param call The [ApplicationCall] from which the user session will be retrieved. Can be null.
+     * @return The [UserSession] associated with the call, or null if there is no valid session.
+     */
+    fun userSessionFromCall(call: ApplicationCall?): UserSession<UID>? = call?.sessions?.get<UserSession<UID>>()
 
     /**
      * Retrieves a user entity from the application call session with an optional expiration time.
@@ -57,14 +82,19 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
         }
 
     /**
-     * Retrieves a user entity from the application call session.
+     * Executes a given block of code with the user session retrieved from the specified [ApplicationCall].
      *
-     * This method extracts the user session from the provided [ApplicationCall], obtains the user ID from the session,
-     * and then fetches the corresponding user entity using the `findById` method. If the call or session is null, or if no
-     * user is associated with the session, the method returns null.
+     * This function attempts to retrieve a user session of type [UserSession] from the provided application call.
+     * If a valid session is found, the specified `block` function is executed with the session as its argument,
+     * and its return value is returned. If no session is found, the function returns null.
      *
-     * @param call The [ApplicationCall] from which the user session will be retrieved. Can be null.
-     * @return The user entity associated with the user session, or null if no user is found or if the session is invalid.
+     * @param block A lambda function that is executed with the user session as its argument. The session is of type [UserSession].
+     * @return The result of the executed `block` function if a valid session is found, or null otherwise.
      */
-    suspend fun userFromCall(call: ApplicationCall?): U? = findById(call?.sessions?.get<UserSession<UID>>()?.userId)
+    @Suppress("unused")
+    fun <RES> ApplicationCall.withUserSession(block: (UserSession<UID>) -> RES): RES? {
+        return userSessionFromCall(this)?.let {
+            block(it)
+        }
+    }
 }

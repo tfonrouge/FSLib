@@ -26,7 +26,7 @@ import kotlin.reflect.KProperty1
  */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
-    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *>,
+    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *, *>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     let: List<Variable<out Any>>? = null,
@@ -63,7 +63,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
  */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
-    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *>,
+    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *, *>,
     let: List<Variable<out Any>>,
     pipeline: List<Bson>? = null,
     resultField: KProperty1<in T, U?>,
@@ -102,7 +102,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
  */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
-    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *>,
+    coll: Coll<out ICommonContainer<U, ID, *>, U, ID, *, *>,
     localField: KProperty<*>? = null,
     foreignField: KProperty<*>? = null,
     let: List<Variable<out Any>>? = null,
@@ -148,7 +148,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
  */
 @Suppress("unused")
 fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
-    coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
+    coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *, *>,
     localField: KProperty<*>,
     foreignField: KProperty<*>,
     let: List<Variable<out Any>>? = null,
@@ -198,7 +198,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
  * @param addStages A list of additional BSON stages to be added to the final pipeline.
  */
 abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
-    private val coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *>,
+    private val coll: Coll<out ICommonContainer<U, ID, *>, out U, ID, *, *>,
     private val localField: KProperty<*>?,
     private val foreignField: KProperty<*>?,
     private val let: List<Variable<out Any>>? = null,

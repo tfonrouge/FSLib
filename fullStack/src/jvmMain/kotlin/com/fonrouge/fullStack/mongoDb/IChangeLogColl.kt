@@ -23,8 +23,8 @@ import org.litote.kmongo.eq
 
 abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
     commonContainer: CC,
-    val userCollFun: () -> IUserColl<*, U, UID, *>,
-) : Coll<CC, ChangeLog, OId<IChangeLog<U, UID>>, ChangeLogFilter>(
+    override val userCollFun: () -> IUserColl<*, U, UID, *>,
+) : Coll<CC, ChangeLog, OId<IChangeLog<U, UID>>, ChangeLogFilter, UID>(
     commonContainer = commonContainer
 ) {
     abstract val commonContainerUser: ICommonContainer<U, UID, *>

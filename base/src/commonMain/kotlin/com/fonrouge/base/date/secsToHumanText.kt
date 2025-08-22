@@ -8,33 +8,35 @@ package com.fonrouge.base.date
  */
 @Suppress("unused")
 fun secsToHumanText(secs: Int): String {
-        var s1 = secs
-        var r = ""
-        while (s1 > 0) {
-            when (s1) {
-                in 0..59 -> {
-                    r += "${s1}s"
-                    s1 -= s1
-                }
-                in 60..3599 -> {
-                    val m: Int = s1 / 60
-                    s1 -= m * 60
-                    r += "${m}m "
-                }
-
-                in 3600..86399 -> {
-                    val h: Int = s1 / 3600
-                    s1 -= h * 3600
-                    r += "${h}h "
-                }
-
-                in 86400..Int.MAX_VALUE -> {
-                    val d: Int = s1 / 86400
-                    s1 -= d * 86400
-                    r += "${d}d "
-                }
-                else -> s1 = 0
+    var s1 = secs
+    var r = ""
+    while (s1 > 0) {
+        when (s1) {
+            in 0..59 -> {
+                r += "${s1}s"
+                s1 -= s1
             }
+
+            in 60..3599 -> {
+                val m: Int = s1 / 60
+                s1 -= m * 60
+                r += "${m}m "
+            }
+
+            in 3600..86399 -> {
+                val h: Int = s1 / 3600
+                s1 -= h * 3600
+                r += "${h}h "
+            }
+
+            in 86400..Int.MAX_VALUE -> {
+                val d: Int = s1 / 86400
+                s1 -= d * 86400
+                r += "${d}d "
+            }
+
+            else -> s1 = 0
         }
-        return r
     }
+    return r
+}

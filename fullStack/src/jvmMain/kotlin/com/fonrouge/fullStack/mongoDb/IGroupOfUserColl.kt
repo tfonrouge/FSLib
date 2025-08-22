@@ -16,9 +16,9 @@ import org.litote.kmongo.coroutine.CoroutineCollection
  * @property commonContainer The common container instance for the group collection.
  */
 @Suppress("unused")
-abstract class IGroupOfUserColl<CC : ICommonContainer<GOU, OId<T>, FILT>, GOU : IGroupOfUser<T>, T : Any, FILT : IApiFilter<*>>(
+abstract class IGroupOfUserColl<CC : ICommonContainer<GOU, OId<T>, FILT>, GOU : IGroupOfUser<T>, T : Any, FILT : IApiFilter<*>, UID : Any>(
     commonContainer: CC,
-) : Coll<CC, GOU, OId<T>, FILT>(
+) : Coll<CC, GOU, OId<T>, FILT, UID>(
     commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<GOU>.indexes() {
