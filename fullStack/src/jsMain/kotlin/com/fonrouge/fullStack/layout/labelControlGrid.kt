@@ -23,7 +23,7 @@ fun Container.labelControlGrid(vararg entry: Pair<String, Component>, init: (Gri
     gridPanel(templateColumns = "auto 1fr", columnGap = 5, rowGap = 5) {
         init?.invoke(this)
         entry.forEach {
-            span("${it.first}:") {
+            span(it.first) {
                 display = Display.FLEX
                 fontSize = 0.75.rem
                 justifyContent = JustifyContent.FLEXEND
