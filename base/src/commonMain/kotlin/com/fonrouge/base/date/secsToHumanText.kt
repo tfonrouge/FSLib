@@ -1,5 +1,7 @@
 package com.fonrouge.base.date
 
+import kotlin.math.abs
+
 /**
  * Converts a duration in seconds into a human-readable text format.
  *
@@ -8,7 +10,8 @@ package com.fonrouge.base.date
  */
 @Suppress("unused")
 fun secsToHumanText(secs: Int): String {
-    var s1 = secs
+    val isNegative = secs < 0
+    var s1 = abs(secs)
     var r = ""
     while (s1 > 0) {
         when (s1) {
@@ -38,5 +41,5 @@ fun secsToHumanText(secs: Int): String {
             else -> s1 = 0
         }
     }
-    return r
+    return if (isNegative) "-$r" else r
 }
