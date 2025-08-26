@@ -70,14 +70,16 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
      * @param expireTime The expiration time in seconds used to validate cached user data. Defaults to 60 seconds.
      * @return The user entity if found and valid, or null if the user cannot be found or is invalid.
      */
-    suspend fun userWithExpireTime(userId: UID, expireTime: Int = 60): U? =
-        expireTimeUser[userId]?.let { pair ->
-            val now = Clock.System.now()
-            if (pair.second == null || now.minus(pair.first).inWholeSeconds > expireTime) {
-                findById(userId)?.let { user ->
-                    expireTimeUser[userId] = now to user
-                    user
-                }
-            } else pair.second
+    suspend fun userWithExpireTime(userId: UID, expireTime: Int = 60): U? {
+        val now = Clock.System.now()
+        suspend fun findUser(userId: UID): U? = findById(userId)?.let { user ->
+            expireTimeUser[userId] = now to user
+            user
         }
+        return expireTimeUser[userId]?.let { pair ->
+            if (pair.second == null || now.minus(pair.first).inWholeSeconds > expireTime) {
+                findUser(userId)
+            } else pair.second
+        } ?: findUser(userId)
+    }
 }
