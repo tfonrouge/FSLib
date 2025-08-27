@@ -107,7 +107,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
                     )
                 }
             } ?: run {
-                console.error("buildViewListDataMedia not initialized")
+                console.error("initializeViewListDataMedia must be called before calling tabDataMedia")
             }
         }
     }
