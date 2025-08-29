@@ -169,7 +169,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
             field = fieldName(IDataMedia<*, *>::fileName),
             vertAlign = VAlign.MIDDLE,
 //            width = "20.rem",
-            formatterFunction = { cell, _, data ->
+            formatterFunction = { cell, _, _ ->
                 cell.item?.fileName?.replaceFirst("^(.{25}).*".toRegex(), "$1...")
             },
             tooltip = true
@@ -179,7 +179,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
             field = fieldName(IDataMedia<*, *>::contentType),
             vertAlign = VAlign.MIDDLE,
             hozAlign = Align.CENTER,
-            formatterComponentFunction = { cell, _, data ->
+            formatterComponentFunction = { _, _, data ->
                 when (data.contentType) {
                     "application" -> when (data.contentSubtype) {
                         "pdf" -> Icon("fa-solid fa-file-pdf")
@@ -205,7 +205,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
             title = "Fecha",
             field = fieldName(IDataMedia<*, *>::fechaCreacion),
             vertAlign = VAlign.MIDDLE,
-            formatterFunction = { cell, _, data ->
+            formatterFunction = { cell, _, _ ->
                 cell.getDataDate(IDataMedia<*, *>::fechaCreacion).toDateTimeString
             }
         ),
