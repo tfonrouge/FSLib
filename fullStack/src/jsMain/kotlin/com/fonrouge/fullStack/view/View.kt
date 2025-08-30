@@ -575,11 +575,9 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
 
     init {
         if (userSessionParams == null) {
-            console.warn("userSessionParams is null", this::class.simpleName)
             AppScope.launch {
                 updateUserSessionParams?.invoke()?.let { it ->
                     it.item?.let {
-                        console.warn("updateUserSessionParams is not null", it)
                         userSessionParams = it
                     } ?: it.toast()
                 }
