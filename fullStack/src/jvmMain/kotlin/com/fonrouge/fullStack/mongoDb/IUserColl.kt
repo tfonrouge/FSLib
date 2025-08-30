@@ -4,8 +4,11 @@ import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.IUser
 import com.fonrouge.base.model.UserSession
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.server.sessions.*
+import io.ktor.util.pipeline.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
@@ -19,6 +22,35 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
     private val expireTimeUser = mutableMapOf<UID, Pair<Instant, U?>>()
 
     override val userCollFun: () -> IUserColl<CCU, U, UID, FILT> = { this }
+
+    /**
+     * Checks the validity of a user's session and takes appropriate action if the session has expired.
+     *
+     * This method inspects the current user session from the provided pipeline context. If the session has a
+     * defined maximum duration and the calculated remaining time is less than or equal to zero, the session
+     * is cleared, and the user is notified of an unauthorized state due to session expiration.
+     *
+     * @param context The pipeline context containing the current call and associated session details.
+     */
+    @Suppress("unused")
+    suspend fun checkValidSession(context: PipelineContext<Unit, PipelineCall>) {
+        with(context) {
+            userSessionFromCall(call)?.let { userSession ->
+                userSession.sessionMaxSecs?.let { sessionMaxSecs ->
+                    if (sessionMaxSecs > 0) {
+                        val secsLeft = sessionMaxSecs - (Clock.System.now().minus(userSession.loginTime).inWholeSeconds)
+//                    println("userSession = $userSession, secsLeft = $secsLeft")
+                        if (secsLeft <= 0) {
+                            call.sessions.clear<UserSession<UID>>()
+                            call.respond(HttpStatusCode.Unauthorized, "Session expired.")
+                            println("Session expired.")
+                            finish()
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Retrieves a user entity from the application call session.
