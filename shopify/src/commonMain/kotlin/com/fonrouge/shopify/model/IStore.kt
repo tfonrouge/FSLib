@@ -1,8 +1,9 @@
 package com.fonrouge.shopify.model
 
 import com.fonrouge.base.model.BaseDoc
+import com.fonrouge.base.types.OId
 
-interface IStore<ID> : BaseDoc<ID> {
+interface IStore<ID : OId<*>> : BaseDoc<ID> {
     val name: String
     val url: String
     val usernamePassword: String

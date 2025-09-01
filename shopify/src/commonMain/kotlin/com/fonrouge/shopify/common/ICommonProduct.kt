@@ -2,11 +2,12 @@ package com.fonrouge.shopify.common
 
 import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
+import com.fonrouge.base.types.LongId
 import com.fonrouge.shopify.model.IProduct
 import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 
-abstract class ICommonProduct<P : IProduct<ID>, ID : Any, FILT : IApiFilter<*>>(
+abstract class ICommonProduct<P : IProduct<ID>, ID : LongId<P>, FILT : IApiFilter<*>>(
     itemKClass: KClass<P>,
     idSerializer: KSerializer<ID>,
     apiFilterSerializer: KSerializer<FILT>,
