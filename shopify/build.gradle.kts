@@ -38,6 +38,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":base"))
             implementation(project(":fullStack"))
+            api("com.apollographql.apollo:apollo-runtime:4.3.3") // Replace with the latest version
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kvision.common.remote)
