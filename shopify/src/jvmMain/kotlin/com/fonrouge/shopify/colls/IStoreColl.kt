@@ -8,7 +8,6 @@ import com.fonrouge.fullStack.mongoDb.collation
 import com.fonrouge.shopify.model.ElementConnection
 import com.fonrouge.shopify.model.IElementsData
 import com.fonrouge.shopify.model.IStore
-import com.fonrouge.shopify.model.Product
 import com.mongodb.client.model.IndexOptions
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -17,15 +16,15 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 abstract class IStoreColl<CC : ICommonContainer<S, ID, FILT>, S : IStore<ID>, ID : OId<S>, FILT : IApiFilter<*>, UID : Any>(
     commonContainer: CC,
     debug: Boolean = false,
-) : IShopifyColl<S, ID, IStoreColl.StoresData>, Coll<CC, S, ID, FILT, UID>(
+) : IShopifyColl<S, ID, IStoreColl.StoresData, IStore<*>>, Coll<CC, S, ID, FILT, UID>(
     commonContainer = commonContainer,
     debug = debug,
 ) {
     @Serializable
     data class StoresData(
         @SerialName("products")
-        override val elements: ElementConnection<Product>
-    ) : IElementsData<Product>
+        override val elements: ElementConnection<IStore<*>>
+    ) : IElementsData<IStore<*>>
 
     override suspend fun CoroutineCollection<S>.indexes() {
         ensureUniqueIndex(IStore<*>::name, indexOptions = IndexOptions().collation(collation("en_US")))

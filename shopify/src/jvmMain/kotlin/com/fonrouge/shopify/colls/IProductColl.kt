@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 abstract class IProductColl<CC : ICommonProduct<P, ID, FILT>, P : IProduct<ID>, ID : StringId<P>, FILT : IApiFilter<*>, UID : Any, S : IStore<SID>, SID : OId<S>>(
     commonContainer: CC,
     debug: Boolean = false,
-) : IShopifyColl<S, SID, IProductColl.ProductsData>, Coll<CC, P, ID, FILT, UID>(
+) : IShopifyColl<S, SID, IProductColl.ProductsData, Product>, Coll<CC, P, ID, FILT, UID>(
     commonContainer = commonContainer,
     debug = debug,
 ) {

@@ -2,7 +2,9 @@ package com.fonrouge.shopify.colls
 
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.types.OId
+import com.fonrouge.fullStack.mongoDb.Coll
 import com.fonrouge.shopify.model.*
+import com.mongodb.client.model.UpdateOneModel
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -15,7 +17,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
-interface IShopifyColl<S : IStore<SID>, SID : OId<S>, T : IElementsData<*>> {
+interface IShopifyColl<S : IStore<SID>, SID : OId<S>, ED : IElementsData<T>, T : Any> {
     companion object {
         val syncingElements: HashMap<OId<*>, Boolean> = HashMap()
         val httpClient = HttpClient(CIO) {
@@ -29,7 +31,7 @@ interface IShopifyColl<S : IStore<SID>, SID : OId<S>, T : IElementsData<*>> {
                 )
             }
         }
-        private const val API_VERSION = "2024-07" // Use a stable Shopify Admin API version
+        private const val API_VERSION = "2025-07" // Use a stable Shopify Admin API version
     }
 
     private fun shopifyEndpoint(shopDomain: String) =
@@ -37,7 +39,7 @@ interface IShopifyColl<S : IStore<SID>, SID : OId<S>, T : IElementsData<*>> {
             if (it.startsWith("https://")) it else "https://$it"
         }
 
-    val elementKClass: KClass<T>
+    val elementKClass: KClass<ED>
     val elementQuery: String?
     val storeCollFun: () -> IStoreColl<*, S, SID, *, *>
 
@@ -48,7 +50,7 @@ interface IShopifyColl<S : IStore<SID>, SID : OId<S>, T : IElementsData<*>> {
         first: Int = 250,
         query: String? = null,
         after: String? = null
-    ): GraphQLResponse<T> {
+    ): GraphQLResponse<ED> {
         val request = GraphQLRequest(
             query = elementQuery,
             variables = ElementsVars(first = first, query = query, after = after)
@@ -59,12 +61,10 @@ interface IShopifyColl<S : IStore<SID>, SID : OId<S>, T : IElementsData<*>> {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
-        val x = Json.decodeFromString(
+        return Json.decodeFromString(
             deserializer = GraphQLResponse.serializer(elementKClass.serializer()),
             string = response.bodyAsText()
         )
-        println("x = $x")
-        return x
     }
 
     @Suppress("unused")
@@ -77,9 +77,8 @@ interface IShopifyColl<S : IStore<SID>, SID : OId<S>, T : IElementsData<*>> {
         val store = storeCollFun().findById(storeId) ?: return SimpleState(isOk = false, msgError = "Store not found")
         var cursor: String? = null
         var hasNext = true
-
         while (hasNext) {
-            val result: GraphQLResponse<T> = graphQLRequest(
+            val result: GraphQLResponse<ED> = graphQLRequest(
                 store = store,
                 elementQuery = elementQuery,
                 first = 250,
@@ -96,7 +95,7 @@ interface IShopifyColl<S : IStore<SID>, SID : OId<S>, T : IElementsData<*>> {
             val connection = result.data?.elements
                 ?: break
 
-            connection.edges.forEach { edge ->
+            connection.edges.forEach { edge: ElementEdge<T> ->
                 val x = edge.node
                 println("x = $x")
 //                titles += edge.node.title
