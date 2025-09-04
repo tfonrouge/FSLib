@@ -2,13 +2,15 @@ package com.fonrouge.shopify.model
 
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.types.OId
+import kotlinx.serialization.Serializable
 
-interface IStore<ID : OId<*>> : BaseDoc<ID> {
-    val name: String
-    val url: String
-    val apiVersion: String
-    val accessToken: String
-    val byteArrayImage: String?
-    val enabled: Boolean
-    val totalOnEachStore: Boolean
+@Serializable
+abstract class IStore : BaseDoc<OId<IStore>> {
+    abstract val name: String
+    abstract val url: String
+    abstract val apiVersion: String
+    abstract val accessToken: String
+    abstract val byteArrayImage: String?
+    abstract val enabled: Boolean
+    abstract val totalOnEachStore: Boolean
 }

@@ -6,16 +6,16 @@ import com.fonrouge.base.types.OId
 import com.fonrouge.shopify.model.IStore
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 @OptIn(InternalSerializationApi::class)
-abstract class ICommonStore<S : IStore<ID>, ID : OId<S>, FILT : IApiFilter<*>>(
+abstract class ICommonStore<S : IStore, FILT : IApiFilter<*>>(
     itemKClass: KClass<S>,
-    idSerializer: KSerializer<ID>,
     apiFilterSerializer: KSerializer<FILT>,
-) : ICommonContainer<S, ID, FILT>(
+) : ICommonContainer<S, OId<IStore>, FILT>(
     itemKClass = itemKClass,
-    idSerializer = idSerializer,
+    idSerializer = OId.serializer(serializer()),
     apiFilterSerializer = apiFilterSerializer,
     labelItem = "Shopify Store",
     labelList = "Shopify Stores"
