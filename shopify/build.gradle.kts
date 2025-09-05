@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.serialization)
     id("maven-publish")
     id("org.jetbrains.dokka") version "2.0.0"
+    id("com.apollographql.apollo") version "4.3.3"
 }
 
 group = "com.fonrouge.fsLib"
@@ -104,5 +105,11 @@ kotlin {
             api(libs.kvision.tom.select)
             api(libs.kvision.tom.select.remote)
         }
+    }
+}
+
+apollo {
+    service("service") {
+        packageName.set("com.fonrouge")
     }
 }

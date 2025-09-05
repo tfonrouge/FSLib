@@ -1,0 +1,30 @@
+query GetProductDetailQuery($id: ID!) {
+    product(id: $id) {
+        id
+        handle
+        productType
+        publishedAt
+        title
+        vendor
+    }
+}
+
+query GetProductsQuery($first: Int!) {
+    products(first: $first) {
+        pageInfo {
+            hasNextPage
+            endCursor
+        }
+        edges {
+            cursor
+            node {
+                id
+                handle
+                productType
+                publishedAt
+                title
+                vendor
+            }
+        }
+    }
+}
