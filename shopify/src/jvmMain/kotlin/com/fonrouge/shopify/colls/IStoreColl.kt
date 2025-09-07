@@ -28,6 +28,8 @@ abstract class IStoreColl<CC : ICommonContainer<T, OId<IStore>, FILT>, T : IStor
     override val elementSerializer: KSerializer<StoresData<T>> =
         StoresData.serializer(commonContainer.itemKClass.serializer())
 
+    final override val storeCollFun: () -> IStoreColl<CC, T, FILT, UID> = { this }
+
     override suspend fun CoroutineCollection<T>.indexes() {
         ensureUniqueIndex(IStore::name, indexOptions = IndexOptions().collation(collation("en_US")))
     }
