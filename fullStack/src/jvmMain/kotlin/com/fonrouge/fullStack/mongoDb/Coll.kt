@@ -376,9 +376,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (apiItem !is ApiItem.Query.Read && readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         return when (apiItem) {
             is ApiItem.Query.Create<T, ID, FILT> -> {
-                onBeforeCreateQuery(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
-                onBeforeUpsertQuery(apiItem = apiItem, orig = null).also { if (it.hasError) return it.asItemState() }
-                queryCreate(apiItem = apiItem)
+                onQueryUpsert(apiItem = apiItem, orig = null).also { if (it.hasError) return it.asItemState() }
+                onQueryCreate(apiItem = apiItem)
             }
 
             is ApiItem.Query.Read<T, ID, FILT> -> {
@@ -387,25 +386,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     apiFilter = apiItem.apiFilter,
                     lookupWrappers = lookupWrappers
                 )
-                onBeforeReadQuery(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
-                val item = itemState.item
-                if (itemState.hasError || item == null) return itemState
-                queryRead(apiItem = apiItem, item = item)
+                if (itemState.hasError || itemState.item == null) return itemState
+                onQueryRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
+                itemState
             }
 
             is ApiItem.Query.Update<T, ID, FILT> -> {
                 val itemState = findItemState(apiItem = apiItem, lookupWrappers = lookupWrappers)
                 val orig = itemState.item?.copyItemWithPrimaryConstructorParameters()
                 if (itemState.hasError || orig == null) return itemState
-                onBeforeUpdateQuery(
-                    apiItem = apiItem,
-                    orig = orig
-                ).also { if (it.hasError) return it.asItemState() }
-                onBeforeUpsertQuery(
-                    apiItem = apiItem,
-                    orig = orig
-                ).also { if (it.hasError) return it.asItemState() }
-                queryUpdate(apiItem = apiItem, item = orig)
+                onQueryUpsert(apiItem = apiItem, orig = orig).also { if (it.hasError) return it.asItemState() }
+                onQueryUpdate(apiItem = apiItem, orig = orig).asItemState()
             }
 
             is ApiItem.Query.Delete<T, ID, FILT> -> {
@@ -417,11 +408,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 val item = itemState.item
                 if (itemState.hasError || item == null) return itemState
                 findChildrenNot(item).also { if (it.hasError) return it }
-                onBeforeDeleteQuery(
-                    apiItem = apiItem,
-                    item = item
-                ).also { if (it.hasError) return it.asItemState() }
-                queryDelete(apiItem = apiItem, item = item)
+                onQueryDelete(apiItem = apiItem, item = item).asItemState()
             }
 
             is ApiItem.Action.Create<T, ID, FILT> -> actionCreate(apiItem = apiItem)
@@ -712,7 +699,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         findChildrenNot(apiItem.item).also { if (it.hasError) return it }
-        onBeforeDeleteQuery(
+        onQueryDelete(
             apiItem = apiItem.asQuery as ApiItem.Query.Delete,
             item = apiItem.item
         ).also { if (it.hasError) return it.asItemState() }
@@ -1053,8 +1040,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Action.Create<T, ID, FILT>,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        onBeforeCreateQuery(apiItem.asQuery as ApiItem.Query.Create).also { if (it.hasError) return it.asItemState() }
-        onBeforeUpsertQuery(
+        onQueryCreate(apiItem.asQuery as ApiItem.Query.Create).also { if (it.hasError) return it }
+        onQueryUpsert(
             apiItem = apiItem.asQuery as ApiItem.Query.Create,
             orig = null
         ).also { if (it.hasError) return it.asItemState() }
@@ -1251,7 +1238,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param item The item that the delete permission affects.
      * @return The state of the item after the delete operation.
      */
-    open suspend fun onBeforeDeleteQuery(apiItem: ApiItem.Query.Delete<T, ID, FILT>, item: T): SimpleState =
+    open suspend fun onQueryDelete(apiItem: ApiItem.Query.Delete<T, ID, FILT>, item: T): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1261,7 +1248,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * It contains the item details and the ID.
      * @return The current state of the item after checking the read permission.
      */
-    open suspend fun onBeforeReadQuery(apiItem: ApiItem.Query.Read<T, ID, FILT>): SimpleState =
+    open suspend fun onQueryRead(apiItem: ApiItem.Query.Read<T, ID, FILT>): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1270,8 +1257,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The entity that contains the data required for creating or updating the permission.
      * @return The state of the item after the upsert operation.
      */
-    open suspend fun onBeforeCreateQuery(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState =
-        SimpleState(isOk = true)
+    open suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): ItemState<T> =
+        ItemState(isOk = true)
 
     /**
      * Handles the update operation for a given item with permissions.
@@ -1280,7 +1267,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param orig The item to be updated.
      * @return The state of the item after the update operation.
      */
-    open suspend fun onBeforeUpdateQuery(
+    open suspend fun onQueryUpdate(
         apiItem: ApiItem.Query.Update<T, ID, FILT>,
         orig: T
     ): SimpleState = SimpleState(isOk = true)
@@ -1292,7 +1279,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param orig The original entity object, if it exists. Can be null if no prior entity exists.
      * @return A SimpleState object indicating whether the pre-upsert process was successful or not.
      */
-    open suspend fun onBeforeUpsertQuery(
+    open suspend fun onQueryUpsert(
         apiItem: ApiItem.Query<T, ID, FILT>,
         orig: T?
     ): SimpleState = SimpleState(isOk = true)
@@ -1438,52 +1425,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Executes the creation query and returns the resulting item state.
-     *
-     * @param apiItem The query object containing the necessary data for creation.
-     * @return An instance of [ItemState] representing the result of the creation operation.
-     */
-    protected open suspend fun queryCreate(
-        apiItem: ApiItem.Query.Create<T, ID, FILT>,
-    ): ItemState<T> = ItemState(isOk = true)
-
-    /**
-     * Executes a read query for the given API item and returns the resulting item state.
-     *
-     * @param apiItem The API item used to perform the read query.
-     * @param item The item to be processed with the read query.
-     * @return The resulting item state containing the processed item.
-     */
-    protected open suspend fun queryRead(
-        apiItem: ApiItem.Query.Read<T, ID, FILT>,
-        item: T,
-    ): ItemState<T> = ItemState(item = item)
-
-    /**
-     * Executes a query-based update operation on the given item.
-     *
-     * @param apiItem An instance of ApiItem.Upsert.Update.Query containing information about the update query.
-     * @param item The item to be updated.
-     * @return The updated state of the item wrapped in an ItemState.
-     */
-    protected open suspend fun queryUpdate(
-        apiItem: ApiItem.Query.Update<T, ID, FILT>,
-        item: T,
-    ): ItemState<T> = ItemState(item = item)
-
-    /**
-     * Handles the process of querying and deleting an item within the specified context.
-     *
-     * @param apiItem The API query item configuration containing information for the delete operation.
-     * @param item The item to be deleted.
-     * @return The resulting state of the item after the delete operation.
-     */
-    protected open suspend fun queryDelete(
-        apiItem: ApiItem.Query.Delete<T, ID, FILT>,
-        item: T,
-    ): ItemState<T> = ItemState(item = item)
-
-    /**
      * Refactors the given pipeline right after the [buildLookupList] fun by applying a result unit and an API filter.
      *
      * @param call The optional ApplicationCall instance that may be used during matching. Defaults to null.
@@ -1554,11 +1495,11 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             apiFilter = apiFilter,
             call = call,
         )
-        onBeforeUpdateQuery(
+        onQueryUpdate(
             apiItem = apiItem.asQuery as ApiItem.Query.Update,
             orig = orig
         ).also { if (it.hasError) return it.asItemState() }
-        onBeforeUpsertQuery(
+        onQueryUpsert(
             apiItem = apiItem.asQuery as ApiItem.Query.Update,
             orig = orig
         ).also { if (it.hasError) return it.asItemState() }
@@ -1661,12 +1602,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             msgError = "Orig item not found"
         )
         orig?.let {
-            onBeforeUpdateQuery(
+            onQueryUpdate(
                 apiItem = apiItem.asQuery as ApiItem.Query.Update,
                 orig = orig
             ).also { if (it.hasError) return it.asItemState() }
         }
-        onBeforeUpsertQuery(
+        onQueryUpsert(
             apiItem = apiItem.asQuery as ApiItem.Query.Update,
             orig = orig
         ).also { if (it.hasError) return it.asItemState() }
