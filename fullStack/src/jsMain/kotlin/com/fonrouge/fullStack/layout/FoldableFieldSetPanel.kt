@@ -10,23 +10,23 @@ import io.kvision.state.ObservableValue
 import io.kvision.utils.rem
 
 /**
- * A collapsable panel component with an optional legend and animation support.
+ * A UI component representing a foldable fieldset panel.
  *
- * This class represents a collapsable panel (fieldset) with a legend and dynamic content display.
- * The collapsable behavior can be toggled via the legend, and the visibility of child components
- * is managed accordingly. Optionally, animations can be enabled for smoother transitions.
+ * This class creates a fieldset with a collapsible/expandable mechanism,
+ * which includes an optional legend and uses animations for the toggle effect.
+ * It extends the `SimplePanel` class and allows further customization
+ * through the provided initialization lambda.
  *
- * @constructor
- * @param legend The optional text for the legend of the fieldset.
- * @param useAnimation A flag indicating whether animations should be used for showing/hiding child components.
- * @param className Additional CSS classes to style the fieldset.
- * @param init An optional initialization block for further configuration of the panel.
+ * @param legend The optional legend text for the fieldset.
+ * @param useAnimation A flag indicating whether to use animations during toggle. Defaults to true.
+ * @param className Additional CSS classes for the fieldset panel.
+ * @param init An optional initialization block to configure the instance.
  */
-class FieldCollapsablePanel(
+class FoldableFieldSetPanel(
     legend: String? = null,
     val useAnimation: Boolean = true,
     className: String? = null,
-    init: (FieldCollapsablePanel.() -> Unit)? = null,
+    init: (FoldableFieldSetPanel.() -> Unit)? = null,
 ) : SimplePanel((className?.let { "$it " } ?: "") + "kv_fieldset") {
 
     val showStateObs = ObservableValue(true)
@@ -85,24 +85,32 @@ class FieldCollapsablePanel(
 }
 
 /**
- * DSL builder extension function.
+ * Adds a foldable fieldset panel to the container.
  *
- * It takes the same parameters as the constructor of the built component.
+ * This method creates and appends a `FoldableFieldSetPanel` instance to the current container.
+ * The fieldset panel includes an optional legend, an animation toggle for collapsibility, and allows
+ * further customization through an initialization block.
+ *
+ * @param legend The optional legend text to display in the fieldset.
+ * @param useAnimation A flag indicating whether to use animation when toggling the fieldset's visibility. Defaults to true.
+ * @param className Additional CSS classes to apply to the fieldset.
+ * @param init An optional lambda function to further configure the `FoldableFieldSetPanel` instance.
+ * @return The created `FoldableFieldSetPanel` instance that has been added to the container.
  */
 @Suppress("unused")
-fun Container.fieldCollapsablePanel(
+fun Container.foldableFieldSetPanel(
     legend: String? = null,
     useAnimation: Boolean = true,
     className: String? = null,
-    init: (FieldCollapsablePanel.() -> Unit)? = null,
-): FieldCollapsablePanel {
-    val fieldCollapsablePanel =
-        FieldCollapsablePanel(
+    init: (FoldableFieldSetPanel.() -> Unit)? = null,
+): FoldableFieldSetPanel {
+    val foldableFieldSetPanel =
+        FoldableFieldSetPanel(
             legend = legend,
             useAnimation = useAnimation,
             className = className,
             init = init
         )
-    this.add(fieldCollapsablePanel)
-    return fieldCollapsablePanel
+    this.add(foldableFieldSetPanel)
+    return foldableFieldSetPanel
 }
