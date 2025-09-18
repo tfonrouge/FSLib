@@ -13,6 +13,7 @@ import org.litote.kmongo.from
  */
 @Suppress("unused")
 enum class MongoAggOperator {
+    dateDiff,
     substrBytes,
     replaceWith,
     switch,
