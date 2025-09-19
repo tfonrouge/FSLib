@@ -396,7 +396,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 val orig = itemState.item?.copyItemWithPrimaryConstructorParameters()
                 if (itemState.hasError || orig == null) return itemState
                 onQueryUpsert(apiItem = apiItem, orig = orig).also { if (it.hasError) return it.asItemState() }
-                onQueryUpdate(apiItem = apiItem, orig = orig).asItemState()
+                onQueryUpdate(apiItem = apiItem, orig = orig).also { if (it.hasError) return it.asItemState() }
+                itemState
             }
 
             is ApiItem.Query.Delete<T, ID, FILT> -> {
@@ -408,7 +409,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 val item = itemState.item
                 if (itemState.hasError || item == null) return itemState
                 findChildrenNot(item).also { if (it.hasError) return it }
-                onQueryDelete(apiItem = apiItem, item = item).asItemState()
+                onQueryDelete(apiItem = apiItem, item = item).also { if (it.hasError) return it.asItemState() }
+                itemState
             }
 
             is ApiItem.Action.Create<T, ID, FILT> -> actionCreate(apiItem = apiItem)
