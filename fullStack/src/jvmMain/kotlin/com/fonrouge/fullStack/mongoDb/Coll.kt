@@ -200,7 +200,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The API item containing the data and parameters required for the creation action.
      * @return The state of the created item after the insertion, encapsulated in an ItemState object.
      */
-    protected open suspend fun actionCreate(
+    protected suspend fun actionCreate(
         apiItem: ApiItem.Action.Create<T, ID, FILT>,
     ): ItemState<T> = insertOne(
         apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
@@ -212,7 +212,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The update action containing the necessary data and filters to perform the update operation.
      * @return The state of the updated item after the operation is completed.
      */
-    protected open suspend fun actionUpdate(
+    protected suspend fun actionUpdate(
         apiItem: ApiItem.Action.Update<T, ID, FILT>,
     ): ItemState<T> = updateOne(
         apiItem.copy(
@@ -227,7 +227,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *                including the item to be deleted and related information.
      * @return The state of the item after the delete action has been performed.
      */
-    protected open suspend fun actionDelete(
+    protected suspend fun actionDelete(
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
     ): ItemState<T> = deleteOne(apiItem)
 
@@ -367,55 +367,64 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 item
             }
         }
-        getCrudPermission(
-            call = call,
-            crudTask = apiItem.crudTask,
-        ).also {
-            if (it.state == State.Error) return ItemState(it)
-        }
         if (apiItem !is ApiItem.Query.Read && readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         return when (apiItem) {
-            is ApiItem.Query.Create<T, ID, FILT> -> {
-                onQueryUpsert(apiItem = apiItem, orig = null).also { if (it.hasError) return it.asItemState() }
-                onQueryCreate(apiItem = apiItem)
+            is ApiItem.Query -> {
+                getCrudPermission(
+                    call = call,
+                    crudTask = apiItem.crudTask,
+                ).also {
+                    if (it.state == State.Error) return ItemState(it)
+                }
+                when (apiItem) {
+                    is ApiItem.Query.Create<T, ID, FILT> -> {
+                        onQueryUpsert(apiItem = apiItem, orig = null).also { if (it.hasError) return it.asItemState() }
+                        onQueryCreate(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
+                        onQueryCreateItem(apiItem = apiItem)
+                    }
+
+                    is ApiItem.Query.Read<T, ID, FILT> -> {
+                        val itemState = findItemStateById(
+                            id = apiItem.id,
+                            apiFilter = apiItem.apiFilter,
+                            lookupWrappers = lookupWrappers
+                        )
+                        if (itemState.hasError || itemState.item == null) return itemState
+                        onQueryRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
+                        itemState
+                    }
+
+                    is ApiItem.Query.Update<T, ID, FILT> -> {
+                        val itemState = findItemState(apiItem = apiItem, lookupWrappers = lookupWrappers)
+                        val orig = itemState.item?.copyItemWithPrimaryConstructorParameters()
+                        if (itemState.hasError || orig == null) return itemState
+                        onQueryUpsert(apiItem = apiItem, orig = orig).also { if (it.hasError) return it.asItemState() }
+                        onQueryUpdate(apiItem = apiItem, orig = orig).also { if (it.hasError) return it.asItemState() }
+                        itemState
+                    }
+
+                    is ApiItem.Query.Delete<T, ID, FILT> -> {
+                        val itemState = findItemStateById(
+                            id = apiItem.id,
+                            apiFilter = apiItem.apiFilter,
+                            lookupWrappers = lookupWrappers
+                        )
+                        val item = itemState.item
+                        if (itemState.hasError || item == null) return itemState
+                        findChildrenNot(item).also { if (it.hasError) return it }
+                        onQueryDelete(apiItem = apiItem, item = item).also { if (it.hasError) return it.asItemState() }
+                        itemState
+                    }
+                }
             }
 
-            is ApiItem.Query.Read<T, ID, FILT> -> {
-                val itemState = findItemStateById(
-                    id = apiItem.id,
-                    apiFilter = apiItem.apiFilter,
-                    lookupWrappers = lookupWrappers
-                )
-                if (itemState.hasError || itemState.item == null) return itemState
-                onQueryRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
-                itemState
+            is ApiItem.Action -> {
+                when (apiItem) {
+                    is ApiItem.Action.Create<T, ID, FILT> -> actionCreate(apiItem = apiItem)
+                    is ApiItem.Action.Update<T, ID, FILT> -> actionUpdate(apiItem = apiItem)
+                    is ApiItem.Action.Delete<T, ID, FILT> -> actionDelete(apiItem = apiItem)
+                }
             }
-
-            is ApiItem.Query.Update<T, ID, FILT> -> {
-                val itemState = findItemState(apiItem = apiItem, lookupWrappers = lookupWrappers)
-                val orig = itemState.item?.copyItemWithPrimaryConstructorParameters()
-                if (itemState.hasError || orig == null) return itemState
-                onQueryUpsert(apiItem = apiItem, orig = orig).also { if (it.hasError) return it.asItemState() }
-                onQueryUpdate(apiItem = apiItem, orig = orig).also { if (it.hasError) return it.asItemState() }
-                itemState
-            }
-
-            is ApiItem.Query.Delete<T, ID, FILT> -> {
-                val itemState = findItemStateById(
-                    id = apiItem.id,
-                    apiFilter = apiItem.apiFilter,
-                    lookupWrappers = lookupWrappers
-                )
-                val item = itemState.item
-                if (itemState.hasError || item == null) return itemState
-                findChildrenNot(item).also { if (it.hasError) return it }
-                onQueryDelete(apiItem = apiItem, item = item).also { if (it.hasError) return it.asItemState() }
-                itemState
-            }
-
-            is ApiItem.Action.Create<T, ID, FILT> -> actionCreate(apiItem = apiItem)
-            is ApiItem.Action.Update<T, ID, FILT> -> actionUpdate(apiItem = apiItem)
-            is ApiItem.Action.Delete<T, ID, FILT> -> actionDelete(apiItem = apiItem)
         }
     }
 
@@ -700,6 +709,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
+        getCrudPermission(apiItem).also { if (it.state == State.Error) return ItemState(it) }
         findChildrenNot(apiItem.item).also { if (it.hasError) return it }
         onQueryDelete(
             apiItem = apiItem.asQuery as ApiItem.Query.Delete,
@@ -942,6 +952,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): List<KProperty1<in T, *>>? = null
 
     /**
+     * Retrieves the CRUD permission for a given API item by evaluating its call and CRUD task.
+     *
+     * @param apiItem The API item containing the call and CRUD task for which permission is being checked.
+     */
+    @Suppress("unused")
+    suspend fun getCrudPermission(apiItem: ApiItem<T, ID, FILT>) = getCrudPermission(apiItem.call, apiItem.crudTask)
+
+    /**
      * Determines the CRUD (Create, Read, Update, Delete) permission for a given user.
      *
      * @param call The ApplicationCall associated with the request, which may contain session information.
@@ -1042,17 +1060,18 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiItem: ApiItem.Action.Create<T, ID, FILT>,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        onQueryCreate(apiItem.asQuery as ApiItem.Query.Create).also { if (it.hasError) return it }
+        getCrudPermission(apiItem).also { if (it.state == State.Error) return ItemState(it) }
         onQueryUpsert(
             apiItem = apiItem.asQuery as ApiItem.Query.Create,
             orig = null
         ).also { if (it.hasError) return it.asItemState() }
+        onQueryCreate(apiItem.asQuery as ApiItem.Query.Create).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
-        onBeforeCreateAction(apiItem1).also { it ->
+        onBeforeUpsertAction(apiItem = apiItem1, orig = null).also { it ->
             if (it.hasError) return it
             it.item?.let { apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters()) }
         }
-        onBeforeUpsertAction(apiItem = apiItem1, orig = null).also { it ->
+        onBeforeCreateAction(apiItem1).also { it ->
             if (it.hasError) return it
             it.item?.let { apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters()) }
         }
@@ -1259,7 +1278,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The entity that contains the data required for creating or updating the permission.
      * @return The state of the item after the upsert operation.
      */
-    open suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): ItemState<T> =
+    open suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState =
+        SimpleState(isOk = true)
+
+    /**
+     * Handles the query creation and returns an item for the requester
+     *
+     * @param apiItem The query object containing the information required to create an item.
+     *                It includes data related to the type, ID, and filter criteria.
+     * @return an [ItemState] containing the item model to be created
+     */
+    open suspend fun onQueryCreateItem(apiItem: ApiItem.Query.Create<T, ID, FILT>): ItemState<T> =
         ItemState(isOk = true)
 
     /**
@@ -1594,6 +1623,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         updateOptions: UpdateOptions = UpdateOptions(),
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
+        getCrudPermission(apiItem).also { if (it.state == State.Error) return ItemState(it) }
         val orig: T? = findById(
             id = apiItem.item._id,
             filter = filter,
@@ -1604,15 +1634,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             msgError = "Orig item not found"
         )
         orig?.let {
+            onQueryUpsert(
+                apiItem = apiItem.asQuery as ApiItem.Query.Update,
+                orig = orig
+            ).also { if (it.hasError) return it.asItemState() }
             onQueryUpdate(
                 apiItem = apiItem.asQuery as ApiItem.Query.Update,
                 orig = orig
             ).also { if (it.hasError) return it.asItemState() }
         }
-        onQueryUpsert(
-            apiItem = apiItem.asQuery as ApiItem.Query.Update,
-            orig = orig
-        ).also { if (it.hasError) return it.asItemState() }
         var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
         orig?.let {
             onBeforeUpdateAction(apiItem = apiItem1, orig = orig).also { it ->
