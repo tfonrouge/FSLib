@@ -608,7 +608,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                                 close = true,
                                 callback = {
                                     if (!alreadyBack) js("history.back()")
-                                    Unit
                                 },
                                 escapeHtml = true,
                             )
@@ -691,9 +690,9 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      *            Null values result in clearing the corresponding form field.
      */
     private fun formSetDataWithValueMap(map: Map<String, String?>) {
-        map.forEach { entry ->
-            formPanel.form.fields[entry.key]?.let { formControl ->
-                entry.value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
+        map.forEach { (key, value) ->
+            (formPanel.form.fields[key] ?: formPanel.customMapValues[key]?.formControl)?.let { formControl ->
+                value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
                     when (formControl) {
                         is DateFormControl -> formControl.value =
                             Date(value.unsafeCast<String>()).unsafeCast<kotlin.js.Date>()
