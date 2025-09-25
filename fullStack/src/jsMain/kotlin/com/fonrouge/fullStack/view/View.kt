@@ -47,7 +47,19 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open val configView: ConfigView<CC, *, FILT>,
 ) {
     companion object {
+        /**
+         * A variable that holds the parameters related to a user's session.
+         * It can store a nullable instance of the UserSessionParams class, which may contain data
+         * such as session tokens, user authentication details, or configuration settings specific
+         * to the user's session.
+         */
         var userSessionParams: UserSessionParams? = null
+
+        /**
+         * A nullable variable that holds a suspending function to update user session parameters.
+         * This function, when defined, is expected to return an [ItemState] containing the updated [UserSessionParams].
+         * If set to null, no action is performed for updating session parameters.
+         */
         var updateUserSessionParams: (suspend () -> ItemState<UserSessionParams>)? = null
     }
 
