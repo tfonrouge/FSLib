@@ -50,8 +50,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     var viewStateObservableValue = ObservableValue<ViewState?>(null)
 
-    var iConfigView: IConfigView? = null
-
     var afterInitialize: (() -> Unit)? = null
 
     var routing: Routing = Routing.init()
@@ -61,10 +59,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
         block?.invoke(this)
 
         routing.initialize().resolve()
-
-        if (iConfigView == null) {
-            Toast.warning("${this::iConfigView.name} not implemented...")
-        }
 
         afterInitialize?.invoke()
     }
