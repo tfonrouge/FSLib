@@ -518,22 +518,20 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         debug: Boolean = this.debug,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         postProcessList: ((List<T>) -> List<T>)? = null,
-    ): ListState<T> {
-        return apiListProcess(
-            call = call,
-            apiRequestParams = ApiRequestParams(
-                page = apiList.tabPage,
-                pageSize = apiList.tabSize,
-                remoteFilters = apiList.tabFilter,
-                remoteSorters = apiList.tabSorter,
-            ),
-            lookupWrappers = lookupWrappers,
-            apiFilter = apiList.apiFilter,
-            countType = countType,
-            debug = debug,
-            postProcessList = postProcessList
-        )
-    }
+    ): ListState<T> = apiListProcess(
+        call = call,
+        apiRequestParams = ApiRequestParams(
+            page = apiList.tabPage,
+            pageSize = apiList.tabSize,
+            remoteFilters = apiList.tabFilter,
+            remoteSorters = apiList.tabSorter,
+        ),
+        lookupWrappers = lookupWrappers,
+        apiFilter = apiList.apiFilter,
+        countType = countType,
+        debug = debug,
+        postProcessList = postProcessList
+    )
 
     /**
      * Converts the provided `ApiItem` into an `ItemState` containing the given `ApiItem` instance.
@@ -753,9 +751,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-    ): T? {
-        return findOne(and(BaseDoc<*>::_id eq id, filter), apiFilter, lookupWrappers)
-    }
+    ): T? = findOne(and(BaseDoc<*>::_id eq id, filter), apiFilter, lookupWrappers)
 
     /**
      * Finds and checks child dependencies of the given item and determines if they are not valid.
@@ -851,15 +847,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         filter: Bson? = findItemFilter(apiFilter),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-    ): ItemState<T> {
-        return try {
-            ItemState(
-                item = findById(id = id, filter = filter, apiFilter = apiFilter, lookupWrappers = lookupWrappers),
-                msgError = "_id '$id' (${commonContainer.itemKClass.simpleName}) not found..."
-            )
-        } catch (e: Exception) {
-            ItemState(isOk = false, msgError = e.message)
-        }
+    ): ItemState<T> = try {
+        ItemState(
+            item = findById(id = id, filter = filter, apiFilter = apiFilter, lookupWrappers = lookupWrappers),
+            msgError = "_id '$id' (${commonContainer.itemKClass.simpleName}) not found..."
+        )
+    } catch (e: Exception) {
+        ItemState(isOk = false, msgError = e.message)
     }
 
     /**
@@ -878,15 +872,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         debug: Boolean = this.debug,
-    ): List<T> {
-        return findPublisher(
-            filter = filter,
-            lookupWrappers = lookupWrappers,
-            apiFilter = apiFilter,
-            resultUnit = ResultUnit.List,
-            debug = debug,
-        ).toList()
-    }
+    ): List<T> = findPublisher(
+        filter = filter,
+        lookupWrappers = lookupWrappers,
+        apiFilter = apiFilter,
+        resultUnit = ResultUnit.List,
+        debug = debug,
+    ).toList()
 
     /**
      * Finds a single document based on the provided filter criteria and lookup wrappers.
@@ -903,15 +895,36 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         debug: Boolean = false,
-    ): T? {
-        return findPublisher(
-            filter = filter,
-            lookupWrappers = lookupWrappers,
-            apiFilter = apiFilter,
-            resultUnit = ResultUnit.Single,
-            debug = debug,
-        ).awaitFirstOrNull()
-    }
+    ): T? = findPublisher(
+        filter = filter,
+        lookupWrappers = lookupWrappers,
+        apiFilter = apiFilter,
+        resultUnit = ResultUnit.Single,
+        debug = debug,
+    ).awaitFirstOrNull()
+
+    /**
+     * Finds and returns an aggregate publisher for a single matching document.
+     *
+     * @param filter A BSON filter to apply, or null if no filter is provided.
+     * @param apiFilter The API filter used for filtering data, defaulting to `commonContainer.apiFilterInstance()`.
+     * @param lookupWrappers A list of lookup wrappers to be applied in the aggregation pipeline.
+     * @param debug A flag indicating whether debug mode is enabled, default is false.
+     * @return An `AggregatePublisher` that emits a single matching document.
+     */
+    @Suppress("unused")
+    fun findOnePublisher(
+        filter: Bson? = null,
+        apiFilter: FILT = commonContainer.apiFilterInstance(),
+        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
+        debug: Boolean = false,
+    ): AggregatePublisher<T> = findPublisher(
+        filter = filter,
+        lookupWrappers = lookupWrappers,
+        apiFilter = apiFilter,
+        resultUnit = ResultUnit.Single,
+        debug = debug,
+    )
 
     /**
      * Finds a publisher with the specified criteria.
@@ -927,17 +940,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         filter: Bson? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        resultUnit: ResultUnit,
+        resultUnit: ResultUnit = ResultUnit.List,
         debug: Boolean = false,
-    ): AggregatePublisher<T> {
-        return aggregateLookupPublisher(
-            pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
-            lookupWrappers = lookupWrappers,
-            apiFilter = apiFilter,
-            resultUnit = resultUnit,
-            debug = debug,
-        )
-    }
+    ): AggregatePublisher<T> = aggregateLookupPublisher(
+        pipeline = filter?.let { mutableListOf(match(filter)) } ?: mutableListOf(),
+        lookupWrappers = lookupWrappers,
+        apiFilter = apiFilter,
+        resultUnit = resultUnit,
+        debug = debug,
+    )
 
     /**
      * Generates a fixed lookup list based on the provided API filter.
@@ -1042,12 +1053,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     suspend fun insertOne(
         apiItem: ApiItem.Query.Create<T, ID, FILT>,
         item: T,
-    ): ItemState<T> {
-        val itemState = insertOne(
-            apiItem = ApiItem.Action.Create(item = item, apiFilter = apiItem.apiFilter),
-        )
-        return itemState.copy(itemAlreadyOn = true)
-    }
+    ): ItemState<T> = insertOne(
+        apiItem = ApiItem.Action.Create(item = item, apiFilter = apiItem.apiFilter),
+    ).copy(itemAlreadyOn = true)
 
     /**
      * Inserts a single item into the collection.
@@ -1106,11 +1114,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         property: KProperty1<T, *>,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-    ): List<Bson>? {
-        return lookupFun(apiFilter).firstOrNull { it.resultProperty.name == property.name }?.toPipeline(
-            lookupWrappers = lookupWrappers
-        )
-    }
+    ): List<Bson>? = lookupFun(apiFilter).firstOrNull { it.resultProperty.name == property.name }?.toPipeline(
+        lookupWrappers = lookupWrappers
+    )
 
     /**
      * Builds a BSON representation of the given filter to be used in a MongoDB aggregation match stage.
@@ -1595,17 +1601,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         updateOptions: UpdateOptions = UpdateOptions(),
         call: ApplicationCall? = null,
-    ): ItemState<T> {
-        return updateOne(
-            apiItem = ApiItem.Action.Update(
-                item = item.copyItemWithPrimaryConstructorParameters(),
-                apiFilter = apiFilter,
-                call = call,
-            ),
-            filter = filter,
-            updateOptions = updateOptions
-        )
-    }
+    ): ItemState<T> = updateOne(
+        apiItem = ApiItem.Action.Update(
+            item = item.copyItemWithPrimaryConstructorParameters(),
+            apiFilter = apiFilter,
+            call = call,
+        ),
+        filter = filter,
+        updateOptions = updateOptions
+    )
 
     /**
      * Updates a single item in the database based on the provided filter.
