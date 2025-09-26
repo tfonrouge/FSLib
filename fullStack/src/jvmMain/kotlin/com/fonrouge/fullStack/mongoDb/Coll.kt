@@ -982,6 +982,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         crudTask: CrudTask,
     ): SimpleState {
         val roleInUserColl = privateRoleInUserColl ?: return SimpleState(isOk = true)
+        if (this::class.isSubclassOf(IChangeLogColl::class)) return SimpleState(isOk = true)
         val matchDoc = and(
             IAppRole<*>::roleType eq RoleType.CrudTask,
             IAppRole<*>::classOwner eq commonContainer.name

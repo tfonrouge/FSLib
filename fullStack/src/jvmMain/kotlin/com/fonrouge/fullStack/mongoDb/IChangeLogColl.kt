@@ -130,7 +130,9 @@ abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLo
                     put("data", Json.encodeToJsonElement(data))
                 }
             )
-            insertOne(changeLog).asSimpleState
+            insertOne(changeLog).asSimpleState.also {
+                if (it.hasError) System.err.println("Error adding change log entry: ${it.msgError}")
+            }
         } else SimpleState(isOk = false, msgError = "No data changed.")
     }
 
