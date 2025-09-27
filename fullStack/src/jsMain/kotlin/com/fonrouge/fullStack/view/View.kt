@@ -408,7 +408,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      *
      * @return the container with specified alignment and class.
      */
-    open fun Container.bannerLeggendContainer(): Container =
+    open fun Container.bannerLegendContainer(): Container =
         hPanel(justify = JustifyContent.FLEXSTART, alignItems = AlignItems.CENTER, className = "container-fluid")
 
     /**
@@ -435,7 +435,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             observableState = pageBannerUpdateObservable,
             removeChildren = true
         ) {
-            bannerLeggendContainer().apply {
+            bannerLegendContainer().apply {
                 if (this@View is ViewItem<*, *, *, FILT> && this@View.crudTask == CrudTask.Read) {
                     dropDown(
                         text = "",
