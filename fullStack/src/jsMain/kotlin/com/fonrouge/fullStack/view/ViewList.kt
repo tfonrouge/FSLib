@@ -501,14 +501,13 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 }
             }
         }
-        contextRowMenu(item)?.let {
-            menu += it
-        }
         configViewItem?.contextMenuItems?.let { function: (T) -> List<TabulatorMenuItem> ->
             item?.let {
-                menu += menuItem(separator = true)
                 menu += function(item)
             }
+        }
+        contextRowMenu(item)?.let {
+            menu += it
         }
         return menu.toTypedArray()
     }

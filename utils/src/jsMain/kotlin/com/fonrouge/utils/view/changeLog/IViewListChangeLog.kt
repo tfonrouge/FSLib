@@ -108,7 +108,8 @@ abstract class IViewListChangeLog<CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, 
                             }
                         }
                         modal.show()
-                    }
+                    },
+                    menuItem(separator = true)
                 )
             }
         }
