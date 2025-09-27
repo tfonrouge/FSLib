@@ -497,7 +497,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 item?.let {
                     formPanel.setData(it)
                 } ?: if (valueMap.isNotEmpty()) {
-                    formSetDataWithValueMap(valueMap)
+                    formSetDataWithValueMap()
                 } else Unit
             }
 
@@ -681,17 +681,26 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         )
 
     /**
-     * Populates form fields within the `formPanel` using data from the provided map.
-     * For each entry in the map, updates the corresponding form field with parsed data.
-     * Handles specific types of controls, such as `DateFormControl` and `KFilesFormControl`,
-     * using custom parsing and value setting logic.
+     * Populates form controls in a form panel with values from a `valueMap`.
      *
-     * @param map A map where the key represents the form field identifier and the value is its serialized data.
-     *            Null values result in clearing the corresponding form field.
+     * This method iterates through the key-value pairs in `valueMap` and associates the values with the
+     * appropriate form controls within the `formPanel`. The association is determined by matching the
+     * keys of `valueMap` with the form fields or custom map values in the `formPanel`. Once a key-value
+     * pair is processed, the key is added to a set of assigned values.
+     *
+     * If a matching form control is found:
+     * - For `DateFormControl`, the value is parsed as a date and set.
+     * - For `KFilesFormControl`, the value is decoded into a list of `KFile` objects and set.
+     * - For other form control types, the appropriate `setValue` method is used to assign the value.
+     * - If the value is null, the `setValue` method is called with `null`.
+     *
+     * After processing, unprocessed keys are retained in `valueMap`.
      */
-    private fun formSetDataWithValueMap(map: Map<String, String?>) {
-        map.forEach { (key, value) ->
+    private fun formSetDataWithValueMap() {
+        val assignedValues = mutableSetOf<String>()
+        valueMap.forEach { (key, value) ->
             (formPanel.form.fields[key] ?: formPanel.customMapValues[key]?.formControl)?.let { formControl ->
+                assignedValues += key
                 value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
                     when (formControl) {
                         is DateFormControl -> formControl.value =
@@ -707,6 +716,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 } ?: formControl.setValue(null)
             }
         }
+        valueMap = valueMap.filterKeys { it !in assignedValues }
     }
 
     /**
