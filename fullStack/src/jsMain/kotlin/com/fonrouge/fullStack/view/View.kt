@@ -431,7 +431,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     fun Container.pageBanner() {
         /* TODO: find out how make horizontally scrollable */
-        navbar(bgColor = BsBgColor.LIGHT).bind(
+        navbar(bgColor = BsBgColor.LIGHT, className = "view-banner").bind(
             observableState = pageBannerUpdateObservable,
             removeChildren = true
         ) {
@@ -483,7 +483,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 link(
                     label = this@View.label,
                     url = navigoUrlWithParams,
-                    className = "navbar-brand",
+                    className = "view-banner-title",
                     icon = if (this@View is ViewItem<*, *, *, FILT>) iconCrud(crudTask) else null,
                 ) {
                     apiFilterObservable.subscribe {
@@ -500,10 +500,12 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                         }
                     }
                 }
-                bannerLegend().apply {
-                    offCanvasFilter?.let { offCanvasFilter ->
-                        cursor = Cursor.POINTER
-                        onClick { offCanvasFilter.show() }
+                div(className = "view-banner-legend") {
+                    bannerLegend().apply {
+                        offCanvasFilter?.let { offCanvasFilter ->
+                            cursor = Cursor.POINTER
+                            onClick { offCanvasFilter.show() }
+                        }
                     }
                 }
             }
