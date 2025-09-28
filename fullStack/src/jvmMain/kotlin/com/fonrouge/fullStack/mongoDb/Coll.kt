@@ -1590,6 +1590,8 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * Note: this method is not intended for general use but is rather a helper method to support specific use cases.
      *
+     * https://www.mongodb.com/docs/manual/tutorial/update-documents-with-aggregation-pipeline/
+     *
      * @param filter the criteria used to filter documents that need to be updated.
      * @param pipeline a list of aggregation pipeline stages describing the updates to apply to the matching documents.
      * @param updateOptions optional settings to control the update operation behavior, such as upsert.
