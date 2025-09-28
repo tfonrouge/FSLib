@@ -12,7 +12,7 @@ import com.fonrouge.base.api.CrudTask
  */
 fun iconCrud(crudTask: CrudTask? = null): String? {
     return when (crudTask) {
-        CrudTask.Create -> "fas fa-square-plus"
+        CrudTask.Create -> "bi bi-file-earmark-plus"
         CrudTask.Read -> "fas fa-eye"
         CrudTask.Update -> "fas fa-edit"
         CrudTask.Delete -> "fas fa-trash-alt"
