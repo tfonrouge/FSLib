@@ -40,6 +40,7 @@ kotlin {
             implementation(project(":base"))
             implementation(libs.kilua.rpc.ktor)
             implementation(libs.kvision.common.remote)
+            implementation(libs.kotlinx.datetime)
         }
 
         jvmMain.dependencies {
