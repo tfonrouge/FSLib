@@ -1586,6 +1586,27 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
+     * Updates multiple documents in the collection that match the specified filter using the provided update pipeline.
+     *
+     * Note: this method is not intended for general use but is rather a helper method to support specific use cases.
+     *
+     * @param filter the criteria used to filter documents that need to be updated.
+     * @param pipeline a list of aggregation pipeline stages describing the updates to apply to the matching documents.
+     * @param updateOptions optional settings to control the update operation behavior, such as upsert.
+     * @return an UpdateResult containing information about the update operation, including the number of documents matched and modified.
+     */
+    @Suppress("unused")
+    suspend fun updateMany(
+        filter: Bson,
+        pipeline: List<Bson>,
+        updateOptions: UpdateOptions = UpdateOptions(),
+    ): UpdateResult = coroutine.collection.updateMany(
+        filter,
+        pipeline,
+        updateOptions
+    ).awaitSingle()
+
+    /**
      * Updates a single item in the database.
      *
      * @param item The item to be updated.
