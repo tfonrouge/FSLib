@@ -3,19 +3,16 @@ package com.fonrouge.base.lib
 import com.fonrouge.base.api.CrudTask
 
 /**
- * Maps a CRUD task to its corresponding Font Awesome icon class.
+ * Returns the appropriate font-awesome icon class name for a specified CRUD operation.
  *
- * @param crudTask The CRUD operation for which the icon is needed. Defaults to null.
- *                 Possible values are:
- *                 - `CrudTask.Create`: Maps to "fas fa-plus".
- *                 - `CrudTask.Read`: Maps to "fas fa-eye".
- *                 - `CrudTask.Update`: Maps to "fas fa-edit".
- *                 - `CrudTask.Delete`: Maps to "fas fa-trash-alt".
- * @return A string representing the Font Awesome icon class for the given CRUD task, or null if no task is provided.
+ * @param crudTask The CRUD operation for which the icon is required. It can be one of the values
+ *                 from `CrudTask` enum (`Create`, `Read`, `Update`, or `Delete`). If null, no icon is returned.
+ * @return The font-awesome class name as a string corresponding to the specified CRUD operation,
+ *         or null if the input is null.
  */
 fun iconCrud(crudTask: CrudTask? = null): String? {
     return when (crudTask) {
-        CrudTask.Create -> "fas fa-plus"
+        CrudTask.Create -> "fas fa-square-plus"
         CrudTask.Read -> "fas fa-eye"
         CrudTask.Update -> "fas fa-edit"
         CrudTask.Delete -> "fas fa-trash-alt"
