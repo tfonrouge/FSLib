@@ -11,8 +11,6 @@ import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.disableTooltip
 import io.kvision.core.enableTooltip
-import io.kvision.dropdown.ddLink
-import io.kvision.dropdown.dropDown
 import io.kvision.i18n.I18n.gettext
 import io.kvision.i18n.I18n.tr
 import io.kvision.navbar.*
@@ -49,7 +47,7 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             }
             viewList.configViewItem()?.let { configViewItem ->
                 navLink(
-                    label = if (minToolbarSize) "" else "Detail",
+                    label = if (minToolbarSize) "" else tr("Detail"),
                     icon = iconCrud(CrudTask.Read),
                 ) {
                     onClick {
@@ -80,79 +78,72 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
             viewList.configViewItem()
                 ?.let { configViewItem: ConfigViewItem<ICommonContainer<T, ID, out IApiFilter<out Any>>, T, ID, *, out IApiFilter<out Any>, *> ->
                     if (viewList.editable()) {
-                        dropDown(
-                            text = tr("Edit"),
-                            icon = "far fa-file",
-                            forNavbar = true,
-                            arrowVisible = false
+                        navLink(
+                            label = if (minToolbarSize) "" else tr("Create"),
+                            icon = iconCrud(CrudTask.Create),
                         ) {
-                            ddLink(
-                                label = tr("Create"),
-                                icon = iconCrud(CrudTask.Create),
-                            ) {
-                                onClick {
-                                    it.preventDefault()
-                                    viewList.goActionUrl(CrudTask.Create)
-                                }
-                                enableTooltip(
-                                    TooltipOptions(
-                                        title = "Create " + configViewItem.commonContainer.labelItem,
-                                        animation = true,
-                                        delay = delay
-                                    )
+                            onClick {
+                                it.preventDefault()
+                                viewList.goActionUrl(CrudTask.Create)
+                            }
+                            enableTooltip(
+                                TooltipOptions(
+                                    title = "Create " + configViewItem.commonContainer.labelItem,
+                                    animation = true,
+                                    delay = delay
                                 )
+                            )
+                        }
+                        navLink(
+                            label = if (minToolbarSize) "" else tr("Update"),
+                            icon = iconCrud(CrudTask.Update)
+                        ) {
+                            onClick {
+                                it.preventDefault()
+                                viewList.goActionUrl(CrudTask.Update)
                             }
-                            ddLink(
-                                label = tr("Update"),
-                                icon = iconCrud(CrudTask.Update)
-                            ) {
-                                onClick {
-                                    it.preventDefault()
-                                    viewList.goActionUrl(CrudTask.Update)
-                                }
-                                bind(viewList.selectedItemObs) { item ->
-                                    if (item == null) {
-                                        hide()
-                                        disableTooltip()
-                                    } else {
-                                        show()
-                                        enableTooltip(
-                                            TooltipOptions(
-                                                title = "Update " + configViewItem.commonContainer.labelId(
-                                                    item
-                                                ),
-                                                animation = true,
-                                                delay = delay
-                                            )
+                            bind(viewList.selectedItemObs) { item ->
+                                if (item == null) {
+                                    hide()
+                                    disableTooltip()
+                                } else {
+                                    show()
+                                    enableTooltip(
+                                        TooltipOptions(
+                                            title = "Update " + configViewItem.commonContainer.labelId(
+                                                item
+                                            ),
+                                            animation = true,
+                                            delay = delay
                                         )
-                                    }
+                                    )
                                 }
                             }
-                            ddLink(
-                                label = tr("Delete"),
-                                icon = iconCrud(CrudTask.Delete)
-                            ) {
-                                hide()
-                                onClick {
-                                    it.preventDefault()
-                                    viewList.goActionUrl(CrudTask.Delete)
-                                }
-                                bind(viewList.selectedItemObs) { item ->
-                                    if (item == null) {
-                                        hide()
-                                        disableTooltip()
-                                    } else {
-                                        show()
-                                        enableTooltip(
-                                            TooltipOptions(
-                                                title = "Delete " + configViewItem.commonContainer.labelId(
-                                                    item
-                                                ),
-                                                animation = true,
-                                                delay = delay
-                                            )
+                        }
+                        navLink(
+                            label = if (minToolbarSize) "" else tr("Delete"),
+                            icon = iconCrud(CrudTask.Delete)
+                        ) {
+                            hide()
+                            onClick {
+                                it.preventDefault()
+                                viewList.goActionUrl(CrudTask.Delete)
+                            }
+                            bind(viewList.selectedItemObs) { item ->
+                                if (item == null) {
+                                    hide()
+                                    disableTooltip()
+                                } else {
+                                    show()
+                                    enableTooltip(
+                                        TooltipOptions(
+                                            title = "Delete " + configViewItem.commonContainer.labelId(
+                                                item
+                                            ),
+                                            animation = true,
+                                            delay = delay
                                         )
-                                    }
+                                    )
                                 }
                             }
                         }
