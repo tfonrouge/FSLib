@@ -80,7 +80,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
-
+    var dataDisplayed: Boolean = false
     val dropDownElementsObs = ObservableValue<List<TabulatorMenuItem>?>(null)
 
     /**
@@ -523,6 +523,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
             else -> {}
         }
+
+        dataDisplayed = true
 
         onAfterDisplayForm(crudTask)
     }
