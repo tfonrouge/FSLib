@@ -370,11 +370,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         if (apiItem !is ApiItem.Query.Read && readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         return when (apiItem) {
             is ApiItem.Query -> {
-                getCrudPermission(
-                    call = call,
-                    crudTask = apiItem.crudTask,
-                ).also {
-                    if (it.state == State.Error) return ItemState(it)
+                call?.let {
+                    getCrudPermission(
+                        call = call,
+                        crudTask = apiItem.crudTask,
+                    ).also {
+                        if (it.state == State.Error) return ItemState(it)
+                    }
                 }
                 when (apiItem) {
                     is ApiItem.Query.Create<T, ID, FILT> -> {
@@ -963,12 +965,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): List<KProperty1<in T, *>>? = null
 
     /**
-     * Retrieves the CRUD permission for a given API item by evaluating its call and CRUD task.
+     * Determines the CRUD (Create, Read, Update, Delete) permissions for a given API item.
      *
-     * @param apiItem The API item containing the call and CRUD task for which permission is being checked.
+     * @param apiItem The API item containing details and context for evaluating permissions, including
+     *                the associated call and CRUD task.
+     * @return A [SimpleState] indicating whether the CRUD operations are permitted. Returns a successful
+     *         state by default if no call is provided.
      */
     @Suppress("unused")
-    suspend fun getCrudPermission(apiItem: ApiItem<T, ID, FILT>) = getCrudPermission(apiItem.call, apiItem.crudTask)
+    suspend fun getCrudPermission(apiItem: ApiItem<T, ID, FILT>): SimpleState =
+        apiItem.call?.let { call -> getCrudPermission(call, apiItem.crudTask) } ?: SimpleState(isOk = true)
 
     /**
      * Determines the CRUD (Create, Read, Update, Delete) permission for a given user.
@@ -978,7 +984,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return A SimpleState indicating whether the permission check was successful, including an error message if not.
      */
     suspend fun getCrudPermission(
-        call: ApplicationCall?,
+        call: ApplicationCall,
         crudTask: CrudTask,
     ): SimpleState {
         val roleInUserColl = privateRoleInUserColl ?: return SimpleState(isOk = true)

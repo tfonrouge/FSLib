@@ -59,19 +59,19 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<UID>, UID : 
     /**
      * Retrieves the single action permission for a user based on the provided `ApplicationCall` and an optional `KCallable` or `StackTraceElement`.
      *
-     * @param call The application call containing user session details. Can be null.
+     * @param call The application call containing user session details.
      * @param kCallable An optional callable reference for the function whose permission is being checked. Defaults to null.
      * @param stackTraceElement The stack trace element from which the calling method's information is derived. Defaults to the caller's context.
      * @return A pair consisting of the user object (if valid) and a `SimpleState` object representing the permission state.
      */
     suspend fun getSingleActionPermission(
-        call: ApplicationCall?,
+        call: ApplicationCall,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): Pair<UserSession<UID>?, SimpleState> {
-        val userSession: UserSession<UID> = call?.sessions?.get() ?: return null to SimpleState(
+        val userSession: UserSession<UID> = call.sessions.get() ?: return null to SimpleState(
             isOk = false,
-            msgError = "User not valid"
+            msgError = "ApplicationCall not provided or invalid user session"
         )
         return userSession to getSingleActionPermission(
             userSession = userSession,
@@ -89,7 +89,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<UID>, UID : 
      * @return A SimpleState object representing the permission state for the user.
      */
     suspend fun getSingleActionPermission(
-        userSession: UserSession<UID>?,
+        userSession: UserSession<UID>,
         kCallable: KCallable<*>? = null,
         stackTraceElement: StackTraceElement = Thread.currentThread().stackTrace[2],
     ): SimpleState {
@@ -112,18 +112,17 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<UID>, UID : 
     /**
      * Retrieves the single action permission for a user based on the provided class owner and function name.
      *
-     * @param userSession The user for whom the permission is being checked. Can be null.
+     * @param userSession The user for whom the permission is being checked.
      * @param classOwner The name of the class that owns the function for which permission is being checked.
      * @param funcName The name of the function for which permission is being checked.
      * @return A SimpleState object representing the permission state for the user.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun getSingleActionPermission(
-        userSession: UserSession<UID>?,
+        userSession: UserSession<UID>,
         classOwner: String,
         funcName: String,
     ): SimpleState {
-        userSession ?: return SimpleState(isOk = false, msgError = "User not valid")
         val (matchLabel, matchAppRole) = "${classOwner}::${funcName}" to and(
             IAppRole<*>::roleType eq RoleType.SingleAction,
             IAppRole<*>::classOwner eq classOwner,
@@ -151,18 +150,18 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<UID>, UID : 
     /**
      * Determines the permission state based on the provided parameters and user session.
      *
-     * @param call The application call, which may contain session information about the current user. Can be null.
+     * @param call The application call, which may contain session information about the current user.
      * @param roleType The type of role being checked, such as single action or CRUD task.
      * @param crudTask An optional CRUD operation (Create, Read, Update, or Delete) to check the permissions for. Defaults to null.
      * @param appRoleBlock A suspending block that provides the state of an application role, which is used to determine permissions.
      */
     suspend fun permissionState(
-        call: ApplicationCall?,
+        call: ApplicationCall,
         roleType: RoleType,
         crudTask: CrudTask? = null,
         appRoleBlock: suspend () -> ItemState<out IAppRole<*>>,
     ): SimpleState {
-        val userSession: UserSession<UID>? = call?.sessions?.get()
+        val userSession: UserSession<UID>? = call.sessions.get()
         return userSession?.let {
             permissionState(
                 roleType = roleType,
