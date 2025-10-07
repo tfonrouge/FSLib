@@ -18,6 +18,5 @@ dependencyResolutionManagement {
 rootProject.name = "fsLib"
 include(":base")
 include(":fullStack")
-include(":shopify")
 include(":test1")
 include(":utils")
