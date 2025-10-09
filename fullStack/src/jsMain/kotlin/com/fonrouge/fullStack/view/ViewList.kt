@@ -48,6 +48,17 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
 ) {
+    companion object {
+        /**
+         * A dynamic variable representing the configuration for persistence of tabulator-info.
+         * This variable can be used to enable or disable the persistence mechanism or to define custom
+         * configurations based on its value.
+         *
+         * See `https://tabulator.info/docs/6.3/persist`
+         */
+        var tabulatorInfoPersistenceConfig: dynamic = true
+    }
+
     /**
      * Represents a configuration holder for a view item in a ViewList.
      *
@@ -581,7 +592,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         paginationMode: PaginationMode? = PaginationMode.REMOTE,
         paginationSize: Int? = 100,
         paginationSizeSelector: dynamic = arrayOf(10, 20, 50, 100, 200, 500),
-        persistence: dynamic = true,
+        persistence: dynamic = tabulatorInfoPersistenceConfig,
         persistenceID: String? = this::class.simpleName,
         rowContextMenu: dynamic = { contextRowMenuGenerator() },
         selectableRows: dynamic = 1,
