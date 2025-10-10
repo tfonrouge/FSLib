@@ -21,7 +21,7 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
 ) {
     private val expireTimeUser = mutableMapOf<UID, Pair<Instant, U?>>()
 
-    override val userCollFun: () -> IUserColl<CCU, U, UID, FILT> = { this }
+    final override val userCollFun: () -> IUserColl<CCU, U, UID, FILT> = { this }
 
     /**
      * Checks the validity of a user's session and takes appropriate action if the session has expired.
