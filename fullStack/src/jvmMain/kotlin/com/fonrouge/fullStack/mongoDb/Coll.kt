@@ -2,6 +2,7 @@ package com.fonrouge.fullStack.mongoDb
 
 import com.fonrouge.base.annotations.Collection
 import com.fonrouge.base.api.*
+import com.fonrouge.base.bson.json2
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.IAppRole

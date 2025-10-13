@@ -1,4 +1,4 @@
-package com.fonrouge.fullStack.mongoDb
+package com.fonrouge.base.bson
 
 import org.litote.kmongo.json
 
