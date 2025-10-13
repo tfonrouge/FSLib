@@ -16,11 +16,11 @@ fun <T : Any> toBsonSet(obj: T, updateOnlyNotNullProperties: Boolean = false): B
 }
 
 /**
- * Converts the current object into a BSON representation.
+ * Converts the calling object into a BSON representation.
  *
- * @param updateOnlyNotNullProperties If true, only the non-null properties of the object
- * will be included in the BSON output. Defaults to false.
- * @return The BSON representation of the current object.
+ * This extension function acts as a shorthand, internally calling the `toBsonSet` function.
+ *
+ * @return The BSON representation of the calling object.
  */
 @Suppress("unused")
-fun <T: Any> T.toBsonSet(updateOnlyNotNullProperties: Boolean = false): Bson = toBsonSet(this, updateOnlyNotNullProperties)
+fun <T : Any> T.toBsonSet(): Bson = toBsonSet(this)
