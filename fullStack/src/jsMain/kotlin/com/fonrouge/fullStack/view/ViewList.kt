@@ -441,7 +441,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * @param item The item for which the context menu is being generated. It can be null if no specific item is selected.
      * @return A list of TabulatorMenuItem representing the context menu options, or null if no menu is available.
      */
-    open fun contextRowMenu(item: T?): List<TabulatorMenuItem>? = null
+    open fun contextRowMenu(item: T): List<TabulatorMenuItem>? = null
 
     /**
      * Generates a context menu for a specific row in a Tabulator table, based on the provided configuration
@@ -517,8 +517,10 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 menu += function(item)
             }
         }
-        contextRowMenu(item)?.let {
-            menu += it
+        item?.let {
+            contextRowMenu(item)?.let {
+                menu += it
+            }
         }
         return menu.toTypedArray()
     }
