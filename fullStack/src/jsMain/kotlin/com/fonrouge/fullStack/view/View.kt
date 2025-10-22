@@ -20,7 +20,9 @@ import io.kvision.html.*
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.offcanvas.Offcanvas
+import io.kvision.panel.SimplePanel
 import io.kvision.panel.hPanel
+import io.kvision.panel.vPanel
 import io.kvision.state.ObservableValue
 import io.kvision.state.bind
 import io.kvision.utils.em
@@ -61,6 +63,54 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
          * If set to null, no action is performed for updating session parameters.
          */
         var updateUserSessionParams: (suspend () -> ItemState<UserSessionParams>)? = null
+    }
+
+    /**
+     * Represents the layout style for displaying a banner.
+     *
+     * The `bannerLayout` property specifies the orientation or configuration of the banner within a UI.
+     * It defines the structure in which banner components are arranged, allowing customization such as
+     * vertical or horizontal layouts.
+     *
+     * This property is initialized with a default layout style of `BannerLayout.Vertical`.
+     */
+    open val bannerLayout: BannerLayout = BannerLayout.Vertical
+
+    /**
+     * Retrieves the CSS class name for the banner title based on the banner layout type.
+     *
+     * This property determines the class name used to style the banner title, depending on
+     * whether the banner layout is horizontal or vertical. If the layout is horizontal,
+     * it returns a specific class name. If the layout is vertical, it returns null.
+     */
+    open val bannerTitleClass: String?
+        get() = when (bannerLayout) {
+            BannerLayout.Horizontal -> "col-4"
+            BannerLayout.Vertical -> null
+        }
+
+    /**
+     * Represents the CSS class for the banner legend based on the banner layout.
+     * The value is determined dynamically depending on whether the banner layout
+     * is horizontal or vertical.
+     *
+     * @return A CSS class string ("col-8") if the banner layout is horizontal;
+     *         otherwise, it returns null for a vertical banner layout.
+     */
+    open val bannerLegendClass: String?
+        get() = when (bannerLayout) {
+            BannerLayout.Horizontal -> "col-8"
+            BannerLayout.Vertical -> null
+        }
+
+    /**
+     * Represents the layout orientation options for a banner component.
+     *
+     * BannerLayout defines how the content of a banner should be displayed, either horizontally or vertically.
+     */
+    enum class BannerLayout {
+        Horizontal,
+        Vertical
     }
 
     /**
@@ -287,11 +337,46 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     }
 
     /**
-     * Allows describing a display that will be shown next to the view link banner
-     * it can be triggered with [updateBanner] function.
-     * Note: don't try to update [apiFilterObservable] inside this, or you'll get a recursive infinite loop
+     * Creates a banner legend component inside the container.
+     *
+     * This method is used to add a banner legend to the container, typically
+     * for displaying important information or notices in a prominent way.
+     * The styling and content of the banner legend can be customized as needed.
      */
     open fun Container.bannerLegend() {}
+
+    /**
+     * Creates and returns a container panel configured as a banner title layout
+     * based on the specified `bannerLayout`. The layout can be either horizontal
+     * or vertical, determined by the `BannerLayout` property.
+     *
+     * @return A `SimplePanel` instance configured according to the `bannerLayout`.
+     */
+    open fun Container.bannerTitle(): SimplePanel = when (bannerLayout) {
+        BannerLayout.Horizontal -> vPanel(
+            justify = JustifyContent.CENTER,
+            alignItems = AlignItems.CENTER,
+        )
+
+        BannerLayout.Vertical -> hPanel(
+            justify = JustifyContent.CENTER,
+            alignItems = AlignItems.CENTER,
+        )
+    }
+
+    /**
+     * Creates and returns a `Container` component styled and populated
+     * based on the `bannerLayout` property. The class name of the resulting
+     * container is determined dynamically: "row" if the layout is horizontal
+     * and "col" if the layout is vertical. Additionally, the container has
+     * a flexGrow property set to 1 for layout flexibility.
+     *
+     * @return A styled `Container` instance with layout-related configurations.
+     */
+    open fun Container.bannerTitleLegendContainer(): Container =
+        div(className = if (bannerLayout == BannerLayout.Horizontal) "row" else "col") {
+            flexGrow = 1
+        }
 
     /**
      * Renders the main content of the view within the specified container.
@@ -402,40 +487,42 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
     open fun onBeforeDispose() {}
 
     /**
-     * Creates a horizontally aligned panel container with centered items,
-     * encapsulated within a fluid container class, typically used
-     * for holding the banner legend components.
+     * Constructs a page banner UI component typically used for displaying titles, legends,
+     * and navigation elements of a page within a container.
      *
-     * @return the container with specified alignment and class.
-     */
-    open fun Container.bannerLegendContainer(): Container =
-        hPanel(justify = JustifyContent.FLEXSTART, alignItems = AlignItems.CENTER, className = "container-fluid")
-
-    /**
-     * Configures and displays a horizontal page banner within a given container.
+     * This method adds a banner to a `Container` with the following elements:
+     * - A title and navigation section.
+     * - An optional dropdown menu or context menu for additional actions.
+     * - Navigation buttons for certain CRUD operations.
+     * - An optional off-canvas filter view for additional filtering capability.
      *
-     * The banner is created using a light-themed Bootstrap navbar and dynamically updates
-     * based on observable state changes. It includes navigation links, buttons, and
-     * additional elements for filtering and actions dependent on the view state and user interactions.
+     * The page banner adapts dynamically based on the state of the implementing `View`. It subscribes
+     * to observables to update its content and behavior accordingly. Examples include updating the URL
+     * or label dynamically and conditionally displaying menu items or buttons.
      *
-     * Features:
-     * - A dynamically updating label and URL link based on observable states associated with the current view.
-     * - Configurable navigation buttons for actions such as back, cancel, or accept, depending on the CRUD task and context.
-     * - Optional edit button display in read-only contexts for updating entities.
-     * - Capability to include an off-canvas filter for enhanced filtering functionality, which can be shown upon user interaction.
+     * Behavior:
+     * - The banner supports a title with optional navigation links and an icon based on the CRUD task.
+     * - Legend or auxiliary content can be displayed below the title.
+     * - When used with a `ViewItem`, the banner conditionally shows buttons for actions such as
+     *   cancel, accept, or back navigation, based on the CRUD task and upsert state.
+     * - A dropdown menu for contextual actions can be displayed if the `View` provides menu items.
+     * - If an off-canvas filter is provided, clicking on the legend triggers the display of the filter.
      *
-     * Note: This function is intended to be used within a `Container` and assumes that certain contextual data members are available in the surrounding scope.
+     * Modifies:
+     * - Dynamically binds content to observables to ensure real-time updates.
+     * - Adjusts layout, visibility, and interactivity of various elements based on the state of the `View`.
      *
-     * Known Limitation:
-     * - Horizontal scrollability for the banner has not been fully implemented and requires additional development.
+     * Dependencies:
+     * - Relies on observables like `pageBannerUpdateObservable`, `dropDownElementsObs`,
+     *   and `apiFilterObservable` for dynamic updates and state changes.
+     * - Assumes the `Container` is compatible with the structure and UI elements involved.
      */
     fun Container.pageBanner() {
-        /* TODO: find out how make horizontally scrollable */
         navbar(bgColor = BsBgColor.LIGHT, className = "view-banner").bind(
             observableState = pageBannerUpdateObservable,
             removeChildren = true
         ) {
-            bannerLegendContainer().apply {
+            bannerTitleLegendContainer().apply {
                 if (this@View is ViewItem<*, *, *, FILT> && this@View.crudTask == CrudTask.Read) {
                     dropDown(
                         text = "",
@@ -480,27 +567,32 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                         }
                     }
                 }
-                link(
-                    label = this@View.label,
-                    url = navigoUrlWithParams,
-                    className = "view-banner-title",
-                    icon = if (this@View is ViewItem<*, *, *, FILT>) iconCrud(crudTask) else null,
-                ) {
-                    apiFilterObservable.subscribe {
-                        url = apiFilterToPageUrl(replaceState = false)
-                        AppScope.launch {
-                            label = labelBanner(it)
-                        }
-                    }
-                    if (this@View is ViewItem<*, *, *, FILT>) {
-                        (this@View as ViewItem<*, *, *, FILT>).itemObservable.subscribe {
-                            AppScope.launch {
-                                label = labelBanner(apiFilter)
+                div(className = "view-banner-title ${bannerTitleClass ?: ""}") {
+                    alignContent = AlignContent.CENTER
+                    bannerTitle().apply {
+                        link(
+                            label = this@View.label,
+                            url = navigoUrlWithParams,
+                            icon = if (this@View is ViewItem<*, *, *, FILT>) iconCrud(crudTask) else null,
+                        ) {
+                            setStyle("text-decoration", "none")
+                            apiFilterObservable.subscribe {
+                                url = apiFilterToPageUrl(replaceState = false)
+                                AppScope.launch {
+                                    label = labelBanner(it)
+                                }
+                            }
+                            if (this@View is ViewItem<*, *, *, FILT>) {
+                                (this@View as ViewItem<*, *, *, FILT>).itemObservable.subscribe {
+                                    AppScope.launch {
+                                        label = labelBanner(apiFilter)
+                                    }
+                                }
                             }
                         }
                     }
                 }
-                div(className = "view-banner-legend") {
+                div(className = "view-banner-legend ${bannerLegendClass ?: ""}") {
                     bannerLegend().apply {
                         offCanvasFilter?.let { offCanvasFilter ->
                             cursor = Cursor.POINTER
