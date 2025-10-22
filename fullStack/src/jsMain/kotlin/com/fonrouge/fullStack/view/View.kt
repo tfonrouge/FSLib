@@ -63,6 +63,13 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
          * If set to null, no action is performed for updating session parameters.
          */
         var updateUserSessionParams: (suspend () -> ItemState<UserSessionParams>)? = null
+
+        /**
+         * Represents the default layout configuration for banners.
+         * The layout determines the orientation or arrangement style.
+         * This variable is initialized with `BannerLayout.Vertical` as its default value.
+         */
+        var defaultBannerLayout: BannerLayout = BannerLayout.Vertical
     }
 
     /**
@@ -74,7 +81,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      *
      * This property is initialized with a default layout style of `BannerLayout.Vertical`.
      */
-    open val bannerLayout: BannerLayout = BannerLayout.Vertical
+    open val bannerLayout: BannerLayout = defaultBannerLayout
 
     /**
      * Retrieves the CSS class name for the banner title based on the banner layout type.
