@@ -108,19 +108,12 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
      * @param apiFilter The API filter instance used to build the URL. Defaults to the result of `commonContainer.apiFilterInstance()`.
      * @return A `Pair` containing the label as the first value and the constructed URL as the second value.
      */
-    fun toLabelUrlPair(
+    open fun toLabelUrlPair(
         apiFilter: FILT = commonContainer.apiFilterInstance()
-    ): Pair<String, String> {
-        val url = if (this is ConfigViewList<*, *, *, *, FILT, *, *>) {
-            viewListUrl(apiFilter)
-        } else {
-            urlWithParams(apiFilterParam(apiFilter))
-        }
-        return label to url
-    }
+    ): Pair<String, String> = label to viewUrl(apiFilter)
 
     /**
-     * builds an url with a list of pair values of key=value url parameters
+     * builds an url with a list key=value url parameters
      */
     fun urlWithParams(vararg pairParams: Pair<String, String>): String = if (pairParams.isNotEmpty()) {
         val result = StringBuilder(url)
@@ -132,6 +125,22 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
     } else {
         url
     }
+
+    /**
+     * Generates a URL based on the current configuration and specified API filter.
+     *
+     * - If the current instance is of type `ConfigViewList`, a specialized URL for the view list is generated.
+     * - Otherwise, a general URL with API filter parameters is constructed.
+     *
+     * @param apiFilter The API filter instance used to build the URL.
+     * @return A string representing the constructed URL.
+     */
+    fun viewUrl(apiFilter: FILT): String =
+        if (this is ConfigViewList<*, *, *, *, FILT, *, *>) {
+            viewListUrl(apiFilter)
+        } else {
+            urlWithParams(apiFilterParam(apiFilter))
+        }
 
     /**
      * helper to build an api filter parameter in the url string

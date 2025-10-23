@@ -71,20 +71,6 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
         }
 
     override val label: String get() = commonContainer.labelList
-    override val labelUrl: Pair<String, String> by lazy { commonContainer.labelList to url }
-
-    /**
-     * builds an url string with optional [IApiFilter] parameter
-     */
-    fun url(apiFilter: FILT? = null): String {
-        return baseUrl + (apiFilter?.let {
-            "?" + pairParam(
-                key = "apiFilter",
-                serializer = commonContainer.apiFilterSerializer,
-                obj = apiFilter
-            )
-        } ?: "")
-    }
 
     fun viewListUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String =
         urlWithParams(apiFilterParam(apiFilter))

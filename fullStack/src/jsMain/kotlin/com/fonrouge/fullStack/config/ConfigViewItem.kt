@@ -248,11 +248,10 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     }
 
     fun urlUpdate(id: ID): String {
-        val urlParams =
-            UrlParams(
-                "id" to Json.encodeToString(commonContainer.idSerializer, id),
-                "action" to CrudTask.Update.name
-            )
+        val urlParams = UrlParams(
+            "id" to Json.encodeToString(commonContainer.idSerializer, id),
+            "action" to CrudTask.Update.name
+        )
         return url + urlParams.toEncodedUrlString()
     }
 
