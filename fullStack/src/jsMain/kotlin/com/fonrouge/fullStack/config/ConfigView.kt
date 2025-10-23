@@ -56,17 +56,10 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
     fun navigateTo(
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         target: String = "_blank",
-    ): Window? {
-        val url = if (this is ConfigViewList<*, *, *, *, FILT, *, *>) {
-            viewListUrl(apiFilter)
-        } else {
-            urlWithParams(apiFilterParam(apiFilter))
-        }
-        return window.open(
-            url = url,
-            target = target
-        )
-    }
+    ): Window? = window.open(
+        url = toLabelUrlPair(apiFilter).second,
+        target = target
+    )
 
     /**
      * Creates a new instance of the view and initializes it with the provided URL parameters and initialization logic.
@@ -107,19 +100,37 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
         key to Json.encodeToString(serializer, obj)
 
     /**
+     * Generates a pair representing the label and its associated URL based on the current configuration.
+     *
+     * If the instance is of type `ConfigViewList`, a specialized view list URL is constructed.
+     * Otherwise, a general URL including API filter parameters is created.
+     *
+     * @param apiFilter The API filter instance used to build the URL. Defaults to the result of `commonContainer.apiFilterInstance()`.
+     * @return A `Pair` containing the label as the first value and the constructed URL as the second value.
+     */
+    fun toLabelUrlPair(
+        apiFilter: FILT = commonContainer.apiFilterInstance()
+    ): Pair<String, String> {
+        val url = if (this is ConfigViewList<*, *, *, *, FILT, *, *>) {
+            viewListUrl(apiFilter)
+        } else {
+            urlWithParams(apiFilterParam(apiFilter))
+        }
+        return label to url
+    }
+
+    /**
      * builds an url with a list of pair values of key=value url parameters
      */
-    fun urlWithParams(vararg pairParams: Pair<String, String>): String {
-        return if (pairParams.isNotEmpty()) {
-            val result = StringBuilder(url)
-            pairParams.forEachIndexed { i, s ->
-                result.append(if (i == 0) "?" else "&")
-                result.append("${s.first}=${encodeURIComponent(s.second)}")
-            }
-            result.toString()
-        } else {
-            url
+    fun urlWithParams(vararg pairParams: Pair<String, String>): String = if (pairParams.isNotEmpty()) {
+        val result = StringBuilder(url)
+        pairParams.forEachIndexed { i, s ->
+            result.append(if (i == 0) "?" else "&")
+            result.append("${s.first}=${encodeURIComponent(s.second)}")
         }
+        result.toString()
+    } else {
+        url
     }
 
     /**
