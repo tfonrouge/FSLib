@@ -40,7 +40,7 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
 
     val url: String get() = "#/" + this.baseUrl
     open val label: String get() = commonContainer.label
-    open val labelUrl: Pair<String, String> by lazy { commonContainer.label to url }
+    open val labelUrl: Pair<String, String> get() = label to url
 
     /**
      * Opens a new browser window or tab with the URL generated from the current configuration.

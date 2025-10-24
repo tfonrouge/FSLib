@@ -102,7 +102,7 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     @Suppress("unused")
     val labelItemId get() = commonContainer.labelItemId(item)
 
-    override val labelUrl: Pair<String, String> by lazy { commonContainer.labelItem to url }
+    override val labelUrl: Pair<String, String> get() = label to url
 
     /**
      * Provides the serialized identifier of the current item using the provided ID serializer.
