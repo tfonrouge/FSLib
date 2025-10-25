@@ -1,7 +1,9 @@
 package com.fonrouge.fullStack.layout
 
+import io.kvision.core.JustifyContent
 import io.kvision.html.span
 import io.kvision.modal.Modal
+import io.kvision.panel.hPanel
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -22,13 +24,20 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 @Suppress("unused")
 fun CoroutineScope.withProgress(
-    title: String = "one moment ...",
-    text: String? = null,
+    title: String? = null,
+    text: String = "one moment please...",
     block: suspend CoroutineScope.() -> Unit
 ) {
-    val modal = Modal(caption = title, closeButton = false, centered = true, escape = false) {
-        id = "modal"
-        text?.let { span(it, rich = true) }
+    val modal = Modal(
+        caption = title,
+        closeButton = false,
+        centered = true,
+        escape = false,
+        className = "with-progress"
+    ) {
+        hPanel(justify = JustifyContent.CENTER) {
+            span(text, rich = true)
+        }
     }
     modal.show()
     launch {
@@ -42,7 +51,7 @@ fun CoroutineScope.withProgress(
                 x++
                 delay(100.milliseconds)
                 if (window.getComputedStyle(modal.getElement() as Element).opacity == "1") {
-                    delay(100.milliseconds)
+                    delay(500.milliseconds)
                     break
                 }
             }
