@@ -16,18 +16,18 @@ var progressCount = 0
  * @return A Job representing the coroutine, which can be used to cancel or monitor its execution.
  */
 @Suppress("unused")
-fun CoroutineScope.withProgress(block: suspend () -> Unit): Job {
+fun CoroutineScope.withPace(block: suspend () -> Unit): Job {
     Pace.show()
     progressCount++
     return launch {
         try {
             block()
             progressCount--
-            if (progressCount <= 0) Pace.hide()
         } catch (e: Exception) {
             progressCount--
-            if (progressCount <= 0) Pace.hide()
             throw e
+        } finally {
+            if (progressCount <= 0) Pace.hide()
         }
     }
 }
