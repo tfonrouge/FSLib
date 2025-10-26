@@ -529,8 +529,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             observableState = pageBannerUpdateObservable,
             removeChildren = true
         ) {
-            bannerTitleLegendContainer().apply {
-                if (this@View is ViewItem<*, *, *, FILT> && this@View.crudTask == CrudTask.Read) {
+            if (this@View is ViewItem<*, *, *, FILT> && this@View.crudTask == CrudTask.Read) {
+                nav {
                     dropDown(
                         text = "",
                         icon = "fas fa-ellipsis-vertical",
@@ -574,6 +574,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                         }
                     }
                 }
+            }
+            bannerTitleLegendContainer().apply {
                 div(className = "view-banner-title ${bannerTitleClass ?: ""}") {
                     alignContent = AlignContent.CENTER
                     bannerTitle().apply {
