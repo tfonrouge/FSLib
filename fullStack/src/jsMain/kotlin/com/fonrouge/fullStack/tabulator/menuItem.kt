@@ -19,11 +19,12 @@ import com.fonrouge.fullStack.config.ConfigViewList
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> menuItem(
     configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>,
+    label: String = configViewItem.label,
     apiItem: ApiItem<T, ID, FILT>,
     icon: String? = null,
     disabled: Boolean? = null,
 ): TabulatorMenuItem = menuItem(
-    label = configViewItem.label,
+    label = label,
     icon = icon,
     disabled = disabled,
     url = configViewItem.viewItemUrl(
@@ -45,11 +46,12 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
 @Suppress("unused")
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> menuItem(
     configViewList: ConfigViewList<CC, T, ID, *, FILT, *, *>,
+    label: String = configViewList.label,
     apiFilter: FILT = configViewList.commonContainer.apiFilterInstance(),
     icon: String? = null,
     disabled: Boolean? = null,
 ): TabulatorMenuItem = menuItem(
-    label = configViewList.label,
+    label = label,
     icon = icon,
     disabled = disabled,
     url = configViewList.viewListUrl(
