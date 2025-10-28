@@ -387,14 +387,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     }
 
                     is ApiItem.Query.Read<T, ID, FILT> -> {
-                        val itemState = findItemStateById(
+                        onQueryRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
+                        findItemStateById(
                             id = apiItem.id,
                             apiFilter = apiItem.apiFilter,
                             lookupWrappers = lookupWrappers
                         )
-                        if (itemState.hasError || itemState.item == null) return itemState
-                        onQueryRead(apiItem = apiItem).also { if (it.hasError) return it.asItemState() }
-                        itemState
                     }
 
                     is ApiItem.Query.Update<T, ID, FILT> -> {
