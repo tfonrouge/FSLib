@@ -345,12 +345,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     }
 
     /**
-     * Processes an API item request by handling CRUD operations and permission checks.
+     * Processes an API item and performs appropriate CRUD or action tasks based on the API item's type.
      *
-     * @param call The ApplicationCall instance representing the current HTTP call, or null if not available.
-     * @param iApiItem The API item to be processed, which contains the operation type (e.g., create, read, update, delete).
-     * @param lookupWrappers A list of LookupWrapper objects used for managing relationships or additional query constraints.
-     * @return An ItemState representing the result of the operation, containing the processed item or an error state.
+     * @param call The current application call, or null if none is provided.
+     * @param iApiItem The API item to process, encapsulating the item and task information.
+     * @param lookupWrappers A list of lookup wrappers to assist with data lookups during processing. Defaults to an empty list.
+     * @return The resulting state of the processed item, including any success or error information.
      */
     @Suppress("unused")
     suspend fun apiItemProcess(
