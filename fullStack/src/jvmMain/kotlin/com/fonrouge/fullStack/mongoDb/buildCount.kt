@@ -3,15 +3,7 @@ package com.fonrouge.fullStack.mongoDb
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.mongodb.client.model.Field
-import org.litote.kmongo.MongoOperator
-import org.litote.kmongo.addFields
-import org.litote.kmongo.count
-import org.litote.kmongo.expr
-import org.litote.kmongo.from
-import org.litote.kmongo.match
-import org.litote.kmongo.rem
-import org.litote.kmongo.variable
-import org.litote.kmongo.variableDefinition
+import org.litote.kmongo.*
 import kotlin.reflect.KProperty1
 
 /**
@@ -24,13 +16,13 @@ import kotlin.reflect.KProperty1
  * @return A configured [LookupPipelineBuilder] for performing the aggregation.
  */
 @Suppress("unused", "UnusedReceiverParameter")
-fun <T: BaseDoc<*>, CF : Coll<out ICommonContainer<F, FID, *>, F, FID, *, *>, F : BaseDoc<FID>, FID : Any> Coll<out ICommonContainer<T,*,*>,T,*,*,*>.buildCount(
+fun <T : BaseDoc<*>, CF : Coll<out ICommonContainer<F, FID, *>, F, FID, *, *>, F : BaseDoc<FID>, FID : Any> Coll<out ICommonContainer<T, *, *>, T, *, *, *>.buildCount(
     collForeign: CF,
     localKey: KProperty1<T, Any?>,
     foreignIdKey: KProperty1<F, Any?>,
     resultField: KProperty1<in T, Any?>
 ): LookupPipelineBuilder<T, F, FID> {
-    val normalizedLocalKeyName = "localIdKey_${localKey.name}"
+    val normalizedLocalKeyName = "localIdKey_${localKey.name}".replace(".", "_")
     return lookupAnyField(
         coll = collForeign,
         let = listOf(
