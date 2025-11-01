@@ -778,7 +778,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
                     is KPropertyPath<*, ID?> -> return ItemState(
                         state = State.Error,
-                        msgError = "Child field path '${commonContainer.itemKClass.simpleName}::${kProperty1.path()}' not valid (if you used '/' or '%' operators you must use '+' operator)"
+                        msgError = "Child field path '${commonContainer.itemKClass.simpleName}::${kProperty1.path()}' not valid (if you used '/' or '%' operators to describe Dependency::property you must use '+' operator)"
                     )
 
                     else -> null
