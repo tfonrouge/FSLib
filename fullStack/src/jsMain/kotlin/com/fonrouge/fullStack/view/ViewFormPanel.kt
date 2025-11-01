@@ -47,17 +47,13 @@ class ViewFormPanel<K : BaseDoc<*>>(
             formControl.setValue(x)
         }
 
-        fun getValue(): V? {
-            return formControl.getValue()?.toString()?.let { it ->
-                valueFromControl(it)?.let {
-                    Json.decodeFromString(deserializer = serializer, string = it)
-                }
+        fun getValue(): V? = formControl.getValue()?.toString()?.let { it ->
+            valueFromControl(it)?.let {
+                Json.decodeFromString(deserializer = serializer, string = it)
             }
         }
 
-        fun getSerializedValue(): String? {
-            return getValue()?.let { Json.encodeToString(serializer = serializer, value = it) }
-        }
+        fun getSerializedValue(): String? = getValue()?.let { Json.encodeToString(serializer = serializer, value = it) }
     }
 
     /**
@@ -77,9 +73,7 @@ class ViewFormPanel<K : BaseDoc<*>>(
         layoutType: FormType? = null,
         validatorMessage: ((C) -> String?)? = null,
         validator: ((C) -> Boolean?)? = null,
-    ): C {
-        return bind(key, required, requiredMessage, layoutType, validatorMessage, validator)
-    }
+    ): C = bind(key, required, requiredMessage, layoutType, validatorMessage, validator)
 
     /**
      * Binds a custom value to a form control through serialization and deserialization.
