@@ -1,7 +1,6 @@
 package com.fonrouge.fullStack.view
 
 import com.fonrouge.base.model.BaseDoc
-import io.kvision.core.Widget
 import io.kvision.core.onChange
 import io.kvision.form.*
 import kotlinx.serialization.InternalSerializationApi
@@ -92,7 +91,7 @@ class ViewFormPanel<K : BaseDoc<*>>(
     @OptIn(InternalSerializationApi::class)
     inline fun <F : FormControl, reified V> F.bindCustomValue(
         property: KProperty1<in K, V?>,
-        serializer: KSerializer<V?> = serializer<V?>(),
+        serializer: KSerializer<V?> = serializer(),
         noinline valueToControl: ((V?) -> String?) = { v: V? -> Json.encodeToString(serializer, v) },
         noinline valueFromControl: ((String?) -> String?) = { s: String? -> s },
         required: Boolean = false, requiredMessage: String? = null,
@@ -106,22 +105,17 @@ class ViewFormPanel<K : BaseDoc<*>>(
             valueToControl = valueToControl,
             valueFromControl = valueFromControl,
         )
-
-        if (this is Widget) {
-            if (this is GenericFormComponent<*>) {
-                @Suppress("TYPE_INTERSECTION_AS_REIFIED_WARNING")
-                onChange {
-                    (value as? String?)?.let { it ->
-                        valueFromControl(it)?.let {
-                            Json.decodeFromString(serializer, it)
-                        }
-                    }?.let {
-                        customMapValue.setValue(it)
+        if (this is GenericFormComponent<*>) {
+            onChange {
+                (value as? String?)?.let { it ->
+                    valueFromControl(it)?.let {
+                        Json.decodeFromString(serializer, it)
                     }
+                }?.let {
+                    customMapValue.setValue(it)
                 }
             }
         }
-
         customMapValues[property.name] = customMapValue
         customMapValue.setValue(viewItem.item?.let { property.get(it) })
         bind(
