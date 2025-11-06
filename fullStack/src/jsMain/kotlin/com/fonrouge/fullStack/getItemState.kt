@@ -36,7 +36,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, R : Any?> ICommonContainer
     transform: (ItemState<T>) -> R,
 ): Promise<R> {
     val (url, method) = ConfigViewItem.serviceManager.requireCall(apiItemFun)
-    val callAgent = CallAgent()
+    val kvCallAgent = CallAgent()
     val iApiItem = toIApiItem(apiItem)
     val apiItemSerialized =
         Json.encodeToString(IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer), iApiItem)
@@ -45,7 +45,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, R : Any?> ICommonContainer
         transform(
             Json.decodeFromString<ItemState<T>>(
                 ItemState.serializer(this@getItemState.itemSerializer),
-                callAgent.jsonRpcCall(url, paramList, method)
+                kvCallAgent.jsonRpcCall(url, paramList, method)
             )
         )
     }.asPromise()

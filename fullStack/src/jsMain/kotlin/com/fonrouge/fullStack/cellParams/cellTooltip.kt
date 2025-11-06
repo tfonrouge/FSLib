@@ -1,7 +1,7 @@
 package com.fonrouge.fullStack.cellParams
 
 import io.kvision.tabulator.js.Tabulator
-import web.mouse.MouseEvent
+import web.uievents.MouseEvent
 
 /**
  * Returns the provided boolean value. This function serves as a utility to handle boolean-based tooltip processing.

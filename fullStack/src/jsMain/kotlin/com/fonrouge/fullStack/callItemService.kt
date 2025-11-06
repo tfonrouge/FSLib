@@ -40,7 +40,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
     block: (ItemState<T>) -> ItemState<T>,
 ) {
     val (url, method) = ConfigViewItem.serviceManager.requireCall(apiItemFun)
-    val callAgent = CallAgent()
+    val kvCallAgent = CallAgent()
     val iApiItem = when (callType) {
         CallType.Query -> when (crudTask) {
             CrudTask.Create -> apiItemQueryCreate(id = id, apiFilter = apiFilter)
@@ -85,7 +85,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
     )
     KVScope.launch {
         try {
-            val jsonString = callAgent.jsonRpcCall(url = url, data = paramList, method = method)
+            val jsonString = kvCallAgent.jsonRpcCall(url = url, data = paramList, method = method)
             try {
                 val itemResponse: ItemState<T> =
                     Json.decodeFromString(

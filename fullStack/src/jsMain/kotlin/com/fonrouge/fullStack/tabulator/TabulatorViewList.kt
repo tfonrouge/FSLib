@@ -80,7 +80,7 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     private var diffContentHashCode: Boolean = false
     private var url: String = ""
     private var method: HttpMethod = HttpMethod.GET
-    private val callAgent: CallAgent
+    private val kvCallAgent: CallAgent
 
     override val jsonHelper = if (serializer != null) Json(
         from = (RpcSerialization.customConfiguration ?: Serialization.customConfiguration
@@ -204,7 +204,7 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
         return KVScope.async {
             try {
-                val jsonObj = this@TabulatorViewList.callAgent.jsonRpcCall(
+                val jsonObj = this@TabulatorViewList.kvCallAgent.jsonRpcCall(
                     this@TabulatorViewList.url,
                     listOf(this@TabulatorViewList.apiListSerialize.invoke(apiList)),
                     this@TabulatorViewList.method
@@ -252,7 +252,7 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             url = it.first
             method = it.second
         }
-        callAgent = CallAgent()
+        kvCallAgent = CallAgent()
         options.ajaxURL = urlPrefix + url.drop(1)
         options.ajaxRequestFunc = { _, _, params ->
             val page: Int = params?.asDynamic()?.page as? Int ?: 1

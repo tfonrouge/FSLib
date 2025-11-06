@@ -31,7 +31,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommo
     transform: (ListState<T>) -> R,
 ): Promise<R> {
     val (url, method) = ConfigViewList.serviceManager.requireCall(apiListFun)
-    val callAgent = CallAgent()
+    val kvCallAgent = CallAgent()
     val apiListSerialized = Json.encodeToString(ApiList.serializer(apiFilterSerializer), apiList)
     val paramList = listOf(apiListSerialized)
     return KVScope.async {
@@ -39,7 +39,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommo
             transform(
                 Json.decodeFromString(
                     deserializer = ListState.serializer(itemSerializer),
-                    string = callAgent.jsonRpcCall(url = url, data = paramList, method = method)
+                    string = kvCallAgent.jsonRpcCall(url = url, data = paramList, method = method)
                 )
             )
         } catch (e: Exception) {
