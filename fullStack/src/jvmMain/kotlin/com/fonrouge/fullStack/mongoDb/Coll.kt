@@ -25,7 +25,6 @@ import io.ktor.server.application.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
 import org.bson.BsonDocument
 import org.bson.BsonInt32
@@ -1495,24 +1494,24 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open fun sortStage(call: ApplicationCall? = null, apiFilter: FILT): Bson? = null
 
     /**
-     * Updates specific fields of an item identified by its ID.
-     * Validates nullability constraints of fields being updated and performs pre-update and post-update actions,
-     * including permission checks and custom callbacks.
+     * Updates specified fields of an item identified by the given ID. This function validates the provided
+     * field assignments, checks permissions, applies filters, and performs the update operation accordingly.
      *
-     * @param call the [ApplicationCall] object, which can be null, used for context-specific operations such as permission verification.
-     * @param id the unique identifier of the item to be updated.
-     * @param filter an optional BSON filter to further qualify the update operation.
-     * @param fieldAssignments a list of field assignments specifying the fields to update and their new values.
-     * @return an [ItemState] object indicating the result of the update operation, including success state and any error messages.
+     * @param call Optional `ApplicationCall` instance, used for permission checks and contextual operations.
+     * @param id The unique identifier of the item to update.
+     * @param fieldAssignments A variable number of field assignments representing the fields to update and their new values.
+     * @param apiFilter Custom filter used for additional query validation, defaults to `commonContainer.apiFilterInstance()`.
+     * @param filter Optional MongoDB-specific filter (`Bson`) to apply during the update operation.
+     * @param updateOptions Optional `UpdateOptions` to customize the update operation behavior.
+     * @return `ItemState` representing the result of the update operation. It includes the operation's outcome and error details, if any.
      */
-    @OptIn(InternalSerializationApi::class)
-    @Suppress("unused")
     suspend fun updateFieldsById(
         call: ApplicationCall? = null,
         id: ID,
         vararg fieldAssignments: AssignTo<T, *>,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         filter: Bson? = null,
+        updateOptions: UpdateOptions? = null,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         fieldAssignments.forEach { it ->
@@ -1571,6 +1570,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             coroutine.updateOne(
                 filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
                 target = apiItem.item,
+                options = updateOptions ?: UpdateOptions()
             )
         } catch (e: Exception) {
             onAfterUpdateAction(apiItem = apiItem, orig = orig, result = false)
