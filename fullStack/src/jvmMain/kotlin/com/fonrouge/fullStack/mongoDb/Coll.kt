@@ -1494,16 +1494,14 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open fun sortStage(call: ApplicationCall? = null, apiFilter: FILT): Bson? = null
 
     /**
-     * Updates specified fields of an item identified by the given ID. This function validates the provided
-     * field assignments, checks permissions, applies filters, and performs the update operation accordingly.
+     * Updates the specified fields of an item identified by its ID.
      *
-     * @param call Optional `ApplicationCall` instance, used for permission checks and contextual operations.
-     * @param id The unique identifier of the item to update.
+     * @param call An optional [ApplicationCall] instance, used to perform additional context-specific operations.
+     * @param id The unique identifier of the item to be updated.
      * @param fieldAssignments A variable number of field assignments representing the fields to update and their new values.
-     * @param apiFilter Custom filter used for additional query validation, defaults to `commonContainer.apiFilterInstance()`.
-     * @param filter Optional MongoDB-specific filter (`Bson`) to apply during the update operation.
-     * @param updateOptions Optional `UpdateOptions` to customize the update operation behavior.
-     * @return `ItemState` representing the result of the update operation. It includes the operation's outcome and error details, if any.
+     * @param apiFilter An object representing API-level filters to apply during the operation. Defaults to a common API filter instance.
+     * @param filter An optional BSON filter for additional query constraints.
+     * @return An [ItemState] object representing the state of the operation, including success or error details.
      */
     suspend fun updateFieldsById(
         call: ApplicationCall? = null,
@@ -1511,7 +1509,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         vararg fieldAssignments: AssignTo<T, *>,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         filter: Bson? = null,
-        updateOptions: UpdateOptions? = null,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         fieldAssignments.forEach { it ->
@@ -1528,7 +1525,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
         val orig = findById(id = id, filter = filter)?.copyItemWithPrimaryConstructorParameters() ?: return ItemState(
             isOk = false,
-            msgError = "Item not found"
+            msgError = "Orig item not found"
         )
         var apiItem = ApiItem.Action.Update(
             item = orig.copyItemWithPrimaryConstructorParameters(
@@ -1570,7 +1567,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             coroutine.updateOne(
                 filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
                 target = apiItem.item,
-                options = updateOptions ?: UpdateOptions()
             )
         } catch (e: Exception) {
             onAfterUpdateAction(apiItem = apiItem, orig = orig, result = false)
