@@ -43,9 +43,7 @@ val mongoDatabase: MongoDatabase by lazy {
 fun collation(
     locale: String = mongoDbBuilder.locale,
     collationStrength: CollationStrength = CollationStrength.PRIMARY,
-): Collation {
-    return Collation.builder().locale(locale).collationStrength(collationStrength).build()
-}
+): Collation = Collation.builder().locale(locale).collationStrength(collationStrength).build()
 
 /**
  * MongoDbPlugin is an application plugin for integrating MongoDB with the application.
