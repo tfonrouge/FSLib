@@ -1564,6 +1564,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 apiItem,
                 apiItem.item
             ).also { if (it.hasError) return it.asItemState() }
+            /* Can't use here UpdateOptions because an orig item is required to be passed to upsertOne() */
             coroutine.updateOne(
                 filter = and(BaseDoc<*>::_id eq id, filter ?: EMPTY_BSON),
                 target = apiItem.item,
