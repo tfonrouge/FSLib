@@ -1,4 +1,4 @@
-package com.fonrouge.fullStack.internal
+package kotlin.internal
 
 /**
  * This annotation is used to specify constraints on type parameters, restricting them to input types only.

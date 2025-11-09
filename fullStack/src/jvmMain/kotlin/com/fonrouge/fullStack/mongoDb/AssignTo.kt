@@ -1,6 +1,6 @@
 package com.fonrouge.fullStack.mongoDb
 
-import com.fonrouge.fullStack.internal.OnlyInputTypes
+import kotlin.internal.OnlyInputTypes
 import kotlin.reflect.KProperty1
 
 data class AssignTo<T, @OnlyInputTypes V>(
