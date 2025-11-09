@@ -1028,11 +1028,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open suspend fun CoroutineCollection<T>.indexes() {}
 
     /**
-     * Inserts a single item into the database or dataset.
+     * Inserts a single item into the data store with the provided filters and optional application call context.
      *
      * @param item The item to be inserted.
-     * @param apiFilter The filter to be applied during the insertion process. Defaults to a common container filter instance.
-     * @return The state of the item after the insertion, encapsulated in an ItemState object.
+     * @param apiFilter The filter configuration to apply during the insertion operation.
+     * @param call An optional application call context, which can be used to provide additional request information.
+     * @return An instance of ItemState representing the state of the item after the insertion.
      */
     @Suppress("unused")
     suspend fun insertOne(
@@ -1494,14 +1495,15 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     open fun sortStage(call: ApplicationCall? = null, apiFilter: FILT): Bson? = null
 
     /**
-     * Updates the specified fields of an item identified by its ID.
+     * Updates the fields of an item identified by its ID with the specified field assignments.
      *
-     * @param call An optional [ApplicationCall] instance, used to perform additional context-specific operations.
-     * @param id The unique identifier of the item to be updated.
-     * @param fieldAssignments A variable number of field assignments representing the fields to update and their new values.
-     * @param apiFilter An object representing API-level filters to apply during the operation. Defaults to a common API filter instance.
-     * @param filter An optional BSON filter for additional query constraints.
-     * @return An [ItemState] object representing the state of the operation, including success or error details.
+     * @param call An optional [ApplicationCall] used for permission checks or additional context during the update operation.
+     * @param id The identifier of the item to be updated.
+     * @param fieldAssignments A variable number of field assignments specifying the fields to update and their new values.
+     * @param apiFilter The API filter instance to apply during the update operation, defaults to `commonContainer.apiFilterInstance()`.
+     * @param filter An optional BSON filter to further restrict the item selection for updating.
+     * @param newItem An optional new item to insert if no item matching the ID is found.
+     * @return An [ItemState] representing the result of the update operation, including success or error status, and any accompanying error message.
      */
     suspend fun updateFieldsById(
         call: ApplicationCall? = null,
@@ -1509,6 +1511,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         vararg fieldAssignments: AssignTo<T, *>,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
         filter: Bson? = null,
+        newItem: T? = null
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         fieldAssignments.forEach { it ->
@@ -1523,10 +1526,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             val s: SimpleState = getCrudPermission(call = it, crudTask = CrudTask.Update)
             if (s.hasError) return ItemState(isOk = false, msgError = s.msgError)
         }
-        val orig = findById(id = id, filter = filter)?.copyItemWithPrimaryConstructorParameters() ?: return ItemState(
-            isOk = false,
-            msgError = "Orig item not found"
-        )
+        val orig = findById(id = id, filter = filter)?.copyItemWithPrimaryConstructorParameters() ?: run {
+            if (newItem == null) return ItemState(
+                isOk = false,
+                msgError = "Orig item not found"
+            )
+            insertOne(item = newItem, apiFilter = apiFilter, call = call).also {
+                if (it.item == null) return ItemState(isOk = false, msgError = it.msgError)
+            }
+            findById(id = id, filter = filter) ?: return ItemState(isOk = false, msgError = "New item not found")
+        }
         var apiItem = ApiItem.Action.Update(
             item = orig.copyItemWithPrimaryConstructorParameters(
                 *fieldAssignments
