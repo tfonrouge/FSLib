@@ -8,7 +8,7 @@ import js.objects.unsafeJso
  * This interface defines configurable options for a cell editor that allows toggling
  * between a tick (true), cross (false), or an optional indeterminate state.
  *
- * @property truValue The value to be set when the editor is toggled to the "true" (tick) state.
+ * @property trueValue The value to be set when the editor is toggled to the "true" (tick) state.
  * @property falseValue The value to be set when the editor is toggled to the "false" (cross) state.
  * @property tristate An optional flag to enable a tri-state mode. When set to true, the editor supports
  *                    an additional indeterminate state beyond true and false.
@@ -17,7 +17,7 @@ import js.objects.unsafeJso
  *                              HTML element, such as custom data attributes or DOM properties.
  */
 external interface CellTickCrossEditorParams {
-    var truValue: dynamic
+    var trueValue: dynamic
     var falseValue: dynamic
     var tristate: Boolean?
     var indeterminateValue: dynamic
