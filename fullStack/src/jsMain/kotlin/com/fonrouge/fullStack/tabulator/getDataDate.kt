@@ -14,11 +14,9 @@ import kotlin.reflect.KProperty1
  * @return The deserialized OffsetDateTime object, or null if the data does not exist or cannot be deserialized.
  */
 @Suppress("unused")
-fun Tabulator.CellComponent.getDataDate(vararg path: KProperty1<*, *>): OffsetDateTime? {
-    return getDataValue<Any?>(path = path)?.let {
-        Json.decodeFromString(
-            deserializer = FSOffsetDateTimeSerializer,
-            string = JSON.stringify(it)
-        )
-    }
+fun Tabulator.CellComponent.getDataDate(vararg path: KProperty1<*, *>): OffsetDateTime? = getDataValue<Any?>(path = path)?.let {
+    Json.decodeFromString(
+        deserializer = FSOffsetDateTimeSerializer,
+        string = JSON.stringify(it)
+    )
 }
