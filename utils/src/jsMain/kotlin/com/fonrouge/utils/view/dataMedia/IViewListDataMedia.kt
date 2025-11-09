@@ -154,12 +154,14 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
             },
             cellEdited = { cell ->
                 dataMediaService?.let { dataMediaService ->
-                    AppScope.launch {
-                        dataMediaService.updateOrder(
-                            id = cell.getDataValue(IDataMedia<U, UID>::_id),
-                            order = cell.getDataValue(IDataMedia<*, *>::order)
-                        ).toast()
-                        dataUpdate()
+                    cell.getDataValue<String?>(IDataMedia<U, UID>::_id)?.let {
+                        AppScope.launch {
+                            dataMediaService.updateOrder(
+                                id = it,
+                                order = cell.getDataValue(IDataMedia<*, *>::order)
+                            ).toast()
+                            dataUpdate()
+                        }
                     }
                 }
             }
