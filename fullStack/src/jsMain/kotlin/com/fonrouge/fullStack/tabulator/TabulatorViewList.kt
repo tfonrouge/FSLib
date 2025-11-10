@@ -5,9 +5,13 @@ import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.State
+import com.fonrouge.fullStack.KVCallAgent0
 import com.fonrouge.fullStack.config.ConfigViewList
 import com.fonrouge.fullStack.view.ViewList
-import dev.kilua.rpc.*
+import dev.kilua.rpc.HttpMethod
+import dev.kilua.rpc.RemoteFilter
+import dev.kilua.rpc.RemoteSorter
+import dev.kilua.rpc.RpcSerialization
 import io.kvision.core.Container
 import io.kvision.core.KVScope
 import io.kvision.tabulator.PaginationMode
@@ -80,7 +84,7 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     private var diffContentHashCode: Boolean = false
     private var url: String = ""
     private var method: HttpMethod = HttpMethod.GET
-    private val kvCallAgent: CallAgent
+    private val kvCallAgent: KVCallAgent0
 
     override val jsonHelper = if (serializer != null) Json(
         from = (RpcSerialization.customConfiguration ?: Serialization.customConfiguration
@@ -252,7 +256,7 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
             url = it.first
             method = it.second
         }
-        kvCallAgent = CallAgent()
+        kvCallAgent = KVCallAgent0()
         options.ajaxURL = urlPrefix + url.drop(1)
         options.ajaxRequestFunc = { _, _, params ->
             val page: Int = params?.asDynamic()?.page as? Int ?: 1
