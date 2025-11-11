@@ -53,8 +53,8 @@ import web.url.URLSearchParams
 class KVCallAgent0 {
 
     @OptIn(ExperimentalWasmJsInterop::class)
-    @Suppress("ComplexMethod")
-    suspend fun jsonRpcCall(
+//    @Suppress("ComplexMethod")
+    suspend fun rpcFun(
         url: String,
         data: List<String?> = listOf(),
         method: HttpMethod = HttpMethod.POST,

@@ -26,19 +26,19 @@ import kotlin.js.Promise
 @OptIn(ExperimentalSerializationApi::class)
 fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any, R : Any> ICommonContainer<T, ID, FILT>.getListState(
     apiListFun: suspend AIS.(ApiList<FILT>) -> ListState<T>,
-    apiList: ApiList<FILT> = ApiList(apiFilter = apiFilterInstance()),
+    apiFilter: FILT = apiFilterInstance(),
     transform: (ListState<T>) -> R,
 ): Promise<R> {
     val (url, method) = ConfigViewList.serviceManager.requireCall(apiListFun)
     val kvCallAgent = KVCallAgent0()
-    val apiListSerialized = Json.encodeToString(ApiList.serializer(apiFilterSerializer), apiList)
+    val apiListSerialized = Json.encodeToString(ApiList.serializer(apiFilterSerializer), ApiList(apiFilter = apiFilter))
     val paramList = listOf(apiListSerialized)
     return KVScope.async {
         try {
             transform(
                 Json.decodeFromString(
                     deserializer = ListState.serializer(itemSerializer),
-                    string = kvCallAgent.jsonRpcCall(url = url, data = paramList, method = method)
+                    string = kvCallAgent.rpcFun(url = url, data = paramList, method = method)
                 )
             )
         } catch (e: Exception) {

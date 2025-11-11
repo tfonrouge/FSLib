@@ -208,7 +208,7 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         }
         return KVScope.async {
             try {
-                val jsonObj = this@TabulatorViewList.kvCallAgent.jsonRpcCall(
+                val jsonObj = this@TabulatorViewList.kvCallAgent.rpcFun(
                     this@TabulatorViewList.url,
                     listOf(this@TabulatorViewList.apiListSerialize.invoke(apiList)),
                     this@TabulatorViewList.method

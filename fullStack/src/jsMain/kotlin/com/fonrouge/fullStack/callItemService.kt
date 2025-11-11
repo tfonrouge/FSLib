@@ -84,7 +84,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> ICommonContainer<T, ID, FI
     )
     KVScope.launch {
         try {
-            val jsonString = kvCallAgent.jsonRpcCall(url = url, data = paramList, method = method)
+            val jsonString = kvCallAgent.rpcFun(url = url, data = paramList, method = method)
             try {
                 val itemResponse: ItemState<T> =
                     Json.decodeFromString(

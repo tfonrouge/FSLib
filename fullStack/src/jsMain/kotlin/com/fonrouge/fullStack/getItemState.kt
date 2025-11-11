@@ -44,7 +44,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, R : Any?> ICommonContainer
         transform(
             Json.decodeFromString<ItemState<T>>(
                 ItemState.serializer(this@getItemState.itemSerializer),
-                kvCallAgent.jsonRpcCall(url, paramList, method)
+                kvCallAgent.rpcFun(url, paramList, method)
             )
         )
     }.asPromise()
