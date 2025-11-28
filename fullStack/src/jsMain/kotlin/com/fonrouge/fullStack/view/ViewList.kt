@@ -60,6 +60,13 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     /**
+     * A higher-order function or lambda that gets invoked when an item is chosen.
+     * It takes a parameter of type T and does not return any value.
+     * This variable can be nullable, so it may not always hold a function reference.
+     */
+    open val onUserChooseItem: ((T) -> Unit)? = null
+
+    /**
      * Represents a configuration holder for a view item in a ViewList.
      *
      * This variable allows lazy initialization and retrieval of a `ConfigViewItem` instance based on the

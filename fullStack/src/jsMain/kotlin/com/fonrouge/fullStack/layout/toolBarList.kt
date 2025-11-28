@@ -11,6 +11,9 @@ import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
 import io.kvision.core.disableTooltip
 import io.kvision.core.enableTooltip
+import io.kvision.html.ButtonSize
+import io.kvision.html.ButtonStyle
+import io.kvision.html.button
 import io.kvision.i18n.I18n.gettext
 import io.kvision.i18n.I18n.tr
 import io.kvision.navbar.*
@@ -32,6 +35,22 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
 ): Navbar {
     val delay = 300
     return navbar(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
+        viewList.onUserChooseItem?.let { onUserChooseItem ->
+            nav {
+                button(text = "Choose item") {
+                    size = ButtonSize.XSMALL
+                    viewList.selectedItemObs.subscribe {
+                        disabled = it == null
+                        style = if (it == null) ButtonStyle.OUTLINESUCCESS else ButtonStyle.SUCCESS
+                    }
+                    onClick {
+                        viewList.selectedItemObs.value?.let {
+                            onUserChooseItem.invoke(it)
+                        }
+                    }
+                }
+            }
+        }
         nav {
             if (viewList.hasOffCanvasFilterView) {
                 navLink(
