@@ -60,9 +60,8 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     }
 
     /**
-     * A higher-order function or lambda that gets invoked when an item is chosen.
-     * It takes a parameter of type T and does not return any value.
-     * This variable can be nullable, so it may not always hold a function reference.
+     * A nullable lambda function that gets triggered when a user selects an item.
+     * The selected item of type `T` is passed as a parameter to the function.
      */
     open val onUserChooseItem: ((T) -> Unit)? = null
 
