@@ -237,7 +237,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             return apiFilterObservable.value
         }
         set(value) {
-            apiFilterObservable.value = value
+            if (apiFilterObservable.value != value) apiFilterObservable.value = value
         }
 
     val apiFilterFromUrl: FILT?

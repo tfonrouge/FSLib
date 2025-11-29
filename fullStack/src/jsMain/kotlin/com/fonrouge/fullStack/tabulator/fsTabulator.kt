@@ -108,6 +108,12 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
                         jsTabulator?.on("pageLoaded") { page: Int ->
                             onPageLoaded?.invoke(page)
                         }
+                        jsTabulator?.on("dataProcessed") {
+                            if (oldMaxPage != getPageMax() && oldPage > getPageMax()) {
+//                                console.warn("DATA PROCESSED: adjusting tabulator.page:", getPage(), "to last")
+                                jsTabulator?.setPage("last")
+                            }
+                        }
                         jsTabulator?.on("tableBuilt") {
                             viewList.jsTabulatorBuilt = true
 //                            viewList.loadColumnDefinitions()

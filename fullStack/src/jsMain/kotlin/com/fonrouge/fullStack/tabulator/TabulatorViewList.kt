@@ -7,6 +7,7 @@ import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.State
 import com.fonrouge.fullStack.KVCallAgent0
 import com.fonrouge.fullStack.config.ConfigViewList
+import com.fonrouge.fullStack.view.ViewDataContainer.Companion.clearStartTime
 import com.fonrouge.fullStack.view.ViewList
 import dev.kilua.rpc.HttpMethod
 import dev.kilua.rpc.RemoteFilter
@@ -82,9 +83,11 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 ) {
     private var contentHashCode: Int? = null
     private var diffContentHashCode: Boolean = false
-    private var url: String = ""
-    private var method: HttpMethod = HttpMethod.GET
     private val kvCallAgent: KVCallAgent0
+    private var method: HttpMethod = HttpMethod.GET
+    var oldPage: Int = -1
+    var oldMaxPage: Int = -1
+    private var url: String = ""
 
     override val jsonHelper = if (serializer != null) Json(
         from = (RpcSerialization.customConfiguration ?: Serialization.customConfiguration
@@ -239,6 +242,9 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     }
                 }
                 this@TabulatorViewList.viewList.onReceivingData(jsonObj.data)
+                oldPage = jsTabulator?.getPage() as? Int ?: -1
+                oldMaxPage = jsTabulator?.getPageMax() as? Int ?: -1
+                jsTabulator?.setMaxPage(jsonObj.last_page as? Int ?: -1)
                 jsonObj
             } catch (e: Exception) {
                 console.error("Server call response error:", e.message)
@@ -289,7 +295,9 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 size = size,
                 filters = filters,
                 sorters = sorters,
-            )
+            ).also {
+                clearStartTime()
+            }
         }
     }
 }

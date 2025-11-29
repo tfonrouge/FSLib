@@ -540,9 +540,9 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 markReloadColumnDefinitions = false
                 loadColumnDefinitions()
             }
-            if (menuOpenedState != true) {
-                selectedIdList = tabulator?.getSelectedData()?.map { it._id }
-                tabulator?.apiCall()
+            if (menuOpenedState != true) tabulator?.let { tabulator ->
+                selectedIdList = tabulator.getSelectedData().map { it._id }
+                tabulator.apiCall()
             }
         }
     }
