@@ -2,9 +2,9 @@ package com.fonrouge.fullStack.mongoDb
 
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.serializers.FSOffsetDateTimeSerializer
-import kotlin.internal.OnlyInputTypes
 import kotlinx.serialization.json.Json
 import java.time.OffsetDateTime
+import kotlin.internal.OnlyInputTypes
 import kotlin.reflect.KProperty1
 
 /**

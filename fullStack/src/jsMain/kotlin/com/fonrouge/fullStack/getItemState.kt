@@ -9,6 +9,7 @@ import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.fullStack.config.ConfigViewItem
 import io.kvision.core.KVScope
+import io.kvision.remote.KVCallAgent
 import kotlinx.coroutines.asPromise
 import kotlinx.coroutines.async
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -35,7 +36,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, R : Any?> ICommonContainer
     transform: (ItemState<T>) -> R,
 ): Promise<R> {
     val (url, method) = ConfigViewItem.serviceManager.requireCall(apiItemFun)
-    val kvCallAgent = KVCallAgent0()
+    val kvCallAgent = KVCallAgent()
     val iApiItem = toIApiItem(apiItem)
     val apiItemSerialized =
         Json.encodeToString(IApiItem.serializer(itemSerializer, idSerializer, apiFilterSerializer), iApiItem)
@@ -44,7 +45,7 @@ fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, R : Any?> ICommonContainer
         transform(
             Json.decodeFromString<ItemState<T>>(
                 ItemState.serializer(this@getItemState.itemSerializer),
-                kvCallAgent.rpcFun(url, paramList, method)
+                kvCallAgent.jsonRpcCall(url, paramList, method)
             )
         )
     }.asPromise()
