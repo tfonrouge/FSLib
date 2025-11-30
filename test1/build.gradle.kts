@@ -46,8 +46,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-//                implementation(libs.fonrouge.fslib)
-                api(project(":base"))
+                implementation(project(":fullStack"))
                 implementation(libs.kilua.rpc.ktor)
                 implementation(libs.kvision.common.remote)
             }

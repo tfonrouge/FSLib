@@ -1,7 +1,6 @@
 package com.example.test1
 
 import io.kvision.*
-import io.kvision.html.Span
 import io.kvision.i18n.DefaultI18nManager
 import io.kvision.i18n.I18n
 import io.kvision.panel.root
@@ -9,7 +8,6 @@ import io.kvision.remote.registerRemoteTypes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 
 val AppScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -30,11 +28,8 @@ class App : Application() {
                 )
             )
 
-        val root = root("kvapp") {
-        }
-        AppScope.launch {
-            val pingResult = Model.ping("Hello world from client!")
-            root.add(Span(pingResult))
+        root("kvapp") {
+            tabulatorTest()
         }
     }
 }
