@@ -190,7 +190,9 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 //            console.warn("RESULT ->", result, "CONTENT_HASHCODE ->", contentHashCode, "diffContentHashCode", diffContentHashCode)
             if (diffContentHashCode) {
                 if (result.data != undefined) {
+                    val selectedRows = jsTabulator?.getSelectedData()?.map { it.asDynamic()["_id"] }?.toTypedArray()
                     replaceData(toKotlinList(result.data).toTypedArray())
+                    selectedRows?.let { jsTabulator?.selectRow(selectedRows) }
                 }
             }
         }
