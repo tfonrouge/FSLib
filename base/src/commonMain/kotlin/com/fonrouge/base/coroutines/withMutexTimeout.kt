@@ -1,34 +1,41 @@
 package com.fonrouge.base.coroutines
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-private const val DEFAULT_TIMEOUT_MS = 1000L
-private val DEFAULT_TIMEOUT = DEFAULT_TIMEOUT_MS.milliseconds
+var DEFAULT_MUTEX_TIMEOUT = 1000.milliseconds
 
 /**
- * Executes a suspending operation with exclusive access to a shared resource protected by a mutex.
- * If the mutex cannot be acquired within the timeout period, returns null.
+ * Executes a suspending operation with exclusive access to a resource protected by a mutex,
+ * while enforcing a timeout for acquiring the lock. If the lock cannot be acquired within
+ * the specified duration, the operation is aborted, and `null` is returned.
  *
- * @param mutex The mutex used to control access to the shared resource
- * @param timeoutDuration The maximum time to wait for acquiring the lock
- * @param operation The operation to execute with exclusive access
- * @return The result of the operation if the lock was acquired, null otherwise
+ * @param mutex The mutex used to synchronize access to the resource.
+ * @param timeoutDuration The maximum amount of time to wait for acquiring the mutex lock. Defaults to 1000ms.
+ * @param owner An optional identifier for the owner of the lock. If `null`, no ownership is associated.
+ * @param operation A suspending function that defines the operation to execute once the lock is acquired.
+ * @return The result of the provided operation if the lock was successfully acquired within the timeout,
+ * or `null` if the timeout occurred or an exception was thrown.
  */
 @Suppress("unused")
 suspend fun <R> withMutexTimeout(
     mutex: Mutex,
-    timeoutDuration: Duration = DEFAULT_TIMEOUT,
+    timeoutDuration: Duration = DEFAULT_MUTEX_TIMEOUT,
+    owner: Any? = null,
     operation: suspend () -> R,
 ): R? = try {
     withTimeout(timeoutDuration) {
-        mutex.withLock {
-            operation()
-        }
+        while (!mutex.tryLock(owner)) delay(100.milliseconds)
     }
-} catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+    try {
+        operation()
+    } finally {
+        mutex.unlock(owner)
+    }
+} catch (e: Exception) {
+    println("Timeout error: ${e.message}")
     null
 }
