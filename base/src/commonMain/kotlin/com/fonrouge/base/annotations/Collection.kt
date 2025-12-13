@@ -7,5 +7,6 @@ package com.fonrouge.base.annotations
  *
  * @property name The name of the collection.
  */
+@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-public annotation class Collection(val name: String)
+annotation class Collection(val name: String)

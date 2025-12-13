@@ -1,6 +1,5 @@
 package com.fonrouge.fullStack.mongoDb
 
-import com.fonrouge.base.annotations.Collection
 import com.fonrouge.base.api.*
 import com.fonrouge.base.bson.json2
 import com.fonrouge.base.common.ICommonContainer
@@ -40,28 +39,6 @@ import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.*
-
-/**
- * Extension property that retrieves the collection name for a given class extending `BaseDoc`.
- *
- * This property navigates the class hierarchy to find a `@Collection` annotation,
- * and returns the specified collection name. If no `@Collection` annotation is found
- * in the class hierarchy, the simple name of the class is returned. If the class has no
- * simple name (i.e., it is anonymous or synthetic), an empty string is returned.
- */
-val KClass<out BaseDoc<*>>.collectionName: String
-    get() {
-        var self: KClass<*>? = this
-        var name: String?
-        do {
-            name = self?.findAnnotation<Collection>()?.name
-            if (name == null) {
-                self = self?.superclasses?.firstOrNull()
-            }
-        } while (name == null && self != Any::class)
-        name ?: run { name = simpleName?.let { it.first().lowercase() + it.substring(1) } }
-        return name ?: ""
-    }
 
 /**
  * Represents a utility or service class for handling collections in MongoDB with support for
