@@ -3,62 +3,53 @@ package com.fonrouge.fullStack.layout
 import io.kvision.core.Container
 import io.kvision.dropdown.AutoClose
 import io.kvision.dropdown.DropDown
-import io.kvision.html.Div
-import io.kvision.html.TAG
-import io.kvision.html.tag
-import io.kvision.html.ul
+import io.kvision.html.*
 
 /**
- * Represents a `DropEnd` component, which is a dropdown menu aligned to the end of its parent container.
+ * Represents a dropdown menu aligned to the end of the container.
  *
- * This component is typically used within a user interface to create a dropdown button that triggers
- * the opening of a menu with items aligned to the end. It allows customization of the button text,
- * menu content, and additional behavior through an initialization block.
+ * This class generates a dropdown toggle and an associated menu with end alignment.
+ * The toggle is configured to handle dropdown functionality using Bootstrap's JavaScript
+ * features. Custom dropdown items can be added to the menu using the initialization block.
  *
- * @constructor Creates an instance of `DropEnd`.
- * @param text The text to be displayed on the dropdown toggle button.
- * @param items A vararg list of `Container` elements that represent the items within the dropdown menu.
- * @param rich A flag indicating whether the text should be processed as rich text. Defaults to `false`.
- * @param init An optional initialization block to configure the `DropEnd` component.
+ * @constructor Creates a `DropEnd` instance.
+ * @param text The text to be displayed on the dropdown toggle.
+ * @param rich A flag indicating whether the toggle content should be processed as rich text. Defaults to `false`.
+ * @param init A lambda function to initialize and configure the `Ul` element representing the dropdown menu.
  */
 class DropEnd(
     text: String,
-    vararg items: Container,
     rich: Boolean = false,
-    init: DropEnd.() -> Unit = {}
+    init: Ul.() -> Unit = {}
 ) : Div(className = "dropend") {
     init {
         tag(type = TAG.A, content = text, rich = rich, className = "dropdown-item dropdown-toggle") {
             setAttribute("data-bs-toggle", "dropdown")
             setAttribute("data-bs-auto-close", "outside")
         }
-        ul(className = "dropdown-menu dropdown-menu-end") {
-            items.forEach(::add)
-        }
-        init(this)
+        ul(className = "dropdown-menu dropdown-menu-end", init = init)
     }
 }
 
 /**
- * Adds a `DropEnd` component to the current `DropDown` container.
+ * Adds a `DropEnd` dropdown menu to the current `DropDown` container.
  *
- * This method creates a dropdown menu aligned to the end of the container, with the specified
- * properties and an optional initialization block for further customization.
+ * This method creates a `DropEnd` instance aligned to the end, with a toggle displaying the specified text.
+ * The content of the dropdown can be customized using the provided initialization block. Optionally,
+ * rich text can be enabled for the toggle, and the auto-close behavior for the dropdown can be configured.
  *
- * @param text The text to be displayed on the dropdown toggle button.
- * @param items A variable number of `Container` elements to include as items in the dropdown menu.
- * @param rich A flag indicating whether the `text` should be processed as rich text. Defaults to `false`.
- * @param autoClose The behavior for closing the dropdown menu. Defaults to `AutoClose.OUTSIDE`.
- * @param init An optional lambda to configure the `DropEnd` component.
+ * @param text The text to be displayed on the dropdown toggle.
+ * @param rich A flag indicating whether the toggle content should be processed as rich text. Defaults to `false`.
+ * @param autoClose The auto-close behavior for the dropdown. Defaults to `AutoClose.OUTSIDE`.
+ * @param init A lambda function to initialize and configure the dropdown menu content.
  * @return The created `DropEnd` instance.
  */
-fun DropDown.dropEnd(
+fun Container.dropEnd(
     text: String,
-    vararg items: Container,
     rich: Boolean = false,
     autoClose: AutoClose = AutoClose.OUTSIDE,
-    init: DropEnd.() -> Unit = {}
-): DropEnd = DropEnd(text = text, items = items, rich = rich, init = init).also {
+    init: Ul.() -> Unit = {}
+): DropEnd = DropEnd(text = text, rich = rich, init = init).also {
     add(it)
-    if (this.autoClose != autoClose) this.autoClose = autoClose
+    if (this is DropDown) if (this.autoClose != autoClose) this.autoClose = autoClose
 }

@@ -1,20 +1,25 @@
 package com.fonrouge.fullStack.layout
 
+
+import io.kvision.core.Container
 import io.kvision.dropdown.DropDown
+import io.kvision.dropdown.Separator
 import io.kvision.html.Li
+import io.kvision.html.Ul
 
 /**
- * Represents a dropdown item within a dropdown menu.
+ * Represents an item within a dropdown menu.
  *
- * This class extends the `Li` class to provide additional functionality specific to dropdown menus.
- * It can be customized with optional text, styling, and behavior.
+ * The `DropItem` class extends the `Li` class and provides functionality for interacting
+ * with dropdown menus. It configures the list item to optionally toggle the dropdown
+ * when clicked, and allows customization of the item's content, appearance, and behavior.
  *
- * @constructor Creates an instance of the `DropItem` class.
- * @param text The text to be displayed within the dropdown item.
- * @param rich Indicates whether the content should be processed as rich text. Defaults to `false`.
- * @param toggleDropDown A flag indicating whether the dropdown menu should be toggled when the item is clicked. Defaults to `true`.
- * @param className Additional CSS classes to apply to the dropdown item. Defaults to `null`.
- * @param init An optional initialization block to further configure the dropdown item.
+ * @constructor Creates an instance of `DropItem`.
+ * @param text The text to be displayed for the dropdown item.
+ * @param rich A flag indicating whether the content should be processed as rich text. Defaults to `false`.
+ * @param toggleDropDown A flag specifying whether clicking the item should toggle the nearest parent dropdown. Defaults to `true`.
+ * @param className An optional additional CSS class to apply to the dropdown item.
+ * @param init A lambda function to allow additional configuration and initialization of the `Li` element.
  */
 class DropItem(
     text: String,
@@ -46,20 +51,20 @@ class DropItem(
 }
 
 /**
- * Adds a dropdown item to the current `DropDown` container.
+ * Adds a dropdown item to the container.
  *
- * This method creates an instance of `DropItem` with the specified parameters and adds
- * it to the dropdown menu. The dropdown item can optionally include rich text, toggle
- * the dropdown menu on click, and include additional customization.
+ * This method creates a `DropItem` instance with the specified text, styling, and behavior.
+ * The item can optionally toggle the parent dropdown when clicked and allows customization
+ * through an initialization block.
  *
- * @param text The text to be displayed for the dropdown item.
- * @param rich Indicates whether the content should be processed as rich text. Defaults to `false`.
- * @param toggleDropDown A flag indicating whether the dropdown menu should be toggled when the item is clicked. Defaults to `true`.
- * @param className Additional CSS classes to apply to the dropdown item. Defaults to `null`.
- * @param init An optional lambda function to further configure the dropdown item.
+ * @param text The text content of the dropdown item.
+ * @param rich A flag indicating whether the text should be processed as rich text. Defaults to `false`.
+ * @param toggleDropDown A flag specifying whether the item should toggle the nearest parent dropdown when clicked. Defaults to `true`.
+ * @param className An optional additional CSS class for the dropdown item.
+ * @param init A lambda function for additional configuration of the dropdown item's properties.
  * @return The created `DropItem` instance.
  */
-fun DropDown.dropItem(
+fun Container.dropItem(
     text: String,
     rich: Boolean = false,
     toggleDropDown: Boolean = true,
