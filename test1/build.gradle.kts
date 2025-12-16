@@ -78,6 +78,7 @@ kotlin {
                 implementation(libs.kvision.imask)
                 implementation(libs.kvision.toastify)
                 implementation(libs.kvision.fontawesome)
+                implementation(libs.kvision.bootstrap)
                 implementation(libs.kvision.bootstrap.icons)
                 implementation(libs.kvision.i18n)
 //                implementation("io.kvision:kvision-pace:$kvisionVersion")
