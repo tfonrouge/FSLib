@@ -12,7 +12,9 @@ import kotlinx.serialization.encoding.Encoder
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object FSLocalDateSerializer : KSerializer<LocalDate> {
     actual override fun deserialize(decoder: Decoder): LocalDate {
-        return convert(kotlinx.datetime.internal.JSJoda.LocalDate.parse(decoder.decodeString())).toDate()
+        val decoded = decoder.decodeString()
+        val datePart = decoded.substring(0..9)
+        return convert(kotlinx.datetime.internal.JSJoda.LocalDate.parse(datePart)).toDate()
     }
 
     actual override val descriptor: SerialDescriptor
