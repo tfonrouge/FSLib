@@ -66,6 +66,7 @@ kotlin {
             api(libs.ktor.server.http.redirect)
             api(libs.ktor.server.partial.content)
             api(libs.ktor.server.content.negotiation)
+            api(libs.ktor.server.status.pages)
             api(libs.kmongo.coroutine.serialization)
             api(libs.kmongo.id.serialization)
             api(libs.exposed.core)
