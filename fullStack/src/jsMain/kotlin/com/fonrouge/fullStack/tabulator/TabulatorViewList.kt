@@ -39,27 +39,35 @@ import kotlin.js.Promise
 import kotlin.reflect.KClass
 
 /**
- * A class encapsulating a tabulated view list with added functionality for server-side data interaction.
+ * A specialized implementation of the Tabulator class designed for integration with a `ViewList`
+ * and remote API calls. This class supports server-side pagination, filtering, and sorting,
+ * while maintaining compatibility with Kotlin serialization and Tabulator options.
  *
- * @param T The type of data objects managed in the table. Must extend [BaseDoc].
- * @param ID The type representing the unique identifier for each data object.
- * @param FILT The filter type used for the API calls. Must extend [IApiFilter].
- * @param MID The type representing the filter ID.
- * @param viewList An instance of [com.fonrouge.fullStack.view.ViewList] containing view-related configurations and container data.
- * @param apiListBlock A lambda returning an instance of [ApiList] for filter and pagination setup.
- * @param apiListSerialize A function to serialize [ApiList] into a `String` for API interaction.
- * @param options Table-specific options to configure the tabulator instance.
- * @param types A set of [TableType] to define the functionalities and behaviors of the table.
- * @param className Optionally specifies a CSS class name for styling the tabulator.
- * @param kClass Optionally specifies a Kotlin class type for serialization and reflection purposes.
- * @param serializer A serializer instance for serializing and deserializing the data type [T].
- * @param module A [SerializersModule] to support custom and polymorphic serialization.
+ * @param CC The type of the container used for managing the underlying data, which extends
+ * `ICommonContainer` with its generic type parameters.
+ * @param T The type of the data model being displayed in the Tabulator. This type must extend `BaseDoc`.
+ * @param ID The type of the unique identifier for the data model.
+ * @param FILT The type of the filter used for API interactions, extending `IApiFilter`.
+ * @param MID The type of the metadata identifier used for filtering.
+ * @param viewList The `ViewList` instance responsible for managing the configuration of the container
+ * and item serializers.
+ * @param apiListBlock A function that instantiates a new `ApiList` object used for API interactions.
+ * @param apiListSerialize A function that serializes the `ApiList` instance into a JSON string.
+ * @param debug A flag to enable or disable debug logs. Defaults to `false`.
+ * @param tabulatorOptions The options to configure the Tabulator instance. Some parameters are
+ * overridden to enforce server-side pagination (`pagination = true` and `paginationMode = REMOTE`).
+ * @param types A set of `TableType` values specifying the types of table views supported.
+ * @param className The name of the class associated with the data model, used for logging or debugging.
+ * @param kClass The Kotlin class reference of the data model, required for dynamic type operations.
+ * @param serializer The Kotlin serializer used for encoding and decoding instances of the data model.
+ * @param module An optional `SerializersModule` used for custom serialization scenarios.
  */
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
     val viewList: ViewList<CC, T, ID, FILT, MID>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListSerialize: (ApiList<FILT>) -> String?,
+    val debug: Boolean = false,
     tabulatorOptions: TabulatorOptions<T>,
     types: Set<TableType>,
     className: String?,
@@ -218,7 +226,11 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     listOf(this@TabulatorViewList.apiListSerialize.invoke(apiList)),
                     this@TabulatorViewList.method
                 ).let {
-//                    console.warn("${viewList.configView.viewKClass.simpleName} jsonRpcCall result", it)
+                    if (debug) {
+                        console.warn("--- start of ${viewList.configView.viewKClass.simpleName} jsonRpcCall ---")
+                        console.warn(it)
+                        console.warn("--- end of ${viewList.configView.viewKClass.simpleName} jsonRpcCall ---")
+                    }
                     JSON.parse<dynamic>(it)
                 }
 //                console.warn("${viewList.configView.viewKClass.simpleName} jsonObj", jsonObj)
@@ -305,22 +317,25 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
 }
 
 /**
- * Creates and adds a Tabulator view list to the specified container.
+ * Adds a new instance of a TabulatorViewList to the container and returns it. This function initializes
+ * the TabulatorViewList with the provided settings and applies additional initialization logic if passed.
  *
- * @param T The type of the data objects used in the table, extending BaseDoc.
- * @param ID The type of the unique identifier for the data objects, extending Any.
- * @param FILT The type of the API filter used for filtering data, extending IApiFilter.
- * @param MID The type of the master item identifier in the filter, extending Any.
- * @param viewList The view list object that provides the container and its data-related logic.
- * @param apiListBlock A lambda function that generates the API list used for querying the data.
- * @param apiListSerialize A lambda function that serializes the API list into a string format for transmission.
- * @param tabulatorOptions The configuration options for the Tabulator table.
- * @param types A set of table types that define specific table features or behaviors. Defaults to an empty set.
- * @param className An optional class name applied to the Tabulator container for styling or other purposes. Defaults to null.
- * @param serializer An optional serializer used for serializing/deserializing instances of type T. Defaults to null.
- * @param module An optional serializers module used to resolve any custom serialization logic. Defaults to null.
- * @param init An optional initialization block applied to the TabulatorViewList instance. Defaults to null.
- * @return An instance of TabulatorViewList configured with the provided parameters, added to the container.
+ * @param CC The type of the container, which extends ICommonContainer.
+ * @param T The type of items in the container, which extends BaseDoc.
+ * @param ID The type of the identifier for items, which must be a non-nullable type.
+ * @param FILT The type of the API filter used for querying, which extends IApiFilter.
+ * @param MID The type of the master item identifier used in the API filter.
+ * @param viewList The ViewList instance containing the data and configuration for the tabulator view.
+ * @param apiListBlock A block that returns an instance of ApiList with the filter configuration.
+ * @param apiListSerialize A function to serialize the instance of ApiList with the specified filter.
+ * @param tabulatorOptions Configuration options for the tabulator, defaults to the options defined in the viewList.
+ * @param types A set of TableType(s) that determine the type of the table, defaults to an empty set.
+ * @param className An optional CSS class name to apply to the TabulatorViewList, defaults to null.
+ * @param serializer A Kotlinx serialization serializer for the items of type T, defaults to null.
+ * @param module An optional Kotlinx SerializersModule for custom serialization, defaults to null.
+ * @param debug A flag to enable or disable debug mode for the TabulatorViewList, defaults to false.
+ * @param init An optional block to apply additional initialization logic to the TabulatorViewList.
+ * @return The created and initialized TabulatorViewList instance.
  */
 fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
     viewList: ViewList<CC, T, ID, FILT, MID>,
@@ -331,6 +346,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     className: String? = null,
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
+    debug: Boolean = false,
     init: (TabulatorViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,
 ): TabulatorViewList<CC, T, ID, FILT, MID> {
     val tabulatorViewList: TabulatorViewList<CC, T, ID, FILT, MID> =
@@ -338,6 +354,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
             viewList = viewList,
             apiListBlock = apiListBlock,
             apiListSerialize = apiListSerialize,
+            debug = debug,
             tabulatorOptions = tabulatorOptions,
             types = types,
             className = className,

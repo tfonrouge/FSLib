@@ -23,16 +23,18 @@ import kotlinx.serialization.json.Json
 import org.w3c.dom.events.Event
 
 /**
- * Configures and enhances a `TabulatorViewList` for a given `ViewList` of items.
- * Sets up additional interactions, styles, and behaviors for displaying and managing items in a tabular view.
+ * Configures and applies the Tabulator rendering for a given `ViewList` object.
  *
- * @param viewList The view list containing the items to be managed in the Tabulator view.
- * @param masterViewItem The optional master view item providing context for the Tabulator view.
- * @param types A set of table styles to be applied to the Tabulator, such as striped, bordered, hover, and small.
- * @param minToolbarSize Indicates whether the toolbar should be minimized.
- * @param editable An optional lambda to determine if the table is editable.
- * @param init An optional initializer lambda to customize the behaviors and configurations of the `TabulatorViewList`.
- * @return The configured `ViewList` with the Tabulator and options applied.
+ * @param viewList The `ViewList` object to which the Tabulator functionality will be applied. This represents the dataset and configurations for the table grid.
+ * @param masterViewItem An optional parent `ViewItem`, which acts as a master-detail container. Used for sharing CRUD tasks and relationships between items.
+ * @param tabulatorOptions Options for configuring the Tabulator component, such as pagination, sorting, or formatting. By default, it uses `viewList.defaultTabulatorOptions`.
+ * @param types A set of table styles like striped, bordered, hoverable, etc. Defaults to a set containing `TableType.STRIPED`, `TableType.BORDERED`, `TableType.HOVER`, and `Table
+ * Type.SMALL`.
+ * @param minToolbarSize A flag indicating whether to minimize the size of the toolbar. Defaults to `true`.
+ * @param editable An optional lambda expression that dynamically determines whether the table rows can be edited. Defaults to `null`.
+ * @param debug A flag to enable debugging features in the Tabulator initialization. Defaults to `false`.
+ * @param init An optional lambda to further configure the `TabulatorViewList` after it has been initialized.
+ * @return The updated `ViewList` object with Tabulator configurations applied.
  */
 @Suppress("unused")
 @OptIn(InternalSerializationApi::class)
@@ -48,6 +50,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     ),
     minToolbarSize: Boolean = true,
     editable: (() -> Boolean)? = null,
+    debug: Boolean = false,
     init: (TabulatorViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,
 ): ViewList<CC, T, ID, FILT, MID> {
     masterViewItem?.let {
@@ -70,13 +73,14 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
         bind(viewList.errorStateObs) { errorState ->
             viewList.navbarTabulator = toolBarList(viewList = viewList, minToolbarSize)
             if (!errorState) {
-                viewList.tabulator = tabulatorViewList<CC, T, ID, FILT, MID>(
+                viewList.tabulator = tabulatorViewList(
                     viewList = viewList,
                     apiListBlock = apiListBlock,
                     apiListSerialize = apiListSerialize,
                     serializer = viewList.configView.commonContainer.itemSerializer,
                     tabulatorOptions = tabulatorOptions,
                     types = types,
+                    debug = debug,
                 ) {
                     id = viewList::class.simpleName
                     init?.invoke(this)
