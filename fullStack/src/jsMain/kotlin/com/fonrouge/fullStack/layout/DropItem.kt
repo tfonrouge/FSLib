@@ -2,6 +2,7 @@ package com.fonrouge.fullStack.layout
 
 
 import com.fonrouge.base.api.IApiFilter
+import com.fonrouge.fullStack.config.ConfigView
 import com.fonrouge.fullStack.config.ConfigViewItem
 import com.fonrouge.fullStack.config.ConfigViewList
 import io.kvision.core.Container
@@ -145,5 +146,33 @@ fun <FILT : IApiFilter<*>> Container.dropItem(
     onClick {
         configViewList.navigateTo(apiFilter = apiFilter, target = target)
     }
+    init(this)
+}
+
+/**
+ * Creates a drop-down menu item within the container's context, linking it to a specified configuration view and
+ * optionally navigating to a corresponding target URL upon selection. The item can also be customized with additional properties.
+ *
+ * @param configView The configuration view providing the label and API filter instance to associate with the drop-down item.
+ * @param apiFilter The API filter instance used for navigation and URL generation. Defaults to the `apiFilterInstance` of the `commonContainer` in the provided `configView`.
+ * @param target Specifies the browsing context in which to open the navigation target. Defaults to "_blank", which opens a new tab or window.
+ * @param toggleDropDown Indicates whether the drop-down menu should be toggled open or closed when the item is clicked. Defaults to `false`.
+ * @param className An optional CSS class to apply to the drop-down item for styling purposes. Defaults to `null`.
+ * @param init An optional lambda function providing additional initialization logic for the drop-down menu item.
+ */
+@Suppress("unused")
+fun <FILT: IApiFilter<*>> Container.dropItem(
+    configView: ConfigView<*,*,FILT>,
+    apiFilter: FILT = configView.commonContainer.apiFilterInstance(),
+    target: String = "_blank",
+    toggleDropDown: Boolean = false,
+    className: String? = null,
+    init: (Li.() -> Unit) = {},
+) = dropItem(
+    text = configView.label,
+    toggleDropDown = toggleDropDown,
+    className = className
+) {
+    onClick { configView.navigateTo(apiFilter = apiFilter, target = target) }
     init(this)
 }

@@ -20,10 +20,19 @@ import io.kvision.html.*
 class DropEnd(
     text: String,
     rich: Boolean = false,
+    className: String? = null,
     init: Ul.() -> Unit = {}
 ) : Div(className = "dropend") {
     init {
-        tag(type = TAG.A, content = text, rich = rich, className = "dropdown-item dropdown-toggle") {
+        tag(
+            type = TAG.A,
+            content = text,
+            rich = rich,
+            className = listOfNotNull(
+                className?.takeIf { it.isNotBlank() },
+                "dropdown-item dropdown-toggle"
+            ).toSet().joinToString(" ")
+        ) {
             setAttribute("data-bs-toggle", "dropdown")
             setAttribute("data-bs-auto-close", "outside")
         }
@@ -48,8 +57,9 @@ fun Container.dropEnd(
     text: String,
     rich: Boolean = false,
     autoClose: AutoClose = AutoClose.OUTSIDE,
+    className: String? = null,
     init: Ul.() -> Unit = {}
-): DropEnd = DropEnd(text = text, rich = rich, init = init).also {
+): DropEnd = DropEnd(text = text, rich = rich, className = className, init = init).also {
     add(it)
     if (this is DropDown) if (this.autoClose != autoClose) this.autoClose = autoClose
 }
