@@ -6,9 +6,7 @@ import com.fonrouge.base.annotations.SqlOneToOne
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.serializers.KV_DEFAULT_DATETIME_FORMAT
 import com.fonrouge.base.state.SimpleState
-import com.fonrouge.base.types.IntId
-import com.fonrouge.base.types.LongId
-import com.fonrouge.base.types.StringId
+import com.fonrouge.base.types.*
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -27,10 +25,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.*
 
 /**
  * Represents an abstract database class for managing SQL-based operations.
@@ -58,13 +53,13 @@ abstract class SqlDatabase(
         val fields: List<KCallable<*>>,
         val stringIntMap: MutableMap<String, Int>,
     ) {
+        var idIsOptional: Boolean? = null
         var oneToOneFields: List<KCallable<*>> = emptyList()
-
         var compoundFields: List<KCallable<*>> = emptyList()
-
         var renamedFields: List<String> = emptyList()
-
-        fun setFieldListAttributes() {
+        fun setFieldAttributes(klass: KClass<*>) {
+            idIsOptional =
+                klass.takeIf { it.isSubclassOf(BaseDoc::class) }?.primaryConstructor?.parameters?.firstOrNull { it.name == "_id" }?.isOptional
             oneToOneFields = fields.mapNotNull {
                 if (it.hasAnnotation<SqlOneToOne>()) it else null
             }
@@ -89,16 +84,24 @@ abstract class SqlDatabase(
     private val mutableMap = mutableMapOf<KClass<*>, DecodeMap>()
 
     /**
-     * Constructs a JSON object by mapping data from the provided `ResultSet` to the specified class type.
-     * This method utilizes a decoding map and reflection to match columns in the `ResultSet` to the
-     * fields of the given class, while also supporting nested mappings and compound fields.
+     * A set of classes representing different types of identifiers.
      *
-     * @param klass The KClass object representing the type to which the `ResultSet` is to be mapped.
-     *              It determines the structure of the resulting JSON object.
-     * @param resultSet The `ResultSet` containing the data to be transformed into a JSON object.
-     *                  The method iterates over its metadata to identify and map fields.
-     * @return A `JsonObject` representing the data from the `ResultSet`, mapped according to the
-     *         structure of the specified class.
+     * This collection includes classes that are commonly used as unique identifiers
+     * within the application, such as OId, IntId, LongId, and StringId.
+     */
+    private val ID_CLASSES = setOf<KClass<out IBaseId<*>>>(OId::class, IntId::class, LongId::class, StringId::class)
+
+    /**
+     * Builds a JSON object representation from a given ResultSet based on the provided class type.
+     *
+     * The method maps the columns in the ResultSet to the corresponding fields in the specified class,
+     * leveraging metadata and annotations to construct hierarchical and nested JSON structures as needed.
+     *
+     * @param klass The KClass representing the type to which the ResultSet should be mapped. This type's 
+     *              metadata and annotations will be used to determine how data is structured in the JSON object.
+     * @param resultSet The ResultSet containing database query results to be transformed into JSON.
+     * @return A JsonObject constructed based on the given ResultSet and class type, containing the
+     *         mapped data.
      */
     fun buildJsonFromResultSet(klass: KClass<*>, resultSet: ResultSet): JsonObject {
         val metaData = resultSet.metaData
@@ -305,40 +308,56 @@ abstract class SqlDatabase(
     }
 
     /**
-     * Generates or retrieves a `DecodeMap` object for the given class and `ResultSetMetaData`.
-     * This map is used to match SQL column names to the corresponding class fields.
+     * Generates or retrieves a `DecodeMap` for the given class type and result set metadata.
      *
-     * @param klass The `KClass` of the target type for which decoding is being performed.
-     * @param metaData The `ResultSetMetaData` containing details about the columns in a SQL query result set.
-     * @return A `DecodeMap` object that maps SQL column names to indices of the corresponding fields
-     *         in the given class, enabling efficient data decoding.
+     * This method constructs a mapping between SQL result set column names and the properties
+     * of the specified class, enabling efficient data decoding during database operations.
+     *
+     * @param klass The Kotlin class (`KClass`) for which the decode map is to be generated.
+     * @param metaData The metadata (`ResultSetMetaData`) of the SQL result set containing
+     *                 information about the columns to be mapped to class properties.
+     * @return A `DecodeMap` that contains mappings between the SQL column names and the
+     *         indices of corresponding class properties.
      */
-    private fun getDecodeMap(klass: KClass<*>, metaData: ResultSetMetaData): DecodeMap {
-        val decodeMap =
-            mutableMap[klass] ?: DecodeMap(klass.memberProperties.toList(), mutableMapOf()).also {
-                mutableMap[klass] = it
-                it.setFieldListAttributes()
-            }
+    private fun getDecodeMap(klass: KClass<*>, metaData: ResultSetMetaData): DecodeMap = mutableMap.getOrPut(klass) {
+        val decodeMap = DecodeMap(klass.memberProperties.toList(), mutableMapOf())
+        decodeMap.setFieldAttributes(klass)
         for (i in 1..metaData.columnCount) {
             val sqlName = metaData.getColumnName(i).uppercase()
-            if (!decodeMap.stringIntMap.containsKey(sqlName)) {
-                val index = decodeMap.fields.indexOfFirst { field ->
-                    val renamedTo = field.findAnnotation<SqlField>()?.name?.ifEmpty { null }
-                    val sqlIgnoreField = field.hasAnnotation<SqlIgnoreField>()
-                    !sqlIgnoreField && ((renamedTo?.equals(
-                        sqlName,
-                        true
-                    ) == true) || (field.name.uppercase() !in decodeMap.renamedFields && field.name.equals(
-                        sqlName,
-                        true
-                    )))
-                }
+            if (sqlName !in decodeMap.stringIntMap) {
+                val index = findMatchingFieldIndex(decodeMap, sqlName)
                 if (index >= 0) {
                     decodeMap.stringIntMap[sqlName] = index
                 }
             }
         }
-        return decodeMap
+        decodeMap
+    }
+
+    /**
+     * Finds the index of a field in the decode map that matches the given SQL field name.
+     *
+     * The method iterates over the fields in the decode map to identify a field that either:
+     * - Has a `@SqlField` annotation with a `name` property matching the provided SQL name.
+     * - Has a name that matches the provided SQL name (ignoring case), provided that it is not in the list of renamed fields.
+     *
+     * Fields annotated with `@SqlIgnoreField` are ignored in the matching process.
+     *
+     * @param decodeMap The decode map containing the fields and associated metadata.
+     * @param sqlName The SQL field name to match against the decode map's fields.
+     * @return The index of the matching field, or -1 if no match is found.
+     */
+    private fun findMatchingFieldIndex(decodeMap: DecodeMap, sqlName: String): Int {
+        return decodeMap.fields.indexOfFirst { field ->
+            if (field.hasAnnotation<SqlIgnoreField>()) return@indexOfFirst false
+
+            val renamedTo = field.findAnnotation<SqlField>()?.name?.ifEmpty { null }
+            val matchesAnnotation = renamedTo?.equals(sqlName, ignoreCase = true) == true
+            val matchesName = field.name.uppercase() !in decodeMap.renamedFields &&
+                    field.name.equals(sqlName, ignoreCase = true)
+
+            matchesAnnotation || matchesName
+        }
     }
 
     /**
