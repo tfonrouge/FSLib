@@ -388,7 +388,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         )
                         val item = itemState.item
                         if (itemState.hasError || item == null) return itemState
-                        findChildrenNot(item).also { if (it.hasError) return it }
                         onQueryDelete(apiItem = apiItem, item = item).also { if (it.hasError) return it.asItemState() }
                         itemState
                     }
@@ -685,12 +684,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         getCrudPermission(apiItem).also { if (it.state == State.Error) return ItemState(it) }
-        findChildrenNot(apiItem.item).also { if (it.hasError) return it }
         onQueryDelete(
             apiItem = apiItem.asQuery as ApiItem.Query.Delete,
             item = apiItem.item
         ).also { if (it.hasError) return it.asItemState() }
         onBeforeDeleteAction(apiItem = apiItem).also { if (it.hasError) return it }
+        findChildrenNot(apiItem.item).also { if (it.hasError) return it }
         var result: Boolean? = null
         return try {
             result = coroutine.deleteOne(
@@ -1242,14 +1241,16 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     ): ItemState<T> = ItemState(isOk = true)
 
     /**
-     * Handles the logic to execute when a delete permission is triggered for a specific item.
+     * Handles the deletion query operation for a given item.
      *
-     * @param apiItem The API item containing delete information and filters.
-     * @param item The item that the delete permission affects.
-     * @return The state of the item after the delete operation.
+     * @param apiItem The API query object representing the delete operation, containing metadata such as type, ID, and filters.
+     * @param item The item of type T that is being queried for deletion.
+     * @return the result of item having no children so it can be safely deleted
      */
-    open suspend fun onQueryDelete(apiItem: ApiItem.Query.Delete<T, ID, FILT>, item: T): SimpleState =
-        SimpleState(isOk = true)
+    open suspend fun onQueryDelete(
+        apiItem: ApiItem.Query.Delete<T, ID, FILT>,
+        item: T
+    ): SimpleState = findChildrenNot(item).asSimpleState
 
     /**
      * Handles the read permission check for the given API item.
