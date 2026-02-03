@@ -14,9 +14,12 @@ import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
 import com.fonrouge.fullStack.view.KVWebManager.configViewItemMap
 import com.fonrouge.fullStack.view.ViewItem
 import dev.kilua.rpc.RpcServiceManager
+import io.kvision.modal.Modal
+import io.kvision.modal.ModalSize
 import kotlinx.browser.window
 import kotlinx.serialization.json.Json
 import org.w3c.dom.Window
+import web.cssom.HtmlAttributes.Companion.target
 import web.prompts.alert
 import kotlin.js.Promise
 import kotlin.reflect.KClass
@@ -85,6 +88,18 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
          */
         var contextMenuDefault: (ConfigViewItem<*, *, *, *, *, *>.() -> List<TabulatorMenuItem>?)? =
             null
+
+        /**
+         * Represents the default view mode for displaying items within the configuration.
+         *
+         * This variable determines how items are rendered or opened, using the {@link VMode} enum.
+         * By default, the view mode is set to [VMode.modal], indicating that items will be displayed
+         * in a modal window.
+         *
+         * The value of this variable is used as the default `vmode` parameter for various navigation
+         * and rendering methods when no specific view mode is provided.
+         */
+        var defaultViewItemMode: VMode = VMode.modal
     }
 
     override val baseUrl: String
@@ -111,6 +126,73 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
      */
     @Suppress("unused")
     val serializedId get() = item?.let { Json.encodeToString(commonContainer.idSerializer, it._id) }
+
+    @Suppress("unused")
+    val urlCreate: String
+        get() {
+            val urlParams = UrlParams("action" to CrudTask.Create.name)
+            return url + urlParams.toEncodedUrlString()
+        }
+
+    /**
+     * Converts an [ApiItem] into a list of key-value parameter pairs suitable for API usage.
+     *
+     * @param apiItem The API item to be converted. It determines the operation type (e.g., create, read, update, delete)
+     *                and includes associated attributes such as the identifier and optional filter criteria.
+     * @return A list of key-value pairs representing the API parameters based on the operation type
+     *         in the provided [ApiItem], or `null` if the conversion is not applicable.
+     */
+    fun apiItemToParamList(apiItem: ApiItem<T, ID, FILT>): List<Pair<String, String>>? = when (apiItem) {
+        is ApiItem.Query.Create -> listOf(
+            "action" to CrudTask.Create.name,
+        ) + (apiItem.id?.let {
+            listOf(
+                "id" to Json.encodeToString(commonContainer.idSerializer, it)
+            )
+        } ?: emptyList())
+
+        is ApiItem.Query.Read -> listOf(
+            "action" to apiItem.crudTask.name,
+            "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+        )
+
+        is ApiItem.Query.Update -> listOf(
+            "action" to apiItem.crudTask.name,
+            "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+        )
+
+        is ApiItem.Query.Delete -> listOf(
+            "action" to apiItem.crudTask.name,
+            "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
+        )
+
+        else -> null
+    }
+
+    /**
+     * Converts an [ApiItem] to a URL string with optional view mode included.
+     *
+     * @param apiItem The API item that encapsulates the data and context for generating the URL.
+     *                It may include the identifier, attributes, and filter criteria used in the API query.
+     * @param vmode An optional view mode of type [VMode] that determines how the item should be displayed.
+     *              The view mode is appended as a query parameter if provided.
+     * @return The resulting URL string representing the [ApiItem] with query parameters, or `null` if the item
+     *         cannot be converted to a URL.
+     */
+    fun apiItemToUrlString(apiItem: ApiItem<T, ID, FILT>, vmode: VMode? = null): String? {
+        val url: String? = apiItemToParamList(apiItem)?.let { params: List<Pair<String, String>> ->
+            val urlParams = UrlParams(*params.toTypedArray())
+            urlParams.pushParam(
+                "apiFilter" to Json.encodeToString(
+                    commonContainer.apiFilterSerializer,
+                    apiItem.apiFilter
+                )
+            )
+            vmode?.let { urlParams.pushParam("vmode" to it.name) }
+            url + urlParams.toEncodedUrlString()
+        }
+        return url
+    }
 
     /**
      * Executes a query to fetch a specific item using its identifier and processes the resulting state.
@@ -149,14 +231,8 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
      * @return the opened [Window] instance if the URL is successfully resolved and opened, or `null` if the URL cannot be resolved
      */
     @Suppress("unused")
-    fun navigateTo(
-        apiItem: ApiItem<T, ID, FILT>, target: String = "_blank",
-    ): Window? = viewItemUrl(apiItem)?.let { url ->
-        window.open(
-            url = url,
-            target = target
-        )
-    }
+    fun navigateToViewItem(apiItem: ApiItem<T, ID, FILT>, vmode: VMode = defaultViewItemMode) =
+        openViewItem(apiItem, vmode)
 
     /**
      * Navigates to the creation query URL for a specific item using an optional identifier and a filter.
@@ -170,13 +246,13 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     fun navigateToQueryCreate(
         id: ID? = null,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        target: String = "_blank",
-    ): Window? = navigateTo(
+        vmode: VMode = defaultViewItemMode,
+    ) = navigateToViewItem(
         apiItem = commonContainer.apiItemQueryCreate(
             id = id,
             apiFilter = apiFilter
         ),
-        target = target
+        vmode = vmode
     )
 
     /**
@@ -191,13 +267,13 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     fun navigateToQueryRead(
         id: ID,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        target: String = "_blank",
-    ): Window? = navigateTo(
+        vmode: VMode = defaultViewItemMode,
+    ) = navigateToViewItem(
         apiItem = commonContainer.apiItemQueryRead(
             id = id,
             apiFilter = apiFilter
         ),
-        target = target
+        vmode = vmode
     )
 
     /**
@@ -212,21 +288,49 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     fun navigateToQueryUpdate(
         id: ID,
         apiFilter: FILT = commonContainer.apiFilterInstance(),
-        target: String = "_blank",
-    ): Window? = navigateTo(
+        vmode: VMode = defaultViewItemMode,
+    ) = navigateToViewItem(
         apiItem = commonContainer.apiItemQueryUpdate(
             id = id,
             apiFilter = apiFilter
         ),
-        target = target
+        vmode = vmode
     )
 
-    @Suppress("unused")
-    val urlCreate: String
-        get() {
-            val urlParams = UrlParams("action" to CrudTask.Create.name)
-            return url + urlParams.toEncodedUrlString()
+    /**
+     * Opens a view for the specified API item in a specified view mode.
+     *
+     * @param apiItem The API item containing the data and context for generating the view. This includes
+     *                associated attributes such as the identifier and optional filter criteria.
+     * @param vmode The view mode specifying how the item should be displayed, defaulting to the configuration's
+     *              default view mode. Supported modes include modal and various window targets (_self, _blank, etc.).
+     */
+    fun openViewItem(apiItem: ApiItem<T, ID, FILT>, vmode: VMode = defaultViewItemMode) {
+        when (vmode) {
+            VMode._blank,
+            VMode._self,
+            VMode._parent,
+            VMode._top -> apiItemToUrlString(apiItem = apiItem, vmode)?.let { url ->
+                window.open(url = url, target = "$vmode")
+            }
+
+            VMode.modal -> apiItemToParamList(apiItem)?.let { paramList ->
+                val urlParams = (paramList + ("vmode" to "${VMode.modal}"))
+                Modal(
+                    caption = "",
+                    size = ModalSize.XLARGE,
+                    animation = false,
+                    centered = false,
+                    className = "viewItemModal"
+                ) {
+                    newViewInstance(UrlParams(*urlParams.toTypedArray())).apply {
+                        viewModal = this@Modal
+                        startDisplayPage()
+                    }
+                }.show()
+            }
         }
+    }
 
     fun urlRead(id: ID): String {
         val urlParams =
@@ -253,45 +357,6 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
             "action" to CrudTask.Update.name
         )
         return url + urlParams.toEncodedUrlString()
-    }
-
-    fun viewItemUrl(apiItem: ApiItem<T, ID, FILT>): String? {
-        val url: String? = when (apiItem) {
-            is ApiItem.Query.Create -> listOf(
-                "action" to CrudTask.Create.name,
-            ) + (apiItem.id?.let {
-                listOf(
-                    "id" to Json.encodeToString(commonContainer.idSerializer, it)
-                )
-            } ?: emptyList())
-
-            is ApiItem.Query.Read -> listOf(
-                "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
-            )
-
-            is ApiItem.Query.Update -> listOf(
-                "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
-            )
-
-            is ApiItem.Query.Delete -> listOf(
-                "action" to apiItem.crudTask.name,
-                "id" to Json.encodeToString(commonContainer.idSerializer, apiItem.id)
-            )
-
-            else -> null
-        }?.let { params: List<Pair<String, String>> ->
-            val urlParams = UrlParams(*params.toTypedArray())
-            urlParams.pushParam(
-                "apiFilter" to Json.encodeToString(
-                    commonContainer.apiFilterSerializer,
-                    apiItem.apiFilter
-                )
-            )
-            url + urlParams.toEncodedUrlString()
-        }
-        return url
     }
 
     init {

@@ -12,6 +12,7 @@ import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.state.State
 import com.fonrouge.fullStack.callItemService
+import com.fonrouge.fullStack.config.ConfigViewContainer
 import com.fonrouge.fullStack.config.ConfigViewItem
 import com.fonrouge.fullStack.getItemState
 import com.fonrouge.fullStack.layout.centeredMessage
@@ -24,6 +25,7 @@ import io.kvision.html.ButtonSize
 import io.kvision.html.ButtonStyle
 import io.kvision.html.button
 import io.kvision.html.div
+import io.kvision.i18n.gettext
 import io.kvision.i18n.tr
 import io.kvision.navbar.Nav
 import io.kvision.panel.flexPanel
@@ -235,7 +237,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             )
             if (it.hasError.not()) {
                 Toast.info(
-                    message = if (it.noDataModified == true) "No data was modified ..." else it.msgOk
+                    message = if (it.noDataModified == true) "${gettext("No data was modified")} ..." else it.msgOk
                         ?: "info...",
                     options = toastOptions
                 )
@@ -327,7 +329,9 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             }
         }
         if (proceedClose) {
-            if (window.history.length > 1) {
+            if (viewModal != null) {
+                viewModal?.hide()
+            } else if (window.history.length > 1) {
                 window.history.back()
             } else {
                 window.close()
@@ -420,12 +424,12 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             onClick {
                 it.stopPropagation()
                 item?._id?.let { id ->
-                    configView.navigateTo(
+                    configView.navigateToViewItem(
                         apiItem = configView.commonContainer.apiItemQueryUpdate(
                             id = id,
                             apiFilter = apiFilter,
                         ),
-                        target = "_self"
+                        vmode = ConfigViewContainer.VMode.modal
                     )
                 }
             }
@@ -453,7 +457,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             if (actionUpsert) {
                 buttonBack =
                     button(
-                        text = "Back",
+                        text = gettext("Back"),
                         icon = "fas fa-reply",
                         style = ButtonStyle.OUTLINEPRIMARY
                     ) {
@@ -464,7 +468,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     }
                 buttonCancel =
                     button(
-                        text = "Cancel",
+                        text = gettext("Cancel"),
                         icon = "fas fa-xmark",
                         style = ButtonStyle.OUTLINEDANGER
                     ) {
@@ -485,7 +489,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             } else {
                 if (!noBackButton) {
                     val histLength = window.history.length
-                    val label = if (histLength > 1) "Back" else "Close"
+                    val label = if (histLength > 1) gettext("Back") else gettext("Close")
                     button(text = label, icon = "fa-solid fa-arrow-rotate-left").onClick {
                         backCloseAction()
                     }
@@ -628,7 +632,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                                     spacing = 10
                                 ) {
                                     div(
-                                        content = "<i><b>[$crudAction1]</b></i> action denied: <b>${itemResponse.msgError}</b>",
+                                        content = "<i><b>[$crudAction1]</b></i> ${gettext("action denied")}: <b>${itemResponse.msgError}</b>",
                                         rich = true
                                     ) {
                                         fontSize = 1.5.em
@@ -648,7 +652,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                                 }
                                 Toast.warning(
                                     message = itemResponse.msgError
-                                        ?: "$crudAction1 action denied ...",
+                                        ?: "$crudAction1 ${gettext("action denied")} ...",
                                     options = toastOptions
                                 )
                             }

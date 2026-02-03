@@ -11,6 +11,7 @@ import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.state.State
+import com.fonrouge.fullStack.config.ConfigView.Companion.defaultViewMode
 import com.fonrouge.fullStack.config.ConfigViewItem
 import com.fonrouge.fullStack.config.ConfigViewList
 import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
@@ -410,9 +411,6 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                 )
             }
         } ?: return
-        val url: String? = configViewItem.viewItemUrl(
-            apiItem = apiItem
-        )
         val callBlock = {
             if (crudTask == CrudTask.Delete) {
                 item?.let {
@@ -425,7 +423,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                     }
                 }
             } else {
-                url?.let { window.open(url = url, target = "_blank") }
+                configViewItem.openViewItem(apiItem = apiItem, vmode = defaultViewMode)
             }
         }
         if (masterViewItem?.crudTask == CrudTask.Update) {

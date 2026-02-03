@@ -14,4 +14,4 @@ package com.fonrouge.base.annotations
  */
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.RUNTIME)
-public annotation class PreLookupField()
+public annotation class PreLookupField

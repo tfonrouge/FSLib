@@ -17,6 +17,7 @@ import com.fonrouge.fullStack.view.KVWebManager.frontEndAppName
 import io.kvision.core.*
 import io.kvision.dropdown.dropDown
 import io.kvision.html.*
+import io.kvision.modal.Modal
 import io.kvision.navbar.nav
 import io.kvision.navbar.navbar
 import io.kvision.offcanvas.Offcanvas
@@ -256,6 +257,13 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * assignable var that indicates if the filter button in the tabulator's toolbar will be displayed
      */
     var hasOffCanvasFilterView: Boolean = false
+
+    /**
+     * Represents whether the current view is in modal state or not.
+     * A value of `true` indicates that the view is modal, `false` indicates it is not modal,
+     * and `null` implies the state is undefined or not set.
+     */
+    var viewModal: Modal? = null
 
     /**
      * Adds a page list body to the container.

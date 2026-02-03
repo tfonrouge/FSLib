@@ -26,4 +26,12 @@ abstract class ConfigViewContainer<out CC : ICommonContainer<T, ID, FILT>, T : B
     commonContainer = commonContainer,
     viewKClass = viewKClass,
     _baseUrl = baseUrl,
-)
+) {
+    enum class VMode {
+        _blank,
+        _self,
+        _parent,
+        _top,
+        modal,
+    }
+}

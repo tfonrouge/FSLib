@@ -32,7 +32,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     label = label,
     icon = icon,
     disabled = disabled,
-    url = configViewItem.viewItemUrl(
+    url = configViewItem.apiItemToUrlString(
         apiItem = apiItem
     )
 )
@@ -62,7 +62,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     label = label,
     icon = icon,
     disabled = disabled,
-    url = configViewList.viewListUrl(
+    url = configViewList.viewUrl(
         apiFilter = apiFilter
     )
 )

@@ -5,6 +5,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
 #: src/jsMain/kotlin/com/fonrouge/fsErsaPack/view/ViewItemProfitCalcDataHead.kt:32
+msgid "action denied"
+msgstr "acción denegada"
+
+msgid "No data was modified"
+msgstr "Datos no fueron modificados"
+
 msgid "Name"
 msgstr "Nombre"
 
@@ -16,6 +22,9 @@ msgstr "Detalle de"
 
 msgid "Edit"
 msgstr "Editar"
+
+msgid "Close"
+msgstr "Cerrar"
 
 msgid "Create"
 msgstr "Crear"

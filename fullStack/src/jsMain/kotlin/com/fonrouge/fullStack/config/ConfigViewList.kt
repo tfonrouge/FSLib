@@ -72,9 +72,6 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 
     override val label: String get() = commonContainer.labelList
 
-    fun viewListUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String =
-        urlWithParams(apiFilterParam(apiFilter))
-
     init {
         configViewListMap[this.baseUrl] = this
     }

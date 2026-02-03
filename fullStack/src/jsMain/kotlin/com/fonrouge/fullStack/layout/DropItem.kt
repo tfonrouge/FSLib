@@ -3,7 +3,9 @@ package com.fonrouge.fullStack.layout
 
 import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.fullStack.config.ConfigView
+import com.fonrouge.fullStack.config.ConfigViewContainer
 import com.fonrouge.fullStack.config.ConfigViewItem
+import com.fonrouge.fullStack.config.ConfigViewItem.Companion.defaultViewItemMode
 import com.fonrouge.fullStack.config.ConfigViewList
 import io.kvision.core.Container
 import io.kvision.core.onClick
@@ -97,7 +99,7 @@ fun <ID : Any, FILT : IApiFilter<*>> Container.dropItem(
     configViewItem: ConfigViewItem<*, *, ID, *, FILT, *>,
     id: ID,
     apiFilter: FILT = configViewItem.commonContainer.apiFilterInstance(),
-    target: String = "_blank",
+    vmode: ConfigViewContainer.VMode = defaultViewItemMode,
     toggleDropDown: Boolean = false,
     className: String? = null,
     init: (Li.() -> Unit) = {},
@@ -110,7 +112,7 @@ fun <ID : Any, FILT : IApiFilter<*>> Container.dropItem(
         configViewItem.navigateToQueryRead(
             id = id,
             apiFilter = apiFilter,
-            target = target
+            vmode = vmode
         )
     }
     init(this)
@@ -134,7 +136,7 @@ fun <ID : Any, FILT : IApiFilter<*>> Container.dropItem(
 fun <FILT : IApiFilter<*>> Container.dropItem(
     configViewList: ConfigViewList<*, *, *, *, FILT, *, *>,
     apiFilter: FILT = configViewList.commonContainer.apiFilterInstance(),
-    target: String = "_blank",
+    vmode: ConfigViewContainer.VMode = defaultViewItemMode,
     toggleDropDown: Boolean = false,
     className: String? = null,
     init: (Li.() -> Unit) = {},
@@ -144,7 +146,7 @@ fun <FILT : IApiFilter<*>> Container.dropItem(
     className = className,
 ) {
     onClick {
-        configViewList.navigateTo(apiFilter = apiFilter, target = target)
+        configViewList.navigateToView(apiFilter = apiFilter, vmode = vmode)
     }
     init(this)
 }
@@ -161,10 +163,10 @@ fun <FILT : IApiFilter<*>> Container.dropItem(
  * @param init An optional lambda function providing additional initialization logic for the drop-down menu item.
  */
 @Suppress("unused")
-fun <FILT: IApiFilter<*>> Container.dropItem(
-    configView: ConfigView<*,*,FILT>,
+fun <FILT : IApiFilter<*>> Container.dropItem(
+    configView: ConfigView<*, *, FILT>,
     apiFilter: FILT = configView.commonContainer.apiFilterInstance(),
-    target: String = "_blank",
+    vmode: ConfigViewContainer.VMode = defaultViewItemMode,
     toggleDropDown: Boolean = false,
     className: String? = null,
     init: (Li.() -> Unit) = {},
@@ -173,6 +175,6 @@ fun <FILT: IApiFilter<*>> Container.dropItem(
     toggleDropDown = toggleDropDown,
     className = className
 ) {
-    onClick { configView.navigateTo(apiFilter = apiFilter, target = target) }
+    onClick { configView.navigateToView(apiFilter = apiFilter, vmode = vmode) }
     init(this)
 }
