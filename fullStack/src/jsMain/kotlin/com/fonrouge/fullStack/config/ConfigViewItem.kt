@@ -135,12 +135,15 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         }
 
     /**
-     * Converts an [ApiItem] into a list of key-value parameter pairs suitable for API usage.
+     * Converts an [ApiItem] of type [T] to a list of key-value pairs representing API query parameters.
      *
-     * @param apiItem The API item to be converted. It determines the operation type (e.g., create, read, update, delete)
-     *                and includes associated attributes such as the identifier and optional filter criteria.
-     * @return A list of key-value pairs representing the API parameters based on the operation type
-     *         in the provided [ApiItem], or `null` if the conversion is not applicable.
+     * @param apiItem The [ApiItem] containing the operation type, identifier, and filter criteria.
+     *                The method processes `Create`, `Read`, `Update`, and `Delete` operations,
+     *                constructing corresponding query parameters. If the [ApiItem] does not match
+     *                a recognized type, it returns `null`.
+     * @return A list of key-value pairs where each pair represents a query parameter key and its
+     *         corresponding value. The list includes the action type, identifier, and serialized
+     *         filter criteria. Returns `null` if the [ApiItem] cannot be processed.
      */
     fun apiItemToParamList(apiItem: ApiItem<T, ID, FILT>): List<Pair<String, String>>? = when (apiItem) {
         is ApiItem.Query.Create -> listOf(
@@ -167,27 +170,26 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
         )
 
         else -> null
+    }?.let { pairs ->
+        pairs + ("apiFilter" to Json.encodeToString(
+            serializer = commonContainer.apiFilterSerializer,
+            value = apiItem.apiFilter
+        ))
     }
 
     /**
-     * Converts an [ApiItem] to a URL string with optional view mode included.
+     * Constructs a URL string based on the provided [ApiItem] and an optional view mode.
      *
-     * @param apiItem The API item that encapsulates the data and context for generating the URL.
-     *                It may include the identifier, attributes, and filter criteria used in the API query.
-     * @param vmode An optional view mode of type [VMode] that determines how the item should be displayed.
-     *              The view mode is appended as a query parameter if provided.
-     * @return The resulting URL string representing the [ApiItem] with query parameters, or `null` if the item
-     *         cannot be converted to a URL.
+     * @param apiItem The [ApiItem] containing the operation type, identifier, and filter criteria.
+     *                This is used to generate the query parameters for the URL.
+     * @param vmode An optional [VMode] specifying the view mode to include as a query parameter.
+     *              Defaults to `null` if not provided.
+     * @return A URL string combining the base URL and encoded query parameters derived from
+     *         the [ApiItem]. Returns `null` if the [ApiItem] cannot be converted into URL parameters.
      */
     fun apiItemToUrlString(apiItem: ApiItem<T, ID, FILT>, vmode: VMode? = null): String? {
         val url: String? = apiItemToParamList(apiItem)?.let { params: List<Pair<String, String>> ->
             val urlParams = UrlParams(*params.toTypedArray())
-            urlParams.pushParam(
-                "apiFilter" to Json.encodeToString(
-                    commonContainer.apiFilterSerializer,
-                    apiItem.apiFilter
-                )
-            )
             vmode?.let { urlParams.pushParam("vmode" to it.name) }
             url + urlParams.toEncodedUrlString()
         }

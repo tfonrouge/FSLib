@@ -125,7 +125,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         fun hiddenColumns(): Array<Any>? {
             val x: List<Any>? = tabulator?.jsTabulator?.getColumns(false)?.filter {
                 !it.isVisible()
-            }?.map { columnComponent ->
+            }?.flatMap { columnComponent ->
                 val responsiveHiddenColumns =
                     (this@ViewList.tabulator?.jsTabulator?.modules?.asDynamic()?.responsiveLayout?.hiddenColumns as Array<Tabulator.ColumnComponent>).map {
                         it.getField()
@@ -150,7 +150,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
                         separator = true
                     }
                 )
-            }?.flatten()
+            }
             return x?.toTypedArray()
         }
 
