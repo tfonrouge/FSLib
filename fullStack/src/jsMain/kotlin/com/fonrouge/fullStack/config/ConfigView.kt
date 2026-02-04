@@ -170,13 +170,14 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
     }
 
     /**
-     * Generates a URL based on the current configuration and specified API filter.
+     * Generates a URL with parameters based on the provided API filter.
      *
-     * - If the current instance is of type `ConfigViewList`, a specialized URL for the view list is generated.
-     * - Otherwise, a general URL with API filter parameters is constructed.
+     * This method combines the API filter parameter and constructs a URL with key-value query parameters
+     * appended to the base URL. It uses the default API filter instance if no filter is provided as an argument.
      *
-     * @param apiFilter The API filter instance used to build the URL.
-     * @return A string representing the constructed URL.
+     * @param apiFilter The filter criteria used to configure the URL parameters. Defaults to an instance generated
+     *                  by `commonContainer.apiFilterInstance()`.
+     * @return A string representing the constructed URL with the API filter parameter included.
      */
     fun viewUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String =
         urlWithParams(apiFilterParam(apiFilter))
