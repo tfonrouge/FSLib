@@ -178,7 +178,8 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
      * @param apiFilter The API filter instance used to build the URL.
      * @return A string representing the constructed URL.
      */
-    fun viewUrl(apiFilter: FILT): String = urlWithParams(apiFilterParam(apiFilter))
+    fun viewUrl(apiFilter: FILT = commonContainer.apiFilterInstance()): String =
+        urlWithParams(apiFilterParam(apiFilter))
 
     /**
      * helper to build an api filter parameter in the url string
