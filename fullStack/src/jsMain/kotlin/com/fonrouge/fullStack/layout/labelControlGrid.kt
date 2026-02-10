@@ -19,9 +19,8 @@ import io.kvision.utils.rem
  * in the first column, and the component will be displayed in the second column.
  */
 @Suppress("unused")
-fun Container.labelControlGrid(vararg entry: Pair<String, Component>, init: (GridPanel.() -> Unit)? = null) {
+fun Container.labelControlGrid(vararg entry: Pair<String, Component>, init: (GridPanel.() -> Unit)? = null): GridPanel =
     gridPanel(templateColumns = "auto 1fr", columnGap = 5, rowGap = 5) {
-        init?.invoke(this)
         entry.forEach {
             span(it.first) {
                 display = Display.FLEX
@@ -31,5 +30,5 @@ fun Container.labelControlGrid(vararg entry: Pair<String, Component>, init: (Gri
             }
             add(it.second)
         }
+        init?.invoke(this)
     }
-}
