@@ -3,6 +3,7 @@ package com.fonrouge.fullStack.view
 import com.fonrouge.base.model.BaseDoc
 import io.kvision.core.onChange
 import io.kvision.form.*
+import kotlinx.datetime.Instant
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -53,6 +54,27 @@ class ViewFormPanel<K : BaseDoc<*>>(
         }
 
         fun getSerializedValue(): String? = getValue()?.let { Json.encodeToString(serializer = serializer, value = it) }
+    }
+
+    /**
+     * Binds the given form control to a property with configurable validation and layout options.
+     *
+     * @param key The property used to bind the form control, identified by its name.
+     * @param required Specifies if the field is mandatory. Default is false.
+     * @param requiredMessage The message displayed when the field is required but left empty. Default is null.
+     * @param layoutType The desired layout type for the form control. Default is null.
+     * @param validatorMessage A lambda function providing a custom validation message for the control. Default is null.
+     * @param validator A lambda function implementing custom validation logic for the control. Default is null.
+     * @return The form control itself, enabling method chaining.
+     */
+    @Suppress("unused")
+    fun <C : DateFormControl> C.bind(
+        key: KProperty1<K, Instant?>, required: Boolean = false, requiredMessage: String? = null,
+        layoutType: FormType? = null,
+        validatorMessage: ((C) -> String?)? = null,
+        validator: ((C) -> Boolean?)? = null
+    ): C {
+        return bind(key.name, required, requiredMessage, layoutType, validatorMessage, validator)
     }
 
     /**
