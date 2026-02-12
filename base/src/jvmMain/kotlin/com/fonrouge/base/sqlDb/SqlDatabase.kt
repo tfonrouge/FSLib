@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import org.intellij.lang.annotations.Language
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.IColumnType
 import org.jetbrains.exposed.sql.Transaction
@@ -153,158 +152,99 @@ abstract class SqlDatabase(
     }
 
     /**
-     * Executes the provided SQL query and returns a single result of type `T`.
-     *
-     * This method performs a suspended database query execution and maps the first result row
-     * to the specified Kotlin class type `T`. If no result is found, it returns `null`.
+     * Executes a SQL query and attempts to find a single item of the specified type [T].
      *
      * @param sql The SQL query string to be executed.
-     * @param args A collection of pairs representing the column types and their corresponding values
-     *             to be used as arguments in the query. Defaults to an empty list.
-     * @param explicitStatementType An optional `StatementType` used to explicitly define
-     *                              the type of SQL statement being executed. Defaults to `null`.
-     * @return A nullable result of type `T`, representing the first row of the query result,
-     *         or `null` if no result is found.
+     * @param args A collection of column type/value pairs to provide as arguments for the query. Default is an empty list.
+     * @param explicitStatementType An optional explicit statement type for the query execution. Default is null.
+     * @return The single result of the query cast to the specified type [T], or null if no result is found or an error occurs.
      */
     suspend inline fun <reified T : Any> findItem(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType<*>, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
-    ): T? {
-        var result: T? = null
-        newSuspendedTransaction(db = database) {
-            try {
-                exec(sql, args, explicitStatementType) { resultSet ->
-                    if (resultSet.next()) {
-                        result = if (T::class.isSubclassOf(Comparable::class)) {
-                            getElementFromClassifier(
-                                kClass = T::class,
-                                resultSet = resultSet,
-                                index = 1
-                            ) as? T
-                        } else {
-                            sqlEntityTo<T>(resultSet)
-                        }
-                    }
+    ): T? = newSuspendedTransaction(db = database) {
+        exec(stmt = sql, args = args, explicitStatementType = explicitStatementType) { resultSet ->
+            if (resultSet.next()) {
+                if (T::class.isSubclassOf(Comparable::class)) {
+                    getElementFromClassifier(
+                        kClass = T::class,
+                        resultSet = resultSet,
+                        index = 1
+                    ) as? T
+                } else {
+                    sqlEntityTo<T>(resultSet)
                 }
-            } catch (e: ExposedSQLException) {
-                val s = "SQL findItem() error: ${e.message} on SQL string: $sql"
-                System.err.println(s)
-                println(s)
-            }
+            } else null
         }
-        return result
     }
 
     /**
-     * Executes a provided SQL query and applies a specified block of logic to each resulting row,
-     * collecting the results into a list of a specified type.
+     * Executes a SQL query and applies a specified block of code to each row in the result set.
      *
-     * @param T The type to which rows in the result set should be transformed.
      * @param sql The SQL query string to be executed.
-     * @param args A collection of pairs representing the column types and their corresponding values
-     *             to be used as arguments in the query. Defaults to an empty list.
-     * @param explicitStatementType An optional `StatementType` used to explicitly define the type of
-     *                              SQL statement being executed. Defaults to null.
-     * @param debug A flag to enable debug logging, printing the SQL statement being executed. Defaults to false.
-     * @param doBlock A lambda function that defines the logic for transforming a single `ResultSet` row
-     *                into an object of type `T`. If null is returned from this block, no item is added to the list.
-     * @return A list of objects of type `T`, representing the transformed rows of the result set.
+     * @param args A collection of arguments to bind to the SQL query, where each argument is a pair
+     *             consisting of an `IColumnType` and a value. Defaults to an empty list if no arguments are provided.
+     * @param explicitStatementType The specific type of SQL statement being executed. This is optional
+     *                               and can be null if not explicitly specified.
+     * @param doBlock The block of code to execute for each row in the result set. This block receives
+     *                an instance of `ResultSet` and operates within a `SqlDatabase` context.
      */
-    suspend inline fun <reified T> forEachResult(
+    suspend fun forEachResult(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType<*>, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
-        debug: Boolean = false,
-        /* TODO: how to make this block suspended */
-        crossinline doBlock: (ResultSet) -> T? = { resultSet ->
-            sqlEntityTo<T>(resultSet)
-        },
-    ): List<T> {
-        if (debug) {
-            println("SQL CMD ${T::class.simpleName}\n$sql")
-        }
-        val result = mutableListOf<T>()
-        return newSuspendedTransaction(context = Dispatchers.IO, db = database) {
-            try {
-                exec(sql, args, explicitStatementType) { resultSet ->
-                    while (resultSet.next()) {
-                        try {
-                            doBlock(resultSet)?.let { result.add(it) }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-                }
-                result
-            } catch (e: ExposedSQLException) {
-                System.err.println("SQL findList() error: ${e.message} on SQL string: $sql")
-                e.printStackTrace()
-                result
+        doBlock: SqlDatabase.(ResultSet) -> Unit
+    ) = newSuspendedTransaction(context = Dispatchers.IO, db = database) {
+        exec(sql, args, explicitStatementType) { resultSet ->
+            while (resultSet.next()) {
+                doBlock(resultSet)
             }
         }
     }
 
     /**
-     * Executes an SQL query and transforms the resulting rows into a list of type `T`.
+     * Executes the given SQL query and maps the result to a list of objects of type [T].
      *
-     * @param T The type to which rows in the result set will be transformed.
-     * @param sql The SQL query string to be executed.
-     * @param args A collection of pairs representing the column types and their corresponding values
-     *             to be used as arguments in the query. Defaults to an empty list.
-     * @param explicitStatementType An optional `StatementType` used to explicitly define the type of SQL
-     *                              statement being executed. Defaults to `null`.
-     * @param debug A flag to enable debug logging, printing the SQL statement being executed. Defaults to `false`.
-     * @param doBlock A lambda function that specifies the logic for converting a single `ResultSet` row
-     *                into an object of type `T`. If the block returns `null`, no item is added to the list.
-     * @return A list of objects of type `T`, representing the transformed rows of the result set.
+     * @param sql The SQL query string to execute.
+     * @param args A collection of argument pairs containing their types ([IColumnType]) and values. Defaults to an empty list.
+     * @param explicitStatementType The optional explicit type of SQL statement to execute. Can be null if not specified.
+     * @return A list of objects of type [T] mapped from the query results, or null if an exception occurs.
      */
     suspend inline fun <reified T> findList(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType<*>, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
-        debug: Boolean = false,
-        crossinline doBlock: (ResultSet) -> T? = { resultSet ->
-            sqlEntityTo<T>(resultSet)
-        },
-    ): List<T> {
-        return forEachResult<T>(
-            sql = sql,
-            doBlock = doBlock,
-            args = args,
-            explicitStatementType = explicitStatementType,
-            debug = debug,
-        )
+    ): List<T> = newSuspendedTransaction(context = Dispatchers.IO, db = database) {
+        buildList {
+            exec(sql, args, explicitStatementType) { resultSet ->
+                while (resultSet.next()) {
+                    add(sqlEntityTo<T>(resultSet))
+                }
+            }
+        }
     }
 
     /**
-     * Executes the provided SQL query and maps the resulting rows to a list of `JsonObject`s.
+     * Executes the given SQL query and maps the resulting rows to a list of JSON objects.
      *
-     * @param T The type representing the structure of data mapped from the SQL result set.
-     * @param sql The SQL query string to be executed.
-     * @param args A collection of pairs representing the column types and their corresponding values
-     *             to be used as arguments in the query. Defaults to an empty list.
-     * @param explicitStatementType An optional `StatementType` used to explicitly define the type of
-     *                              SQL statement being executed. Defaults to null.
-     * @param debug A flag to enable debug logging which prints the SQL query being executed. Defaults to false.
-     * @return A list of `JsonObject`s representing the data retrieved and transformed according to the
-     *         specified type structure.
+     * @param sql The SQL query to be executed. Must be a valid SQL string.
+     * @param args The parameters to be bound to the query, represented as a list of pairs of column types and their values. Defaults to an empty list.
+     * @param explicitStatementType Optional parameter to specify the type of SQL statement being executed. Defaults to null.
+     * @return A list of JSON objects representing the query result, where each row is converted to a JSON object.
      */
     suspend inline fun <reified T> findJsonList(
         @Language("SQL") sql: String,
         args: Iterable<Pair<IColumnType<*>, Any?>> = emptyList(),
         explicitStatementType: StatementType? = null,
-        debug: Boolean = false,
-    ): List<JsonObject> {
-        return forEachResult<JsonObject>(
-            sql = sql,
-            doBlock = { resultSet ->
-                sqlEntityToJson<T>(resultSet)
-            },
-            args = args,
-            explicitStatementType = explicitStatementType,
-            debug = debug,
-        )
+    ): List<JsonObject> = newSuspendedTransaction(context = Dispatchers.IO, db = database) {
+        buildList {
+            exec(sql, args, explicitStatementType) { resultSet ->
+                while (resultSet.next()) {
+                    add(sqlEntityToJson<T>(resultSet))
+                }
+            }
+        }
     }
 
     /**
