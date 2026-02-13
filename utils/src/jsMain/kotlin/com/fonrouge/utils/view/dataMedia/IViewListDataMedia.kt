@@ -112,7 +112,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
         }
     }
 
-    private val showUploadMedia = ObservableValue(false)
+    private val showUploadMediaObs = ObservableValue(false)
     private val classifierClass: KClass<*> = classifierClass ?: viewItem.configView.commonContainer.itemKClass
 
     init {
@@ -233,7 +233,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
                 button("+ Media") {
                     size = ButtonSize.XSMALL
                     onClick {
-                        showUploadMedia.value = !showUploadMedia.value
+                        showUploadMediaObs.value = !showUploadMediaObs.value
                     }
                 }
             }
@@ -253,7 +253,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
                         uploadUrl = "${documentUploadMediaUrl(classifierClass)}?serializedIdDoc=${serializedIdDoc}",
                     ) {
                         allowedFileTypes = setOf("image", "video", "pdf")
-                        showUploadMedia.subscribe {
+                        showUploadMediaObs.subscribe {
                             if (it) showAnim() else hideAnim()
                         }
                     }
