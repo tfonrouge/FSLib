@@ -743,7 +743,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         valueMap.forEach { (key, value) ->
             s1[key] = value?.let { JSON.parse(it) }
         }
-        formPanel.customMapValues.forEach { (key: String, mapValue): Map.Entry<String, ViewFormPanel.CustomMapValue<*, *>> ->
+        formPanel.customMapValues.forEach { (key: String, mapValue): Map.Entry<String, XFormPanel.CustomMapValue<*, *>> ->
             s1[key] = mapValue.getSerializedValue()?.let { JSON.parse(it) }
         }
         tabulators.forEach { (key: String, tabulatorItem: TabulatorItem<*>) ->

@@ -9,4 +9,4 @@ package com.fonrouge.base.types
  * @return A `LongId<T>` if the `Long` is non-null, otherwise `null`.
  */
 @Suppress("unused")
-fun <T : Any> Long.toLongId(): LongId<T> = LongId(this)
+fun <T> Long.toLongId(): LongId<T> = LongId(this)
