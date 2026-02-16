@@ -2,19 +2,33 @@
 
 package com.fonrouge.fullStack.view
 
+import com.fonrouge.base.model.BaseDoc
+import com.fonrouge.fullStack.view.ViewItem.TabulatorItem
 import com.fonrouge.fullStack.view.XFormPanel.Companion.xcreate
 import io.kvision.core.Container
 import io.kvision.core.onChange
 import io.kvision.form.*
+import io.kvision.types.KFile
+import io.kvision.types.toStringF
+import io.kvision.utils.Serialization
+import io.kvision.utils.Serialization.toObj
+import js.date.Date
 import kotlinx.datetime.Instant
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromDynamic
+import kotlinx.serialization.json.encodeToDynamic
 import kotlinx.serialization.serializer
+import kotlin.collections.set
+import kotlin.js.json
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
-open class XFormPanel<K : Any>(
+open class XFormPanel<T : BaseDoc<*>>(
     method: FormMethod? = null,
     action: String? = null,
     enctype: FormEnctype? = null,
@@ -22,9 +36,11 @@ open class XFormPanel<K : Any>(
     condensed: Boolean = false,
     horizRatio: FormHorizontalRatio = FormHorizontalRatio.RATIO_2,
     className: String? = null,
-    serializer: KSerializer<K>? = null,
-    customSerializers: Map<KClass<*>, KSerializer<*>>? = null
-) : FormPanel<K>(
+    val serializer: KSerializer<T>,
+    customSerializers: Map<KClass<*>, KSerializer<*>>? = null,
+    val viewItem: ViewItem<*, T, *, *>? = null,
+    val getModel: (() -> T?) = { viewItem?.item }
+) : FormPanel<T>(
     method = method,
     action = action,
     enctype = enctype,
@@ -36,12 +52,13 @@ open class XFormPanel<K : Any>(
     customSerializers = customSerializers
 ) {
     companion object {
-
-        inline fun <reified K : Any> xcreate(
+        inline fun <reified K : BaseDoc<*>> xcreate(
             method: FormMethod? = null, action: String? = null, enctype: FormEnctype? = null,
             type: FormType? = null, condensed: Boolean = false,
             horizRatio: FormHorizontalRatio = FormHorizontalRatio.RATIO_2, className: String? = null,
             customSerializers: Map<KClass<*>, KSerializer<*>>? = null,
+            viewItem: ViewItem<*, K, *, *>? = null,
+            noinline getModel: (() -> K?) = { viewItem?.item },
             noinline init: (FormPanel<K>.() -> Unit)? = null
         ): XFormPanel<K> {
             val formPanel =
@@ -54,7 +71,9 @@ open class XFormPanel<K : Any>(
                     horizRatio,
                     className,
                     serializer<K>(),
-                    customSerializers
+                    customSerializers,
+                    viewItem,
+                    getModel
                 )
             init?.invoke(formPanel)
             return formPanel
@@ -67,7 +86,17 @@ open class XFormPanel<K : Any>(
      * Used to store custom mappings of data fields to their serialized or stringified values.
      * This can be used in data transformation operations or for managing dynamic configurations.
      */
-    val customMapValues = mutableMapOf<String, CustomMapValue<*, *>>()
+    val customBindings = mutableMapOf<String, CustomMapValue<*, *>>()
+
+    /**
+     * A mutable map used for storing key-value pairs where each key is a string, and the value can either be a string or null.
+     *
+     * This map is primarily utilized for managing the dynamic association between property names and their corresponding values
+     * within a form panel. The values in this map are typically serialized representations of the actual data model values.
+     * It serves as a central data store for the form controls to retrieve or update their values during form interactions,
+     * binding, or validation processes.
+     */
+    var serializedValueMap: MutableMap<String, String?> = mutableMapOf()
 
     /**
      * A data class that represents a custom map structure for managing a form control with associated
@@ -93,14 +122,26 @@ open class XFormPanel<K : Any>(
             formControl.setValue(x)
         }
 
-        fun getValue(): V? = formControl.getValue()?.toString()?.let { it ->
-            valueFromControl(it)?.let {
-                Json.decodeFromString(deserializer = serializer, string = it)
-            }
-        }
+        fun getValue(): V? = formControl.getValue()
+            ?.toString()
+            ?.let(valueFromControl)
+            ?.let { Json.decodeFromString(deserializer = serializer, string = it) }
 
         @Suppress("unused")
         fun getSerializedValue(): String? = getValue()?.let { Json.encodeToString(serializer = serializer, value = it) }
+    }
+
+    /**
+     * Adds a key-value pair to the `valueMap` by serializing the provided value.
+     *
+     * This function takes a property and its corresponding value, serializes the value into a JSON string,
+     * and stores it in the `valueMap` using the property's name as the key.
+     *
+     * @param property The property whose name will be used as the key in the `valueMap`.
+     * @param value The value to associate with the property; it will be serialized before storage.
+     */
+    inline fun <reified V> addToValueMap(property: KProperty1<T, V?>, value: V) {
+        serializedValueMap[property.name] = Json.encodeToString<V>(value = value)
     }
 
     /**
@@ -116,7 +157,7 @@ open class XFormPanel<K : Any>(
      */
     @Suppress("unused")
     fun <C : DateFormControl> C.bind(
-        key: KProperty1<K, Instant?>, required: Boolean = false, requiredMessage: String? = null,
+        key: KProperty1<T, Instant?>, required: Boolean = false, requiredMessage: String? = null,
         layoutType: FormType? = null,
         validatorMessage: ((C) -> String?)? = null,
         validator: ((C) -> Boolean?)? = null
@@ -159,9 +200,8 @@ open class XFormPanel<K : Any>(
     @Suppress("unused")
     @OptIn(InternalSerializationApi::class)
     inline fun <F : FormControl, reified V> F.bindCustomValue(
-        property: KProperty1<in K, V?>,
+        property: KProperty1<in T, V?>,
         serializer: KSerializer<V?> = serializer(),
-        getValue: () -> V?,
         noinline valueToControl: ((V?) -> String?) = { v: V? -> Json.encodeToString(serializer, v) },
         noinline valueFromControl: ((String?) -> String?) = { s: String? -> s },
         required: Boolean = false, requiredMessage: String? = null,
@@ -186,10 +226,8 @@ open class XFormPanel<K : Any>(
                 }
             }
         }
-        customMapValues[property.name] = customMapValue
-//        customMapValue.setValue(viewItem.item?.let { property.get(it) })
-        val v = getValue()
-        customMapValue.setValue(v)
+        customBindings[property.name] = customMapValue
+        customMapValue.setValue(getModel.invoke()?.let { property.get(it) })
         bind(
             key = property.name,
             required = required,
@@ -202,6 +240,44 @@ open class XFormPanel<K : Any>(
     }
 
     /**
+     * Populates form controls in a form panel with values from a `valueMap`.
+     *
+     * This method iterates through the key-value pairs in `valueMap` and associates the values with the
+     * appropriate form controls within the `formPanel`. The association is determined by matching the
+     * keys of `valueMap` with the form fields or custom map values in the `formPanel`. Once a key-value
+     * pair is processed, the key is added to a set of assigned values.
+     *
+     * If a matching form control is found:
+     * - For `DateFormControl`, the value is parsed as a date and set.
+     * - For `KFilesFormControl`, the value is decoded into a list of `KFile` objects and set.
+     * - For other form control types, the appropriate `setValue` method is used to assign the value.
+     * - If the value is null, the `setValue` method is called with `null`.
+     *
+     * After processing, unprocessed keys are retained in `valueMap`.
+     */
+    fun formSetDataWithValueMap() {
+        val assignedValues = mutableSetOf<String>()
+        serializedValueMap.forEach { (key, value) ->
+            val formControl = form.fields[key] ?: customBindings[key]?.formControl ?: return@forEach
+            assignedValues += key
+            value?.let { value -> Json.decodeFromString(JsonElement.serializer(), value) }?.let { value ->
+                when (formControl) {
+                    is DateFormControl -> formControl.value =
+                        Date(value.unsafeCast<String>()).unsafeCast<kotlin.js.Date>()
+
+                    is KFilesFormControl -> formControl.value = Serialization.plain.decodeFromString(
+                        ListSerializer(KFile.serializer()),
+                        JSON.stringify(value)
+                    )
+
+                    else -> formControl.setValue(value)
+                }
+            } ?: formControl.setValue(null)
+        }
+        serializedValueMap = serializedValueMap.filterKeys { it !in assignedValues }.toMutableMap()
+    }
+
+    /**
      * Retrieves the value of a form control associated with the specified property.
      * The value is first searched in the custom map values; if not found, it falls back to the form's fields.
      *
@@ -209,8 +285,8 @@ open class XFormPanel<K : Any>(
      * @return The retrieved value of the form control, or null if no value is found.
      */
     @Suppress("unused")
-    fun getControlValue(property: KProperty1<in K, *>): Any? {
-        val c = customMapValues[property.name]
+    fun getControlValue(property: KProperty1<in T, *>): Any? {
+        val c = customBindings[property.name]
         return if (c != null) {
             c.formControl.getValue()
         } else {
@@ -230,8 +306,71 @@ open class XFormPanel<K : Any>(
      * @return the custom value of type [V] if present and successfully deserialized, or null otherwise
      */
     @Suppress("unused")
-    inline fun <reified V> getCustomValue(property: KProperty1<in K, V?>): V? =
-        customMapValues[property.name]!!.getValue() as? V
+    inline fun <reified V> getCustomValue(property: KProperty1<in T, V?>): V? {
+        val binding = customBindings[property.name]
+            ?: throw IllegalArgumentException("Property '${property.name}' is not bound with bindCustomValue()")
+
+        return try {
+            binding.getValue() as? V
+        } catch (e: ClassCastException) {
+            console.error("Type mismatch for property '${property.name}'", e)
+            null
+        }
+    }
+
+    /**
+     * Processes and retrieves data by combining multiple data sources such as `valueMap`,
+     * `customMapValues`, and `viewItem?.tabulators` while performing necessary transformations.
+     *
+     * This method overrides the base implementation and aggregates data using a combination
+     * of serialized and dynamically constructed objects. If all primary data sources
+     * (`valueMap`, `customMapValues`, `tabulators`) are empty, it delegates to the super
+     * implementation.
+     *
+     * @return The fully constructed and deserialized data object of type `T`.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun getData(): T {
+        if (serializedValueMap.isEmpty() && customBindings.isEmpty() && (viewItem?.tabulators?.isEmpty() ?: true)) {
+            return super.getData()
+        }
+        @Suppress("UnusedVariable")
+        val base = if (serializedValueMap.isNotEmpty()) {
+            val json = js("{}")
+            val fromValueMap = serializedValueMap.map { it -> it.key to it.value?.let { JSON.parse<Any?>(it) } }.toMap()
+            val fromFields = fromValueMap + form.fields.entries.associateBy(
+                keySelector = { it.key },
+                valueTransform = { it.value.getValue() }
+            )
+            fromFields.forEach { (key, value) ->
+                val v = when (value) {
+                    is kotlin.js.Date -> {
+                        value.toStringF()
+                    }
+
+                    is List<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        ((value as? List<KFile>)?.toObj(ListSerializer(KFile.serializer())))
+                    }
+
+                    else -> value
+                }
+                json[key] = v
+            }
+            json
+        } else {
+            Json.encodeToDynamic(serializer, super.getData())
+        }
+        val overlay = json()
+        customBindings.forEach { (key: String, mapValue): Map.Entry<String, CustomMapValue<*, *>> ->
+            overlay[key] = mapValue.getSerializedValue()?.let { JSON.parse(it) }
+        }
+        viewItem?.tabulators?.forEach { (key: String, tabulatorItem: TabulatorItem<*>) ->
+            overlay[key] = tabulatorItem.toPlainObj()
+        }
+        val merged = js("Object.assign({}, base, overlay)")
+        return Json.decodeFromDynamic(serializer, merged)
+    }
 
     /**
      * Sets a custom value for a specified property in the custom map values.
@@ -244,9 +383,9 @@ open class XFormPanel<K : Any>(
      * @param value The value to be set for the specified property. Can be null.
      */
     @Suppress("unused")
-    inline fun <reified V> setCustomValue(property: KProperty1<in K, V>, value: V?) {
+    inline fun <reified V> setCustomValue(property: KProperty1<in T, V>, value: V?) {
         @Suppress("UNCHECKED_CAST")
-        (customMapValues[property.name] as? CustomMapValue<*, V>)?.setValue(value)
+        (customBindings[property.name] as? CustomMapValue<*, V>)?.setValue(value)
     }
 
     /**
@@ -257,12 +396,12 @@ open class XFormPanel<K : Any>(
      * @return A boolean result of the validation process, where true indicates successful validation and false indicates failure.
      */
     override fun validate(markFields: Boolean): Boolean {
-        customMapValues.forEach { (name, customMapValue) ->
+        customBindings.forEach { (name, customMapValue) ->
             form.fields[name] = customMapValue.formControl
         }
         return singleRender {
             val result = super.validate(markFields)
-            customMapValues.forEach { (name, _) -> form.fields.remove(name) }
+            customBindings.forEach { (name, _) -> form.fields.remove(name) }
             result
         }
     }
@@ -284,12 +423,14 @@ open class XFormPanel<K : Any>(
  * @return The created `XFormPanel` instance.
  */
 @Suppress("unused")
-inline fun <reified K : Any> Container.xFormPanel(
+inline fun <reified K : BaseDoc<*>> Container.xFormPanel(
     method: FormMethod? = null, action: String? = null, enctype: FormEnctype? = null,
     type: FormType? = null, condensed: Boolean = false,
     horizRatio: FormHorizontalRatio = FormHorizontalRatio.RATIO_2,
     className: String? = null,
     customSerializers: Map<KClass<*>, KSerializer<*>>? = null,
+    viewItem: ViewItem<*, K, *, *>? = null,
+    noinline getModel: (() -> K?) = { viewItem?.item },
     noinline init: (FormPanel<K>.() -> Unit)? = null
 ): XFormPanel<K> {
     val formPanel =
@@ -301,42 +442,9 @@ inline fun <reified K : Any> Container.xFormPanel(
             condensed,
             horizRatio,
             className,
-            customSerializers
-        )
-    init?.invoke(formPanel)
-    this.add(formPanel)
-    return formPanel
-}
-
-/**
- * Creates and adds an XFormPanel to the container with the specified configuration.
- *
- * @param method The HTTP method to be used for submitting the form (e.g., GET, POST). Default is null.
- * @param action The URL to which the form is submitted. Default is null.
- * @param enctype The encoding type of the form. Default is null.
- * @param type The form type, defining its appearance. Default is null.
- * @param condensed Whether the form should use a condensed layout. Default is false.
- * @param horizRatio The horizontal ratio for the form layout. Default is FormHorizontalRatio.RATIO_2.
- * @param className Additional CSS class names to style the form. Default is null.
- * @param init An optional initialization block applied to the XFormPanel instance. Default is null.
- * @return The created and configured XFormPanel instance, added to the container.
- */
-fun Container.xform(
-    method: FormMethod? = null, action: String? = null, enctype: FormEnctype? = null,
-    type: FormType? = null, condensed: Boolean = false,
-    horizRatio: FormHorizontalRatio = FormHorizontalRatio.RATIO_2,
-    className: String? = null,
-    init: (XFormPanel<Map<String, Any?>>.() -> Unit)? = null
-): XFormPanel<Map<String, Any?>> {
-    val formPanel =
-        XFormPanel<Map<String, Any?>>(
-            method,
-            action,
-            enctype,
-            type,
-            condensed,
-            horizRatio,
-            className
+            customSerializers,
+            viewItem,
+            getModel
         )
     init?.invoke(formPanel)
     this.add(formPanel)

@@ -18,8 +18,6 @@ import com.fonrouge.fullStack.getItemState
 import com.fonrouge.fullStack.layout.centeredMessage
 import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
 import io.kvision.core.*
-import io.kvision.form.DateFormControl
-import io.kvision.form.KFilesFormControl
 import io.kvision.html.Button
 import io.kvision.html.ButtonSize
 import io.kvision.html.ButtonStyle
@@ -36,23 +34,16 @@ import io.kvision.tabulator.Tabulator
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
-import io.kvision.types.KFile
-import io.kvision.utils.Serialization
 import io.kvision.utils.em
-import js.date.Date
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromDynamic
-import kotlinx.serialization.json.encodeToDynamic
 import kotlinx.serialization.serializer
 import org.w3c.dom.events.MouseEvent
 import web.prompts.confirm
-import kotlin.collections.set
-import kotlin.js.json
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -96,8 +87,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * with forms.
      */
     var formPanel: ViewFormPanel<T> = ViewFormPanel(
-        serializer = configView.commonContainer.itemSerializer,
-        viewItem = this
+        viewItem = this,
     )
 
     /**
@@ -107,7 +97,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     /**
      * Helper to get the item property from the [ItemState]
-     * TODO: is worth to move this property to ConfigViewItem ?
      */
     var item: T?
         get() = itemObservable.value
@@ -193,16 +182,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     val tabulators: MutableMap<String, TabulatorItem<*>> = mutableMapOf()
 
-    /**
-     * A nullable map property that stores key-value pairs where keys are of type String and values are nullable Strings.
-     * It is used to manage and hold configuration or form field data within the class. The map can be null, and its contents
-     * are modifiable only within the owning class.
-     *
-     * This property is private for setting, ensuring controlled access and consistency when updating its data.
-     */
-    var valueMap: Map<String, String?> = emptyMap()
-        private set
-
     data class TabulatorItem<T : Any>(
         val tabulator: Tabulator<T>,
         val kClass: KClass<T>,
@@ -252,7 +231,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         val crudAction = crudTask
         if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
             if (formPanel.validate()) {
-                val data = transformData(getData())
+                val data = transformData(formPanel.getData())
                 val simpleState = formPanelValidate(data)
                 if (simpleState.state == State.Ok) {
                     configView.commonContainer.callItemService(
@@ -319,7 +298,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             try {
                 val s1 = Json.encodeToString(
                     configView.commonContainer.itemSerializer,
-                    transformData(getData())
+                    transformData(formPanel.getData())
                 )
                 if (s1 != origSerialized) {
                     proceedClose = confirm("Cancel and forget current changes ?")
@@ -500,8 +479,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             CrudTask.Create -> {
                 item?.let {
                     formPanel.setData(it)
-                } ?: if (valueMap.isNotEmpty()) {
-                    formSetDataWithValueMap()
+                } ?: if (formPanel.serializedValueMap.isNotEmpty()) {
+                    formPanel.formSetDataWithValueMap()
                 } else Unit
             }
 
@@ -603,7 +582,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                                         js("""history.replaceState(stateObj,"createToUpdate",url)""")
                                     }
                                 } ?: itemResponse.valueMap?.let {
-                                    valueMap = it
+                                    formPanel
+                                    formPanel.serializedValueMap = it.toMutableMap()
                                 }
                             }
                             var alreadyBack = false
@@ -687,74 +667,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         )
 
     /**
-     * Populates form controls in a form panel with values from a `valueMap`.
-     *
-     * This method iterates through the key-value pairs in `valueMap` and associates the values with the
-     * appropriate form controls within the `formPanel`. The association is determined by matching the
-     * keys of `valueMap` with the form fields or custom map values in the `formPanel`. Once a key-value
-     * pair is processed, the key is added to a set of assigned values.
-     *
-     * If a matching form control is found:
-     * - For `DateFormControl`, the value is parsed as a date and set.
-     * - For `KFilesFormControl`, the value is decoded into a list of `KFile` objects and set.
-     * - For other form control types, the appropriate `setValue` method is used to assign the value.
-     * - If the value is null, the `setValue` method is called with `null`.
-     *
-     * After processing, unprocessed keys are retained in `valueMap`.
-     */
-    private fun formSetDataWithValueMap() {
-        val assignedValues = mutableSetOf<String>()
-        valueMap.forEach { (key, value) ->
-            (formPanel.form.fields[key] ?: formPanel.customMapValues[key]?.formControl)?.let { formControl ->
-                assignedValues += key
-                value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
-                    when (formControl) {
-                        is DateFormControl -> formControl.value =
-                            Date(value.unsafeCast<String>()).unsafeCast<kotlin.js.Date>()
-
-                        is KFilesFormControl -> formControl.value = Serialization.plain.decodeFromString(
-                            ListSerializer(KFile.serializer()),
-                            JSON.stringify(value)
-                        )
-
-                        else -> formControl.setValue(value)
-                    }
-                } ?: formControl.setValue(null)
-            }
-        }
-        valueMap = valueMap.filterKeys { it !in assignedValues }
-    }
-
-    /**
-     * Retrieves data by merging the serialized form data and custom map values.
-     *
-     * The method serializes the form panel data, adds the custom map values
-     * (if any), and deserializes the resulting object to produce the final data.
-     *
-     * @return The combined data of type T obtained after processing form panel data
-     *         and custom map values.
-     */
-    @OptIn(ExperimentalSerializationApi::class)
-    fun getData(): T {
-        val item1 = formPanel.getData()
-        if (valueMap.isEmpty() && formPanel.customMapValues.isEmpty() && tabulators.isEmpty()) return item1
-        @Suppress("UnusedVariable") val s0 = Json.encodeToDynamic(configView.commonContainer.itemSerializer, item1)
-        val s1 = json()
-        valueMap.forEach { (key, value) ->
-            s1[key] = value?.let { JSON.parse(it) }
-        }
-        formPanel.customMapValues.forEach { (key: String, mapValue): Map.Entry<String, XFormPanel.CustomMapValue<*, *>> ->
-            s1[key] = mapValue.getSerializedValue()?.let { JSON.parse(it) }
-        }
-        tabulators.forEach { (key: String, tabulatorItem: TabulatorItem<*>) ->
-            s1[key] = tabulatorItem.toPlainObj()
-        }
-        val s2 = js("Object.assign({}, s0, s1)")
-        val item2 = Json.decodeFromDynamic(configView.commonContainer.itemSerializer, s2)
-        return item2
-    }
-
-    /**
      * Retrieves a TabulatorItem corresponding to the given property.
      *
      * @param property The property for which the TabulatorItem is to be retrieved.
@@ -812,8 +724,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     fun Container.viewFormPanel(init: (ViewFormPanel<T>).() -> Unit): ViewFormPanel<T> {
         val viewFormPanel = ViewFormPanel(
-            serializer = configView.commonContainer.itemSerializer,
-            viewItem = this@ViewItem,
+            viewItem = this@ViewItem
         )
         init.invoke(viewFormPanel)
         this.add(viewFormPanel)
