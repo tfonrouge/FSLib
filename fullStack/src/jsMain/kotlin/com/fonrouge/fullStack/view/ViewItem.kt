@@ -87,6 +87,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * with forms.
      */
     var formPanel: ViewFormPanel<T> = ViewFormPanel(
+        serializer = configView.commonContainer.itemSerializer,
         viewItem = this,
     )
 
@@ -724,6 +725,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 
     fun Container.viewFormPanel(init: (ViewFormPanel<T>).() -> Unit): ViewFormPanel<T> {
         val viewFormPanel = ViewFormPanel(
+            serializer = configView.commonContainer.itemSerializer,
             viewItem = this@ViewItem
         )
         init.invoke(viewFormPanel)
