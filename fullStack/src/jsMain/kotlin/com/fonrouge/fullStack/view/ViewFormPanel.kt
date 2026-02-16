@@ -3,8 +3,8 @@
 package com.fonrouge.fullStack.view
 
 import com.fonrouge.base.model.BaseDoc
-import com.fonrouge.fullStack.view.ViewItem.TabulatorItem
 import com.fonrouge.fullStack.view.ViewFormPanel.Companion.xcreate
+import com.fonrouge.fullStack.view.ViewItem.TabulatorItem
 import io.kvision.core.Container
 import io.kvision.core.onChange
 import io.kvision.form.*
@@ -28,6 +28,22 @@ import kotlin.js.json
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
+/**
+ * Represents a panel for managing form views, including field bindings, custom value serialization,
+ * and data processing.
+ *
+ * @param T The type of the underlying data model associated with the form.
+ *
+ * Fields:
+ * - `serializer`: Used for serializing and deserializing form data values.
+ * - `viewItem`: Provides a representation of the current form item for visualization or interaction.
+ * - `getModel`: Retrieves the associated data model for the form.
+ * - `customBindings`: Stores custom value-to-form mappings.
+ * - `serializedValueMap`: Tracks serialized values of the form controls.
+ *
+ * This class provides advanced functionality for binding form fields to data model properties,
+ * managing custom mappings, performing validations, and constructing data models based on user input.
+ */
 open class ViewFormPanel<T : BaseDoc<*>>(
     method: FormMethod? = null,
     action: String? = null,
@@ -82,34 +98,32 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Holds a mutable mapping of property references of type [KProperty1] to optional string representations.
-     * Used to store custom mappings of data fields to their serialized or stringified values.
-     * This can be used in data transformation operations or for managing dynamic configurations.
+     * A mutable map that holds custom bindings, mapping string keys to `CustomMapValue` instances.
+     *
+     * This map serves as a container for storing key-value pairs where the keys are of type `String`
+     * and the values are of type `CustomMapValue<*, *>`. The purpose of these mappings is to associate
+     * unique identifiers (keys) with corresponding custom data (values).
      */
     val customBindings = mutableMapOf<String, CustomMapValue<*, *>>()
 
     /**
-     * A mutable map used for storing key-value pairs where each key is a string, and the value can either be a string or null.
-     *
-     * This map is primarily utilized for managing the dynamic association between property names and their corresponding values
-     * within a form panel. The values in this map are typically serialized representations of the actual data model values.
-     * It serves as a central data store for the form controls to retrieve or update their values during form interactions,
-     * binding, or validation processes.
+     * A mutable map that holds serialized key-value pairs where the key is a non-null string
+     * and the value is a nullable string. This map can be used to store and retrieve data
+     * in a serialized format for various operations such as persistence or transmission.
      */
     var serializedValueMap: MutableMap<String, String?> = mutableMapOf()
 
     /**
-     * A data class that represents a custom map structure for managing a form control with associated
-     * serialization and transformation logic for its value.
+     * A generic data class designed to associate a form control with a serializer and transformation
+     * functions for converting between a domain-specific value type and its corresponding representation
+     * as a string.
      *
-     * @param F The type of the form control.
-     * @param V The type of the value associated with the form control.
-     * @property formControl The form control instance used to interact with the value.
-     * @property serializer The serializer used for encoding and decoding the value.
-     * @property valueToControl A transformation function to convert the value of type [V]
-     * to a string representation for the form control.
-     * @property valueFromControl A transformation function to convert a string representation from
-     * the form control back to a value of type [V].
+     * @param F The type of the form control, which must extend the `FormControl` class.
+     * @param V The domain-specific type of the values being handled.
+     * @property formControl The form control instance used for setting and retrieving values.
+     * @property serializer The serializer used for converting the domain-specific type `V` into a JSON string and vice versa.
+     * @property valueToControl A transformation function that maps a domain-specific value of type `V?` to its string representation for the form control.
+     * @property valueFromControl A transformation function that maps a string representation from the form control back to a domain-specific value of type `V?`.
      */
     data class CustomMapValue<F : FormControl, V>(
         val formControl: F,
@@ -132,28 +146,25 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Adds a key-value pair to the `valueMap` by serializing the provided value.
+     * Adds the given property and its associated value to the `serializedValueMap` after serializing the value.
      *
-     * This function takes a property and its corresponding value, serializes the value into a JSON string,
-     * and stores it in the `valueMap` using the property's name as the key.
-     *
-     * @param property The property whose name will be used as the key in the `valueMap`.
-     * @param value The value to associate with the property; it will be serialized before storage.
+     * @param property The property whose name will be used as the key in the map.
+     * @param value The value associated with the property to be serialized and stored in the map.
      */
-    inline fun <reified V> addToValueMap(property: KProperty1<T, V?>, value: V) {
+    inline fun <reified V> addToSerializedValueMap(property: KProperty1<T, V?>, value: V) {
         serializedValueMap[property.name] = Json.encodeToString<V>(value = value)
     }
 
     /**
-     * Binds the given form control to a property with configurable validation and layout options.
+     * Binds a `DateFormControl` to a specified property with optional validation and layout configuration.
      *
-     * @param key The property used to bind the form control, identified by its name.
-     * @param required Specifies if the field is mandatory. Default is false.
-     * @param requiredMessage The message displayed when the field is required but left empty. Default is null.
-     * @param layoutType The desired layout type for the form control. Default is null.
-     * @param validatorMessage A lambda function providing a custom validation message for the control. Default is null.
-     * @param validator A lambda function implementing custom validation logic for the control. Default is null.
-     * @return The form control itself, enabling method chaining.
+     * @param key The property of the model object to bind this control to.
+     * @param required Indicates whether the field is mandatory. Default is false.
+     * @param requiredMessage The message to display when the field is required but left empty. Default is null.
+     * @param layoutType The type of layout for the form control. Default is null.
+     * @param validatorMessage A lambda function that provides a custom validation message for the control. Default is null.
+     * @param validator A lambda function that performs custom validation logic for the control. Default is null.
+     * @return The control instance to allow method chaining.
      */
     @Suppress("unused")
     fun <C : DateFormControl> C.bind(
@@ -166,15 +177,15 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Binds a custom value to a form control with additional options for validation and layout configuration.
+     * Binds a `StringFormControl` to a specified key with optional validation and layout configuration.
      *
-     * @param key The key used to identify the control in the binding process.
+     * @param key The key to bind this control to.
      * @param required Indicates whether the field is mandatory. Default is false.
-     * @param requiredMessage The message displayed when the field is required but not filled. Default is null.
-     * @param layoutType The type of layout used for the control. Default is null.
-     * @param validatorMessage A function that provides a custom validation message for the control. Default is null.
-     * @param validator A function that performs custom validation logic for the control. Default is null.
-     * @return The control itself, allowing for method chaining.
+     * @param requiredMessage The message to display when the field is required but left empty. Default is null.
+     * @param layoutType The type of layout for the form control. Default is null.
+     * @param validatorMessage A lambda function that provides a custom validation message for the control. Default is null.
+     * @param validator A lambda function that performs custom validation logic for the control. Default is null.
+     * @return The control instance to allow method chaining.
      */
     @Suppress("unused")
     fun <C : StringFormControl> C.bindCustom(
@@ -185,17 +196,19 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     ): C = bind(key, required, requiredMessage, layoutType, validatorMessage, validator)
 
     /**
-     * Binds a custom value to a form control through serialization and deserialization.
-     * This allows a custom transformation between the value stored in the control and
-     * its representation in the form's data model.
+     * Binds a custom value to the form control, allowing serialization and deserialization of the property.
      *
-     * @param property The property of the model object to bind this control to.
-     * @param serializer The serializer to be used for serializing and deserializing the bound value.
-     *                   Defaults to the serializer for the value's type.
-     * @param valueToControl A function to transform the model's value to a string representation for the control.
-     *                       Defaults to encoding the value with the provided serializer.
-     * @param valueFromControl A function to transform the control's string value back into the model's value.
-     *                         Defaults to returning the string as-is.
+     * @param property The property to bind to the form's control. This represents the data field being bound.
+     * @param serializer A `KSerializer` for the type of the property. Defaults to the serializer for the reified type `V?`.
+     * @param valueToControl A function that converts the property value into a `String?` to populate the form control. Defaults to JSON serialization of the value.
+     * @param valueFromControl A function that converts the `String?` value from the form control into a format suitable for deserialization. Defaults to returning the string as-is
+     * .
+     * @param required A flag indicating whether the field is required. Defaults to `false`.
+     * @param requiredMessage A message to display if the field is required but not provided by the user. Defaults to `null`.
+     * @param layoutType The layout type of the form control, if applicable. Defaults to `null`.
+     * @param validatorMessage A lambda that provides a custom validation message for the control if the validation fails. Defaults to `null`.
+     * @param validator A lambda that provides custom validation logic for the form control. The lambda should return `true` or `false` depending on validation result. Defaults to
+     *  `null`.
      */
     @Suppress("unused")
     @OptIn(InternalSerializationApi::class)
@@ -240,20 +253,20 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Populates form controls in a form panel with values from a `valueMap`.
+     * Updates the form control values in the associated form based on a provided map of serialized key-value pairs.
+     * This method iterates through the `serializedValueMap`, attempts to find matching form fields or custom bindings,
+     * and applies the deserialized values to the corresponding form controls.
      *
-     * This method iterates through the key-value pairs in `valueMap` and associates the values with the
-     * appropriate form controls within the `formPanel`. The association is determined by matching the
-     * keys of `valueMap` with the form fields or custom map values in the `formPanel`. Once a key-value
-     * pair is processed, the key is added to a set of assigned values.
+     * The deserialization process varies based on the type of `formControl`:
+     * - For `DateFormControl`, the value is parsed as a `kotlin.js.Date`.
+     * - For `KFilesFormControl`, the value is deserialized as a list of `KFile` objects.
+     * - For other types, the value is applied directly using the `setValue` method.
      *
-     * If a matching form control is found:
-     * - For `DateFormControl`, the value is parsed as a date and set.
-     * - For `KFilesFormControl`, the value is decoded into a list of `KFile` objects and set.
-     * - For other form control types, the appropriate `setValue` method is used to assign the value.
-     * - If the value is null, the `setValue` method is called with `null`.
+     * Keys from the `serializedValueMap` that were successfully assigned are removed from the map
+     * to ensure they are not processed again.
      *
-     * After processing, unprocessed keys are retained in `valueMap`.
+     * If a value is null or a matching form control cannot be found, the key is skipped or
+     * the form control value is set to null.
      */
     fun formSetDataWithValueMap() {
         val assignedValues = mutableSetOf<String>()
@@ -278,11 +291,10 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Retrieves the value of a form control associated with the specified property.
-     * The value is first searched in the custom map values; if not found, it falls back to the form's fields.
+     * Retrieves the value of a control associated with the specified property.
      *
-     * @param property The property of the model object for which the control value should be retrieved.
-     * @return The retrieved value of the form control, or null if no value is found.
+     * @param property The property whose corresponding control value is to be retrieved.
+     * @return The value of the control if it exists, or null if no matching control is found.
      */
     @Suppress("unused")
     fun getControlValue(property: KProperty1<in T, *>): Any? {
@@ -295,15 +307,11 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Retrieves a custom value of type [V] for a specified property from the custom map values.
+     * Retrieves a custom value associated with the specified property.
      *
-     * This function attempts to find the serialized value in the `customMapValues` using the property's name
-     * as the key. If a serialized value is found, it is deserialized into the specified type [V].
-     *
-     * Throws an error if the property is not managed as a custom mapped value with [bindCustomValue]
-     *
-     * @param property the property for which to retrieve the custom value
-     * @return the custom value of type [V] if present and successfully deserialized, or null otherwise
+     * @param property The property whose associated custom value is to be retrieved.
+     * @return The custom value associated with the property, or null if a type mismatch occurs or the value is null.
+     * @throws IllegalArgumentException If the property is not bound with a custom value.
      */
     @Suppress("unused")
     inline fun <reified V> getCustomValue(property: KProperty1<in T, V?>): V? {
@@ -319,15 +327,14 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Processes and retrieves data by combining multiple data sources such as `valueMap`,
-     * `customMapValues`, and `viewItem?.tabulators` while performing necessary transformations.
+     * Retrieves and processes serialized data using custom bindings, tabulator entries,
+     * and serialized value maps. Combines these into a final data object that adheres to
+     * the generic type T.
      *
-     * This method overrides the base implementation and aggregates data using a combination
-     * of serialized and dynamically constructed objects. If all primary data sources
-     * (`valueMap`, `customMapValues`, `tabulators`) are empty, it delegates to the super
-     * implementation.
+     * If no custom bindings, serialized value maps, or tabulator entries are present,
+     * this method defaults to the superclass implementation.
      *
-     * @return The fully constructed and deserialized data object of type `T`.
+     * @return The processed data of type T.
      */
     @OptIn(ExperimentalSerializationApi::class)
     override fun getData(): T {
@@ -373,14 +380,11 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Sets a custom value for a specified property in the custom map values.
+     * Sets a custom value for the specified property in the custom bindings map.
+     * If a corresponding custom binding exists for the property, the value is updated.
      *
-     * This method updates the value associated with a property in the custom map values by applying
-     * the provided transformation logic, if applicable, and pushing the resulting value to the associated
-     * form control.
-     *
-     * @param property The property for which the custom value is being set.
-     * @param value The value to be set for the specified property. Can be null.
+     * @param property The property whose associated custom value is to be set.
+     * @param value The new value to be set for the specified property. Can be null.
      */
     @Suppress("unused")
     inline fun <reified V> setCustomValue(property: KProperty1<in T, V>, value: V?) {
@@ -389,11 +393,16 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     }
 
     /**
-     * Validates the form controls within the panel, ensuring they adhere to their respective validation requirements.
-     * Updates the form's field mapping with custom values before validation and restores it afterward.
+     * Validates the current form and custom bindings, optionally marking fields with validation errors.
      *
-     * @param markFields A boolean indicating whether the invalid fields should be visually marked during validation.
-     * @return A boolean result of the validation process, where true indicates successful validation and false indicates failure.
+     * The method temporarily updates the form fields with custom bindings, invokes the superclass validation
+     * logic, and then removes the temporary custom fields from the form. This ensures that custom bound fields
+     * are included in the validation process.
+     *
+     * @param markFields A boolean indicating whether to mark fields that fail validation. If true, fields with
+     * validation errors are visually indicated.
+     * @return A boolean indicating the validation result. Returns true if the form passes validation, or false if
+     * any validation errors are found.
      */
     override fun validate(markFields: Boolean): Boolean {
         customBindings.forEach { (name, customMapValue) ->
@@ -408,23 +417,21 @@ open class ViewFormPanel<T : BaseDoc<*>>(
 }
 
 /**
- * Creates and adds a `ViewFormPanel` to the current container. This function is used to construct
- * a visual form panel tied to a specific data model type. It allows comprehensive configuration
- * and customization based on provided parameters.
+ * Creates a `ViewFormPanel` for the specified data model and configuration.
  *
- * @param K The type parameter defining the data model, which extends `BaseDoc`.
- * @param method The HTTP method to be used in the form (e.g., GET, POST). Defaults to null.
- * @param action The URL or endpoint where the form data will be submitted. Defaults to null.
- * @param enctype The encoding type to use for the form. Defaults to null.
- * @param type The type of form (e.g., horizontal or inline). Defaults to null.
- * @param condensed A flag indicating whether the form should use compact styling. Defaults to false.
- * @param horizRatio The horizontal ratio for form label and input fields. Defaults to `FormHorizontalRatio.RATIO_2`.
- * @param className Additional CSS class names for customization. Defaults to null.
- * @param customSerializers A map providing custom serializers for specific types during form processing. Defaults to null.
- * @param viewItem An optional `ViewItem` object containing the data model and related metadata. Defaults to null.
- * @param getModel A lambda providing the data model instance for the form. Defaults to using `viewItem?.item`.
- * @param init An optional lambda for additional initialization of the created form panel. Defaults to null.
- * @return A `ViewFormPanel` instance, representing the constructed form panel tied to the specific data model.
+ * @param K The type of the data model that extends `BaseDoc`.
+ * @param method The HTTP method used by the form. Defaults to `null`.
+ * @param action The URL to which the form will be submitted. Defaults to `null`.
+ * @param enctype The encoding type used by the form. Defaults to `null`.
+ * @param type The type of the form (inline, horizontal, or vertical). Defaults to `null`.
+ * @param condensed Specifies whether the form should use a condensed layout. Defaults to `false`.
+ * @param horizRatio The horizontal ratio for the form fields in a horizontal layout. Defaults to `FormHorizontalRatio.RATIO_2`.
+ * @param className Additional CSS classes to apply to the form panel. Defaults to `null`.
+ * @param customSerializers A map of custom serializers for specific classes used in the form model. Defaults to `null`.
+ * @param viewItem A `ViewItem` object that represents the context for the view. Defaults to `null`.
+ * @param getModel A lambda function to provide the model for the form panel. Defaults to a lambda returning the `item` property of `viewItem`.
+ * @param init A lambda function for additional initialization logic for the `FormPanel`. Defaults to `null`.
+ * @return A `ViewFormPanel` instance initialized with the provided configuration and model.
  */
 @Suppress("unused")
 inline fun <reified K : BaseDoc<*>> Container.viewFormPanel(
