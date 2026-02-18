@@ -6,30 +6,30 @@ import io.kvision.types.OffsetDateTime
 import kotlinx.serialization.Serializable
 
 /**
- * Represents the state of an item, including its current status, associated messages,
- * and additional metadata such as timestamps and internal structure.
+ * Represents the state of an item, including its status, associated messages, and additional data.
  *
- * @param T The type of the item this state pertains to.
- * @property item The item associated with this state. May be null if no item is applicable.
- * @property itemAlreadyOn Indicates whether the item is already active or present.
- * @property noDataModified Specifies whether any data has been modified. May be null if not applicable.
- * @property valueMap A map containing key-value pairs of data associated with this state. Keys are property name strings,
- * while values may be nullable strings with serialized values.
- * @property state The current state of this item, represented using the [State] enum. Defaults to `State.Ok`
- * if an item exists or `valueMap` is not empty. Otherwise, it defaults to `State.Error`.
- * @property msgOk An optional message indicating a successful state. Defaults to `MSG_OK`.
- * @property msgError An optional message describing an error state. Defaults to `MSG_ERROR` if the state
- * is not `State.Ok`, otherwise null.
- * @property dateTime The timestamp when this state was defined or last modified.
- * @property hasError A boolean indicating whether the current state represents an error.
+ * This class is a generic data container that implements the `ISimpleState` interface and is used
+ * to encapsulate a specific item's state or condition effectively. It provides various constructors
+ * to create instances based on different usage scenarios, such as initializing from another state,
+ * creating a warning state, or explicitly specifying success or error states.
+ *
+ * @param item The item associated with this state. Defaults to `null` if not provided.
+ * @param itemAlreadyOn A flag indicating whether the item is already in an "on" state. Defaults to `false`.
+ * @param noDataModified A nullable flag indicating whether no data has been modified. Can be `null`.
+ * @param serializedValueMap A map that holds serialized item properties values. Can be `null`.
+ * @param state The state representing the current status of the item, which defaults to `State.Ok` if the
+ *              item or `serializedValueMap` is present. Otherwise, defaults to `State.Error`.
+ * @param msgOk An optional message associated with a successful state. Defaults to `MSG_OK`.
+ * @param msgError An optional message associated with an error state. Automatically defaults to `MSG_ERROR`
+ *                 if the state is not `State.Ok`.
  */
 @Serializable
 data class ItemState<T>(
     val item: T? = null,
     val itemAlreadyOn: Boolean = false,
     val noDataModified: Boolean? = null,
-    val valueMap: Map<String, String?>? = null,
-    override val state: State = if (item != null || valueMap.isNullOrEmpty().not()) State.Ok else State.Error,
+    val serializedValueMap: Map<String, String?>? = null,
+    override val state: State = if (item != null || serializedValueMap.isNullOrEmpty().not()) State.Ok else State.Error,
     override val msgOk: String? = MSG_OK,
     override val msgError: String? = if (state != State.Ok) MSG_ERROR else null,
 ) : ISimpleState {

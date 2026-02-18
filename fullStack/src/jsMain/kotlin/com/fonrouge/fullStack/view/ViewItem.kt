@@ -70,6 +70,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
 ) {
+    private var _serializedValueMap: Map<String, String?>? = null
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
@@ -86,10 +87,11 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * @property formPanel A dynamically typed FormPanel that supports interaction
      * with forms.
      */
-    var formPanel: ViewFormPanel<T> = ViewFormPanel(
-        serializer = configView.commonContainer.itemSerializer,
-        viewItem = this,
-    )
+    var formPanel: ViewFormPanel<T>? = null
+//    var formPanel: ViewFormPanel<T> = ViewFormPanel(
+//        serializer = configView.commonContainer.itemSerializer,
+//        viewItem = this,
+//    )
 
     /**
      * Observable that holds the [ItemState] for the [ViewItem]
@@ -112,7 +114,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                 if (debug) {
                     console.warn("itemObservable.subscribe:", item)
                 }
-                formPanel.setData(item)
+                formPanel?.setData(item)
                 if (mainView) updateTitle()
             }
             dropDownElementsObs.value = it?.let { item ->
@@ -231,38 +233,40 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     ) {
         val crudAction = crudTask
         if (crudAction != null && crudAction in arrayOf(CrudTask.Create, CrudTask.Update)) {
-            if (formPanel.validate()) {
-                val data = transformData(formPanel.getData())
-                val simpleState = formPanelValidate(data)
-                if (simpleState.state == State.Ok) {
-                    configView.commonContainer.callItemService(
-                        apiItemFun = configView.apiItemFun,
-                        crudTask = crudAction,
-                        callType = CallType.Action,
-                        id = item?._id,
-                        item = data,
-                        apiFilter = apiFilter,
-                    ) { itemResponse ->
-                        block?.invoke(itemResponse)
-                        if (crudAction == CrudTask.Update && itemResponse.hasError.not()) {
-                            origSerialized = Json.encodeToString(
-                                serializer = configView.commonContainer.itemSerializer,
-                                value = data
-                            )
+            formPanel?.let { formPanel ->
+                if (formPanel.validate()) {
+                    val data = transformData(formPanel.getData())
+                    val simpleState = formPanelValidate(data)
+                    if (simpleState.state == State.Ok) {
+                        configView.commonContainer.callItemService(
+                            apiItemFun = configView.apiItemFun,
+                            crudTask = crudAction,
+                            callType = CallType.Action,
+                            id = item?._id,
+                            item = data,
+                            apiFilter = apiFilter,
+                        ) { itemResponse ->
+                            block?.invoke(itemResponse)
+                            if (crudAction == CrudTask.Update && itemResponse.hasError.not()) {
+                                origSerialized = Json.encodeToString(
+                                    serializer = configView.commonContainer.itemSerializer,
+                                    value = data
+                                )
+                            }
+                            itemResponse
                         }
-                        itemResponse
+                    } else {
+                        simpleState.toast()
                     }
                 } else {
-                    simpleState.toast()
-                }
-            } else {
-                Toast.warning(
-                    message = "Form has incomplete data",
-                    options = ToastOptions(
-                        position = ToastPosition.BOTTOMRIGHT,
-                        stopOnFocus = true
+                    Toast.warning(
+                        message = "Form has incomplete data",
+                        options = ToastOptions(
+                            position = ToastPosition.BOTTOMRIGHT,
+                            stopOnFocus = true
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -297,12 +301,14 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         var proceedClose = true
         if (confirmCancel) {
             try {
-                val s1 = Json.encodeToString(
-                    configView.commonContainer.itemSerializer,
-                    transformData(formPanel.getData())
-                )
-                if (s1 != origSerialized) {
-                    proceedClose = confirm("Cancel and forget current changes ?")
+                formPanel?.let { formPanel ->
+                    val s1 = Json.encodeToString(
+                        configView.commonContainer.itemSerializer,
+                        transformData(formPanel.getData())
+                    )
+                    if (s1 != origSerialized) {
+                        proceedClose = confirm("Cancel and forget current changes ?")
+                    }
                 }
             } catch (e: Exception) {
                 console.warn("exception = ", e)
@@ -428,7 +434,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         onBeforeDisplayForm(crudTask)
         formPanel = pageItemBody()
         if (!actionUpsert) {
-            formPanel.form.fields.forEach { entry ->
+            formPanel?.form?.fields?.forEach { entry ->
                 entry.value.disabled = true
             }
         }
@@ -479,15 +485,15 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
         when (crudTask) {
             CrudTask.Create -> {
                 item?.let {
-                    formPanel.setData(it)
-                } ?: if (formPanel.serializedValueMap.isNotEmpty()) {
-                    formPanel.formSetDataWithValueMap()
+                    formPanel?.setData(it)
+                } ?: if (formPanel?.serializedValueMap?.isNotEmpty() == true) {
+                    formPanel?.formSetDataWithValueMap()
                 } else Unit
             }
 
             CrudTask.Read -> {
                 item?.let {
-                    formPanel.setData(it)
+                    formPanel?.setData(it)
                 }
                 installUpdate()
             }
@@ -501,7 +507,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                         serializer = configView.commonContainer.itemSerializer,
                         value = it
                     )
-                    formPanel.setData(it)
+                    formPanel?.setData(it)
                 }
             }
 
@@ -582,9 +588,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                                             "{${itemResponse::class.simpleName}: \"${itemResponseItem._id}\"}".asDynamic()
                                         js("""history.replaceState(stateObj,"createToUpdate",url)""")
                                     }
-                                } ?: itemResponse.valueMap?.let {
-                                    formPanel
-                                    formPanel.serializedValueMap = it.toMutableMap()
+                                } ?: itemResponse.serializedValueMap?.let {
+                                    _serializedValueMap = it
                                 }
                             }
                             var alreadyBack = false
@@ -726,7 +731,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     fun Container.viewFormPanel(init: (ViewFormPanel<T>).() -> Unit): ViewFormPanel<T> {
         val viewFormPanel = ViewFormPanel(
             serializer = configView.commonContainer.itemSerializer,
-            viewItem = this@ViewItem
+            viewItem = this@ViewItem,
+            serializedValueMap = _serializedValueMap
         )
         init.invoke(viewFormPanel)
         this.add(viewFormPanel)

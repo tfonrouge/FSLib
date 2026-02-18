@@ -55,7 +55,8 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     val serializer: KSerializer<T>,
     customSerializers: Map<KClass<*>, KSerializer<*>>? = null,
     val viewItem: ViewItem<*, T, *, *>? = null,
-    val getModel: (() -> T?) = { viewItem?.item }
+    val getModel: (() -> T?) = { viewItem?.item },
+    serializedValueMap: Map<String, String?>? = null
 ) : FormPanel<T>(
     method = method,
     action = action,
@@ -75,6 +76,7 @@ open class ViewFormPanel<T : BaseDoc<*>>(
             customSerializers: Map<KClass<*>, KSerializer<*>>? = null,
             viewItem: ViewItem<*, K, *, *>? = null,
             noinline getModel: (() -> K?) = { viewItem?.item },
+            serializedValueMap: MutableMap<String, String?>? = null,
             noinline init: (FormPanel<K>.() -> Unit)? = null
         ): ViewFormPanel<K> {
             val formPanel =
@@ -89,7 +91,8 @@ open class ViewFormPanel<T : BaseDoc<*>>(
                     serializer<K>(),
                     customSerializers,
                     viewItem,
-                    getModel
+                    getModel,
+                    serializedValueMap
                 )
             init?.invoke(formPanel)
             return formPanel
@@ -111,7 +114,7 @@ open class ViewFormPanel<T : BaseDoc<*>>(
      * and the value is a nullable string. This map can be used to store and retrieve data
      * in a serialized format for various operations such as persistence or transmission.
      */
-    var serializedValueMap: MutableMap<String, String?> = mutableMapOf()
+    val serializedValueMap: MutableMap<String, String?> = serializedValueMap?.toMutableMap() ?: mutableMapOf()
 
     /**
      * A generic data class designed to associate a form control with a serializer and transformation
@@ -287,7 +290,7 @@ open class ViewFormPanel<T : BaseDoc<*>>(
                 }
             } ?: formControl.setValue(null)
         }
-        serializedValueMap = serializedValueMap.filterKeys { it !in assignedValues }.toMutableMap()
+        serializedValueMap.minusAssign(assignedValues)
     }
 
     /**
@@ -363,6 +366,7 @@ open class ViewFormPanel<T : BaseDoc<*>>(
                     else -> value
                 }
                 json[key] = v
+                console.warn("fromControl, key:", key, "value:", value, "v:", v)
             }
             json
         } else {
@@ -376,6 +380,7 @@ open class ViewFormPanel<T : BaseDoc<*>>(
             overlay[key] = tabulatorItem.toPlainObj()
         }
         val merged = js("Object.assign({}, base, overlay)")
+        console.warn("getData() merged", merged)
         return Json.decodeFromDynamic(serializer, merged)
     }
 
