@@ -19,7 +19,6 @@ import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromDynamic
 import kotlinx.serialization.json.encodeToDynamic
 import kotlinx.serialization.serializer
@@ -276,7 +275,7 @@ open class ViewFormPanel<T : BaseDoc<*>>(
         serializedValueMap.forEach { (key, value) ->
             val formControl = form.fields[key] ?: customBindings[key]?.formControl ?: return@forEach
             assignedValues += key
-            value?.let { value -> Json.decodeFromString(JsonElement.serializer(), value) }?.let { value ->
+            value?.let { value -> JSON.parse<Any>(value) }?.let { value ->
                 when (formControl) {
                     is DateFormControl -> formControl.value =
                         Date(value.unsafeCast<String>()).unsafeCast<kotlin.js.Date>()
@@ -366,7 +365,6 @@ open class ViewFormPanel<T : BaseDoc<*>>(
                     else -> value
                 }
                 json[key] = v
-                console.warn("fromControl, key:", key, "value:", value, "v:", v)
             }
             json
         } else {
@@ -380,7 +378,6 @@ open class ViewFormPanel<T : BaseDoc<*>>(
             overlay[key] = tabulatorItem.toPlainObj()
         }
         val merged = js("Object.assign({}, base, overlay)")
-        console.warn("getData() merged", merged)
         return Json.decodeFromDynamic(serializer, merged)
     }
 
