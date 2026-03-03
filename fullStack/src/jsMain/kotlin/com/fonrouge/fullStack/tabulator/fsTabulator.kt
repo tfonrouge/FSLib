@@ -48,7 +48,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
         TableType.HOVER,
         TableType.SMALL
     ),
-    minToolbarSize: Boolean = true,
+    minToolbarSize: Boolean = false,
     editable: (() -> Boolean)? = null,
     debug: Boolean = false,
     init: (TabulatorViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,

@@ -31,7 +31,7 @@ import io.kvision.state.bind
  */
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
     viewList: ViewList<out ICommonContainer<T, ID, out IApiFilter<out Any>>, T, ID, out IApiFilter<out Any>, *>,
-    minToolbarSize: Boolean = true,
+    minToolbarSize: Boolean = false,
 ): Navbar {
     val delay = 300
     return navbar(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {

@@ -579,6 +579,10 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     fun defaultTabulatorOptions(
         columnDefaults: ColumnDefinition<T>? = this.columnDefaults(),
         columns: List<ColumnDefinition<T>>? = columnDefinitionList(),
+        placeholder: String? = """
+            ${gettext("There Are No")} <i>${configView.commonContainer.labelList}</i><br>
+            ${gettext("Click + to add new record")}
+            """,
         dataLoader: Boolean? = false,
         dataLoaderError: String? = null,
         dataLoaderLoading: String? = null,
@@ -622,6 +626,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         return TabulatorOptions(
             columnDefaults = columnDefaults,
             columns = columns,
+            placeholder = placeholder,
             dataLoader = dataLoader,
             dataLoaderError = dataLoaderError,
             dataLoaderLoading = dataLoaderLoading,
