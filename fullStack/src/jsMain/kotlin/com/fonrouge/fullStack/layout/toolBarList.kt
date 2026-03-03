@@ -5,7 +5,6 @@ import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.lib.iconCrud
 import com.fonrouge.base.model.BaseDoc
-import com.fonrouge.fullStack.config.ConfigViewItem
 import com.fonrouge.fullStack.view.ViewList
 import io.kvision.core.Container
 import io.kvision.core.TooltipOptions
@@ -14,9 +13,11 @@ import io.kvision.core.enableTooltip
 import io.kvision.html.ButtonSize
 import io.kvision.html.ButtonStyle
 import io.kvision.html.button
-import io.kvision.i18n.I18n.gettext
+import io.kvision.html.div
 import io.kvision.i18n.I18n.tr
-import io.kvision.navbar.*
+import io.kvision.navbar.Navbar
+import io.kvision.navbar.NavbarExpand
+import io.kvision.navbar.navbar
 import io.kvision.state.bind
 
 /**
@@ -35,167 +36,122 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
 ): Navbar {
     val delay = 300
     return navbar(expand = NavbarExpand.ALWAYS, collapseOnClick = true) {
+
+        // ── Picker mode ──────────────────────────────────────────────────────
         viewList.onUserChooseItem?.let { onUserChooseItem ->
-            nav {
-                button(text = "Choose item") {
-                    size = ButtonSize.XSMALL
-                    viewList.selectedItemObs.subscribe {
-                        disabled = it == null
-                        style = if (it == null) ButtonStyle.OUTLINESUCCESS else ButtonStyle.SUCCESS
+            div(className = "btn-group me-2") {
+                button(text = if (minToolbarSize) "" else tr("Choose"), icon = "fas fa-hand-pointer") {
+                    size = ButtonSize.SMALL
+                    bind(viewList.selectedItemObs) { item ->
+                        disabled = item == null
+                        style = if (item == null) ButtonStyle.OUTLINESUCCESS else ButtonStyle.SUCCESS
                     }
-                    onClick {
-                        viewList.selectedItemObs.value?.let {
-                            onUserChooseItem.invoke(it)
-                        }
-                    }
+                    onClick { viewList.selectedItemObs.value?.let { onUserChooseItem.invoke(it) } }
                 }
             }
         }
-        nav {
+
+        // ── Filter + Detail ──────────────────────────────────────────────────
+        div(className = "btn-group me-2") {
             if (viewList.hasOffCanvasFilterView) {
-                navLink(
-                    label = if (minToolbarSize) "" else "Filter",
-                    icon = "fas fa-filter"
-                ) {
-                    onClick {
-                        it.preventDefault()
-                        viewList.offCanvasFilter?.show()
-                    }
-                    enableTooltip(TooltipOptions("Filter", animation = true, delay = delay))
+                button(text = if (minToolbarSize) "" else tr("Filter"), icon = "fas fa-filter", style = ButtonStyle.OUTLINEINFO) {
+                    size = ButtonSize.SMALL
+                    enableTooltip(TooltipOptions(tr("Filter"), animation = true, delay = delay))
+                    onClick { viewList.offCanvasFilter?.show() }
                 }
             }
             viewList.configViewItem()?.let { configViewItem ->
-                navLink(
-                    label = if (minToolbarSize) "" else tr("Detail"),
-                    icon = iconCrud(CrudTask.Read),
-                ) {
-                    onClick {
-                        it.preventDefault()
-                        viewList.goActionUrl(CrudTask.Read)
-                    }
+                button(text = if (minToolbarSize) "" else tr("Detail"), icon = iconCrud(CrudTask.Read), style = ButtonStyle.OUTLINEPRIMARY) {
+                    size = ButtonSize.SMALL
                     bind(viewList.selectedItemObs) { item ->
-                        if (item == null) {
-                            hide()
-                            disableTooltip()
-                        } else {
-                            show()
-                            enableTooltip(
+                        disabled = item == null
+                        if (item != null) enableTooltip(
+                            TooltipOptions(
+                                title = "${tr("Detail of")} ${configViewItem.commonContainer.labelId(item)}",
+                                animation = true,
+                                delay = delay
+                            )
+                        ) else disableTooltip()
+                    }
+                    onClick { viewList.goActionUrl(CrudTask.Read) }
+                }
+            }
+        }
+
+        // ── CRUD actions ─────────────────────────────────────────────────────
+        viewList.configViewItem()?.let { configViewItem ->
+            if (viewList.editable()) {
+                div(className = "btn-group me-2") {
+                    button(text = if (minToolbarSize) "" else tr("Create"), icon = iconCrud(CrudTask.Create), style = ButtonStyle.OUTLINESUCCESS) {
+                        size = ButtonSize.SMALL
+                        enableTooltip(
+                            TooltipOptions(
+                                title = tr("Create") + " " + configViewItem.commonContainer.labelItem,
+                                animation = true,
+                                delay = delay
+                            )
+                        )
+                        onClick { viewList.goActionUrl(CrudTask.Create) }
+                    }
+                    button(text = if (minToolbarSize) "" else tr("Update"), icon = iconCrud(CrudTask.Update), style = ButtonStyle.OUTLINEWARNING) {
+                        size = ButtonSize.SMALL
+                        bind(viewList.selectedItemObs) { item ->
+                            disabled = item == null
+                            if (item != null) enableTooltip(
                                 TooltipOptions(
-                                    title = "${gettext("Detail of")} " + configViewItem.commonContainer.labelId(
-                                        item
-                                    ),
+                                    title = tr("Update") + " " + configViewItem.commonContainer.labelId(item),
                                     animation = true,
                                     delay = delay
                                 )
-                            )
+                            ) else disableTooltip()
                         }
+                        onClick { viewList.goActionUrl(CrudTask.Update) }
+                    }
+                    button(text = if (minToolbarSize) "" else tr("Delete"), icon = iconCrud(CrudTask.Delete), style = ButtonStyle.OUTLINEDANGER) {
+                        size = ButtonSize.SMALL
+                        bind(viewList.selectedItemObs) { item ->
+                            if (item == null) { hide(); disableTooltip() }
+                            else {
+                                show()
+                                enableTooltip(
+                                    TooltipOptions(
+                                        title = tr("Delete") + " " + configViewItem.commonContainer.labelId(item),
+                                        animation = true,
+                                        delay = delay
+                                    )
+                                )
+                            }
+                        }
+                        onClick { viewList.goActionUrl(CrudTask.Delete) }
                     }
                 }
             }
         }
-        nav {
-            viewList.configViewItem()
-                ?.let { configViewItem: ConfigViewItem<ICommonContainer<T, ID, out IApiFilter<out Any>>, T, ID, *, out IApiFilter<out Any>, *> ->
-                    if (viewList.editable()) {
-                        navLink(
-                            label = if (minToolbarSize) "" else tr("Create"),
-                            icon = iconCrud(CrudTask.Create),
-                        ) {
-                            onClick {
-                                it.preventDefault()
-                                viewList.goActionUrl(CrudTask.Create)
-                            }
-                            enableTooltip(
-                                TooltipOptions(
-                                    title = "Create " + configViewItem.commonContainer.labelItem,
-                                    animation = true,
-                                    delay = delay
-                                )
-                            )
-                        }
-                        navLink(
-                            label = if (minToolbarSize) "" else tr("Update"),
-                            icon = iconCrud(CrudTask.Update)
-                        ) {
-                            onClick {
-                                it.preventDefault()
-                                viewList.goActionUrl(CrudTask.Update)
-                            }
-                            bind(viewList.selectedItemObs) { item ->
-                                if (item == null) {
-                                    hide()
-                                    disableTooltip()
-                                } else {
-                                    show()
-                                    enableTooltip(
-                                        TooltipOptions(
-                                            title = "Update " + configViewItem.commonContainer.labelId(
-                                                item
-                                            ),
-                                            animation = true,
-                                            delay = delay
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                        navLink(
-                            label = if (minToolbarSize) "" else tr("Delete"),
-                            icon = iconCrud(CrudTask.Delete)
-                        ) {
-                            hide()
-                            onClick {
-                                it.preventDefault()
-                                viewList.goActionUrl(CrudTask.Delete)
-                            }
-                            bind(viewList.selectedItemObs) { item ->
-                                if (item == null) {
-                                    hide()
-                                    disableTooltip()
-                                } else {
-                                    show()
-                                    enableTooltip(
-                                        TooltipOptions(
-                                            title = "Delete " + configViewItem.commonContainer.labelId(
-                                                item
-                                            ),
-                                            animation = true,
-                                            delay = delay
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-        }
-        with(viewList) {
-            navBarOptions()
-        }
-        nav(rightAlign = true) {
-            navLink(if (minToolbarSize) "" else "Refresh", icon = "fas fa-redo") {
-                enableTooltip(TooltipOptions("Refresh table", animation = true, delay = delay))
-                onClick {
-                    viewList.dataUpdate()
-                }
+
+        // ── Custom extensions ─────────────────────────────────────────────────
+        with(viewList) { navBarOptions() }
+
+        // ── Utilities (right-aligned) ─────────────────────────────────────────
+        div(className = "btn-group ms-auto") {
+            button(text = if (minToolbarSize) "" else tr("Refresh"), icon = "fas fa-redo", style = ButtonStyle.OUTLINESECONDARY) {
+                size = ButtonSize.SMALL
+                enableTooltip(TooltipOptions(tr("Refresh table"), animation = true, delay = delay))
+                onClick { viewList.dataUpdate() }
             }
-            navLink(if (minToolbarSize) "" else gettext("Reset columns"), icon = "fas fa-rotate") {
-                enableTooltip(TooltipOptions(gettext("Reset columns"), animation = true, delay = delay))
-                onClick {
-                    viewList.resetColumns()
-                }
+            button(text = if (minToolbarSize) "" else tr("Reset"), icon = "fas fa-rotate", style = ButtonStyle.OUTLINESECONDARY) {
+                size = ButtonSize.SMALL
+                enableTooltip(TooltipOptions(tr("Reset columns"), animation = true, delay = delay))
+                onClick { viewList.resetColumns() }
             }
-            navLink(label = if (minToolbarSize) "" else "Print", icon = "fas fa-print") {
-                enableTooltip(TooltipOptions("Print table", animation = true, delay = delay))
-                onClick {
-                    viewList.outPrint()
-                }
+            button(text = if (minToolbarSize) "" else tr("Print"), icon = "fas fa-print", style = ButtonStyle.OUTLINESECONDARY) {
+                size = ButtonSize.SMALL
+                enableTooltip(TooltipOptions(tr("Print table"), animation = true, delay = delay))
+                onClick { viewList.outPrint() }
             }
-            navLink(label = if (minToolbarSize) "" else "Export", icon = "fas fa-file-export") {
-                enableTooltip(TooltipOptions("Export table", animation = true, delay = delay))
-                onClick {
-                    viewList.outToFile()
-                }
+            button(text = if (minToolbarSize) "" else tr("Export"), icon = "fas fa-file-export", style = ButtonStyle.OUTLINESECONDARY) {
+                size = ButtonSize.SMALL
+                enableTooltip(TooltipOptions(tr("Export table"), animation = true, delay = delay))
+                onClick { viewList.outToFile() }
             }
         }
     }
