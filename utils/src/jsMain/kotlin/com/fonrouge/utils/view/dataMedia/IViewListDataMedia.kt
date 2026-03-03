@@ -100,6 +100,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
             viewItem: ViewItem<*, *, *, *>,
             classifierClass: KClass<*>? = null,
         ) {
+            if (viewItem.crudTask == CrudTask.Create) return
             buildViewListDataMedia?.let {
                 tab("Media", icon = "fas fa-photo-film") {
                     addPageListBody(
