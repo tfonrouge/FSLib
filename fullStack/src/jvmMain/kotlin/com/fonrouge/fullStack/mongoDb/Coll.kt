@@ -80,6 +80,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                     val dupKey = msg.substringAfter("dup key: ", "")
                     "Duplicate key error on index: $indexName, key: $dupKey"
                 }
+
                 e is MongoWriteException && e.code == 121 -> "Document validation failed"
                 e is MongoWriteException && e.code == 11600 -> "Operation interrupted due to replica set state change"
                 e is MongoWriteException && e.code == 50 -> "Operation exceeded time limit"

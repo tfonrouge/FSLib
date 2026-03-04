@@ -54,14 +54,22 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
         // ── Filter + Detail ──────────────────────────────────────────────────
         div(className = "btn-group me-2") {
             if (viewList.hasOffCanvasFilterView) {
-                button(text = if (minToolbarSize) "" else tr("Filter"), icon = "fas fa-filter", style = ButtonStyle.OUTLINEINFO) {
+                button(
+                    text = if (minToolbarSize) "" else tr("Filter"),
+                    icon = "fas fa-filter",
+                    style = ButtonStyle.OUTLINEINFO
+                ) {
                     size = ButtonSize.SMALL
                     enableTooltip(TooltipOptions(tr("Filter"), animation = true, delay = delay))
                     onClick { viewList.offCanvasFilter?.show() }
                 }
             }
             viewList.configViewItem()?.let { configViewItem ->
-                button(text = if (minToolbarSize) "" else tr("Detail"), icon = iconCrud(CrudTask.Read), style = ButtonStyle.OUTLINEPRIMARY) {
+                button(
+                    text = if (minToolbarSize) "" else tr("Detail"),
+                    icon = iconCrud(CrudTask.Read),
+                    style = ButtonStyle.OUTLINEPRIMARY
+                ) {
                     size = ButtonSize.SMALL
                     bind(viewList.selectedItemObs) { item ->
                         disabled = item == null
@@ -82,7 +90,11 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
         viewList.configViewItem()?.let { configViewItem ->
             if (viewList.editable()) {
                 div(className = "btn-group me-2") {
-                    button(text = if (minToolbarSize) "" else tr("Create"), icon = iconCrud(CrudTask.Create), style = ButtonStyle.OUTLINESUCCESS) {
+                    button(
+                        text = if (minToolbarSize) "" else tr("Create"),
+                        icon = iconCrud(CrudTask.Create),
+                        style = ButtonStyle.OUTLINESUCCESS
+                    ) {
                         size = ButtonSize.SMALL
                         enableTooltip(
                             TooltipOptions(
@@ -93,7 +105,11 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         )
                         onClick { viewList.goActionUrl(CrudTask.Create) }
                     }
-                    button(text = if (minToolbarSize) "" else tr("Update"), icon = iconCrud(CrudTask.Update), style = ButtonStyle.OUTLINEWARNING) {
+                    button(
+                        text = if (minToolbarSize) "" else tr("Update"),
+                        icon = iconCrud(CrudTask.Update),
+                        style = ButtonStyle.OUTLINEWARNING
+                    ) {
                         size = ButtonSize.SMALL
                         bind(viewList.selectedItemObs) { item ->
                             disabled = item == null
@@ -107,11 +123,16 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
                         }
                         onClick { viewList.goActionUrl(CrudTask.Update) }
                     }
-                    button(text = if (minToolbarSize) "" else tr("Delete"), icon = iconCrud(CrudTask.Delete), style = ButtonStyle.OUTLINEDANGER) {
+                    button(
+                        text = if (minToolbarSize) "" else tr("Delete"),
+                        icon = iconCrud(CrudTask.Delete),
+                        style = ButtonStyle.OUTLINEDANGER
+                    ) {
                         size = ButtonSize.SMALL
                         bind(viewList.selectedItemObs) { item ->
-                            if (item == null) { hide(); disableTooltip() }
-                            else {
+                            if (item == null) {
+                                hide(); disableTooltip()
+                            } else {
                                 show()
                                 enableTooltip(
                                     TooltipOptions(
@@ -133,22 +154,38 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
 
         // ── Utilities (right-aligned) ─────────────────────────────────────────
         div(className = "btn-group ms-auto") {
-            button(text = if (minToolbarSize) "" else tr("Refresh"), icon = "fas fa-redo", style = ButtonStyle.OUTLINESECONDARY) {
+            button(
+                text = if (minToolbarSize) "" else tr("Refresh"),
+                icon = "fas fa-redo",
+                style = ButtonStyle.OUTLINESECONDARY
+            ) {
                 size = ButtonSize.SMALL
                 enableTooltip(TooltipOptions(tr("Refresh table"), animation = true, delay = delay))
                 onClick { viewList.dataUpdate() }
             }
-            button(text = if (minToolbarSize) "" else tr("Reset"), icon = "fas fa-rotate", style = ButtonStyle.OUTLINESECONDARY) {
+            button(
+                text = if (minToolbarSize) "" else tr("Reset"),
+                icon = "fas fa-rotate",
+                style = ButtonStyle.OUTLINESECONDARY
+            ) {
                 size = ButtonSize.SMALL
                 enableTooltip(TooltipOptions(tr("Reset columns"), animation = true, delay = delay))
                 onClick { viewList.resetColumns() }
             }
-            button(text = if (minToolbarSize) "" else tr("Print"), icon = "fas fa-print", style = ButtonStyle.OUTLINESECONDARY) {
+            button(
+                text = if (minToolbarSize) "" else tr("Print"),
+                icon = "fas fa-print",
+                style = ButtonStyle.OUTLINESECONDARY
+            ) {
                 size = ButtonSize.SMALL
                 enableTooltip(TooltipOptions(tr("Print table"), animation = true, delay = delay))
                 onClick { viewList.outPrint() }
             }
-            button(text = if (minToolbarSize) "" else tr("Export"), icon = "fas fa-file-export", style = ButtonStyle.OUTLINESECONDARY) {
+            button(
+                text = if (minToolbarSize) "" else tr("Export"),
+                icon = "fas fa-file-export",
+                style = ButtonStyle.OUTLINESECONDARY
+            ) {
                 size = ButtonSize.SMALL
                 enableTooltip(TooltipOptions(tr("Export table"), animation = true, delay = delay))
                 onClick { viewList.outToFile() }
