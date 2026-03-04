@@ -704,6 +704,13 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun Navbar.navBarOptions() {}
 
     /**
+     * Set to false to suppress the "Create" button from the toolbar (e.g. when the view
+     * provides its own creation entry point such as a wizard).
+     * Update and Delete buttons are unaffected.
+     */
+    open val showCreateInToolbar: Boolean = true
+
+    /**
      * allows processing JavaScript array arrived from the backend
      */
     open fun onReceivingData(data: dynamic) {}

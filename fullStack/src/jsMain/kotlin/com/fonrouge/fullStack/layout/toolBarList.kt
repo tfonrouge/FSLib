@@ -90,20 +90,22 @@ fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
         viewList.configViewItem()?.let { configViewItem ->
             if (viewList.editable()) {
                 div(className = "btn-group me-2") {
-                    button(
-                        text = if (minToolbarSize) "" else tr("Create"),
-                        icon = iconCrud(CrudTask.Create),
-                        style = ButtonStyle.OUTLINESUCCESS
-                    ) {
-                        size = ButtonSize.SMALL
-                        enableTooltip(
-                            TooltipOptions(
-                                title = tr("Create") + " " + configViewItem.commonContainer.labelItem,
-                                animation = true,
-                                delay = delay
+                    if (viewList.showCreateInToolbar) {
+                        button(
+                            text = if (minToolbarSize) "" else tr("Create"),
+                            icon = iconCrud(CrudTask.Create),
+                            style = ButtonStyle.OUTLINESUCCESS
+                        ) {
+                            size = ButtonSize.SMALL
+                            enableTooltip(
+                                TooltipOptions(
+                                    title = tr("Create") + " " + configViewItem.commonContainer.labelItem,
+                                    animation = true,
+                                    delay = delay
+                                )
                             )
-                        )
-                        onClick { viewList.goActionUrl(CrudTask.Create) }
+                            onClick { viewList.goActionUrl(CrudTask.Create) }
+                        }
                     }
                     button(
                         text = if (minToolbarSize) "" else tr("Update"),
