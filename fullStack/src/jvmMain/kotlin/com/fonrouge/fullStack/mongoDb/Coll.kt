@@ -12,6 +12,10 @@ import com.fonrouge.base.state.ListState
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.state.State
 import com.fonrouge.fullStack.FieldPath
+import com.mongodb.MongoCommandException
+import com.mongodb.MongoSocketException
+import com.mongodb.MongoTimeoutException
+import com.mongodb.MongoWriteException
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
@@ -67,6 +71,25 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     companion object {
         private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
         var MAX_RECURSIVE_RESULT_FIELD = 1
+
+        internal fun friendlyExceptionMessage(e: Exception): String? {
+            return when {
+                e is MongoWriteException && e.code == 11000 -> {
+                    val msg = e.error.message
+                    val indexName = msg.substringAfter("index: ", "").substringBefore(" dup key:")
+                    val dupKey = msg.substringAfter("dup key: ", "")
+                    "Duplicate key error on index: $indexName, key: $dupKey"
+                }
+                e is MongoWriteException && e.code == 121 -> "Document validation failed"
+                e is MongoWriteException && e.code == 11600 -> "Operation interrupted due to replica set state change"
+                e is MongoWriteException && e.code == 50 -> "Operation exceeded time limit"
+                e is MongoWriteException && e.code == 13 -> "Unauthorized operation"
+                e is MongoCommandException && e.errorCode == 13 -> "Unauthorized operation"
+                e is MongoTimeoutException -> "Database connection timed out"
+                e is MongoSocketException -> "Database connection error"
+                else -> e.message
+            }
+        }
     }
 
     /**
@@ -1075,7 +1098,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             result = insertOneResult.insertedId != null
             ItemState(item = apiItem1.item, state = if (result) State.Ok else State.Error)
         } catch (e: Exception) {
-            ItemState(isOk = false, msgError = e.message)
+            ItemState(isOk = false, msgError = friendlyExceptionMessage(e))
         } finally {
             onAfterCreateAction(apiItem = apiItem1, result = result == true)
             onAfterUpsertAction(apiItem = apiItem1, orig = null, result = result == true)
@@ -1559,7 +1582,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } catch (e: Exception) {
             onAfterUpdateAction(apiItem = apiItem, orig = orig, result = false)
             onAfterUpsertAction(apiItem = apiItem, orig = orig, result = false)
-            return ItemState(isOk = false, msgError = e.message)
+            return ItemState(isOk = false, msgError = friendlyExceptionMessage(e))
         }
         val itemState = when (result.modifiedCount) {
             1L -> findItemStateById(id = id)
@@ -1694,7 +1717,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         } catch (e: Exception) {
             orig?.let { onAfterUpdateAction(apiItem = apiItem1, orig = orig, result = false) }
             onAfterUpsertAction(apiItem = apiItem1, orig = orig, result = false)
-            return ItemState(isOk = false, msgError = e.message)
+            return ItemState(isOk = false, msgError = friendlyExceptionMessage(e))
         }
         val state: State
         val noDataModified: Boolean
