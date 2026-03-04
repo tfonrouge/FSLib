@@ -70,6 +70,10 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
 ) : ViewDataContainer<CC, T, ID, FILT>(
     configViewContainer = configView,
 ) {
+    companion object {
+        private const val TOAST_DURATION = 10000
+    }
+
     private var _serializedValueMap: Map<String, String?>? = null
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
@@ -88,10 +92,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      * with forms.
      */
     var formPanel: ViewFormPanel<T>? = null
-//    var formPanel: ViewFormPanel<T> = ViewFormPanel(
-//        serializer = configView.commonContainer.itemSerializer,
-//        viewItem = this,
-//    )
 
     /**
      * Observable that holds the [ItemState] for the [ViewItem]
@@ -260,7 +260,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     }
                 } else {
                     Toast.warning(
-                        message = "Form has incomplete data",
+                        message = gettext("Form has incomplete data"),
                         options = ToastOptions(
                             position = ToastPosition.BOTTOMRIGHT,
                             stopOnFocus = true
@@ -380,7 +380,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      *                  influence the displayed default message or behavior.
      */
     open fun Container.displayDefault(urlParams: UrlParams?) {
-        centeredMessage("no CRUD action ...")
+        centeredMessage(gettext("no CRUD action ..."))
     }
 
     /**
@@ -464,7 +464,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                     }
                 buttonAccept =
                     button(
-                        text = "Accept",
+                        text = gettext("Accept"),
                         icon = "fas fa-check",
                         style = ButtonStyle.OUTLINESUCCESS
                     ) {
@@ -499,9 +499,6 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
             }
 
             CrudTask.Update -> {
-//                AppScope.launch {
-//                    linkBanner?.label = labelBanner(apiFilter)
-//                }
                 item?.let {
                     origSerialized = Json.encodeToString(
                         serializer = configView.commonContainer.itemSerializer,
@@ -520,22 +517,71 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
     }
 
     /**
+     * Handles the transition from a Create action to an Update action when the item already exists.
+     * Updates the URL parameters and browser history to reflect the change.
+     */
+    private fun handleCreateToUpdateTransition(itemResponse: ItemState<T>, itemResponseItem: T) {
+        crudTask = CrudTask.Update
+        urlParams.params["action"] = CrudTask.Update.name
+        itemResponseItem._id.let {
+            urlParams.params.set(
+                propertyName = "id",
+                value = Json.encodeToString(
+                    configView.commonContainer.idSerializer,
+                    it
+                )
+            )
+        }
+        val url = configView.url + urlParams.toEncodedUrlString()
+        val stateObj =
+            "{${itemResponse::class.simpleName}: \"${itemResponseItem._id}\"}".asDynamic()
+        window.history.replaceState(stateObj, "createToUpdate", url)
+    }
+
+    /**
+     * Displays an action denied message with a back button and a warning toast.
+     */
+    private fun Container.displayActionDenied(
+        crudAction: CrudTask?,
+        itemResponse: ItemState<T>,
+        onBack: () -> Unit,
+        toastOptions: ToastOptions,
+    ) {
+        flexPanel(
+            direction = FlexDirection.COLUMN,
+            justify = JustifyContent.CENTER,
+            alignContent = AlignContent.CENTER,
+            alignItems = AlignItems.CENTER,
+            spacing = 10
+        ) {
+            div(
+                content = "<i><b>[$crudAction]</b></i> ${gettext("action denied")}: <b>${itemResponse.msgError}</b>",
+                rich = true
+            ) {
+                fontSize = 1.5.em
+            }
+            flexPanel(
+                direction = FlexDirection.ROW,
+                justify = JustifyContent.CENTER,
+                spacing = 20
+            ) {
+                button(gettext("Back"), icon = "fa-solid fa-arrow-rotate-left") {
+                    onClick {
+                        onBack()
+                    }
+                }
+            }
+        }
+        Toast.warning(
+            message = itemResponse.msgError
+                ?: "$crudAction ${gettext("action denied")} ...",
+            options = toastOptions
+        )
+    }
+
+    /**
      * Displays a page in the container by rendering a user interface based on the given URL parameters, page context, and CRUD task.
      * The method handles Create, Read, Update, and Delete actions, manages API calls, and updates the UI accordingly.
-     * It also manages navigation controls, confirmation dialogs, toast notifications, and form rendering.
-     *
-     * Behavior:
-     * - Displays a page banner if enabled (`noPageBanner` is false).
-     * - Handles different CRUD tasks (e.g., creating, updating, deleting) by interacting with necessary services and rendering the appropriate UI.
-     * - Displays confirmation dialogs for delete actions.
-     * - Calls API services for CRUD operations, updates item data, and transitions between Create to Update, if necessary.
-     * - Fires UI updates and displays forms with custom actions using asynchronous flow.
-     * - Manages navigation interactions including `back` actions and error handling.
-     *
-     * Notes:
-     * 1. If no specific CRUD task (`crudTask`) is set, it displays a default page.
-     * 2. For Create actions, the method checks if an item already exists and switches to an Update context if necessary.
-     * 3. Encodes and decodes item IDs using defined serializers for URL interactions.
      */
     final override fun Container.displayPage() {
         vPanel(className = "showItem") {
@@ -551,7 +597,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                                 item = item,
                                 apiFilter = apiFilter
                             )
-                        } ?: Toast.danger("${configView.commonContainer.labelItem} not valid ...")
+                        } ?: Toast.danger("${configView.commonContainer.labelItem} ${gettext("not valid ...")}")
                     } else {
                         configView.commonContainer.callItemService(
                             apiItemFun = configView.apiItemFun,
@@ -568,25 +614,7 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                             if (crudAction == CrudTask.Create) {
                                 itemResponse.item?.let { itemResponseItem ->
                                     if (itemResponse.itemAlreadyOn) {
-                                        crudTask = CrudTask.Update
-                                        urlParams.params["action"] = CrudTask.Update.name
-                                        itemResponseItem._id.let {
-                                            urlParams.params.set(
-                                                propertyName = "id",
-                                                value = Json.encodeToString(
-                                                    configView.commonContainer.idSerializer,
-                                                    it
-                                                )
-                                            )
-                                        }
-                                        @Suppress("UNUSED_VARIABLE")
-                                        val url =
-                                            (configView.url + urlParams.toEncodedUrlString()).asDynamic()
-
-                                        @Suppress("UNUSED_VARIABLE")
-                                        val stateObj =
-                                            "{${itemResponse::class.simpleName}: \"${itemResponseItem._id}\"}".asDynamic()
-                                        js("""history.replaceState(stateObj,"createToUpdate",url)""")
+                                        handleCreateToUpdateTransition(itemResponse, itemResponseItem)
                                     }
                                 } ?: itemResponse.serializedValueMap?.let {
                                     _serializedValueMap = it
@@ -596,10 +624,10 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                             val toastOptions = ToastOptions(
                                 position = ToastPosition.BOTTOMRIGHT,
                                 stopOnFocus = true,
-                                duration = 10000,
+                                duration = TOAST_DURATION,
                                 close = true,
                                 callback = {
-                                    if (!alreadyBack) js("history.back()")
+                                    if (!alreadyBack) window.history.back()
                                 },
                                 escapeHtml = true,
                             )
@@ -610,36 +638,14 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
                                     displayForm(crudAction1)
                                 }
                             } else {
-                                flexPanel(
-                                    direction = FlexDirection.COLUMN,
-                                    justify = JustifyContent.CENTER,
-                                    alignContent = AlignContent.CENTER,
-                                    alignItems = AlignItems.CENTER,
-                                    spacing = 10
-                                ) {
-                                    div(
-                                        content = "<i><b>[$crudAction1]</b></i> ${gettext("action denied")}: <b>${itemResponse.msgError}</b>",
-                                        rich = true
-                                    ) {
-                                        fontSize = 1.5.em
-                                    }
-                                    flexPanel(
-                                        direction = FlexDirection.ROW,
-                                        justify = JustifyContent.CENTER,
-                                        spacing = 20
-                                    ) {
-                                        button("Back", icon = "fa-solid fa-arrow-rotate-left") {
-                                            onClick {
-                                                alreadyBack = true
-                                                js("history.back()") as? Unit
-                                            }
-                                        }
-                                    }
-                                }
-                                Toast.warning(
-                                    message = itemResponse.msgError
-                                        ?: "$crudAction1 ${gettext("action denied")} ...",
-                                    options = toastOptions
+                                displayActionDenied(
+                                    crudAction = crudAction1,
+                                    itemResponse = itemResponse,
+                                    onBack = {
+                                        alreadyBack = true
+                                        window.history.back()
+                                    },
+                                    toastOptions = toastOptions,
                                 )
                             }
                             itemResponse
