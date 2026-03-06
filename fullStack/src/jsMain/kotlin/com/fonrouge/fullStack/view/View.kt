@@ -12,6 +12,7 @@ import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.UserSessionParams
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.fullStack.config.ConfigView
+import com.fonrouge.fullStack.layout.helpButtons
 import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
 import com.fonrouge.fullStack.view.KVWebManager.frontEndAppName
 import io.kvision.core.*
@@ -166,6 +167,13 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
         }
 
     open val label: String get() = configView.label
+
+    /**
+     * Controls whether automatic help discovery is enabled for this view.
+     * When true (default), the view auto-discovers available help (tutorial/context)
+     * via RPC based on the view's class name.
+     */
+    open val helpEnabled: Boolean = true
 
     @OptIn(ExperimentalTime::class)
     internal var lastUiActivity: Instant = Clock.System.now()
@@ -426,6 +434,15 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             })
             onBeforeDisplayPage(this@startDisplayPage)
             this@startDisplayPage.displayPage()
+            if (helpEnabled) {
+                val viewClassName = this@View::class.simpleName ?: ""
+                if (viewClassName.isNotEmpty()) {
+                    this@startDisplayPage.helpButtons(
+                        viewClassName = viewClassName,
+                        viewLabel = label
+                    )
+                }
+            }
             bind(apiFilterObservable) {
                 onApiFilterChange()
                 apiFilterToPageUrl(mainView)
