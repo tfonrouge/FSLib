@@ -3,7 +3,6 @@ package com.fonrouge.fullStack.mongoDb
 import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.bson.json2
 import com.fonrouge.base.model.BaseDoc
-import com.fonrouge.fullStack.FieldPath
 import com.mongodb.client.model.Aggregates
 import com.mongodb.reactivestreams.client.AggregatePublisher
 import io.ktor.server.application.*
@@ -12,7 +11,6 @@ import org.bson.BsonInt32
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
-import org.litote.kmongo.property.KPropertyPath
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.instanceParameter

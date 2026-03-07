@@ -1,6 +1,5 @@
 package com.fonrouge.base
 
-import com.fonrouge.base.types.OId
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import kotlin.test.Test

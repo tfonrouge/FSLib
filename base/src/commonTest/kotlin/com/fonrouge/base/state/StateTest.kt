@@ -1,12 +1,7 @@
 package com.fonrouge.base.state
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Tests for the State enum and SimpleState data class.

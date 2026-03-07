@@ -2,7 +2,6 @@ package com.fonrouge.base.types
 
 import com.fonrouge.base.serializers.EMPTY_OID
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals

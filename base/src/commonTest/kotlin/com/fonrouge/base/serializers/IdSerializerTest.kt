@@ -4,7 +4,6 @@ import com.fonrouge.base.types.IntId
 import com.fonrouge.base.types.LongId
 import com.fonrouge.base.types.StringId
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.EMPTY_BSON
-import org.litote.kmongo.coroutine.aggregate
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.json
 

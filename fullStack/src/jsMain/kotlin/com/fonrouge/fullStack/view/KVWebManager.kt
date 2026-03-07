@@ -31,6 +31,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     //    var configViewHome: ConfigView<*, *, *>? = null
     var configViewContainer: IConfigViewContainer? = null
+
     /**
      * Map of item view configurations. Delegated to [ViewRegistry].
      */

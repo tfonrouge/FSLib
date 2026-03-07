@@ -35,7 +35,10 @@ import java.util.*
 import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.*
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.superclasses
 
 /**
  * Represents a utility or service class for handling collections in MongoDB with support for
