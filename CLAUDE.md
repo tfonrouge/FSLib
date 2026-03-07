@@ -59,7 +59,7 @@ utils → fullStack → base
 
 ### Coding Conventions
 
-- Always add KDoc comments to new or modified classes and functions.
+- Always add KDoc comments to any created or updated class, function, struct, interface, or any other code construct.
 
 ### Language
 
