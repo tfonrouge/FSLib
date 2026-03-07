@@ -61,6 +61,10 @@ utils → fullStack → base
 
 - Always add KDoc comments to any created or updated class, function, struct, interface, or any other code construct.
 
+### Help Documentation
+
+The file `HELP-DOCS-GUIDE.md` contains the guide for the help documentation system. It must be copied to any project that intends to use the help docs functionality provided by this library.
+
 ### Language
 
 Code comments and user-facing strings are primarily in **Spanish**. The project uses KVision's i18n module for internationalization.
