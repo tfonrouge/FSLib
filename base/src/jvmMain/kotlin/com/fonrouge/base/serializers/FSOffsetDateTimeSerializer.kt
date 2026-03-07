@@ -106,13 +106,21 @@ actual object FSOffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
 
             is JsonDecoder -> {
                 when (val jsonElement = decoder.decodeJsonElement()) {
-                    is JsonArray -> TODO()
-                    is JsonObject -> TODO()
                     is JsonPrimitive -> {
                         decodeFromString(jsonElement.content)
                     }
 
-                    JsonNull -> TODO()
+                    is JsonNull -> throw kotlinx.serialization.SerializationException(
+                        "Cannot deserialize OffsetDateTime from JSON null"
+                    )
+
+                    is JsonArray -> throw kotlinx.serialization.SerializationException(
+                        "Cannot deserialize OffsetDateTime from JSON array: $jsonElement"
+                    )
+
+                    is JsonObject -> throw kotlinx.serialization.SerializationException(
+                        "Cannot deserialize OffsetDateTime from JSON object: $jsonElement"
+                    )
                 }
             }
 

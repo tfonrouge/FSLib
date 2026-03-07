@@ -39,11 +39,9 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
                 userSession.sessionMaxSecs?.let { sessionMaxSecs ->
                     if (sessionMaxSecs > 0) {
                         val secsLeft = sessionMaxSecs - (Clock.System.now().minus(userSession.loginTime).inWholeSeconds)
-//                    println("userSession = $userSession, secsLeft = $secsLeft")
                         if (secsLeft <= 0) {
                             call.sessions.clear<UserSession<UID>>()
                             call.respond(HttpStatusCode.Unauthorized, "Session expired.")
-                            println("Session expired.")
                             finish()
                         }
                     }

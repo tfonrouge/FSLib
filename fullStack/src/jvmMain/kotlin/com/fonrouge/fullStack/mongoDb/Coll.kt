@@ -1,11 +1,8 @@
 package com.fonrouge.fullStack.mongoDb
 
 import com.fonrouge.base.api.*
-import com.fonrouge.base.bson.json2
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
-import com.fonrouge.base.model.IAppRole
-import com.fonrouge.base.model.IAppRole.RoleType
 import com.fonrouge.base.model.UserSession
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.ListState
@@ -16,7 +13,6 @@ import com.mongodb.MongoCommandException
 import com.mongodb.MongoSocketException
 import com.mongodb.MongoTimeoutException
 import com.mongodb.MongoWriteException
-import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.WriteModel
 import com.mongodb.client.result.InsertOneResult
@@ -28,9 +24,6 @@ import io.ktor.server.application.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.serialization.Serializable
-import org.bson.BsonDocument
-import org.bson.BsonInt32
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
@@ -69,7 +62,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     private var debug: Boolean = false,
 ) {
     companion object {
-        private var privateRoleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
+        internal var roleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
         var MAX_RECURSIVE_RESULT_FIELD = 1
 
         internal fun friendlyExceptionMessage(e: Exception): String? {
@@ -179,7 +172,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * This map is used to track or store specific relationships or mappings
      * involving `ResultField` objects and their corresponding integer identifiers or counters.
      */
-    private val resultFieldStack = mutableMapOf<ResultField, Int>()
+    internal val resultFieldStack = mutableMapOf<ResultField, Int>()
 
     val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
 
@@ -280,42 +273,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         resultUnit: ResultUnit,
         debug: Boolean = this.debug,
         pageStateInfoFun: ((PageCountInfo) -> Unit)? = null,
-    ): AggregatePublisher<T> {
-        pipeline += pipeline(
-            call = call,
-            apiFilter = apiFilter,
-            apiRequestParams = apiRequestParams,
-            lookupWrappers = lookupWrappers,
-            resultUnit = resultUnit
-        )
-        apiRequestParams?.let { requestParams ->
-            val pageCountInfo: PageCountInfo = when (countType) {
-                CountType.PreLookup -> PageCountInfo(
-                    match = matchStage(apiFilter = apiFilter, resultUnit = resultUnit),
-                    countType = countType
-                )
-
-                CountType.PostLookup -> PageCountInfo(
-                    pipeline = pipeline + Aggregates.count(),
-                    countType = countType
-                )
-
-                CountType.Estimated -> PageCountInfo(countType = countType)
-                CountType.Unknown -> PageCountInfo(countType = countType)
-            }
-            pageStateInfoFun?.invoke(pageCountInfo)
-            requestParams.pageSize?.let { pageSize ->
-                if (pageSize > 0) {
-                    (pageSize * ((requestParams.page ?: 1) - 1)).let { skip -> if (skip > 0) pipeline.add(skip(skip)) }
-                    pipeline.add(limit(pageSize))
-                }
-            }
-        }
-        if (debug) {
-            printOutPipeline(pipeline)
-        }
-        return mongoColl.aggregate(pipeline, commonContainer.itemKClass.java)
-    }
+    ): AggregatePublisher<T> = buildAggregatePublisher(
+        call = call,
+        pipeline = pipeline,
+        lookupWrappers = lookupWrappers,
+        apiFilter = apiFilter,
+        apiRequestParams = apiRequestParams,
+        countType = countType,
+        resultUnit = resultUnit,
+        debug = debug,
+        pageStateInfoFun = pageStateInfoFun,
+    )
 
     /**
      * Performs an aggregation operation on a MongoDB collection using the specified pipeline,
@@ -550,77 +518,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiFilter The API filter instance used to determine the lookup functions and pipelines.
      * @return A mutable list of `Bson` representing the pipeline to be applied for the lookup operation.
      */
-    private fun buildLookupList(
-        lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-    ): MutableList<Bson> {
-        fun outErr(resultField: ResultField, times: Int) {
-            System.err.println("MAX_RECURSIVE_RESULT_FIELD limit exceeded, ${objName}: $resultField -> $times")
-        }
-
-        val pipeline: MutableList<Bson> = mutableListOf()
-        val lookupPipelineBuilders = lookupFun(apiFilter)
-            .associateBy { it.resultProperty.name }
-            .plus(
-                lookupWrappers.mapNotNull { if (it is LookupByPipeline<*, *, *>) it.pipeline else null }
-                    .associateBy { it.resultProperty.name }
-            )
-        lookupPipelineBuilders.forEach { (_, lookupPipelineBuilder) ->
-            val lookupWrapper: LookupWrapper<*, *>? = lookupWrappers.find { lookupWrapper: LookupWrapper<*, *> ->
-                val kProperty1 = lookupPipelineBuilder.resultProperty
-                val owner1 = kProperty1.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
-                when (lookupWrapper) {
-                    is LookupByProperty<*, *> -> lookupWrapper.resultProperty //as PropertyReference1Impl
-                    is LookupByPropertyList<*, *> -> lookupWrapper.resultProperty
-                    is LookupByPipeline<*, *, *> -> lookupWrapper.pipeline.resultProperty as PropertyReference1Impl
-                    else -> null
-                }?.let { kProperty2 ->
-                    val owner2 = kProperty2.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
-                    owner2.isSubclassOf(owner1) && kProperty2.name == kProperty1.name
-                } ?: false
-            }
-            if (lookupWrapper != null) {
-                val resultField = ResultField(kResultField = lookupPipelineBuilder.resultProperty)
-                val times = resultFieldStack[resultField]?.inc() ?: 1
-                resultFieldStack[resultField] = times
-                if (times > MAX_RECURSIVE_RESULT_FIELD) {
-                    outErr(resultField, times)
-                } else {
-                    pipeline += lookupPipelineBuilder.toPipeline(lookupWrapper.lookupWrappers)
-                }
-                if (times == 1)
-                    resultFieldStack.remove(resultField)
-                else
-                    resultFieldStack[resultField] = times - 1
-            } else {
-                fixedLookupList(apiFilter)?.find { kProperty2 ->
-                    val kProperty1 = lookupPipelineBuilder.resultProperty
-                    val owner1 = kProperty1.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
-                    val owner2 = kProperty2.instanceParameter?.type?.classifier as? KClass<*> ?: return@find false
-                    owner2.isSubclassOf(owner1) && kProperty2.name == kProperty1.name
-                }?.let {
-                    val resultField = ResultField(kResultField = lookupPipelineBuilder.resultProperty)
-                    val times = resultFieldStack[resultField]?.inc() ?: 1
-                    resultFieldStack[resultField] = times
-                    if (times > MAX_RECURSIVE_RESULT_FIELD) {
-                        outErr(resultField, times)
-                    } else {
-                        pipeline += lookupPipelineBuilder.toPipeline()
-                    }
-                    if (times == 1)
-                        resultFieldStack.remove(resultField)
-                    else
-                        resultFieldStack[resultField] = times - 1
-                }
-            }
-        }
-        return pipeline
-    }
-
-    private data class ResultField(
-        val threadId: Long = Thread.currentThread().threadId(),
-        val kResultField: KProperty1<*, *>,
-    )
 
     /**
      * Performs a bulk write operation asynchronously on the provided list of write models.
@@ -972,7 +869,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     @Suppress("unused")
     suspend fun getCrudPermission(apiItem: ApiItem<T, ID, FILT>): SimpleState =
-        apiItem.call?.let { call -> getCrudPermission(call, apiItem.crudTask) } ?: SimpleState(isOk = true)
+        checkCrudPermission(apiItem)
 
     /**
      * Determines the CRUD (Create, Read, Update, Delete) permission for a given user.
@@ -984,31 +881,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     suspend fun getCrudPermission(
         call: ApplicationCall,
         crudTask: CrudTask,
-    ): SimpleState {
-        val roleInUserColl = privateRoleInUserColl ?: return SimpleState(isOk = true)
-        if (this::class.isSubclassOf(IChangeLogColl::class)) return SimpleState(isOk = true)
-        val matchDoc = and(
-            IAppRole<*>::roleType eq RoleType.CrudTask,
-            IAppRole<*>::classOwner eq commonContainer.name
-        )
-        return roleInUserColl.permissionState(
-            call = call,
-            roleType = RoleType.CrudTask,
-            crudTask = crudTask,
-        ) {
-            roleInUserColl.appRoleColl.findOne(matchDoc)?.let {
-                ItemState(item = it)
-            } ?: roleInUserColl.appRoleColl.insertCrudRole(
-                container = commonContainer,
-                crudTask = crudTask
-            ).item?.let {
-                ItemState(item = it)
-            } ?: ItemState(
-                isOk = false,
-                msgError = "App role doesn't exist '${commonContainer.name}' for ${commonContainer.labelItem} item."
-            )
-        }
-    }
+    ): SimpleState = checkCrudPermission(call, crudTask)
 
     /**
      * Retrieves the user session associated with the current API call.
@@ -1355,81 +1228,13 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         apiRequestParams: ApiRequestParams? = null,
         lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
         resultUnit: ResultUnit,
-    ): MutableList<Bson> {
-
-        val pipeline: MutableList<Bson> = mutableListOf()
-
-        // Execute pipeline transformations before any other pipeline stages
-        morphingStage(
-            call = call,
-            pipeline = pipeline,
-            apiFilter = apiFilter,
-            apiRequestParams = apiRequestParams,
-            resultUnit = resultUnit
-        )
-
-        val bsonMatches: ApiRequestParams.MatchLists? = apiRequestParams?.bsonMatches(commonContainer)
-        val bsonSorters: ApiRequestParams.SortLists? = apiRequestParams?.bsonSorters()
-
-        var bson: Bson = EMPTY_BSON
-        matchStage(call = call, apiFilter = apiFilter, resultUnit = resultUnit)?.let {
-            if (Document.parse(it.json).isNotEmpty()) bson = it
-        }
-        // combine matchStage() result with apiRequestParams pre lookup doc
-        and(bson, *(bsonMatches?.preMainLookup?.toTypedArray() ?: emptyArray())).also {
-            if (Document.parse(it.json).isNotEmpty()) pipeline.add(match(it))
-        }
-
-        // sort is only meaningful when a list is collected
-        if (resultUnit == ResultUnit.List) {
-            bson = EMPTY_BSON
-            sortStage(call = call, apiFilter = apiFilter)?.let {
-                if (Document.parse(it.json).isNotEmpty()) bson = it
-            }
-            // combine sortStage() result with apiRequestParams pre sort doc
-            document(bson, bsonSorters?.preMainLookup ?: EMPTY_BSON).also {
-                if (Document.parse(it.json).isNotEmpty()) pipeline.add(sort(it))
-            }
-        }
-
-        // build the main lookups stage
-        pipeline += buildLookupList(lookupWrappers = lookupWrappers, apiFilter = apiFilter)
-
-        refactorPipeline(
-            call = call,
-            pipeline = pipeline,
-            apiFilter = apiFilter,
-            apiRequestParams = apiRequestParams,
-            resultUnit = resultUnit
-        )
-
-        val postLookupMatchDoc = mutableListOf<Bson>()
-        // first, afterLookupMatchStage()
-        afterLookupMatchStage(call = call, apiFilter = apiFilter, resultUnit = resultUnit)?.let {
-            postLookupMatchDoc += it
-        }
-        // second, remote matches
-        bsonMatches?.postMainLookup?.let { apiReqPostLookupMatch ->
-            postLookupMatchDoc += apiReqPostLookupMatch
-        }
-        and(*postLookupMatchDoc.toTypedArray()).also {
-            if (Document.parse(it.json).isNotEmpty()) pipeline += match(it)
-        }
-
-        // first, remote sorts
-        val bson1: BsonDocument = bsonSorters?.postMainLookup ?: BsonDocument()
-        // second, afterLookupSortStage()
-        afterLookupSortStage(call = call, apiFilter = apiFilter)?.let {
-            val doc = Document.parse(it.json)
-            if (doc.isNotEmpty()) {
-                doc.forEach { (key, value) ->
-                    bson1.append(key, BsonInt32(value as Int))
-                }
-            }
-        }
-        if (Document.parse(bson1.json).isNotEmpty()) pipeline += sort(bson1)
-        return pipeline
-    }
+    ): MutableList<Bson> = buildPipeline(
+        call = call,
+        apiFilter = apiFilter,
+        apiRequestParams = apiRequestParams,
+        lookupWrappers = lookupWrappers,
+        resultUnit = resultUnit,
+    )
 
     /**
      * Constructs a MongoDB aggregation pipeline based on the provided parameters.
@@ -1461,14 +1266,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * @param pipeline The list of Bson stages representing the aggregation pipeline that will be printed.
      */
-    private fun printOutPipeline(pipeline: List<Bson>) {
-        println("-".repeat(40))
-        println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate pipeline:")
-        println("*".repeat(40))
-        println(pipeline.json2)
-        println("+".repeat(40))
-    }
-
     /**
      * Refactors the given pipeline right after the [buildLookupList] fun by applying a result unit and an API filter.
      *
@@ -1768,58 +1565,9 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
-    @Serializable
-    enum class CountType {
-        PreLookup,
-        PostLookup,
-        Estimated,
-        Unknown
-    }
-
-    data class PageCountInfo(
-        val match: Bson? = null,
-        val pipeline: List<Bson>? = null,
-        var lastPage: Int? = null,
-        var lastRow: Int? = null,
-        val countType: CountType,
-    ) {
-        suspend fun count(coll: Coll<*, *, *, *, *>, pageSize: Int) {
-            val count = when (countType) {
-                CountType.PreLookup ->
-                    coll.mongoColl.coroutine.countDocuments(
-                        match?.let {
-                            if (Document.parse(match.json).isNotEmpty())
-                                it
-                            else
-                                EMPTY_BSON
-                        } ?: EMPTY_BSON
-                    )
-
-                CountType.PostLookup -> pipeline?.let {
-                    coll.mongoColl.coroutine.aggregate<Document>(it).first()?.getInteger("count")
-                        ?.toLong()
-                }
-
-                CountType.Estimated -> coll.mongoColl.coroutine.estimatedDocumentCount()
-                CountType.Unknown -> null
-            }
-            count?.let {
-                if (pageSize > 0) {
-                    lastPage = (count / pageSize + if (count.toInt() % pageSize > 0) 1 else 0).toInt()
-                }
-                lastRow = it.toInt()
-            }
-        }
-    }
-
-    enum class ResultUnit {
-        Single,
-        List,
-    }
-
     init {
         if (this is IRoleInUserColl<*, *, *, *, *, *>) {
-            privateRoleInUserColl = this
+            roleInUserColl = this
         }
     }
 }

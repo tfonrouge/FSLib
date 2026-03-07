@@ -12,9 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import org.intellij.lang.annotations.Language
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.IColumnType
-import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.sql.statements.StatementType
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.sql.ResultSet
@@ -395,28 +394,30 @@ abstract class SqlDatabase(
         lateinit var simpleState: SimpleState
         newSuspendedTransaction(context = Dispatchers.IO, db = database) {
             val names = mutableListOf<String>()
-            val values = mutableListOf<Any>()
+            val args = mutableListOf<Pair<IColumnType<*>, Any?>>()
             item::class.memberProperties.forEach { kCallable ->
-                kCallable.call(item)?.let {
+                kCallable.call(item)?.let { value ->
                     val name = kCallable.findAnnotation<SqlField>()?.name
                     names += name ?: kCallable.name
-                    values += when (it) {
-                        is String -> "'$it'"
-                        is OffsetDateTime -> "'${
-                            it.toLocalDateTime()
-                                .format(DateTimeFormatter.ofPattern(KV_DEFAULT_DATETIME_FORMAT))
-                        }'"
-
-                        else -> it.toString()
+                    val columnArg: Pair<IColumnType<*>, Any?> = when (value) {
+                        is String -> VarCharColumnType() to value
+                        is Int -> IntegerColumnType() to value
+                        is Long -> LongColumnType() to value
+                        is Double -> DoubleColumnType() to value
+                        is OffsetDateTime -> JavaLocalDateTimeColumnType() to value.toLocalDateTime()
+                        is LocalDateTime -> JavaLocalDateTimeColumnType() to value
+                        else -> VarCharColumnType() to value.toString()
                     }
+                    args += columnArg
                 }
             }
-            val namesAsString = names.joinToString()
-            val valuesAsString = values.joinToString()
+            val namesAsString = names.joinToString { it }
+            val placeholders = names.joinToString { "?" }
             simpleState = try {
                 exec(
                     @Suppress("SqlNoDataSourceInspection")
-                    "INSERT INTO $tableName ($namesAsString) VALUES ($valuesAsString)"
+                    "INSERT INTO $tableName ($namesAsString) VALUES ($placeholders)",
+                    args
                 )
                 SimpleState(isOk = true)
             } catch (e: Exception) {

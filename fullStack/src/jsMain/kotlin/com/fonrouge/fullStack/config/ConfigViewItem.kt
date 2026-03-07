@@ -20,7 +20,6 @@ import kotlinx.browser.window
 import kotlinx.serialization.json.Json
 import org.w3c.dom.Window
 import web.cssom.HtmlAttributes.Companion.target
-import web.prompts.alert
 import kotlin.js.Promise
 import kotlin.reflect.KClass
 
@@ -53,27 +52,15 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
     baseUrl = baseUrl,
 ) {
     companion object {
-        private var dataItemServiceManager: RpcServiceManager<*>? = null
-
         /**
-         * Manages the RPC service manager instance associated with the `ConfigViewItem`.
+         * Service manager de RPC para operaciones de item. Delegado a [ViewRegistry.itemServiceManager].
          *
-         * This variable handles the retrieval and assignment of a `RpcServiceManager` instance.
-         * Attempting to access the property without setting a value will throw an `IllegalStateException`
-         * and trigger an alert with the associated error message.
-         *
-         * Throws:
-         * - `IllegalStateException` if accessed before being initialized.
+         * @throws IllegalStateException si se accede antes de ser inicializado.
          */
         var serviceManager: RpcServiceManager<*>
-            get() = dataItemServiceManager
-                ?: throw IllegalStateException("serviceManager is null. Please set ConfigViewItem.serviceManager value before instantiating any ConfigViewItem.".also {
-                    alert(
-                        it
-                    )
-                })
+            get() = ViewRegistry.itemServiceManager
             set(value) {
-                dataItemServiceManager = value
+                ViewRegistry.itemServiceManager = value
             }
 
         /**

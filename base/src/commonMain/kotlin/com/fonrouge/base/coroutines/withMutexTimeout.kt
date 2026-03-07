@@ -35,7 +35,6 @@ suspend fun <R> withMutexTimeout(
     } finally {
         mutex.unlock(owner)
     }
-} catch (e: Exception) {
-    println("Timeout error: ${e.message}")
+} catch (_: Exception) {
     null
 }

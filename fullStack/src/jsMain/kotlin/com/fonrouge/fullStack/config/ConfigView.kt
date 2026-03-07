@@ -37,7 +37,10 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
         }
 
     companion object {
-        val configViewMap = mutableMapOf<String, ConfigView<*, *, *>>()
+        /**
+         * Mapa de configuraciones de vista general. Delegado a [ViewRegistry].
+         */
+        val configViewMap get() = ViewRegistry.configViewMap
 
         /**
          * Represents the default mode of displaying the view list in the application.

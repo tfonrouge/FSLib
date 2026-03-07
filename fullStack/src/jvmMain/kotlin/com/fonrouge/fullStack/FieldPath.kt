@@ -45,52 +45,40 @@ data class FieldPath<T : BaseDoc<*>, R>(
         get() = "${previous?.path?.let { "$it." } ?: ""}${property.path()}"
 
     override val getter: KProperty1.Getter<T, R>
-        get() = TODO("Not yet implemented")
+        get() = throw UnsupportedOperationException("FieldPath is a path-only wrapper; getter is not supported")
 
     override fun get(receiver: T): R {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("FieldPath is a path-only wrapper; get() is not supported")
     }
 
-    override fun getDelegate(receiver: T): Any {
-        TODO("Not yet implemented")
-    }
+    override fun getDelegate(receiver: T): Any? = null
 
-    override val isConst: Boolean
-        get() = TODO("Not yet implemented")
-    override val isLateinit: Boolean
-        get() = TODO("Not yet implemented")
-    override val isAbstract: Boolean
-        get() = TODO("Not yet implemented")
-    override val isFinal: Boolean
-        get() = TODO("Not yet implemented")
-    override val isOpen: Boolean
-        get() = TODO("Not yet implemented")
-    override val isSuspend: Boolean
-        get() = TODO("Not yet implemented")
+    override val isConst: Boolean get() = false
+    override val isLateinit: Boolean get() = false
+    override val isAbstract: Boolean get() = false
+    override val isFinal: Boolean get() = true
+    override val isOpen: Boolean get() = false
+    override val isSuspend: Boolean get() = false
     override val name: String
         get() = path
-    override val parameters: List<KParameter>
-        get() = TODO("Not yet implemented")
-    override val returnType: KType
-        get() = TODO("Not yet implemented")
-    override val typeParameters: List<KTypeParameter>
-        get() = TODO("Not yet implemented")
-    override val visibility: KVisibility
-        get() = TODO("Not yet implemented")
+    override val parameters: List<KParameter> get() = property.parameters
+    override val returnType: KType get() = property.returnType
+    override val typeParameters: List<KTypeParameter> get() = property.typeParameters
+    override val visibility: KVisibility? get() = property.visibility
 
     override fun call(vararg args: Any?): R {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("FieldPath is a path-only wrapper; call() is not supported")
     }
 
     override fun callBy(args: Map<KParameter, Any?>): R {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("FieldPath is a path-only wrapper; callBy() is not supported")
     }
 
     override val annotations: List<Annotation>
         get() = previous?.owner?.annotations ?: emptyList()
 
     override fun invoke(p1: T): R {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("FieldPath is a path-only wrapper; invoke() is not supported")
     }
 }
 

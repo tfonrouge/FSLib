@@ -2,8 +2,7 @@
 
 package com.fonrouge.fullStack.view
 
-import com.fonrouge.fullStack.config.ConfigViewItem
-import com.fonrouge.fullStack.config.ConfigViewList
+import com.fonrouge.fullStack.config.ViewRegistry
 import com.fonrouge.fullStack.routing.initialize
 import io.kvision.routing.Routing
 import io.kvision.state.ObservableValue
@@ -32,8 +31,15 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
 
     //    var configViewHome: ConfigView<*, *, *>? = null
     var configViewContainer: IConfigViewContainer? = null
-    val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
-    val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
+    /**
+     * Mapa de configuraciones de vista de item. Delegado a [ViewRegistry].
+     */
+    val configViewItemMap get() = ViewRegistry.configViewItemMap
+
+    /**
+     * Mapa de configuraciones de vista de lista. Delegado a [ViewRegistry].
+     */
+    val configViewListMap get() = ViewRegistry.configViewListMap
 
     /**
      * A flag indicating whether the periodic update for the data view item is enabled or not.

@@ -45,7 +45,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     lookupWrappers = lookupWrappers,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = 1,
-    resultUnit = Coll.ResultUnit.Single,
+    resultUnit = ResultUnit.Single,
     addStages = addStages,
 ) {}
 
@@ -80,7 +80,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupField(
     lookupWrappers = lookupWrappers,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = 1,
-    resultUnit = Coll.ResultUnit.Single,
+    resultUnit = ResultUnit.Single,
     addStages = addStages,
 ) {}
 
@@ -110,7 +110,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupAnyField(
     resultField: KProperty1<in T, Any?>,
     lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     preserveNullAndEmptyArrays: Boolean = true,
-    resultUnit: Coll.ResultUnit = Coll.ResultUnit.Single,
+    resultUnit: ResultUnit = ResultUnit.Single,
     unwind: Boolean? = null,
     addStages: List<Bson>? = null,
 ): LookupPipelineBuilder<T, U, ID> = object : LookupPipelineBuilder<T, U, ID>(
@@ -168,7 +168,7 @@ fun <T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any> lookupFieldArray(
     lookupWrappers = lookupWrappers,
     preserveNullAndEmptyArrays = preserveNullAndEmptyArrays,
     limit = limit,
-    resultUnit = Coll.ResultUnit.List,
+    resultUnit = ResultUnit.List,
     addStages = addStages,
 ) {}
 
@@ -207,7 +207,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
     val lookupWrappers: List<LookupWrapper<*, *>>,
     internal val preserveNullAndEmptyArrays: Boolean,
     internal val limit: Int?,
-    val resultUnit: Coll.ResultUnit,
+    val resultUnit: ResultUnit,
     val unwind: Boolean? = null,
     private val isAnyResult: Boolean = false,
     val addStages: List<Bson>? = null,
@@ -264,7 +264,7 @@ abstract class LookupPipelineBuilder<T : BaseDoc<*>, U : BaseDoc<ID>, ID : Any>(
                 pipeline = pip2.toTypedArray()
             )
         }
-        if ((unwind == null && resultUnit == Coll.ResultUnit.Single) || unwind == true) {
+        if ((unwind == null && resultUnit == ResultUnit.Single) || unwind == true) {
             resultProperty.let {
                 pipeline += resultProperty.unwind(
                     UnwindOptions().preserveNullAndEmptyArrays(

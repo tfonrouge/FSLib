@@ -35,7 +35,6 @@ suspend fun <R> waitForLockValue(
         while (kProperty.get() && counter > 0) {
             --counter
             if (attempts > 0) {
-                println("waiting for lock release ... $counter attempts left")
                 delay(delay.toLong())
             }
         }

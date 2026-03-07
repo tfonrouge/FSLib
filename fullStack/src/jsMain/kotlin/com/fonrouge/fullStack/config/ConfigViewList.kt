@@ -8,7 +8,6 @@ import com.fonrouge.base.state.ListState
 import com.fonrouge.fullStack.view.KVWebManager.configViewListMap
 import com.fonrouge.fullStack.view.ViewList
 import dev.kilua.rpc.RpcServiceManager
-import web.prompts.alert
 import kotlin.reflect.KClass
 
 /**
@@ -38,30 +37,15 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
     baseUrl = baseUrl
 ) {
     companion object {
-        private var dataListServiceManager: RpcServiceManager<*>? = null
-
         /**
-         * A delegating property used to manage the `RpcServiceManager` instance for the `ConfigViewList` class.
+         * Service manager de RPC para operaciones de lista. Delegado a [ViewRegistry.listServiceManager].
          *
-         * - The `serviceManager` property must be explicitly initialized before any instance of `ConfigViewList` is created.
-         * - Failing to initialize this property will result in an `IllegalStateException` being thrown when attempting to access it.
-         *
-         * This property internally delegates its value to `dataListServiceManager`.
-         * If the value is not set, it throws an exception and shows an alert message with the exception details.
-         *
-         * @throws IllegalStateException if the property is accessed before it is initialized.
-         *
-         * @see RpcServiceManager
+         * @throws IllegalStateException si se accede antes de ser inicializado.
          */
         var serviceManager: RpcServiceManager<*>
-            get() = dataListServiceManager
-                ?: throw IllegalStateException("serviceManager is null. Please set ConfigViewList.serviceManager value before instantiating any ConfigViewList.".also {
-                    alert(
-                        it
-                    )
-                })
+            get() = ViewRegistry.listServiceManager
             set(value) {
-                dataListServiceManager = value
+                ViewRegistry.listServiceManager = value
             }
     }
 

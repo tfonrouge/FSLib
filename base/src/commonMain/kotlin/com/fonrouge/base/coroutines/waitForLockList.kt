@@ -38,7 +38,6 @@ suspend fun <T, R> waitForLockList(
         while (lockList.contains(lockValue) && counter > 0) {
             --counter
             if (attempts > 0) {
-                println("waiting for lock release ... $counter attempts left")
                 delay(delay.toLong())
             }
         }

@@ -13,7 +13,7 @@ repositories {
 }
 
 kotlin {
-//    jvmToolchain(21)
+    jvmToolchain(21)
     jvm {
         compilerOptions {
             freeCompilerArgs = listOf(
@@ -39,6 +39,10 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kvision.common.remote)
+        }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
 
         jvmMain.dependencies {
