@@ -12,6 +12,7 @@ import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.model.UserSessionParams
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.fullStack.config.ConfigView
+import com.fonrouge.fullStack.help.IHelpModule
 import com.fonrouge.fullStack.layout.helpButtons
 import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
 import com.fonrouge.fullStack.view.KVWebManager.frontEndAppName
@@ -174,6 +175,18 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * via RPC based on the view's class name.
      */
     open val helpEnabled: Boolean = true
+
+    /**
+     * The help module this view belongs to, or `null` if it is not grouped.
+     *
+     * When set, help files are looked up under `help-docs/{module.slug}/{ViewClassName}/`
+     * instead of `help-docs/{ViewClassName}/`. Override in subclasses to assign a module:
+     *
+     * ```kotlin
+     * override val helpModule: IHelpModule = AppModule.Importaciones
+     * ```
+     */
+    open val helpModule: IHelpModule? = null
 
     @OptIn(ExperimentalTime::class)
     internal var lastUiActivity: Instant = Clock.System.now()
@@ -439,7 +452,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 if (viewClassName.isNotEmpty()) {
                     this@startDisplayPage.helpButtons(
                         viewClassName = viewClassName,
-                        viewLabel = label
+                        viewLabel = label,
+                        moduleSlug = helpModule?.slug
                     )
                 }
             }

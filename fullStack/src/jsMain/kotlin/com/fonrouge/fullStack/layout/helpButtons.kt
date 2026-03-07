@@ -2,21 +2,33 @@ package com.fonrouge.fullStack.layout
 
 import com.fonrouge.base.enums.HelpType
 import com.fonrouge.fullStack.services.HelpDocsService
-import io.kvision.core.Container
-import io.kvision.core.KVScope
-import io.kvision.html.ButtonStyle
-import io.kvision.html.button
-import io.kvision.html.div
+import io.kvision.core.*
+import io.kvision.dropdown.Direction
+import io.kvision.dropdown.Separator
+import io.kvision.dropdown.ddLink
+import io.kvision.dropdown.dropDown
+import io.kvision.html.*
+import io.kvision.modal.Modal
+import io.kvision.modal.ModalSize
 import io.kvision.offcanvas.OffPlacement
 import io.kvision.offcanvas.offcanvas
+import io.kvision.panel.hPanel
 import io.kvision.panel.tab
 import io.kvision.panel.tabPanel
 import io.kvision.state.ObservableValue
 import io.kvision.state.bind
+import io.kvision.utils.perc
+import io.kvision.utils.px
+import io.kvision.utils.rem
+import io.kvision.utils.vh
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import org.w3c.dom.asList
 import org.w3c.dom.events.Event
+import org.w3c.dom.url.URL
+import org.w3c.files.Blob
+import org.w3c.files.BlobPropertyBag
 
 private val helpStyleRegex = Regex("<style[^>]*>[\\s\\S]*?</style>")
 private val helpBodyRegex = Regex("<body[^>]*>([\\s\\S]*)</body>")
@@ -25,34 +37,14 @@ private val bodySelectorRegex = Regex("""(?<=^|[},\s])body\s*(?=[{\s,])""")
 private var helpButtonsCssInjected = false
 
 /**
- * Injects the CSS styles for the help FAB button and offcanvas panel into the document head.
- * Only injects once per page load.
+ * Injects minimal CSS for the offcanvas panel and help content.
+ * The "?" button and dropdown use KVision inline styles.
  */
 private fun injectHelpButtonsCss() {
     if (helpButtonsCssInjected) return
     helpButtonsCssInjected = true
     val style = document.createElement("style")
     style.textContent = """
-        .help-fab {
-            position: fixed !important;
-            bottom: 24px;
-            right: 24px;
-            z-index: 1050;
-            width: 52px;
-            height: 52px;
-            border-radius: 50% !important;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .help-fab:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        }
         body:has(.help-offcanvas.showing),
         body:has(.help-offcanvas.show) {
             overflow: auto !important;
@@ -153,6 +145,78 @@ private fun extractHtmlContent(rawHtml: String): String {
 private fun helpTypeIcon(helpType: HelpType): String = when (helpType) {
     HelpType.TUTORIAL -> "fas fa-book"
     HelpType.CONTEXT_HELP -> "fas fa-info-circle"
+    HelpType.MANUAL -> "fas fa-book-open"
+}
+
+/**
+ * Creates a blob URL from raw HTML content for use in iframes.
+ *
+ * @param rawHtml The complete HTML document string.
+ * @return A blob URL pointing to the HTML content.
+ */
+private fun createBlobUrl(rawHtml: String): String {
+    val blob = Blob(arrayOf(rawHtml), BlobPropertyBag(type = "text/html"))
+    return URL.createObjectURL(blob)
+}
+
+/**
+ * Opens the module manual in a modal dialog with an iframe.
+ *
+ * The modal provides an embedded view of the full manual (with its sidebar layout)
+ * and a button to detach it into a separate browser window if needed.
+ *
+ * @param title The modal caption / window title.
+ * @param rawHtml The complete HTML document to display.
+ */
+private fun showManualModal(title: String, rawHtml: String) {
+    val blobUrl = createBlobUrl(rawHtml)
+    var modal: Modal? = null
+    modal = Modal(
+        caption = title,
+        size = ModalSize.XLARGE,
+    ) {
+        hPanel(spacing = 10, alignItems = AlignItems.CENTER) {
+            marginBottom = 8.px
+            paddingBottom = 8.px
+            borderBottom = Border(1.px, BorderStyle.SOLID, Color("#2a2f5f"))
+            span("Navega el manual aqu\u00ed o \u00e1brelo en una ventana separada.") {
+                color = Color("#9da4d1")
+                fontSize = 0.85.rem
+            }
+            button(
+                text = "Ventana separada",
+                icon = "fas fa-external-link-alt",
+                style = ButtonStyle.OUTLINEINFO,
+            ) {
+                onClick {
+                    window.open(
+                        blobUrl,
+                        "_blank",
+                        "width=1100,height=850,scrollbars=yes,resizable=yes"
+                    )
+                    modal?.hide()
+                }
+            }
+        }
+        tag(TAG.IFRAME) {
+            setAttribute("src", blobUrl)
+            setAttribute("frameborder", "0")
+            width = 100.perc
+            height = 72.vh
+        }
+    }
+    // Clean up after modal is hidden: remove DOM manually
+    // (KVision's dispose() corrupts sibling widget trees)
+    modal.addAfterInsertHook {
+        modal?.getElement()?.addEventListener("hidden.bs.modal", {
+            modal?.getElement()?.asDynamic()?.remove()
+            document.querySelectorAll(".modal-backdrop").asList().forEach { it.asDynamic().remove() }
+            document.body?.classList?.remove("modal-open")
+            document.body?.style?.removeProperty("overflow")
+            document.body?.style?.removeProperty("padding-right")
+        })
+    }
+    modal.show()
 }
 
 /**
@@ -229,19 +293,25 @@ private fun Container.helpContentWithDetach(
 }
 
 /**
- * Adds a floating help button (FAB) that discovers available help docs via RPC and presents them
- * in an offcanvas panel. Supports single-doc mode and multi-doc tabbed mode, with lazy loading
- * and detach-to-popup-window functionality.
+ * Adds a subtle "?" help button (fixed, bottom-right) that uses a KVision [DropDown]
+ * triggered on hover. The dropdown menu shows available help options:
+ *
+ * - **Manual del M\u00f3dulo** (if available): opens a modal with the full manual in an iframe.
+ * - **Ayuda de esta Vista** (if tutorial/context available): opens an offcanvas panel with
+ *   tabbed tutorial and context help content.
  *
  * @param viewClassName The simple class name of the view, used to look up help documents.
  * @param viewLabel The display label of the view, shown in the offcanvas header.
+ * @param moduleSlug Optional module slug for module-scoped help file lookup
+ *                   (e.g., `"importaciones"` resolves to `help-docs/importaciones/{viewClassName}/`).
  */
-fun Container.helpButtons(viewClassName: String, viewLabel: String) {
+fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: String? = null) {
     injectHelpButtonsCss()
     val service = HelpDocsService()
     val rawHtmlCache = mutableMapOf<HelpType, String>()
     val caption = "Ayuda \u2014 $viewLabel"
 
+    // Offcanvas for tutorial/context help
     val oc = offcanvas(
         caption = caption,
         placement = OffPlacement.END,
@@ -253,95 +323,83 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String) {
 
     fun isOcVisible() = oc.getElement()?.classList?.contains("show") == true
 
-    fun toggleOc() {
-        if (isOcVisible()) oc.hide() else oc.show()
-    }
-
-    // FAB button - hidden until we know help is available
-    val fab = button(
-        text = "",
-        icon = "fas fa-question-circle",
-        style = ButtonStyle.PRIMARY,
-        className = "help-fab"
+    // DropDown "?" button — hidden until help is discovered
+    val dd = dropDown(
+        text = "?",
+        style = ButtonStyle.OUTLINESECONDARY,
+        direction = Direction.DROPUP,
+        arrowVisible = false,
     ) {
         visible = false
-        title = caption
+        position = Position.FIXED
+        bottom = 20.px
+        right = 20.px
+        zIndex = 1050
+        // Eliminate gap between button and menu so mouseleave doesn't fire in between
+        menu.marginBottom = 0.px
+        menu.paddingBottom = 2.px
+        // Show dropdown on hover, close on leave
+        // Check button's aria-expanded (not container's class — Bootstrap puts "show" on menu, not container)
+        onEvent {
+            mouseenter = {
+                if (button.getElement()?.getAttribute("aria-expanded") != "true") toggle()
+            }
+            mouseleave = {
+                if (button.getElement()?.getAttribute("aria-expanded") == "true") toggle()
+            }
+        }
+    }
+    // Style the toggle button
+    dd.button.apply {
+        width = 36.px
+        height = 36.px
+        borderRadius = CssSize(50, UNIT.perc)
+        fontSize = 14.px
+        fontWeight = FontWeight.BOLD
+        padding = 0.px
     }
 
-    // Close offcanvas when clicking outside of it and the FAB
+    // Close offcanvas when clicking outside
     val outsideClickHandler: (Event) -> Unit = { e ->
         if (isOcVisible()) {
             val target = e.target as? org.w3c.dom.Element
             val ocEl = oc.getElement()
-            val fabEl = fab.getElement()
-            if (target != null && ocEl?.contains(target) != true && fabEl?.contains(target) != true) {
+            val ddEl = dd.getElement()
+            if (target != null && ocEl?.contains(target) != true && ddEl?.contains(target) != true) {
                 oc.hide()
             }
         }
     }
     document.addEventListener("click", outsideClickHandler)
 
-    // Discover available help and build content
+    // Discover available help and build dropdown items + offcanvas content
     KVScope.launch {
-        val types = service.getAvailableHelp(viewClassName)
-        if (types.isEmpty()) return@launch
+        val allTypes = service.getAvailableHelp(viewClassName, moduleSlug)
+        if (allTypes.isEmpty()) return@launch
 
-        fab.visible = true
+        dd.visible = true
 
-        if (types.size == 1) {
-            val helpType = types.first()
-            fab.icon = helpTypeIcon(helpType)
+        val hasManual = HelpType.MANUAL in allTypes
+        val panelTypes = allTypes - HelpType.MANUAL
+        val hasViewHelp = panelTypes.isNotEmpty()
 
-            val html = ObservableValue("")
-            oc.bind(html) { content ->
-                if (content.isNotEmpty()) {
-                    helpContentWithDetach(
-                        helpType.label, viewLabel, content,
-                        rawHtmlCache[helpType] ?: content
-                    ) { oc.hide() }
-                }
-            }
-
-            fab.onClick {
-                if (html.value.isEmpty()) {
-                    KVScope.launch {
-                        val rawHtml = service.getHelpContent(viewClassName, helpType)
-                        if (rawHtml.isNotEmpty()) {
-                            rawHtmlCache[helpType] = rawHtml
-                            html.value = extractHtmlContent(rawHtml)
-                        }
+        // Build offcanvas content for tutorial/context
+        if (hasViewHelp) {
+            if (panelTypes.size == 1) {
+                val helpType = panelTypes.first()
+                val html = ObservableValue("")
+                oc.bind(html) { content ->
+                    if (content.isNotEmpty()) {
+                        helpContentWithDetach(
+                            helpType.label, viewLabel, content,
+                            rawHtmlCache[helpType] ?: content
+                        ) { oc.hide() }
                     }
                 }
-                toggleOc()
-            }
-        } else {
-            // Multiple help types: use tabs
-            val htmlMap = mutableMapOf<HelpType, ObservableValue<String>>()
-            types.forEach { htmlMap[it] = ObservableValue("") }
-
-            oc.add(tabPanel {
-                types.forEach { helpType ->
-                    val html = htmlMap[helpType]!!
-                    tab(label = helpType.label, icon = helpTypeIcon(helpType)) {
-                        bind(html) { content ->
-                            if (content.isNotEmpty()) {
-                                helpContentWithDetach(
-                                    helpType.label, viewLabel, content,
-                                    rawHtmlCache[helpType] ?: content
-                                ) { oc.hide() }
-                            }
-                        }
-                    }
-                }
-            })
-
-            fab.onClick {
-                // Lazy-load all help content
-                types.forEach { helpType ->
-                    val html = htmlMap[helpType]!!
+                fun lazyLoadSingle() {
                     if (html.value.isEmpty()) {
                         KVScope.launch {
-                            val rawHtml = service.getHelpContent(viewClassName, helpType)
+                            val rawHtml = service.getHelpContent(viewClassName, helpType, moduleSlug)
                             if (rawHtml.isNotEmpty()) {
                                 rawHtmlCache[helpType] = rawHtml
                                 html.value = extractHtmlContent(rawHtml)
@@ -349,7 +407,90 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String) {
                         }
                     }
                 }
-                toggleOc()
+
+                dd.ddLink(
+                    label = helpType.label,
+                    icon = helpTypeIcon(helpType),
+                ) {
+                    onClick {
+                        dd.toggle()
+                        lazyLoadSingle()
+                        oc.show()
+                    }
+                }
+            } else {
+                val htmlMap = mutableMapOf<HelpType, ObservableValue<String>>()
+                panelTypes.forEach { htmlMap[it] = ObservableValue("") }
+
+                oc.add(tabPanel {
+                    panelTypes.forEach { helpType ->
+                        val html = htmlMap[helpType]!!
+                        tab(label = helpType.label, icon = helpTypeIcon(helpType)) {
+                            bind(html) { content ->
+                                if (content.isNotEmpty()) {
+                                    helpContentWithDetach(
+                                        helpType.label, viewLabel, content,
+                                        rawHtmlCache[helpType] ?: content
+                                    ) { oc.hide() }
+                                }
+                            }
+                        }
+                    }
+                })
+
+                fun lazyLoadTabs() {
+                    panelTypes.forEach { helpType ->
+                        val html = htmlMap[helpType]!!
+                        if (html.value.isEmpty()) {
+                            KVScope.launch {
+                                val rawHtml = service.getHelpContent(viewClassName, helpType, moduleSlug)
+                                if (rawHtml.isNotEmpty()) {
+                                    rawHtmlCache[helpType] = rawHtml
+                                    html.value = extractHtmlContent(rawHtml)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                dd.ddLink(
+                    label = "Ayuda de esta Vista",
+                    icon = "fas fa-lightbulb",
+                ) {
+                    onClick {
+                        dd.toggle()
+                        lazyLoadTabs()
+                        oc.show()
+                    }
+                }
+            }
+        }
+
+        // Separator between items
+        if (hasManual && hasViewHelp) {
+            dd.add(Separator())
+        }
+
+        // Manual option — opens modal directly
+        if (hasManual) {
+            dd.ddLink(
+                label = "Manual del M\u00f3dulo",
+                icon = "fas fa-book-open",
+            ) {
+                onClick {
+                    dd.toggle()
+                    KVScope.launch {
+                        val rawHtml = rawHtmlCache[HelpType.MANUAL]
+                            ?: service.getHelpContent(viewClassName, HelpType.MANUAL, moduleSlug)
+                                .also { if (it.isNotEmpty()) rawHtmlCache[HelpType.MANUAL] = it }
+                        if (rawHtml.isNotEmpty()) {
+                            showManualModal(
+                                "${HelpType.MANUAL.label} \u2014 $viewLabel",
+                                rawHtml
+                            )
+                        }
+                    }
+                }
             }
         }
     }

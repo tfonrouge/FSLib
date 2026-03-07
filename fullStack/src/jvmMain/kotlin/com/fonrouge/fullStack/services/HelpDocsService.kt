@@ -8,7 +8,11 @@ import java.io.File
  * Service for managing help documents associated with application views.
  *
  * Provides methods to query the availability and content of help files organized
- * by view class name and help type ([HelpType]).
+ * by view class name, optional module slug, and help type ([HelpType]).
+ *
+ * When a [moduleSlug] is provided, files are first looked up under
+ * `helpDocsDir/{moduleSlug}/{viewClassName}/`. If not found, the service falls back
+ * to the flat layout `helpDocsDir/{viewClassName}/` for backward compatibility.
  *
  * @property call The Ktor HTTP call associated with the current request.
  */
@@ -28,28 +32,70 @@ class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
     }
 
     /**
+     * Resolves the view directory, trying the module-scoped path first
+     * and falling back to the flat path.
+     *
+     * @param viewClassName Name of the view class.
+     * @param moduleSlug Optional module directory slug.
+     * @return The resolved [File] directory (may or may not exist).
+     */
+    private fun resolveViewDir(viewClassName: String, moduleSlug: String?): File {
+        if (moduleSlug != null) {
+            val moduleDir = File(helpDocsDir, "$moduleSlug/$viewClassName")
+            if (moduleDir.exists()) return moduleDir
+        }
+        return File(helpDocsDir, viewClassName)
+    }
+
+    /**
+     * Resolves the file for a given help type.
+     *
+     * - [HelpType.MANUAL]: looked up at module level `helpDocsDir/{moduleSlug}/manual.html`
+     *   (requires [moduleSlug]; returns `null` if not provided).
+     * - [HelpType.TUTORIAL], [HelpType.CONTEXT_HELP]: looked up at view level via [resolveViewDir].
+     *
+     * @param viewClassName Name of the view class.
+     * @param helpType The requested help type.
+     * @param moduleSlug Optional module directory slug.
+     * @return The resolved [File], or `null` if a manual is requested without a module slug.
+     */
+    private fun resolveHelpFile(viewClassName: String, helpType: HelpType, moduleSlug: String?): File? {
+        return if (helpType == HelpType.MANUAL) {
+            if (moduleSlug != null) File(helpDocsDir, "$moduleSlug/${helpType.fileName}") else null
+        } else {
+            File(resolveViewDir(viewClassName, moduleSlug), helpType.fileName)
+        }
+    }
+
+    /**
      * Gets the available help types for a specific view.
      *
-     * Searches the directory corresponding to [viewClassName] for existing help files
-     * and returns the set of found types.
+     * Searches for per-view help files (tutorial, context) in the view directory,
+     * and for a module-level manual in the module directory when [moduleSlug] is provided.
      *
      * @param viewClassName Name of the view class to query help for.
-     * @return Set of [HelpType] whose files exist in the view's directory.
+     * @param moduleSlug Optional module directory slug (e.g., "importaciones").
+     * @return Set of [HelpType] whose files exist.
      */
-    override suspend fun getAvailableHelp(viewClassName: String): Set<HelpType> {
-        val viewDir = File(helpDocsDir, viewClassName)
-        return HelpType.entries.filter { File(viewDir, it.fileName).exists() }.toSet()
+    override suspend fun getAvailableHelp(viewClassName: String, moduleSlug: String?): Set<HelpType> {
+        return HelpType.entries.filter { helpType ->
+            resolveHelpFile(viewClassName, helpType, moduleSlug)?.exists() == true
+        }.toSet()
     }
 
     /**
      * Gets the content of a specific help document.
      *
+     * For [HelpType.MANUAL], reads from `helpDocsDir/{moduleSlug}/manual.html`.
+     * For other types, reads from the resolved view directory.
+     *
      * @param viewClassName Name of the view class associated with the document.
      * @param helpType The requested help type.
+     * @param moduleSlug Optional module directory slug.
      * @return Content of the help file as text, or an empty string if the file does not exist.
      */
-    override suspend fun getHelpContent(viewClassName: String, helpType: HelpType): String {
-        val file = File(helpDocsDir, "$viewClassName/${helpType.fileName}")
+    override suspend fun getHelpContent(viewClassName: String, helpType: HelpType, moduleSlug: String?): String {
+        val file = resolveHelpFile(viewClassName, helpType, moduleSlug) ?: return ""
         return if (file.exists()) file.readText() else ""
     }
 
