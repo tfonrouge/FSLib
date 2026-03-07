@@ -38,9 +38,9 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
 ) {
     companion object {
         /**
-         * Service manager de RPC para operaciones de lista. Delegado a [ViewRegistry.listServiceManager].
+         * RPC service manager for list operations. Delegated to [ViewRegistry.listServiceManager].
          *
-         * @throws IllegalStateException si se accede antes de ser inicializado.
+         * @throws IllegalStateException if accessed before being initialized.
          */
         var serviceManager: RpcServiceManager<*>
             get() = ViewRegistry.listServiceManager

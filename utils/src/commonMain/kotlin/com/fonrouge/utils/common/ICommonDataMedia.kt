@@ -15,8 +15,8 @@ abstract class ICommonDataMedia<DM : IDataMedia<U, UID>, U : IUser<UID>, UID : A
     itemKClass = itemKClass,
     idSerializer = idSerializer,
     apiFilterSerializer = DataMediaFilter.serializer(),
-    labelItem = "Media de Documento",
-    labelList = "Medias de Documento"
+    labelItem = "Document Media",
+    labelList = "Document Media List"
 ) {
     companion object {
         const val DATA_MEDIA_PREFIX = "dataMedia"

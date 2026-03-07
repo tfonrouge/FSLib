@@ -7,16 +7,16 @@ import com.fonrouge.fullStack.view.ViewState
 import io.kvision.navigo.Navigo
 
 /**
- * Inicializa el router Navigo con comportamientos de ruta predefinidos, estableciendo estados
- * de vista basados en configuraciones y parámetros de URL.
+ * Initializes the Navigo router with predefined route behaviors, setting view states
+ * based on configurations and URL parameters.
  *
- * Configura dos rutas:
- * - Una ruta por defecto (path vacío) que busca la vista en [ViewRegistry].
- * - Una ruta dinámica `:viewClass` que busca la vista correspondiente en [ViewRegistry].
+ * Sets up two routes:
+ * - A default route (empty path) that looks up the view in [ViewRegistry].
+ * - A dynamic `:viewClass` route that finds the matching view in [ViewRegistry].
  *
- * Si no se encuentra configuración para el path vacío, se muestra una advertencia en consola.
+ * If no configuration is found for the empty path, a warning is logged to the console.
  *
- * @return La instancia inicializada de Navigo para encadenar llamadas.
+ * @return The initialized Navigo instance for method chaining.
  */
 fun Navigo.initialize(): Navigo {
     return this

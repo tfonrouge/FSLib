@@ -53,9 +53,9 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
 ) {
     companion object {
         /**
-         * Service manager de RPC para operaciones de item. Delegado a [ViewRegistry.itemServiceManager].
+         * RPC service manager for item operations. Delegated to [ViewRegistry.itemServiceManager].
          *
-         * @throws IllegalStateException si se accede antes de ser inicializado.
+         * @throws IllegalStateException if accessed before being initialized.
          */
         var serviceManager: RpcServiceManager<*>
             get() = ViewRegistry.itemServiceManager

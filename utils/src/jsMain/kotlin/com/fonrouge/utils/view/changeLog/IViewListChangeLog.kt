@@ -130,7 +130,7 @@ abstract class IViewListChangeLog<CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, 
             }
         ),
         ColumnDefinition(
-            title = "Fecha",
+            title = "Date",
             field = fieldName(IChangeLog<*, *>::dateTime),
             formatterFunction = { cell, _, _ -> cell.getDataDate(IChangeLog<*, *>::dateTime)?.toDateTimeString }
         ),

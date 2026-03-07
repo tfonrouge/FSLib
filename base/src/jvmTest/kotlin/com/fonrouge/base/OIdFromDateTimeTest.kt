@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Tests para la función `OId(OffsetDateTime)` que genera un OId basado en una fecha.
+ * Tests for the `OId(OffsetDateTime)` function that generates an OId based on a date.
  */
 class OIdFromDateTimeTest {
 

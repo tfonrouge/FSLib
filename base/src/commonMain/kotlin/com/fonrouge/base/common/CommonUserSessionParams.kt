@@ -8,5 +8,5 @@ data object CommonUserSessionParams : ICommonContainer<UserSessionParams, String
     itemKClass = UserSessionParams::class,
     idSerializer = StringId.serializer(UserSessionParams.serializer()),
     apiFilterSerializer = ApiFilter.serializer(),
-    labelItem = "Parámetros de la Sesión",
+    labelItem = "Session Parameters",
 )

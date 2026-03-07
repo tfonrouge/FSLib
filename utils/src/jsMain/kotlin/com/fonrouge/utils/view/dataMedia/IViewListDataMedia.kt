@@ -168,7 +168,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
             }
         ),
         ColumnDefinition(
-            title = "Archivo",
+            title = "File",
             field = fieldName(IDataMedia<*, *>::fileName),
             vertAlign = VAlign.MIDDLE,
 //            width = "20.rem",
@@ -178,7 +178,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
             tooltip = true
         ),
         ColumnDefinition(
-            title = "Tipo",
+            title = "Type",
             field = fieldName(IDataMedia<*, *>::contentType),
             vertAlign = VAlign.MIDDLE,
             hozAlign = Align.CENTER,
@@ -205,7 +205,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
             }
         ),
         ColumnDefinition(
-            title = "Fecha",
+            title = "Date",
             field = fieldName(IDataMedia<*, *>::fechaCreacion),
             vertAlign = VAlign.MIDDLE,
             formatterFunction = { cell, _, _ ->

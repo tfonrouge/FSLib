@@ -14,6 +14,6 @@ abstract class ICommonChangeLog<ChgLog : IChangeLog<U, UID>, U : IUser<UID>, UID
     itemKClass = itemKClass,
     idSerializer = idSerializer,
     apiFilterSerializer = ChangeLogFilter.serializer(),
-    labelItem = "Entrada en Log de Cambios",
-    labelList = "Entradas en Log de Cambios"
+    labelItem = "Change Log Entry",
+    labelList = "Change Log Entries"
 )

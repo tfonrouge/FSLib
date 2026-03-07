@@ -69,7 +69,7 @@ private fun injectHelpCss() {
  * are extracted and rendered inside the offcanvas panel.
  *
  * @param caption The title shown in the offcanvas header.
- * @param url The URL of the HTML manual to fetch (e.g., "/manuales/orden-trabajo-taller.html").
+ * @param url The URL of the HTML manual to fetch.
  */
 fun Container.helpButton(caption: String, url: String) {
     injectHelpCss()

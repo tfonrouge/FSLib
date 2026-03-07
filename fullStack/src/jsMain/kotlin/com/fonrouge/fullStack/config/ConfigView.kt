@@ -38,7 +38,7 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
 
     companion object {
         /**
-         * Mapa de configuraciones de vista general. Delegado a [ViewRegistry].
+         * Map of general view configurations. Delegated to [ViewRegistry].
          */
         val configViewMap get() = ViewRegistry.configViewMap
 

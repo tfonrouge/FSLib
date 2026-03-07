@@ -4,16 +4,16 @@ import com.fonrouge.fullStack.view.AppScope
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * Lanza un proceso con un diálogo modal y ejecuta un bloque de código suspendido.
+ * Launches a process with a modal dialog and executes a suspending block of code.
  *
- * Muestra un diálogo modal con un título opcional y un mensaje personalizable mientras ejecuta el bloque
- * de código suspendido proporcionado. Una vez que el bloque se completa, el modal se oculta.
+ * Displays a modal dialog with an optional title and a customizable message while executing the provided
+ * suspending block. Once the block completes, the modal is hidden.
  *
- * Delega a [CoroutineScope.withProgress] usando [AppScope] como scope.
+ * Delegates to [CoroutineScope.withProgress] using [AppScope] as the scope.
  *
- * @param title Un título opcional para el diálogo modal. Por defecto es `null`.
- * @param text Un mensaje para mostrar en el diálogo modal. Por defecto es "one moment please...".
- * @param block Una función lambda suspendida para ejecutar mientras se muestra el modal.
+ * @param title An optional title for the modal dialog. Defaults to `null`.
+ * @param text A message to display in the modal dialog. Defaults to "one moment please...".
+ * @param block A suspending lambda to execute while the modal is displayed.
  */
 @Suppress("unused")
 fun launchProcess(

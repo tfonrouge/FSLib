@@ -218,7 +218,7 @@ private fun Container.helpContentWithDetach(
             icon = "fas fa-external-link-alt",
             className = "help-detach-icon"
         ) {
-            title = "Abrir en ventana separada"
+            title = "Open in separate window"
             onClick {
                 onDetach()
                 detachToWindow("$helpTypeLabel \u2014 $viewLabel", rawContent)

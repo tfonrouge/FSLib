@@ -32,12 +32,12 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     //    var configViewHome: ConfigView<*, *, *>? = null
     var configViewContainer: IConfigViewContainer? = null
     /**
-     * Mapa de configuraciones de vista de item. Delegado a [ViewRegistry].
+     * Map of item view configurations. Delegated to [ViewRegistry].
      */
     val configViewItemMap get() = ViewRegistry.configViewItemMap
 
     /**
-     * Mapa de configuraciones de vista de lista. Delegado a [ViewRegistry].
+     * Map of list view configurations. Delegated to [ViewRegistry].
      */
     val configViewListMap get() = ViewRegistry.configViewListMap
 

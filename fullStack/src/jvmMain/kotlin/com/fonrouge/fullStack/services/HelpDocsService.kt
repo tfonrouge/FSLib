@@ -5,12 +5,12 @@ import io.ktor.server.application.*
 import java.io.File
 
 /**
- * Servicio para gestionar documentos de ayuda asociados a las vistas de la aplicación.
+ * Service for managing help documents associated with application views.
  *
- * Permite consultar la disponibilidad y el contenido de archivos de ayuda organizados
- * por nombre de clase de vista y tipo de ayuda ([HelpType]).
+ * Provides methods to query the availability and content of help files organized
+ * by view class name and help type ([HelpType]).
  *
- * @property call La llamada HTTP de Ktor asociada a la solicitud actual.
+ * @property call The Ktor HTTP call associated with the current request.
  */
 @Suppress("unused")
 class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
@@ -18,9 +18,9 @@ class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
         private var helpDocsDir: File = File("help-docs")
 
         /**
-         * Establece el directorio raíz donde se almacenan los documentos de ayuda.
+         * Sets the root directory where help documents are stored.
          *
-         * @param dir Ruta del directorio de documentos de ayuda.
+         * @param dir Path to the help documents directory.
          */
         fun setHelpDocsDir(dir: String) {
             helpDocsDir = File(dir)
@@ -28,13 +28,13 @@ class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
     }
 
     /**
-     * Obtiene los tipos de ayuda disponibles para una vista específica.
+     * Gets the available help types for a specific view.
      *
-     * Busca en el directorio correspondiente a [viewClassName] los archivos de ayuda
-     * existentes y devuelve el conjunto de tipos encontrados.
+     * Searches the directory corresponding to [viewClassName] for existing help files
+     * and returns the set of found types.
      *
-     * @param viewClassName Nombre de la clase de vista para la cual se consulta la ayuda.
-     * @return Conjunto de [HelpType] cuyos archivos existen en el directorio de la vista.
+     * @param viewClassName Name of the view class to query help for.
+     * @return Set of [HelpType] whose files exist in the view's directory.
      */
     override suspend fun getAvailableHelp(viewClassName: String): Set<HelpType> {
         val viewDir = File(helpDocsDir, viewClassName)
@@ -42,11 +42,11 @@ class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
     }
 
     /**
-     * Obtiene el contenido de un documento de ayuda específico.
+     * Gets the content of a specific help document.
      *
-     * @param viewClassName Nombre de la clase de vista asociada al documento.
-     * @param helpType Tipo de ayuda solicitado.
-     * @return Contenido del archivo de ayuda como texto, o cadena vacía si el archivo no existe.
+     * @param viewClassName Name of the view class associated with the document.
+     * @param helpType The requested help type.
+     * @return Content of the help file as text, or an empty string if the file does not exist.
      */
     override suspend fun getHelpContent(viewClassName: String, helpType: HelpType): String {
         val file = File(helpDocsDir, "$viewClassName/${helpType.fileName}")

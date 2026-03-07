@@ -3,26 +3,26 @@ package com.fonrouge.fullStack.config
 import dev.kilua.rpc.RpcServiceManager
 
 /**
- * Registro centralizado para todas las configuraciones de vistas de la aplicación.
+ * Centralized registry for all application view configurations.
  *
- * Consolida los mapas de configuración de vistas (`ConfigView`, `ConfigViewItem`, `ConfigViewList`)
- * y los service managers de RPC en un único punto de acceso. Esto mejora la cohesión y facilita
- * la búsqueda de vistas por URL.
+ * Consolidates the view configuration maps (`ConfigView`, `ConfigViewItem`, `ConfigViewList`)
+ * and RPC service managers into a single access point. This improves cohesion and simplifies
+ * view lookup by URL.
  */
 object ViewRegistry {
 
     /**
-     * Mapa de configuraciones de vista general, indexado por URL base.
+     * Map of general view configurations, indexed by base URL.
      */
     val configViewMap = mutableMapOf<String, ConfigView<*, *, *>>()
 
     /**
-     * Mapa de configuraciones de vista de item, indexado por URL base.
+     * Map of item view configurations, indexed by base URL.
      */
     val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
 
     /**
-     * Mapa de configuraciones de vista de lista, indexado por URL base.
+     * Map of list view configurations, indexed by base URL.
      */
     val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
 
@@ -30,40 +30,40 @@ object ViewRegistry {
     private var _listServiceManager: RpcServiceManager<*>? = null
 
     /**
-     * Service manager de RPC para operaciones de item.
+     * RPC service manager for item operations.
      *
-     * @throws IllegalStateException si se accede antes de ser inicializado.
+     * @throws IllegalStateException if accessed before being initialized.
      */
     var itemServiceManager: RpcServiceManager<*>
         get() = _itemServiceManager
-            ?: error("ViewRegistry.itemServiceManager no ha sido inicializado. Asigne el valor antes de crear instancias de ConfigViewItem.")
+            ?: error("ViewRegistry.itemServiceManager has not been initialized. Set its value before creating ConfigViewItem instances.")
         set(value) {
             _itemServiceManager = value
         }
 
     /**
-     * Service manager de RPC para operaciones de lista.
+     * RPC service manager for list operations.
      *
-     * @throws IllegalStateException si se accede antes de ser inicializado.
+     * @throws IllegalStateException if accessed before being initialized.
      */
     var listServiceManager: RpcServiceManager<*>
         get() = _listServiceManager
-            ?: error("ViewRegistry.listServiceManager no ha sido inicializado. Asigne el valor antes de crear instancias de ConfigViewList.")
+            ?: error("ViewRegistry.listServiceManager has not been initialized. Set its value before creating ConfigViewList instances.")
         set(value) {
             _listServiceManager = value
         }
 
     /**
-     * Busca una configuración de vista por su URL base, buscando en los tres mapas.
+     * Finds a view configuration by its base URL, searching across all three maps.
      *
-     * @param baseUrl La URL base de la vista a buscar.
-     * @return La configuración de vista encontrada, o null si no existe en ningún mapa.
+     * @param baseUrl The base URL of the view to find.
+     * @return The matching view configuration, or null if not found in any map.
      */
     fun findByUrl(baseUrl: String): ConfigView<*, *, *>? =
         configViewMap[baseUrl] ?: configViewItemMap[baseUrl] ?: configViewListMap[baseUrl]
 
     /**
-     * Limpia todos los registros y service managers. Útil para pruebas.
+     * Clears all registries and service managers. Useful for testing.
      */
     @Suppress("unused")
     fun reset() {
