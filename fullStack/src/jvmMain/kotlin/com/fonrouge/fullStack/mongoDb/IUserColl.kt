@@ -4,6 +4,7 @@ import com.fonrouge.base.api.IApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.IUser
 import com.fonrouge.base.model.UserSession
+import com.fonrouge.fullStack.repository.IUserRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -12,13 +13,24 @@ import io.ktor.util.pipeline.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+/**
+ * MongoDB-backed user collection that provides user lookup, session management,
+ * and cache-based user retrieval with expiration.
+ *
+ * Implements [IUserRepository] for backend-agnostic user access.
+ *
+ * @param CCU The container type providing user entity metadata.
+ * @param U The user entity type.
+ * @param UID The user identifier type.
+ * @param FILT The filter type for user queries.
+ */
 abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, UID : Any, FILT : IApiFilter<*>>(
     commonContainer: CCU,
     debug: Boolean = false
 ) : Coll<CCU, U, UID, FILT, UID>(
     commonContainer = commonContainer,
     debug = debug,
-) {
+), IUserRepository<U, UID> {
     private val expireTimeUser = mutableMapOf<UID, Pair<Instant, U?>>()
 
     final override val userCollFun: () -> IUserColl<CCU, U, UID, FILT> = { this }
@@ -60,7 +72,9 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
      * @param call The [ApplicationCall] from which the user session will be retrieved. Can be null.
      * @return The user entity associated with the user session, or null if no user is found or if the session is invalid.
      */
-    suspend fun userFromCall(call: ApplicationCall?): U? = findById(call?.sessions?.get<UserSession<UID>>()?.userId)
+    override suspend fun findUserById(id: UID?): U? = findById(id)
+
+    override suspend fun userFromCall(call: ApplicationCall?): U? = findById(call?.sessions?.get<UserSession<UID>>()?.userId)
 
     /**
      * Retrieves the user session from the given [ApplicationCall].
@@ -71,7 +85,7 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
      * @param call The [ApplicationCall] from which the user session will be retrieved. Can be null.
      * @return The [UserSession] associated with the call, or null if there is no valid session.
      */
-    fun userSessionFromCall(call: ApplicationCall?): UserSession<UID>? = call?.sessions?.get<UserSession<UID>>()
+    override fun userSessionFromCall(call: ApplicationCall?): UserSession<UID>? = call?.sessions?.get<UserSession<UID>>()
 
     /**
      * Retrieves a user entity from the application call session with an optional expiration time.

@@ -11,6 +11,7 @@ import com.fonrouge.base.offsetDateTimeNow
 import com.fonrouge.base.serializers.FSOffsetDateTimeSerializer
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.types.OId
+import com.fonrouge.fullStack.repository.IChangeLogRepository
 import io.ktor.server.application.*
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.*
@@ -21,12 +22,22 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.descending
 import org.litote.kmongo.eq
 
+/**
+ * MongoDB-backed change log collection that records CRUD mutations for audit purposes.
+ *
+ * Implements [IChangeLogRepository] for backend-agnostic change log recording.
+ *
+ * @param CC The change log container type.
+ * @param ChangeLog The change log entity type.
+ * @param U The user entity type.
+ * @param UID The user identifier type.
+ */
 abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
     commonContainer: CC,
     override val userCollFun: () -> IUserColl<*, U, UID, *>,
 ) : Coll<CC, ChangeLog, OId<IChangeLog<U, UID>>, ChangeLogFilter, UID>(
     commonContainer = commonContainer
-) {
+), IChangeLogRepository {
     abstract val commonContainerUser: ICommonContainer<U, UID, *>
     abstract val userInfo: ((U?) -> String)
 
@@ -40,7 +51,7 @@ abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLo
      * @return A SimpleState object indicating the success or failure of the operation.
      */
     @OptIn(InternalSerializationApi::class)
-    suspend fun <CC : ICommonContainer<T, ID, *>, T : BaseDoc<ID>, ID : Any> buildChangeLog(
+    override suspend fun <CC : ICommonContainer<T, ID, *>, T : BaseDoc<ID>, ID : Any> buildChangeLog(
         cc: CC,
         apiItem: ApiItem.Action<T, ID, *>,
         orig: T?

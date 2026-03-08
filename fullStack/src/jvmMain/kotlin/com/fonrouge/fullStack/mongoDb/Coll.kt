@@ -9,6 +9,7 @@ import com.fonrouge.base.state.ListState
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.state.State
 import com.fonrouge.fullStack.FieldPath
+import com.fonrouge.fullStack.repository.IRepository
 import com.mongodb.MongoCommandException
 import com.mongodb.MongoSocketException
 import com.mongodb.MongoTimeoutException
@@ -60,10 +61,10 @@ import kotlin.reflect.full.superclasses
  * @param userCollFun Functionality specific to user-collection interactions.
  */
 abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
-    val commonContainer: CC,
+    override val commonContainer: CC,
     mongoDbBuilder: MongoDbBuilder? = null,
     private var debug: Boolean = false,
-) {
+) : IRepository<CC, T, ID, FILT, UID> {
     companion object {
         internal var roleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
         var MAX_RECURSIVE_RESULT_FIELD = 1
@@ -89,18 +90,6 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
         }
     }
 
-    /**
-     * Represents a dependency relationship between collections.
-     *
-     * @param T The type of document in the dependent collection that references this collection
-     * @param ID The type of the identifier used to reference items in this collection
-     * @param common The container managing the dependent collection's items
-     * @param property The property within the dependent document that references items in this collection
-     */
-    data class Dependency<T : BaseDoc<*>, ID : Any>(
-        val common: ICommonContainer<T, *, *>,
-        val property: KProperty1<out T, ID?>,
-    )
 
     /**
      * A property representing a function that returns an optional implementation
@@ -114,7 +103,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * The return type, `IChangeLogColl<*, *, *, *>?`, allows for flexibility with
      * various types of change log collections while supporting optional behavior.
      */
-    open val changeLogCollFun: (() -> IChangeLogColl<*, *, *, *>?) = { null }
+    override val changeLogCollFun: (() -> IChangeLogColl<*, *, *, *>?) = { null }
 
     /**
      * Provides a list of dependencies that reference this collection.
@@ -125,7 +114,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * between this collection and other collections that depend on its documents, or null if there
      * are no dependencies
      */
-    open val dependencies: (() -> List<Dependency<*, ID>>)? = null
+    override val dependencies: (() -> List<IRepository.Dependency<*, ID>>)? = null
 
     /**
      * A coroutine-based collection instance derived from a MongoDB collection.
@@ -168,7 +157,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * If set to `true`, the instance is immutable and cannot be changed.
      * If set to `false`, the instance is mutable and can be altered.
      */
-    open val readOnly = false
+    override val readOnly = false
 
     /**
      * A mutable map that associates a `ResultField` with an integer value.
@@ -177,7 +166,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      */
     internal val resultFieldStack = mutableMapOf<ResultField, Int>()
 
-    val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
+    override val readOnlyErrorMsg get() = "${commonContainer.labelItem} is read-only"
 
     /**
      * A function that represents a collection of users, returning an optional collection instance.
@@ -189,7 +178,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Abstract and must be implemented by subclasses with a specific implementation
      * of the `IUserColl` interface.
      */
-    abstract val userCollFun: () -> IUserColl<*, *, UID, *>?
+    abstract override val userCollFun: () -> IUserColl<*, *, UID, *>?
 
     /**
      * Handles the creation action for a given API item and inserts it into the data store.
@@ -510,7 +499,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The API item to be wrapped in an ItemState.
      * @return An ItemState object that contains the given ApiItem.
      */
-    open suspend fun asApiItem(
+    override suspend fun asApiItem(
         apiItem: ApiItem<T, ID, FILT>,
     ): ItemState<ApiItem<T, ID, FILT>> = ItemState(item = apiItem)
 
@@ -660,13 +649,45 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return An [ItemState] representing the state of the item. It may include errors if any
      *         invalid child dependencies are detected.
      */
+    /**
+     * Checks whether any document exists where the given property matches the specified value.
+     *
+     * @param property The property to match against.
+     * @param value The value to search for.
+     * @return True if at least one matching document exists.
+     */
+    override suspend fun existsByField(property: KProperty1<out BaseDoc<*>, *>, value: Any?): Boolean {
+        if (value == null) return false
+        val (fieldName, collectionName) = when (property) {
+            is FieldPath -> property.path to property.owner.collectionName
+            is PropertyReference1Impl -> {
+                @Suppress("UNCHECKED_CAST")
+                property.name to (property.owner as KClass<out BaseDoc<*>>).collectionName
+            }
+            else -> property.name to commonContainer.itemKClass.collectionName
+        }
+        return mongoDatabase.getCollection(collectionName)
+            .coroutine.find(Document(fieldName, value)).first() != null
+    }
+
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun findChildrenNot(
+    override suspend fun findChildrenNot(
         item: T,
     ): ItemState<T> {
         val itemState = findItemStateById(item._id)
         if (itemState.hasError.not()) {
             dependencies?.invoke()?.forEach { dependency ->
+                // If a cross-engine repository is provided, delegate to it
+                if (dependency.repositoryFun != null) {
+                    if (dependency.repositoryFun.invoke().existsByField(dependency.property, item._id)) {
+                        return ItemState(
+                            state = State.Error,
+                            msgError = "'${commonContainer.labelItemId(item)}' has dependencies in '${dependency.common.labelList}'"
+                        )
+                    }
+                    return@forEach
+                }
+                // Engine-specific MongoDB fallback
                 val kProperty1: KProperty1<out BaseDoc<*>, ID?> = dependency.property
                 when (kProperty1) {
                     is FieldPath -> kProperty1.path to kProperty1.owner.collectionName
@@ -686,7 +707,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                         mongoCollection.coroutine.find(Document(fieldName, item._id)).first()?.let {
                             return ItemState(
                                 state = State.Error,
-                                msgError = "'${commonContainer.labelItemId(item)}' ${("tiene dependencias en")} '${dependency.common.labelList}'"
+                                msgError = "'${commonContainer.labelItemId(item)}' has dependencies in '${dependency.common.labelList}'"
                             )
                         }
                     }
@@ -881,7 +902,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param crudTask The specific CRUD task for which permission is being checked.
      * @return A SimpleState indicating whether the permission check was successful, including an error message if not.
      */
-    suspend fun getCrudPermission(
+    override suspend fun getCrudPermission(
         call: ApplicationCall,
         crudTask: CrudTask,
     ): SimpleState = checkCrudPermission(call, crudTask)
@@ -912,10 +933,10 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return An instance of ItemState representing the state of the item after the insertion.
      */
     @Suppress("unused")
-    suspend fun insertOne(
+    override suspend fun insertOne(
         item: T,
-        apiFilter: FILT = commonContainer.apiFilterInstance(),
-        call: ApplicationCall? = null,
+        apiFilter: FILT,
+        call: ApplicationCall?,
     ): ItemState<T> = insertOne(
         apiItem = ApiItem.Action.Create(
             item = item,
@@ -1041,7 +1062,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem Represents the API item on which the delete action was performed, containing details about the action.
      * @param result The result of the delete action, where true indicates success and false indicates failure.
      */
-    open suspend fun onAfterDeleteAction(
+    override suspend fun onAfterDeleteAction(
         apiItem: ApiItem.Action.Delete<T, ID, FILT>,
         result: Boolean,
     ) = Unit
@@ -1052,7 +1073,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *
      * Can be overridden to provide specific behavior upon opening.
      */
-    open suspend fun onAfterOpen() = Unit
+    override suspend fun onAfterOpen() = Unit
 
     /**
      * This method is invoked after the "upsert create" action takes place.
@@ -1060,7 +1081,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem the API item that represents the "upsert create" action.
      * @param result a boolean indicating the success or failure of the action.
      */
-    open suspend fun onAfterCreateAction(
+    override suspend fun onAfterCreateAction(
         apiItem: ApiItem.Action.Create<T, ID, FILT>,
         result: Boolean,
     ) = Unit
@@ -1072,7 +1093,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param orig The original item before the update operation.
      * @param result The result of the update operation, indicating success or failure.
      */
-    open suspend fun onAfterUpdateAction(
+    override suspend fun onAfterUpdateAction(
         apiItem: ApiItem.Action.Update<T, ID, FILT>,
         orig: T,
         result: Boolean,
@@ -1085,7 +1106,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param orig The original item before the upsert action. Can be null if no prior item existed.
      * @param result Indicates the success status of the upsert action.
      */
-    open suspend fun onAfterUpsertAction(
+    override suspend fun onAfterUpsertAction(
         apiItem: ApiItem.Action<T, ID, FILT>,
         orig: T?,
         result: Boolean,
@@ -1101,7 +1122,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @return An ItemState object representing the state or outcome of the operation,
      *         with the default implementation returning a successful state.
      */
-    open suspend fun onBeforeDeleteAction(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> =
+    override suspend fun onBeforeDeleteAction(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> =
         ItemState(isOk = true)
 
     /**
@@ -1111,7 +1132,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The ApiItem containing the upsert create action details, including the item and its associated metadata.
      * @return The resulting state of the item after any necessary transformations or validations.
      */
-    open suspend fun onBeforeCreateAction(apiItem: ApiItem.Action.Create<T, ID, FILT>): ItemState<T> =
+    override suspend fun onBeforeCreateAction(apiItem: ApiItem.Action.Create<T, ID, FILT>): ItemState<T> =
         ItemState(isOk = true)
 
     /**
@@ -1121,7 +1142,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The update action item containing the item to be updated and related metadata.
      * @return The state of the item after the preprocessing or validation step.
      */
-    open suspend fun onBeforeUpdateAction(
+    override suspend fun onBeforeUpdateAction(
         apiItem: ApiItem.Action.Update<T, ID, FILT>,
         orig: T,
     ): ItemState<T> = ItemState(isOk = true)
@@ -1135,7 +1156,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param orig The original instance of the item being upserted, if it exists.
      * @return An ItemState object representing the state after processing, including whether the operation is allowed to proceed.
      */
-    open suspend fun onBeforeUpsertAction(
+    override suspend fun onBeforeUpsertAction(
         apiItem: ApiItem.Action<T, ID, FILT>,
         orig: T?
     ): ItemState<T> = ItemState(isOk = true)
@@ -1147,7 +1168,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param item The item of type T that is being queried for deletion.
      * @return the result of item having no children so it can be safely deleted
      */
-    open suspend fun onQueryDelete(
+    override suspend fun onQueryDelete(
         apiItem: ApiItem.Query.Delete<T, ID, FILT>,
         item: T
     ): SimpleState = findChildrenNot(item).asSimpleState
@@ -1159,7 +1180,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * It contains the item details and the ID.
      * @return The current state of the item after checking the read permission.
      */
-    open suspend fun onQueryRead(apiItem: ApiItem.Query.Read<T, ID, FILT>): SimpleState =
+    override suspend fun onQueryRead(apiItem: ApiItem.Query.Read<T, ID, FILT>): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1168,7 +1189,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param apiItem The entity that contains the data required for creating or updating the permission.
      * @return The state of the item after the upsert operation.
      */
-    open suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState =
+    override suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1178,7 +1199,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      *                It includes data related to the type, ID, and filter criteria.
      * @return an [ItemState] containing the item model to be created
      */
-    open suspend fun onQueryCreateItem(apiItem: ApiItem.Query.Create<T, ID, FILT>): ItemState<T> =
+    override suspend fun onQueryCreateItem(apiItem: ApiItem.Query.Create<T, ID, FILT>): ItemState<T> =
         ItemState(isOk = true)
 
     /**
@@ -1188,7 +1209,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param orig The item to be updated.
      * @return The state of the item after the update operation.
      */
-    open suspend fun onQueryUpdate(
+    override suspend fun onQueryUpdate(
         apiItem: ApiItem.Query.Update<T, ID, FILT>,
         orig: T
     ): SimpleState = SimpleState(isOk = true)
@@ -1200,7 +1221,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param orig The original entity object, if it exists. Can be null if no prior entity exists.
      * @return A SimpleState object indicating whether the pre-upsert process was successful or not.
      */
-    open suspend fun onQueryUpsert(
+    override suspend fun onQueryUpsert(
         apiItem: ApiItem.Query<T, ID, FILT>,
         orig: T?
     ): SimpleState = SimpleState(isOk = true)
@@ -1212,7 +1233,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * @param item The item of type T that needs to be validated.
      * @return A SimpleState object indicating the validation result, with isOk set to true if valid.
      */
-    open suspend fun onValidate(apiItem: ApiItem.Action<T, ID, FILT>, item: T): SimpleState =
+    override suspend fun onValidate(apiItem: ApiItem.Action<T, ID, FILT>, item: T): SimpleState =
         SimpleState(isOk = true)
 
     /**
@@ -1558,6 +1579,91 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
             )
         }
     }
+
+    // ── IRepository bridge methods ──────────────────────────────
+    // These override the backend-agnostic interface signatures,
+    // delegating to Coll's fuller MongoDB-specific overloads.
+
+    /**
+     * Finds an item by its identifier (IRepository bridge).
+     * Delegates to the MongoDB-specific overload with no BSON filter and no lookup wrappers.
+     */
+    override suspend fun findById(
+        id: ID?,
+        apiFilter: FILT,
+    ): T? = findById(id = id, filter = null, apiFilter = apiFilter, lookupWrappers = emptyList())
+
+    /**
+     * Finds an item by its identifier and returns an [ItemState] (IRepository bridge).
+     * Delegates to the MongoDB-specific overload with default BSON filter and no lookup wrappers.
+     */
+    override suspend fun findItemStateById(
+        id: ID?,
+        apiFilter: FILT,
+    ): ItemState<T> = findItemStateById(id = id, apiFilter = apiFilter, filter = findItemFilter(apiFilter), lookupWrappers = emptyList())
+
+    /**
+     * Updates an existing item (IRepository bridge).
+     * Delegates to the MongoDB-specific overload with no BSON filter.
+     */
+    override suspend fun updateOne(
+        item: T,
+        apiFilter: FILT,
+        call: ApplicationCall?,
+    ): ItemState<T> = updateOne(
+        item = item,
+        filter = null,
+        apiFilter = apiFilter,
+        call = call,
+    )
+
+    /**
+     * Deletes an item by its identifier (IRepository bridge).
+     * Delegates to the MongoDB-specific overload with no BSON filter.
+     */
+    override suspend fun deleteOne(
+        id: ID,
+        apiFilter: FILT,
+    ): ItemState<T> = deleteOne(id = id, filter = null)
+
+    /**
+     * Processes an API item request (IRepository bridge).
+     * Delegates to the MongoDB-specific overload with no lookup wrappers.
+     */
+    override suspend fun apiItemProcess(
+        call: ApplicationCall?,
+        iApiItem: IApiItem<T, ID, FILT>,
+    ): ItemState<T> = apiItemProcess(call = call, iApiItem = iApiItem, lookupWrappers = emptyList())
+
+    /**
+     * Processes a paginated list request (IRepository bridge).
+     * Delegates to the MongoDB-specific overload with default count type and no lookup wrappers.
+     */
+    override suspend fun apiListProcess(
+        call: ApplicationCall?,
+        apiList: ApiList<FILT>,
+    ): ListState<T> = apiListProcess(
+        call = call,
+        apiList = apiList,
+        countType = CountType.PreLookup,
+        lookupWrappers = emptyList(),
+    )
+
+    /**
+     * Finds a list of items matching the filter (IRepository bridge).
+     * Delegates to the MongoDB-specific overload with no BSON filter and no lookup wrappers.
+     */
+    override suspend fun findList(
+        apiFilter: FILT,
+    ): List<T> = findList(filter = null, lookupWrappers = emptyList(), apiFilter = apiFilter)
+
+    /**
+     * Finds a single item matching the filter (IRepository bridge).
+     * Delegates to the MongoDB-specific overload with no BSON filter and no lookup wrappers.
+     */
+    override suspend fun findOne(
+        apiFilter: FILT,
+    ): T? = findOne(filter = null, apiFilter = apiFilter, lookupWrappers = emptyList())
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
