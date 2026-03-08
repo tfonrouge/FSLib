@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FSLib is a Kotlin Multiplatform library (`com.fonrouge.fsLib`) for building full-stack web applications with MongoDB backend and KVision frontend. It provides CRUD scaffolding, view management, Tabulator integration, and shared data models across JVM/JS targets.
+FSLib is a Kotlin Multiplatform library (`com.fonrouge.fsLib`) for building full-stack web applications with MongoDB and/or SQL backends and KVision frontend. It provides CRUD scaffolding via a backend-agnostic `IRepository` interface, view management, Tabulator integration, and shared data models across JVM/JS targets.
 
 ## Build Commands
 
@@ -33,7 +33,7 @@ utils → fullStack → base
 - **`:base`** — Platform-independent foundation (commonMain/jvmMain/jsMain). Contains `BaseDoc<ID>` (the document interface all models implement), common interfaces (`ICommon`, `ICommonContainer`), date/math utilities, custom serializers (BSON types, dates), SQL database support (`SqlDatabase`), coroutine helpers, user session/role models, and API interfaces.
 
 - **`:fullStack`** — Core library module (commonMain/jvmMain/jsMain). Uses Kilua RPC plugin for frontend-backend communication.
-  - **jvmMain**: `Coll<T: BaseDoc>` — the central MongoDB collection wrapper providing CRUD, aggregation pipelines, lookups, filtering, change logging, and role-based access. Built on KMongo coroutine driver.
+  - **jvmMain**: `IRepository` — backend-agnostic interface for CRUD, list queries, lifecycle hooks, permissions, and dependencies. `Coll<T: BaseDoc>` — MongoDB implementation providing aggregation pipelines, lookups, filtering, change logging, and role-based access (built on KMongo coroutine driver). `SqlRepository` — SQL implementation using Exposed for relational database access.
   - **jsMain**: View system — `View`, `ViewItem`, `ViewList`, `ViewFormPanel`, `ViewDataContainer` for rendering CRUD views. `ConfigView`/`ConfigViewItem`/`ConfigViewList`/`ConfigViewContainer` for declarative view configuration. Tabulator wrappers (`TabulatorViewList`, `fsTabulator`) for data grids. Layout helpers (`formRow`, `formColumn`, `toolBarList`, etc.).
   - **commonMain**: Shared RPC service interfaces, API definitions.
 
@@ -67,4 +67,4 @@ The file `HELP-DOCS-GUIDE.md` contains the guide for the help documentation syst
 
 ### Language
 
-Code comments and user-facing strings are primarily in **Spanish**. The project uses KVision's i18n module for internationalization.
+Code comments, KDoc, and user-facing strings should be written in **English**. The project uses KVision's i18n module for internationalization, allowing downstream applications to provide translations for any target language.

@@ -84,7 +84,7 @@ Both files are complete HTML (`<!DOCTYPE html>`) with embedded styles. The follo
 
 ```html
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -120,23 +120,24 @@ Copy the styles from the `<style>` block of any existing file in `help-docs/`. T
 
 ### Special character encoding
 
-Use HTML entities for special characters in Spanish:
+Use HTML entities for any non-ASCII characters and common symbols. Set the `lang` attribute
+on the `<html>` tag to match the content language (e.g., `lang="en"`, `lang="es"`, `lang="pt"`).
 
-| Character | Entity       |
-|-----------|--------------|
-| &aacute;  | `&aacute;`   |
-| &eacute;  | `&eacute;`   |
-| &iacute;  | `&iacute;`   |
-| &oacute;  | `&oacute;`   |
-| &uacute;  | `&uacute;`   |
-| &ntilde;  | `&ntilde;`   |
-| &uuml;    | `&uuml;`     |
-| &iquest;  | `&iquest;`   |
-| &check;   | `&check;`    |
-| &times;   | `&times;`    |
-| &rarr;    | `&rarr;`     |
-| &mdash;   | `&mdash;`    |
-| &hellip;  | `&hellip;`   |
+| Character | Entity       | Description               |
+|-----------|--------------|---------------------------|
+| &aacute;  | `&aacute;`   | a with acute accent       |
+| &eacute;  | `&eacute;`   | e with acute accent       |
+| &iacute;  | `&iacute;`   | i with acute accent       |
+| &oacute;  | `&oacute;`   | o with acute accent       |
+| &uacute;  | `&uacute;`   | u with acute accent       |
+| &ntilde;  | `&ntilde;`   | n with tilde              |
+| &uuml;    | `&uuml;`     | u with diaeresis          |
+| &iquest;  | `&iquest;`   | inverted question mark    |
+| &check;   | `&check;`    | check mark                |
+| &times;   | `&times;`    | multiplication sign       |
+| &rarr;    | `&rarr;`     | right arrow               |
+| &mdash;   | `&mdash;`    | em dash                   |
+| &hellip;  | `&hellip;`   | horizontal ellipsis       |
 
 ## Naming Conventions
 
@@ -165,5 +166,5 @@ Each List/Item pair of an entity should have its own help files.
 4. Create `tutorial.html` with the complete step-by-step guide.
 5. Create `context.html` with the quick reference.
 6. Use the standard styles (copy from an existing file).
-7. Write all content in **Spanish**.
+7. Write all content in the **project's target language** and set the `<html lang="...">` attribute accordingly.
 8. Verify that the directory name matches the class name exactly.
