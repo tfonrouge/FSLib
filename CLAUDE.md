@@ -30,11 +30,11 @@ test1 → fullStack → base
 utils → fullStack → base
 ```
 
-- **`:base`** — Platform-independent foundation (commonMain/jvmMain/jsMain). Contains `BaseDoc<ID>` (the document interface all models implement), common interfaces (`ICommon`, `ICommonContainer`), date/math utilities, custom serializers (BSON types, dates), SQL database support (`SqlDatabase`), coroutine helpers, user session/role models, and API interfaces.
+- **`:base`** — Platform-independent foundation (commonMain/jvmMain/jsMain). Contains `BaseDoc<ID>` (the document interface all models implement), common interfaces (`ICommon`, `ICommonContainer`), date/math utilities, custom serializers (BSON types, dates), SQL database support (`SqlDatabase`), SQL annotations (`@SqlField`, `@SqlIgnoreField`, `@SqlOneToOne`), coroutine helpers, user session/role models, and API interfaces.
 
 - **`:fullStack`** — Core library module (commonMain/jvmMain/jsMain). Uses Kilua RPC plugin for frontend-backend communication.
   - **jvmMain**: `IRepository` — backend-agnostic interface for CRUD, list queries, lifecycle hooks, permissions, and dependencies. `Coll<T: BaseDoc>` — MongoDB implementation providing aggregation pipelines, lookups, filtering, change logging, and role-based access (built on KMongo coroutine driver). `SqlRepository` — SQL implementation using Exposed for relational database access.
-  - **jsMain**: View system — `View`, `ViewItem`, `ViewList`, `ViewFormPanel`, `ViewDataContainer` for rendering CRUD views. `ConfigView`/`ConfigViewItem`/`ConfigViewList`/`ConfigViewContainer` for declarative view configuration. Tabulator wrappers (`TabulatorViewList`, `fsTabulator`) for data grids. Layout helpers (`formRow`, `formColumn`, `toolBarList`, etc.).
+  - **jsMain**: View system — `View`, `ViewItem`, `ViewList`, `ViewFormPanel`, `ViewDataContainer` for rendering CRUD views. `ConfigView`/`ConfigViewItem`/`ConfigViewList`/`ConfigViewContainer` for declarative view configuration. Tabulator wrappers (`TabulatorViewList`, `fsTabulator`) for data grids. Layout helpers (`formRow`, `formColumn`, `toolBarList`, etc.). `ViewRegistry` — centralized registry for view configurations and RPC service managers.
   - **commonMain**: Shared RPC service interfaces, API definitions.
 
 - **`:utils`** — Extension module adding DataMedia (file/attachment handling) and ChangeLog views on top of fullStack.
@@ -48,6 +48,7 @@ utils → fullStack → base
 - **KVision**: Frontend UI framework. Views extend KVision components. Tabulator is used for data grids with remote data loading.
 - **Kilua RPC**: Used in `:fullStack` for type-safe RPC service definitions shared between client and server.
 - **Kotlinx Serialization**: All models use `@Serializable`. Custom serializers exist for BSON ObjectId, LocalDate, LocalDateTime, OffsetDateTime, and numeric types.
+- **Repository abstraction**: `IRepository` defines the backend-agnostic contract for CRUD, list queries, lifecycle hooks, permissions, and dependency checking. `Coll` (MongoDB) and `SqlRepository` (SQL/Exposed) both implement it. Related interfaces: `IUserRepository`, `IChangeLogRepository`.
 - **State management**: `State`, `ItemState`, `ListState`, `SimpleState` in base module for managing UI/data state.
 
 ### Technology Stack
@@ -55,15 +56,27 @@ utils → fullStack → base
 - Kotlin 2.3.x, Gradle with version catalogs (`gradle/libs.versions.toml`)
 - Backend: Ktor (Netty), MongoDB (KMongo), Exposed (SQL), JWT auth
 - Frontend: KVision 9.x, Bootstrap, Tabulator, FontAwesome
-- JVM toolchain: 21 (in fullStack and test1)
+- JVM toolchain: 21
 
 ### Coding Conventions
 
 - Always add KDoc comments to any created or updated class, function, struct, interface, or any other code construct.
 
+### SQL Annotations
+
+Located in `base/src/commonMain/kotlin/com/fonrouge/base/annotations/`:
+
+- `@SqlField(name, compound)` — Maps a property to a specific SQL column name or marks it as compound.
+- `@SqlIgnoreField` — Excludes the property from SQL INSERT/UPDATE statements.
+- `@SqlOneToOne` — Marks a one-to-one relationship for SQL mapping.
+
 ### Help Documentation
 
 The file `HELP-DOCS-GUIDE.md` contains the guide for the help documentation system. It must be copied to any project that intends to use the help docs functionality provided by this library.
+
+### Migration Guide
+
+The file `MIGRATION-GUIDE-2.0.md` documents all breaking changes, new features, and migration steps from FSLib 1.x to 2.0 (dual database engine support).
 
 ### Language
 

@@ -1,0 +1,1172 @@
+# FSLib Usage Guide
+
+This guide walks through building a full-stack CRUD application with FSLib, from project setup to advanced features like master-detail views, change logging, and role-based access control.
+
+---
+
+## Table of Contents
+
+1. [Project Setup](#1-project-setup)
+2. [Defining Models](#2-defining-models)
+3. [Common Containers](#3-common-containers)
+4. [Filters](#4-filters)
+5. [RPC Services](#5-rpc-services)
+6. [MongoDB Repository (Coll)](#6-mongodb-repository-coll)
+7. [SQL Repository (SqlRepository)](#7-sql-repository-sqlrepository)
+8. [Backend Service Implementation](#8-backend-service-implementation)
+9. [Frontend View Configuration](#9-frontend-view-configuration)
+10. [List Views](#10-list-views)
+11. [Item Views (Forms)](#11-item-views-forms)
+12. [Master-Detail Views](#12-master-detail-views)
+13. [MongoDB Lookups and Aggregation](#13-mongodb-lookups-and-aggregation)
+14. [Lifecycle Hooks](#14-lifecycle-hooks)
+15. [Validation](#15-validation)
+16. [Dependencies (Referential Integrity)](#16-dependencies-referential-integrity)
+17. [Change Logging](#17-change-logging)
+18. [Role-Based Access Control](#18-role-based-access-control)
+19. [State Management](#19-state-management)
+20. [SQL Annotations](#20-sql-annotations)
+21. [Custom Serializers](#21-custom-serializers)
+22. [Help Documentation](#22-help-documentation)
+23. [File Attachments (DataMedia)](#23-file-attachments-datamedia)
+24. [Periodic Data Updates](#24-periodic-data-updates)
+25. [View Navigation and Routing](#25-view-navigation-and-routing)
+
+---
+
+## 1. Project Setup
+
+### build.gradle.kts
+
+```kotlin
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.serialization)
+    alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.kilua.rpc)
+    alias(libs.plugins.kvision)
+}
+
+kotlin {
+    jvmToolchain(21)
+
+    jvm { /* JVM target */ }
+    js(IR) {
+        browser { /* JS target */ }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                api("com.fonrouge.fsLib:fullStack:2.0.0")
+                // Optional
+                api("com.fonrouge.fsLib:utils:2.0.0")
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation(libs.ktor.server.netty)
+            }
+        }
+        jsMain {
+            dependencies {
+                implementation(libs.kvision)
+                implementation(libs.kvision.bootstrap)
+                // ... other KVision modules as needed
+            }
+        }
+    }
+}
+```
+
+### Application Entry Point (jvmMain)
+
+```kotlin
+fun Application.main() {
+    install(Compression)
+
+    // Initialize MongoDB
+    val mongoDatabase = MongoDb.getDatabase("myapp")
+
+    // Initialize RPC services
+    initRpc {
+        registerRemoteTypes()
+        // Register your service implementations
+    }
+}
+```
+
+### KVision Application (jsMain)
+
+```kotlin
+class App : Application() {
+    override fun start() {
+        // Initialize ViewRegistry with RPC service managers
+        ViewRegistry.itemServiceManager = ItemServiceManager
+        ViewRegistry.listServiceManager = ListServiceManager
+
+        root("app") {
+            // Your main layout and routing
+        }
+    }
+}
+```
+
+---
+
+## 2. Defining Models
+
+All data models implement `BaseDoc<ID>`. FSLib supports four ID types:
+
+| ID Type | Use Case | Example |
+|---------|---------|---------|
+| `OId<T>` | MongoDB ObjectId (default for MongoDB) | `OId<Customer>()` |
+| `IntId<T>` | Integer primary key (SQL auto-increment) | `IntId<Product>(0)` |
+| `LongId<T>` | Long primary key | `LongId<Transaction>(0L)` |
+| `StringId<T>` | String primary key (natural keys) | `StringId<Config>("app")` |
+
+### MongoDB Model
+
+```kotlin
+@Serializable
+@Collection("customers")
+data class Customer(
+    override val _id: OId<Customer> = OId(),
+    val name: String = "",
+    val email: String = "",
+    val phone: String? = null,
+    val active: Boolean = true,
+    val createdAt: OffsetDateTime = offsetDateTimeNow(),
+) : BaseDoc<OId<Customer>>
+```
+
+### SQL Model
+
+```kotlin
+@Serializable
+data class Product(
+    override val _id: IntId<Product> = IntId(0),
+    val name: String = "",
+    val price: Double = 0.0,
+
+    @SqlField(name = "category_id")
+    val categoryId: IntId<Category> = IntId(0),
+
+    @SqlIgnoreField
+    val categoryName: String? = null,  // Populated by JOIN, not stored
+) : BaseDoc<IntId<Product>>
+```
+
+### Model Rules
+
+- All properties **must have default values** (required for form panel deserialization).
+- Use `@Serializable` on all models (kotlinx-serialization).
+- Use `@Collection("name")` to specify the MongoDB collection or SQL table name.
+- The `_id` property is the primary key; use the appropriate ID type for your backend.
+
+---
+
+## 3. Common Containers
+
+A `ICommonContainer` acts as metadata provider for an entity — it describes how to serialize, label, and create API items for the model.
+
+```kotlin
+object CommonCustomer : ICommonContainer<Customer, OId<Customer>, CustomerFilter> {
+    override val itemKClass = Customer::class
+    override val idSerializer = OIdSerializer
+    override val apiFilterSerializer = CustomerFilter.serializer()
+    override val labelItem = "Customer"
+    override val labelList = "Customers"
+    override val labelId: (Customer?) -> String = { it?.name ?: "" }
+    override val labelItemId: (Customer?) -> String = { "Customer: ${it?.name ?: "New"}" }
+}
+```
+
+**Key properties:**
+- `itemKClass` — Kotlin class reference (used for reflection and serialization).
+- `idSerializer` — Serializer for the ID type (`OIdSerializer`, `IntIdSerializer`, `LongIdSerializer`, or `StringIdSerializer`).
+- `apiFilterSerializer` — Serializer for the filter class.
+- `labelItem` / `labelList` — Display names for the entity (singular/plural).
+- `labelId` — Generates a human-readable label from an item (used in banners, breadcrumbs).
+
+---
+
+## 4. Filters
+
+Filters extend `IApiFilter<MID>` where `MID` is the master item's ID type (use `Unit` if there is no master).
+
+```kotlin
+@Serializable
+data class CustomerFilter(
+    val nameSearch: String? = null,
+    val activeOnly: Boolean = false,
+) : IApiFilter<Unit>()
+```
+
+### Master-Detail Filter
+
+When a list is a detail of another entity, the filter carries the master's ID:
+
+```kotlin
+@Serializable
+data class OrderFilter(
+    val dateFrom: LocalDate? = null,
+    val dateTo: LocalDate? = null,
+) : IApiFilter<OId<Customer>>()  // Master = Customer
+```
+
+The `masterItemId` property is inherited from `IApiFilter` and populated automatically when the view is used as a detail of a master view.
+
+---
+
+## 5. RPC Services
+
+Define shared RPC interfaces in `commonMain` using Kilua RPC:
+
+```kotlin
+@KiluaRpcServiceName("ICustomerService")
+interface ICustomerService {
+    // Item CRUD (create, read, update, delete)
+    suspend fun apiItem(
+        iApiItem: IApiItem<Customer, OId<Customer>, CustomerFilter>
+    ): ItemState<Customer>
+
+    // List with pagination, filtering, sorting
+    suspend fun apiList(
+        apiList: ApiList<CustomerFilter>
+    ): ListState<Customer>
+
+    // Custom operations (optional)
+    suspend fun deactivateCustomer(id: OId<Customer>): SimpleState
+}
+```
+
+**Conventions:**
+- `apiItem` handles all CRUD operations via the polymorphic `IApiItem` sealed class.
+- `apiList` handles paginated list queries with filters and sorters.
+- Add custom methods as needed for business-specific operations.
+
+---
+
+## 6. MongoDB Repository (Coll)
+
+`Coll` is the MongoDB implementation of `IRepository`. It wraps KMongo's coroutine driver with CRUD operations, aggregation pipelines, and lifecycle hooks.
+
+```kotlin
+class CustomerColl : Coll<CommonCustomer, Customer, OId<Customer>, CustomerFilter, OId<User>>(
+    commonContainer = CommonCustomer,
+    mongoDatabase = MongoDb.database,
+) {
+    // Optional: custom match filter for list queries
+    override fun findItemFilter(apiFilter: CustomerFilter): Bson? {
+        val filters = mutableListOf<Bson>()
+
+        apiFilter.nameSearch?.let {
+            filters += Customer::name regex Regex(it, RegexOption.IGNORE_CASE)
+        }
+
+        if (apiFilter.activeOnly) {
+            filters += Customer::active eq true
+        }
+
+        return if (filters.isEmpty()) null else and(filters)
+    }
+
+    // Optional: default sort order
+    override fun sortStage(call: ApplicationCall?, apiFilter: CustomerFilter): Bson? {
+        return orderBy(Customer::name)
+    }
+
+    // Optional: enable change logging
+    override val changeLogCollFun = { ChangeLogColl() }
+
+    // Optional: enable user repository for RBAC
+    override val userCollFun = { UserColl() }
+}
+```
+
+### MongoDB Lookups (Joins)
+
+```kotlin
+class OrderColl : Coll<CommonOrder, Order, OId<Order>, OrderFilter, OId<User>>(
+    commonContainer = CommonOrder,
+    mongoDatabase = MongoDb.database,
+) {
+    override val lookupFun: (OrderFilter) -> List<LookupPipelineBuilder> = { _ ->
+        listOf(
+            lookup5(
+                from = collectionName<Customer>(),
+                localField = Order::customerId,
+                foreignField = Customer::_id,
+                resultField = Order::customerName,
+            )
+        )
+    }
+}
+```
+
+---
+
+## 7. SQL Repository (SqlRepository)
+
+`SqlRepository` is the SQL implementation of `IRepository`, using Exposed for relational database access.
+
+```kotlin
+class ProductSqlRepo : SqlRepository<CommonProduct, Product, IntId<Product>, ProductFilter, OId<User>>(
+    commonContainer = CommonProduct,
+    sqlDatabase = mySqlDatabase,
+) {
+    // Override table name (defaults to class name without "SqlRepo" suffix)
+    override val tableName = "products"
+
+    // Custom WHERE clause building
+    override fun buildWhereFromApiFilter(
+        apiFilter: ProductFilter,
+        whereClauses: MutableList<String>,
+        whereArgs: MutableList<Pair<IColumnType<*>, Any?>>,
+    ) {
+        apiFilter.nameSearch?.let {
+            whereClauses += "name LIKE ?"
+            whereArgs += VarCharColumnType() to "%$it%"
+        }
+        apiFilter.categoryId?.let {
+            whereClauses += "category_id = ?"
+            whereArgs += IntegerColumnType() to it.id
+        }
+    }
+}
+```
+
+### SQL Annotations
+
+Use annotations on model properties to control SQL mapping:
+
+```kotlin
+@Serializable
+data class Product(
+    override val _id: IntId<Product> = IntId(0),
+
+    val name: String = "",
+
+    // Map to a different column name
+    @SqlField(name = "unit_price")
+    val price: Double = 0.0,
+
+    // Mark nested object (stored as multiple columns with prefix)
+    @SqlField(compound = true)
+    val address: Address = Address(),
+
+    // Exclude from INSERT/UPDATE (computed or joined field)
+    @SqlIgnoreField
+    val totalOrders: Int = 0,
+
+    // Mark one-to-one relationship
+    @SqlOneToOne
+    val category: Category? = null,
+) : BaseDoc<IntId<Product>>
+```
+
+### Cross-Engine Dependencies
+
+A SQL repository can reference MongoDB collections and vice versa:
+
+```kotlin
+class ProductSqlRepo : SqlRepository<...>(...) {
+    override val dependencies = {
+        listOf(
+            Dependency(
+                common = CommonOrderLine,
+                property = OrderLine::productId,
+                repositoryFun = { OrderLineColl() }  // MongoDB collection checking SQL reference
+            )
+        )
+    }
+}
+```
+
+---
+
+## 8. Backend Service Implementation
+
+Implement the RPC service interface on the server side:
+
+```kotlin
+actual class CustomerService : ICustomerService {
+    private val coll = CustomerColl()
+
+    override suspend fun apiItem(
+        iApiItem: IApiItem<Customer, OId<Customer>, CustomerFilter>
+    ): ItemState<Customer> {
+        return coll.apiItemProcess(call = null, iApiItem = iApiItem)
+    }
+
+    override suspend fun apiList(
+        apiList: ApiList<CustomerFilter>
+    ): ListState<Customer> {
+        return coll.apiListProcess(call = null, apiList = apiList)
+    }
+
+    override suspend fun deactivateCustomer(id: OId<Customer>): SimpleState {
+        val item = coll.findById(id) ?: return simpleErrorState("Customer not found")
+        coll.updateOne(item.copy(active = false))
+        return SimpleState(true, msgOk = "Customer deactivated")
+    }
+}
+```
+
+---
+
+## 9. Frontend View Configuration
+
+Before creating views, initialize the `ViewRegistry` in your KVision application:
+
+```kotlin
+class App : Application() {
+    override fun start() {
+        ViewRegistry.itemServiceManager = ItemServiceManager
+        ViewRegistry.listServiceManager = ListServiceManager
+        // Views auto-register in their ConfigView init blocks
+    }
+}
+```
+
+### ConfigViewList
+
+Links a list view class to its RPC endpoint:
+
+```kotlin
+object ConfigViewListCustomer : ConfigViewList<
+    CommonCustomer,          // Common container
+    Customer,                // Model type
+    OId<Customer>,           // ID type
+    ViewListCustomer,        // View class
+    CustomerFilter,          // Filter type
+    Unit,                    // Master ID type (Unit = no master)
+    ICustomerService,        // RPC service interface
+>(
+    commonContainer = CommonCustomer,
+    viewKClass = ViewListCustomer::class,
+    apiListFun = ICustomerService::apiList,
+    serviceManager = ViewRegistry.listServiceManager,
+)
+```
+
+### ConfigViewItem
+
+Links an item view class to its RPC endpoint:
+
+```kotlin
+object ConfigViewItemCustomer : ConfigViewItem<
+    CommonCustomer,
+    Customer,
+    OId<Customer>,
+    ViewItemCustomer,
+    CustomerFilter,
+    ICustomerService,
+>(
+    commonContainer = CommonCustomer,
+    viewKClass = ViewItemCustomer::class,
+    apiItemFun = ICustomerService::apiItem,
+    serviceManager = ViewRegistry.itemServiceManager,
+) {
+    // Optional: context menu items shown on the item view
+    override val contextMenuItems: ((Customer) -> List<TabulatorMenuItem>)? = { item ->
+        listOf(
+            TabulatorMenuItem("Deactivate") {
+                // Custom action
+            }
+        )
+    }
+}
+```
+
+---
+
+## 10. List Views
+
+A `ViewList` displays a paginated data grid using Tabulator:
+
+```kotlin
+class ViewListCustomer : ViewList<
+    CommonCustomer, Customer, OId<Customer>, CustomerFilter, Unit
+>() {
+    override val configView = ConfigViewListCustomer
+
+    override fun Container.displayPage() {
+        fsTabulator(viewList = this@ViewListCustomer) {
+            // Define columns
+            addColumn("Name") { it.name }
+            addColumn("Email") { it.email }
+            addColumn("Phone") { it.phone ?: "-" }
+            addColumn("Active") { if (it.active) "Yes" else "No" }
+
+            // Optional: callback when user double-clicks a row
+            onUserChooseItem = { customer ->
+                ConfigViewItemCustomer.openView(/* navigate to item */)
+            }
+        }
+    }
+
+    // Optional: toolbar buttons
+    override fun Container.toolBarListButtons() {
+        button("New Customer", icon = "fas fa-plus") {
+            onClick {
+                ConfigViewItemCustomer.openView(
+                    apiFilter = configView.commonContainer.apiFilterInstance(),
+                    vmode = ConfigViewContainer.VMode.modal
+                )
+            }
+        }
+    }
+}
+```
+
+### Tabulator Features
+
+- **Server-side pagination** — Automatic via `TabulatorViewList`.
+- **Column filtering** — Header filters map to Tabulator remote filters, translated to MongoDB match stages or SQL WHERE clauses.
+- **Column sorting** — Click column headers; translated to MongoDB sort stages or SQL ORDER BY.
+- **Column persistence** — Layout (widths, order, visibility) persisted to localStorage.
+- **Row selection** — Bound to `selectedItemObs` observable.
+
+---
+
+## 11. Item Views (Forms)
+
+A `ViewItem` displays a form for creating or editing a single item:
+
+```kotlin
+class ViewItemCustomer : ViewItem<
+    CommonCustomer, Customer, OId<Customer>, CustomerFilter
+>() {
+    override val configView = ConfigViewItemCustomer
+
+    override fun Container.displayPage() {
+        formPanel = ViewFormPanel.xcreate(
+            viewItem = this@ViewItemCustomer,
+            serializer = Customer.serializer(),
+        ) {
+            formRow {
+                formColumn(6) {
+                    text(label = "Name") {
+                        bind(Customer::name)
+                    }
+                }
+                formColumn(6) {
+                    text(label = "Email") {
+                        bind(Customer::email)
+                    }
+                }
+            }
+            formRow {
+                formColumn(6) {
+                    text(label = "Phone") {
+                        bind(Customer::phone)
+                    }
+                }
+                formColumn(6) {
+                    checkBox(label = "Active") {
+                        bind(Customer::active)
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### CRUD Behavior
+
+- **Create**: Opens form with default values (from `onQueryCreateItem` hook).
+- **Read**: Opens form in read-only mode. An "Edit" button switches to Update mode.
+- **Update**: Opens form with existing data. "Accept" saves, "Cancel" discards.
+- **Delete**: Shows confirmation dialog, then calls `deleteOne`.
+
+The CRUD task is determined by URL parameters or by how the view is opened programmatically.
+
+---
+
+## 12. Master-Detail Views
+
+Display a parent item with one or more child lists:
+
+```kotlin
+class ViewItemCustomer : ViewItem<...>() {
+    override val configView = ConfigViewItemCustomer
+
+    override fun Container.displayPage() {
+        // Parent form
+        formPanel = ViewFormPanel.xcreate(viewItem = this@ViewItemCustomer) {
+            formRow {
+                text(label = "Name") { bind(Customer::name) }
+            }
+        }
+
+        // Child list: orders for this customer
+        addViewList(
+            viewList = ViewListOrder(),
+            masterViewItem = this@ViewItemCustomer,
+        ) {
+            // The OrderFilter.masterItemId is automatically set to this customer's _id
+        }
+    }
+}
+```
+
+The detail list's filter automatically receives `masterItemId` set to the parent item's `_id`. In the repository, use it to filter:
+
+```kotlin
+class OrderColl : Coll<...>(...) {
+    override fun findItemFilter(apiFilter: OrderFilter): Bson? {
+        val filters = mutableListOf<Bson>()
+        apiFilter.masterItemId?.let {
+            filters += Order::customerId eq it
+        }
+        return if (filters.isEmpty()) null else and(filters)
+    }
+}
+```
+
+---
+
+## 13. MongoDB Lookups and Aggregation
+
+### Simple Lookup (Join)
+
+```kotlin
+class OrderColl : Coll<...>(...) {
+    override val lookupFun: (OrderFilter) -> List<LookupPipelineBuilder> = { _ ->
+        listOf(
+            lookup5(
+                from = collectionName<Customer>(),
+                localField = Order::customerId,
+                foreignField = Customer::_id,
+                resultField = Order::customerName,
+            )
+        )
+    }
+}
+```
+
+### Custom Match Stage
+
+```kotlin
+override fun matchStage(
+    call: ApplicationCall?,
+    apiFilter: OrderFilter,
+    resultUnit: ResultUnit,
+): Bson? {
+    val filters = mutableListOf<Bson>()
+    apiFilter.dateFrom?.let {
+        filters += Order::orderDate gte it
+    }
+    apiFilter.dateTo?.let {
+        filters += Order::orderDate lte it
+    }
+    return if (filters.isEmpty()) null else and(filters)
+}
+```
+
+### Post-Lookup Filtering
+
+Filter after lookups have populated joined fields:
+
+```kotlin
+override fun afterLookupMatchStage(): Bson? {
+    return Order::customerActive eq true  // Field populated by lookup
+}
+```
+
+### Custom Morphing Stage
+
+Pre-process documents before other pipeline stages:
+
+```kotlin
+override fun morphingStage(): List<Bson>? {
+    return listOf(
+        addFields(Field("fullName", concat(Order::firstName, " ", Order::lastName)))
+    )
+}
+```
+
+---
+
+## 14. Lifecycle Hooks
+
+### Query Hooks (Before Database Access)
+
+Called when the frontend requests a CRUD operation. Return an error state to block the operation.
+
+```kotlin
+override suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<...>): ItemState<Customer> {
+    // Check business rules before allowing creation
+    val existing = findOne(CustomerFilter(emailSearch = apiItem.apiFilter.email))
+    if (existing != null) return ItemState(msgError = "Email already registered")
+    return ItemState(item = null)  // Allow
+}
+
+override suspend fun onQueryCreateItem(apiItem: ApiItem.Query.Create<...>): ItemState<Customer> {
+    // Provide default values for new item form
+    return ItemState(item = Customer(active = true, createdAt = offsetDateTimeNow()))
+}
+```
+
+### Action Hooks (Before/After Database Mutation)
+
+```kotlin
+override suspend fun onBeforeUpsertAction(
+    apiItem: ApiItem.Action<Customer, OId<Customer>, CustomerFilter>
+): ItemState<Customer> {
+    // Transform item before save (shared for create and update)
+    val item = apiItem.item.copy(
+        name = apiItem.item.name.trim(),
+        email = apiItem.item.email.lowercase().trim(),
+    )
+    return ItemState(item = item)
+}
+
+override suspend fun onAfterCreateAction(
+    apiItem: ApiItem.Action.Create<Customer, OId<Customer>, CustomerFilter>,
+    itemState: ItemState<Customer>,
+) {
+    // Send welcome email, update statistics, etc.
+    itemState.item?.let { sendWelcomeEmail(it.email) }
+}
+```
+
+---
+
+## 15. Validation
+
+Override `onValidate` to check item contents before any create or update:
+
+```kotlin
+override suspend fun onValidate(
+    apiItem: ApiItem<Customer, OId<Customer>, CustomerFilter>,
+    item: Customer
+): SimpleState {
+    if (item.name.isBlank()) return simpleErrorState("Name is required")
+    if (item.email.isBlank()) return simpleErrorState("Email is required")
+    if (!item.email.contains("@")) return simpleErrorState("Invalid email format")
+    return SimpleState(true)
+}
+```
+
+Validation errors are returned to the frontend and displayed to the user automatically.
+
+---
+
+## 16. Dependencies (Referential Integrity)
+
+Prevent deleting a record that is referenced by other records:
+
+```kotlin
+class CustomerColl : Coll<...>(...) {
+    override val dependencies = {
+        listOf(
+            // Prevent deleting customer if orders exist
+            Dependency(
+                common = CommonOrder,
+                property = Order::customerId,
+            ),
+            // Cross-engine: prevent deleting if SQL invoices reference this customer
+            Dependency(
+                common = CommonInvoice,
+                property = Invoice::customerId,
+                repositoryFun = { InvoiceSqlRepo() },  // SQL repository
+            ),
+        )
+    }
+}
+```
+
+When a user attempts to delete a customer, FSLib automatically checks all dependencies and returns an error message listing which collections still reference the item.
+
+---
+
+## 17. Change Logging
+
+### Enable Change Logging
+
+```kotlin
+class CustomerColl : Coll<...>(...) {
+    override val changeLogCollFun = { ChangeLogColl() }
+}
+```
+
+### Change Log Entry Structure
+
+Each log entry (`IChangeLog`) records:
+
+| Field | Description |
+|-------|-------------|
+| `className` | Entity class name |
+| `serializedId` | Item ID |
+| `dateTime` | Timestamp |
+| `action` | `Create`, `Update`, or `Delete` |
+| `userId` | Acting user's ID |
+| `userInfo` | User display info |
+| `clientInfo` | Client/browser info |
+| `data` | Map of field name to `Pair(oldValue, newValue)` |
+
+### Display Change Logs (Frontend)
+
+Use `IViewListChangeLog` from the `:utils` module to add a change log tab or context menu:
+
+```kotlin
+class ViewItemCustomer : ViewItem<...>(), IViewListChangeLog<...> {
+    // Adds a "Change Log" context menu item
+    init {
+        initializeChangeLogMenuItem()
+    }
+}
+```
+
+---
+
+## 18. Role-Based Access Control
+
+### Architecture
+
+```
+IAppRole          — Defines permissions (per class, per CRUD task)
+IRoleInUser       — Assigns permissions to individual users
+IGroupOfUser      — Groups users together
+IRoleInGroup      — Assigns permissions to groups
+IUserGroup        — Links users to groups
+```
+
+### Enable RBAC
+
+```kotlin
+class CustomerColl : Coll<...>(...) {
+    override val userCollFun = { UserColl() }
+}
+```
+
+### How It Works
+
+1. On first CRUD access, FSLib auto-creates an `IAppRole` for each repository class with default permissions.
+2. Each CRUD operation calls `getCrudPermission()` before proceeding.
+3. The system checks (in order): user-specific role → group role → default permission.
+4. If permission is `Deny`, the operation returns an error state.
+
+### Permission Types
+
+| Permission | Effect |
+|-----------|--------|
+| `Allow` | Explicitly grants access |
+| `Deny` | Explicitly blocks access |
+| `Default` | Falls back to the role's `defaultPermission` |
+
+---
+
+## 19. State Management
+
+FSLib uses three state types to communicate operation results:
+
+### SimpleState
+
+Basic success/error result:
+
+```kotlin
+val result = SimpleState(true, msgOk = "Operation successful")
+val error = simpleErrorState("Something went wrong")
+val warning = simpleWarnState("Check this issue")
+```
+
+### ItemState\<T\>
+
+Result with an associated item:
+
+```kotlin
+val success = ItemState(item = customer)
+val error = ItemState<Customer>(msgError = "Not found")
+// State is auto-determined: Ok if item is present, Error otherwise
+```
+
+### ListState\<T\>
+
+Paginated list result:
+
+```kotlin
+val result = listState(
+    data = customers,
+    last_page = totalPages,
+    last_row = totalCount,
+)
+```
+
+All state types implement `ISimpleState` with:
+- `state`: `Ok`, `Warn`, or `Error`
+- `msgOk` / `msgError`: User-facing messages
+- `dateTime`: Timestamp
+- `hasError`: Computed convenience property
+
+---
+
+## 20. SQL Annotations
+
+### @SqlField
+
+```kotlin
+// Rename column
+@SqlField(name = "customer_name")
+val name: String = ""
+
+// Mark as compound field (nested object stored as multiple columns)
+@SqlField(compound = true)
+val address: Address = Address()
+```
+
+### @SqlIgnoreField
+
+Exclude a property from SQL INSERT/UPDATE (useful for computed or joined fields):
+
+```kotlin
+@SqlIgnoreField
+val calculatedTotal: Double = 0.0
+```
+
+### @SqlOneToOne
+
+Mark a one-to-one relationship:
+
+```kotlin
+@SqlOneToOne
+val profile: UserProfile? = null
+```
+
+---
+
+## 21. Custom Serializers
+
+FSLib provides custom multiplatform serializers for types that need special handling:
+
+| Serializer | Type | Usage |
+|-----------|------|-------|
+| `OIdSerializer` | `OId<T>` | MongoDB ObjectId |
+| `IntIdSerializer` | `IntId<T>` | Integer ID |
+| `LongIdSerializer` | `LongId<T>` | Long ID |
+| `StringIdSerializer` | `StringId<T>` | String ID |
+| `FSLocalDateSerializer` | `LocalDate` | Date without time |
+| `FSLocalDateTimeSerializer` | `LocalDateTime` | Date with time |
+| `FSOffsetDateTimeSerializer` | `OffsetDateTime` | Date/time with timezone (format: `yyyy-MM-dd HH:mm:ss.SSS`) |
+| `FSNumberDoubleSerializer` | `Double` | Custom double handling |
+| `FSNumberInt32Serializer` | `Int` | Custom int handling |
+
+These are applied automatically through the kotlinx-serialization module registered with Kilua RPC. You generally do not need to reference them directly unless building custom serialization logic.
+
+---
+
+## 22. Help Documentation
+
+### Setup
+
+1. Copy `HELP-DOCS-GUIDE.md` to your project.
+2. Create a `help-docs/` directory in your resources.
+3. Optionally configure the path in `Main.kt`:
+
+```kotlin
+HelpDocsService.setHelpDocsDir("help-docs")
+```
+
+### Creating Help Files
+
+```
+help-docs/
+  ViewListCustomer/
+    tutorial.html     # Step-by-step guide
+    context.html      # Quick reference card
+  ViewItemCustomer/
+    tutorial.html
+    context.html
+```
+
+### Module-Scoped Help
+
+Group views into help modules by implementing `IHelpModule`:
+
+```kotlin
+sealed class AppHelpModule(
+    override val slug: String,
+    override val displayName: String,
+) : IHelpModule {
+    data object Sales : AppHelpModule("sales", "Sales")
+    data object Inventory : AppHelpModule("inventory", "Inventory")
+}
+```
+
+Then in your view:
+
+```kotlin
+class ViewListCustomer : ViewList<...>() {
+    override val helpModule = AppHelpModule.Sales
+    override val helpEnabled = true
+    // Help buttons appear automatically if tutorial.html or context.html exist
+}
+```
+
+---
+
+## 23. File Attachments (DataMedia)
+
+The `:utils` module provides a complete file attachment system.
+
+### Define DataMedia Model (commonMain)
+
+```kotlin
+@Serializable
+@Collection("dataMedia")
+data class DataMedia(
+    override val _id: OId<DataMedia> = OId(),
+    override val fileName: String = "",
+    override val fileSize: Long = 0,
+    override val contentType: String = "",
+    override val contentSubtype: String = "",
+    override val order: Int = 0,
+    override val userId: OId<User>? = null,
+    override val hasThumbnail: Boolean = false,
+    // Foreign key to parent entity
+    val customerId: OId<Customer> = OId(),
+) : IDataMedia<User, OId<User>>, BaseDoc<OId<DataMedia>>
+```
+
+### Backend Collection (jvmMain)
+
+```kotlin
+class DataMediaColl : IDataMediaColl<CommonDataMedia, DataMedia, User, OId<User>>(
+    commonContainer = CommonDataMedia,
+    mongoDatabase = MongoDb.database,
+)
+```
+
+### Frontend View (jsMain)
+
+```kotlin
+class ViewItemCustomer : ViewItem<...>(), IViewListDataMedia<...> {
+    override fun Container.displayPage() {
+        // Form fields...
+
+        // Add file attachment panel
+        tabDataMedia(viewItem = this@ViewItemCustomer)
+    }
+}
+```
+
+Features:
+- File upload with drag-and-drop
+- Type filtering (images, videos, PDFs)
+- Thumbnail preview
+- Download/view links
+- Reordering
+
+---
+
+## 24. Periodic Data Updates
+
+Views can automatically refresh their data at intervals:
+
+```kotlin
+class ViewListCustomer : ViewList<...>() {
+    override val periodicUpdateDataView = true  // Enable periodic refresh
+
+    override val onPeriodicDataUpdate: (() -> Unit)? = {
+        dataUpdate()  // Reload data from server
+    }
+}
+```
+
+The refresh interval is controlled by `UserSessionParams.inactivityUiSecsToNoRefresh`. Refreshing pauses after the user has been inactive beyond this threshold.
+
+---
+
+## 25. View Navigation and Routing
+
+### Open a View Programmatically
+
+```kotlin
+// Navigate in current window
+ConfigViewListCustomer.openView()
+
+// Open in modal dialog
+ConfigViewItemCustomer.openView(
+    apiFilter = CommonCustomer.apiFilterInstance(),
+    vmode = ConfigViewContainer.VMode.modal,
+)
+
+// Open in new browser tab
+ConfigViewListCustomer.openView(vmode = ConfigViewContainer.VMode._blank)
+```
+
+### URL Parameters
+
+Views serialize their API filter to URL parameters. This enables:
+- Deep linking to filtered views
+- Browser back/forward navigation
+- Bookmarkable filtered states
+
+```kotlin
+// In a view, update the URL with the current filter
+apiFilterToPageUrl(replaceState = true)
+```
+
+### ViewRegistry Lookup
+
+Find a view configuration by URL:
+
+```kotlin
+val config = ViewRegistry.findByUrl("ViewListCustomer")
+config?.openView()
+```
+
+---
+
+## Common Patterns
+
+### Off-Canvas Filter Panel
+
+Add a slide-out filter panel to a list view:
+
+```kotlin
+class ViewListCustomer : ViewList<...>() {
+    override fun buildOffCanvasFilterView(): Offcanvas {
+        return Offcanvas(/* filter UI */) {
+            // Filter controls that update apiFilter
+            button("Apply") {
+                onClick {
+                    apiFilter = apiFilter.copy(activeOnly = true)
+                    dataUpdate()
+                }
+            }
+        }
+    }
+}
+```
+
+### Custom Context Menu
+
+Add right-click menu items to list rows:
+
+```kotlin
+object ConfigViewItemCustomer : ConfigViewItem<...>(...) {
+    override val contextMenuItems: ((Customer) -> List<TabulatorMenuItem>)? = { customer ->
+        listOf(
+            TabulatorMenuItem("Send Email") { sendEmail(customer.email) },
+            TabulatorMenuItem("View Orders") {
+                ConfigViewListOrder.openView(OrderFilter().apply {
+                    setMasterItemId(customer._id)
+                })
+            },
+        )
+    }
+}
+```
+
+### Read-Only Repository
+
+```kotlin
+class ReportColl : Coll<...>(...) {
+    override val readOnly = true  // Blocks all write operations
+}
+```
