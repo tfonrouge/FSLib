@@ -234,6 +234,50 @@ Sample applications moved from `test1/` to a categorized `samples/` directory:
 
 **Impact:** If you referenced `test1` in your build scripts or CI configuration, update the paths.
 
+### 9. JS utility functions moved to `com.fonrouge.fullStack.lib`
+
+To fix a Kotlin/JS IR linker split-package error, 9 JS utility files that were in
+`com.fonrouge.base.lib` (inside the `:fullstack` module) have been moved to
+`com.fonrouge.fullStack.lib`. The Kotlin/JS IR backend does not allow the same package to exist
+in two different klibs — since `:core` also has files in `com.fonrouge.base.lib`, the overlap
+caused production JS builds to crash.
+
+**Moved functions/classes:**
+
+| Symbol | File |
+|--------|------|
+| `UrlParams`, `toEncodedUrlString`, `encodeURIComponent` | `UrlParams.kt` |
+| `ISimpleState.toast()` | `toast.kt` |
+| `Number?.format()` | `doubleFormat.kt` |
+| `Date?.toDateTimeString` | `ToArelDate.kt` |
+| `buttonMenu()` | `buttonMenu.kt` |
+| `CoroutineScope.withPace()` | `funcs.kt` |
+| `getFormControl()` | `getFormControl.kt` |
+| `getFormControlValue()` | `getFormControlValue.kt` |
+| `setFormControlValue()` | `setFormControlValue.kt` |
+
+**Before (2.0):**
+```kotlin
+import com.fonrouge.base.lib.UrlParams
+import com.fonrouge.base.lib.toast
+import com.fonrouge.base.lib.format
+import com.fonrouge.base.lib.toDateTimeString
+```
+
+**After (3.0):**
+```kotlin
+import com.fonrouge.fullStack.lib.UrlParams
+import com.fonrouge.fullStack.lib.toast
+import com.fonrouge.fullStack.lib.format
+import com.fonrouge.fullStack.lib.toDateTimeString
+```
+
+**Symbols that remain in `com.fonrouge.base.lib`** (from `:core`): `iconCrud`, `doubleToMoney`,
+`toWeek`, `ifIsNotEmpty`, `toEncodedList`, `toSet` — these do not need import changes.
+
+**Migration:** Find-and-replace `import com.fonrouge.base.lib.` with `import com.fonrouge.fullStack.lib.`
+for the affected symbols listed above.
+
 ---
 
 ## New Features
@@ -350,5 +394,6 @@ dependencies {
 - [ ] Add platform attributes for JVM-only modules depending on KMP modules (`:fullstack`, `:core`)
 - [ ] Check for missing transitive dependencies (`kotlinx-datetime-jvm`, Exposed, KMongo)
 - [ ] If overriding `getCrudPermission` in `SqlRepository` subclasses, switch to `PermissionRegistry`
+- [ ] Update JS imports: `com.fonrouge.base.lib.{UrlParams,toast,format,...}` → `com.fonrouge.fullStack.lib.*`
 - [ ] Update any CI/CD or script references from `test1/` to `samples/`
 - [ ] Build the project — the Kotlin compiler will flag any remaining unresolved references
