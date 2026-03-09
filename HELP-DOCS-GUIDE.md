@@ -1,5 +1,7 @@
 # Help System — Unified Build Guide
 
+> **Version:** 1.0.0
+
 ## Overview
 
 The help system provides three types of documentation, all sharing a **dark theme** with emoji icons and visual components:
