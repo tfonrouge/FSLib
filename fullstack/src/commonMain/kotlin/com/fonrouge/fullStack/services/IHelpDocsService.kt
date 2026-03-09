@@ -1,16 +1,17 @@
 package com.fonrouge.fullStack.services
 
 import com.fonrouge.base.enums.HelpType
-import dev.kilua.rpc.annotations.RpcService
 
 /**
- * RPC service for discovering and retrieving help documentation for views.
+ * RPC service interface for discovering and retrieving help documentation for views.
  *
  * Help files are organized under the configured help-docs directory.
  * When [moduleSlug] is provided, files are looked up in `help-docs/{moduleSlug}/{viewClassName}/`;
  * otherwise they fall back to `help-docs/{viewClassName}/`.
+ *
+ * Consumer applications must annotate their own copy or re-export of this interface with
+ * `@RpcService` and register the generated proxy via [com.fonrouge.fullStack.services.HelpDocsServiceRegistry].
  */
-@RpcService
 interface IHelpDocsService {
     /**
      * Returns the set of available help types for the given view.

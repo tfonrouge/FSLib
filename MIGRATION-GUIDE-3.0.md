@@ -278,6 +278,38 @@ import com.fonrouge.fullStack.lib.toDateTimeString
 **Migration:** Find-and-replace `import com.fonrouge.base.lib.` with `import com.fonrouge.fullStack.lib.`
 for the affected symbols listed above.
 
+### 10. `IHelpDocsService` no longer processed by KSP in `:fullstack`
+
+The `kilua.rpc` and `google.devtools.ksp` Gradle plugins have been removed from the `:fullstack`
+module to eliminate a `dev.kilua.rpc` split-package conflict that caused production JS builds to fail.
+As a result, the KSP-generated `HelpDocsService` proxy class is no longer produced by the library.
+
+Consumer applications that use the help documentation system must now:
+
+1. **Register the RPC service** in their Kilua RPC initialization (typically in `initRpc`):
+
+```kotlin
+initRpc {
+    registerService<IHelpDocsService> { HelpDocsService(it) }
+}
+```
+
+2. **Register the client-side proxy** with `HelpDocsServiceRegistry` during app startup (JS side):
+
+```kotlin
+import com.fonrouge.fullStack.services.HelpDocsServiceRegistry
+import dev.kilua.rpc.getService
+
+HelpDocsServiceRegistry.service = getService<IHelpDocsService>()
+```
+
+Without this registration the help "?" button will simply not appear (no errors are thrown).
+
+The `@RpcService` annotation has been removed from `IHelpDocsService` in the library. If your
+project relied on the library's KSP processing for this interface, you must ensure your own
+project's KSP scope processes it (either by re-exporting the interface with `@RpcService` or
+by using `registerService` as shown above).
+
 ---
 
 ## New Features
@@ -395,5 +427,6 @@ dependencies {
 - [ ] Check for missing transitive dependencies (`kotlinx-datetime-jvm`, Exposed, KMongo)
 - [ ] If overriding `getCrudPermission` in `SqlRepository` subclasses, switch to `PermissionRegistry`
 - [ ] Update JS imports: `com.fonrouge.base.lib.{UrlParams,toast,format,...}` → `com.fonrouge.fullStack.lib.*`
+- [ ] If using help docs: register `IHelpDocsService` via `initRpc` and set `HelpDocsServiceRegistry.service`
 - [ ] Update any CI/CD or script references from `test1/` to `samples/`
 - [ ] Build the project — the Kotlin compiler will flag any remaining unresolved references

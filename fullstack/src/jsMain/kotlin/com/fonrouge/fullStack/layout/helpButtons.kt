@@ -1,7 +1,7 @@
 package com.fonrouge.fullStack.layout
 
 import com.fonrouge.base.enums.HelpType
-import com.fonrouge.fullStack.services.HelpDocsService
+import com.fonrouge.fullStack.services.HelpDocsServiceRegistry
 import io.kvision.core.*
 import io.kvision.dropdown.Direction
 import io.kvision.dropdown.Separator
@@ -307,7 +307,7 @@ private fun Container.helpContentWithDetach(
  */
 fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: String? = null) {
     injectHelpButtonsCss()
-    val service = HelpDocsService()
+    val service = HelpDocsServiceRegistry.service ?: return
     val rawHtmlCache = mutableMapOf<HelpType, String>()
     val caption = "Ayuda \u2014 $viewLabel"
 
