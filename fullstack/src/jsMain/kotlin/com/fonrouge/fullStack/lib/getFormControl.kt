@@ -1,4 +1,4 @@
-package com.fonrouge.base.lib
+package com.fonrouge.fullStack.lib
 
 import com.fonrouge.base.model.BaseDoc
 import io.kvision.form.FormControl

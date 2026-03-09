@@ -3,7 +3,7 @@ package com.fonrouge.utils.view.changeLog
 import com.fonrouge.base.common.ICommonChangeLog
 import com.fonrouge.base.enums.find
 import com.fonrouge.base.fieldName
-import com.fonrouge.base.lib.toDateTimeString
+import com.fonrouge.fullStack.lib.toDateTimeString
 import com.fonrouge.base.model.ChangeLogFilter
 import com.fonrouge.base.model.IChangeLog
 import com.fonrouge.base.model.IUser

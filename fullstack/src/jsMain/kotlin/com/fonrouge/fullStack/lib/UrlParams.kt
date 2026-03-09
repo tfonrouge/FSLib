@@ -1,4 +1,4 @@
-package com.fonrouge.base.lib
+package com.fonrouge.fullStack.lib
 
 import io.kvision.navigo.Match
 import js.uri.decodeURIComponent

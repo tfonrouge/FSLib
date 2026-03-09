@@ -1,6 +1,6 @@
 package com.fonrouge.fullStack.view
 
-import com.fonrouge.base.lib.UrlParams
+import com.fonrouge.fullStack.lib.UrlParams
 import com.fonrouge.fullStack.config.ConfigView
 import io.kvision.core.Container
 

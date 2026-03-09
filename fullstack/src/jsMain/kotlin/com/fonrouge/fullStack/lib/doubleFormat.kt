@@ -1,4 +1,4 @@
-package com.fonrouge.base.lib
+package com.fonrouge.fullStack.lib
 
 import io.kvision.utils.numberFormat
 

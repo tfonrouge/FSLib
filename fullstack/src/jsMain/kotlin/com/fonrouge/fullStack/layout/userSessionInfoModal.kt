@@ -1,8 +1,8 @@
 package com.fonrouge.fullStack.layout
 
 import com.fonrouge.base.date.secsToHumanText
-import com.fonrouge.base.lib.format
-import com.fonrouge.base.lib.toDateTimeString
+import com.fonrouge.fullStack.lib.format
+import com.fonrouge.fullStack.lib.toDateTimeString
 import com.fonrouge.base.model.UserSession
 import com.fonrouge.base.state.ItemState
 import io.kvision.form.text.textInput

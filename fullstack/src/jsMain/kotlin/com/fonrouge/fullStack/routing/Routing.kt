@@ -1,6 +1,6 @@
 package com.fonrouge.fullStack.routing
 
-import com.fonrouge.base.lib.UrlParams
+import com.fonrouge.fullStack.lib.UrlParams
 import com.fonrouge.fullStack.config.ViewRegistry
 import com.fonrouge.fullStack.view.KVWebManager.viewStateObservableValue
 import com.fonrouge.fullStack.view.ViewState

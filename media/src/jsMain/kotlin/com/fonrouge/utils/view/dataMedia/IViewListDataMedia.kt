@@ -2,9 +2,9 @@ package com.fonrouge.utils.view.dataMedia
 
 import com.fonrouge.base.api.CrudTask
 import com.fonrouge.base.fieldName
-import com.fonrouge.base.lib.format
-import com.fonrouge.base.lib.toDateTimeString
-import com.fonrouge.base.lib.toast
+import com.fonrouge.fullStack.lib.format
+import com.fonrouge.fullStack.lib.toDateTimeString
+import com.fonrouge.fullStack.lib.toast
 import com.fonrouge.base.model.IUser
 import com.fonrouge.base.types.StringId
 import com.fonrouge.fullStack.cellParams.cellNumberEditorParams
