@@ -16,6 +16,14 @@ kotlin {
     jvmToolchain(21)
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+
 dependencies {
     api(project(":fullstack")) {
         attributes {
