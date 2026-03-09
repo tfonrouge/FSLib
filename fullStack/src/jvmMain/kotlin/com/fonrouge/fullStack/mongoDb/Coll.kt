@@ -10,6 +10,7 @@ import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.state.State
 import com.fonrouge.fullStack.FieldPath
 import com.fonrouge.fullStack.repository.IRepository
+import com.fonrouge.fullStack.repository.IRepository.Dependency
 import com.mongodb.MongoCommandException
 import com.mongodb.MongoSocketException
 import com.mongodb.MongoTimeoutException
@@ -114,7 +115,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * between this collection and other collections that depend on its documents, or null if there
      * are no dependencies
      */
-    override val dependencies: (() -> List<IRepository.Dependency<*, ID>>)? = null
+    override val dependencies: (() -> List<Dependency<*, ID>>)? = null
 
     /**
      * A coroutine-based collection instance derived from a MongoDB collection.
@@ -664,6 +665,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
                 @Suppress("UNCHECKED_CAST")
                 property.name to (property.owner as KClass<out BaseDoc<*>>).collectionName
             }
+
             else -> property.name to commonContainer.itemKClass.collectionName
         }
         return mongoDatabase.getCollection(collectionName)
@@ -1600,7 +1602,12 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
     override suspend fun findItemStateById(
         id: ID?,
         apiFilter: FILT,
-    ): ItemState<T> = findItemStateById(id = id, apiFilter = apiFilter, filter = findItemFilter(apiFilter), lookupWrappers = emptyList())
+    ): ItemState<T> = findItemStateById(
+        id = id,
+        apiFilter = apiFilter,
+        filter = findItemFilter(apiFilter),
+        lookupWrappers = emptyList()
+    )
 
     /**
      * Updates an existing item (IRepository bridge).

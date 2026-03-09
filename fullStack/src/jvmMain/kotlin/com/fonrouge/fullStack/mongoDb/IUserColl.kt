@@ -74,7 +74,8 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
      */
     override suspend fun findUserById(id: UID?): U? = findById(id)
 
-    override suspend fun userFromCall(call: ApplicationCall?): U? = findById(call?.sessions?.get<UserSession<UID>>()?.userId)
+    override suspend fun userFromCall(call: ApplicationCall?): U? =
+        findById(call?.sessions?.get<UserSession<UID>>()?.userId)
 
     /**
      * Retrieves the user session from the given [ApplicationCall].
@@ -85,7 +86,8 @@ abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, U
      * @param call The [ApplicationCall] from which the user session will be retrieved. Can be null.
      * @return The [UserSession] associated with the call, or null if there is no valid session.
      */
-    override fun userSessionFromCall(call: ApplicationCall?): UserSession<UID>? = call?.sessions?.get<UserSession<UID>>()
+    override fun userSessionFromCall(call: ApplicationCall?): UserSession<UID>? =
+        call?.sessions?.get<UserSession<UID>>()
 
     /**
      * Retrieves a user entity from the application call session with an optional expiration time.

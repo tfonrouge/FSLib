@@ -1,10 +1,6 @@
 package com.fonrouge.fullStack.repository
 
-import com.fonrouge.base.api.ApiItem
-import com.fonrouge.base.api.ApiList
-import com.fonrouge.base.api.CrudTask
-import com.fonrouge.base.api.IApiFilter
-import com.fonrouge.base.api.IApiItem
+import com.fonrouge.base.api.*
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.fonrouge.base.state.ItemState

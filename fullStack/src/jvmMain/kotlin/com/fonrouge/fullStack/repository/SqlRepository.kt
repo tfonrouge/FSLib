@@ -17,7 +17,6 @@ import com.fonrouge.base.types.LongId
 import com.fonrouge.base.types.StringId
 import com.fonrouge.fullStack.mongoDb.Coll
 import dev.kilua.rpc.RemoteFilter
-import org.litote.kmongo.eq
 import dev.kilua.rpc.RemoteSorter
 import io.ktor.server.application.*
 import kotlinx.coroutines.Dispatchers
@@ -27,9 +26,9 @@ import kotlinx.serialization.serializer
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.litote.kmongo.eq
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -106,11 +105,17 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         var currentApiItem = apiItem.copy(item = currentItem)
         onBeforeUpsertAction(currentApiItem, orig = null).also {
             if (it.hasError) return it
-            it.item?.let { modified -> currentItem = modified.copyWithPrimaryConstructor(); currentApiItem = currentApiItem.copy(item = currentItem) }
+            it.item?.let { modified ->
+                currentItem = modified.copyWithPrimaryConstructor(); currentApiItem =
+                currentApiItem.copy(item = currentItem)
+            }
         }
         onBeforeCreateAction(currentApiItem).also {
             if (it.hasError) return it
-            it.item?.let { modified -> currentItem = modified.copyWithPrimaryConstructor(); currentApiItem = currentApiItem.copy(item = currentItem) }
+            it.item?.let { modified ->
+                currentItem = modified.copyWithPrimaryConstructor(); currentApiItem =
+                currentApiItem.copy(item = currentItem)
+            }
         }
         onValidate(currentApiItem, currentItem).also { if (it.hasError) return it.asItemState() }
         var result = false
@@ -176,7 +181,8 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
         val orig = findById(item._id, apiFilter)?.copyWithPrimaryConstructor()
             ?: return ItemState(isOk = false, msgError = "Original item not found")
-        val apiItem = ApiItem.Action.Update(item = item.copyWithPrimaryConstructor(), apiFilter = apiFilter, call = call)
+        val apiItem =
+            ApiItem.Action.Update(item = item.copyWithPrimaryConstructor(), apiFilter = apiFilter, call = call)
         onQueryUpsert(apiItem.asQuery as ApiItem.Query.Update, orig)
             .also { if (it.hasError) return it.asItemState() }
         onQueryUpdate(apiItem.asQuery as ApiItem.Query.Update, orig)
@@ -185,16 +191,25 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         var currentApiItem = apiItem.copy(item = currentItem)
         onBeforeUpdateAction(currentApiItem, orig).also {
             if (it.hasError) return it
-            it.item?.let { modified -> currentItem = modified.copyWithPrimaryConstructor(); currentApiItem = currentApiItem.copy(item = currentItem) }
+            it.item?.let { modified ->
+                currentItem = modified.copyWithPrimaryConstructor(); currentApiItem =
+                currentApiItem.copy(item = currentItem)
+            }
         }
         onBeforeUpsertAction(currentApiItem, orig).also {
             if (it.hasError) return it
-            it.item?.let { modified -> currentItem = modified.copyWithPrimaryConstructor(); currentApiItem = currentApiItem.copy(item = currentItem) }
+            it.item?.let { modified ->
+                currentItem = modified.copyWithPrimaryConstructor(); currentApiItem =
+                currentApiItem.copy(item = currentItem)
+            }
         }
         onValidate(currentApiItem, currentItem).also { if (it.hasError) return it.asItemState() }
         val origJson = Json.encodeToJsonElement(commonContainer.itemSerializer, orig) as JsonObject
         val newJson = Json.encodeToJsonElement(commonContainer.itemSerializer, currentItem) as JsonObject
-        if (origJson == newJson) return ItemState(state = State.Warn, msgError = "Update skipped - no changes detected in item")
+        if (origJson == newJson) return ItemState(
+            state = State.Warn,
+            msgError = "Update skipped - no changes detected in item"
+        )
         var result = false
         return try {
             newSuspendedTransaction(context = Dispatchers.IO, db = database) {
@@ -279,10 +294,12 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                         onQueryCreate(apiItem).also { if (it.hasError) return it.asItemState() }
                         onQueryCreateItem(apiItem)
                     }
+
                     is ApiItem.Query.Read -> {
                         onQueryRead(apiItem).also { if (it.hasError) return it.asItemState() }
                         findItemStateById(id = apiItem.id, apiFilter = apiItem.apiFilter)
                     }
+
                     is ApiItem.Query.Update -> {
                         val itemState = findItemStateById(id = apiItem.id, apiFilter = apiItem.apiFilter)
                         val orig = itemState.item?.copyWithPrimaryConstructor()
@@ -291,6 +308,7 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                         onQueryUpdate(apiItem, orig).also { if (it.hasError) return it.asItemState() }
                         itemState
                     }
+
                     is ApiItem.Query.Delete -> {
                         val itemState = findItemStateById(id = apiItem.id, apiFilter = apiItem.apiFilter)
                         val item = itemState.item
@@ -300,6 +318,7 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                     }
                 }
             }
+
             is ApiItem.Action -> when (apiItem) {
                 is ApiItem.Action.Create -> insertOne(item = apiItem.item, apiFilter = apiItem.apiFilter, call = call)
                 is ApiItem.Action.Update -> updateOne(item = apiItem.item, apiFilter = apiItem.apiFilter, call = call)
@@ -476,23 +495,46 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
 
     // ── Lifecycle Hooks (default no-ops) ──────────────────────
 
-    override suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
-    override suspend fun onQueryCreateItem(apiItem: ApiItem.Query.Create<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
+    override suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<T, ID, FILT>): SimpleState =
+        SimpleState(isOk = true)
+
+    override suspend fun onQueryCreateItem(apiItem: ApiItem.Query.Create<T, ID, FILT>): ItemState<T> =
+        ItemState(isOk = true)
+
     override suspend fun onQueryRead(apiItem: ApiItem.Query.Read<T, ID, FILT>): SimpleState = SimpleState(isOk = true)
-    override suspend fun onQueryUpdate(apiItem: ApiItem.Query.Update<T, ID, FILT>, orig: T): SimpleState = SimpleState(isOk = true)
-    override suspend fun onQueryDelete(apiItem: ApiItem.Query.Delete<T, ID, FILT>, item: T): SimpleState = findChildrenNot(item).asSimpleState
-    override suspend fun onQueryUpsert(apiItem: ApiItem.Query<T, ID, FILT>, orig: T?): SimpleState = SimpleState(isOk = true)
-    override suspend fun onBeforeCreateAction(apiItem: ApiItem.Action.Create<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
-    override suspend fun onBeforeUpdateAction(apiItem: ApiItem.Action.Update<T, ID, FILT>, orig: T): ItemState<T> = ItemState(isOk = true)
-    override suspend fun onBeforeDeleteAction(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> = ItemState(isOk = true)
-    override suspend fun onBeforeUpsertAction(apiItem: ApiItem.Action<T, ID, FILT>, orig: T?): ItemState<T> = ItemState(isOk = true)
+    override suspend fun onQueryUpdate(apiItem: ApiItem.Query.Update<T, ID, FILT>, orig: T): SimpleState =
+        SimpleState(isOk = true)
+
+    override suspend fun onQueryDelete(apiItem: ApiItem.Query.Delete<T, ID, FILT>, item: T): SimpleState =
+        findChildrenNot(item).asSimpleState
+
+    override suspend fun onQueryUpsert(apiItem: ApiItem.Query<T, ID, FILT>, orig: T?): SimpleState =
+        SimpleState(isOk = true)
+
+    override suspend fun onBeforeCreateAction(apiItem: ApiItem.Action.Create<T, ID, FILT>): ItemState<T> =
+        ItemState(isOk = true)
+
+    override suspend fun onBeforeUpdateAction(apiItem: ApiItem.Action.Update<T, ID, FILT>, orig: T): ItemState<T> =
+        ItemState(isOk = true)
+
+    override suspend fun onBeforeDeleteAction(apiItem: ApiItem.Action.Delete<T, ID, FILT>): ItemState<T> =
+        ItemState(isOk = true)
+
+    override suspend fun onBeforeUpsertAction(apiItem: ApiItem.Action<T, ID, FILT>, orig: T?): ItemState<T> =
+        ItemState(isOk = true)
+
     override suspend fun onAfterCreateAction(apiItem: ApiItem.Action.Create<T, ID, FILT>, result: Boolean) = Unit
-    override suspend fun onAfterUpdateAction(apiItem: ApiItem.Action.Update<T, ID, FILT>, orig: T, result: Boolean) = Unit
+    override suspend fun onAfterUpdateAction(apiItem: ApiItem.Action.Update<T, ID, FILT>, orig: T, result: Boolean) =
+        Unit
+
     override suspend fun onAfterDeleteAction(apiItem: ApiItem.Action.Delete<T, ID, FILT>, result: Boolean) = Unit
     override suspend fun onAfterUpsertAction(apiItem: ApiItem.Action<T, ID, FILT>, orig: T?, result: Boolean) = Unit
     override suspend fun onAfterOpen() = Unit
-    override suspend fun onValidate(apiItem: ApiItem.Action<T, ID, FILT>, item: T): SimpleState = SimpleState(isOk = true)
-    override suspend fun asApiItem(apiItem: ApiItem<T, ID, FILT>): ItemState<ApiItem<T, ID, FILT>> = ItemState(item = apiItem)
+    override suspend fun onValidate(apiItem: ApiItem.Action<T, ID, FILT>, item: T): SimpleState =
+        SimpleState(isOk = true)
+
+    override suspend fun asApiItem(apiItem: ApiItem<T, ID, FILT>): ItemState<ApiItem<T, ID, FILT>> =
+        ItemState(item = apiItem)
 
     // ── Overridable Filter Hook ──────────────────────────────
 
@@ -585,7 +627,7 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
         val prop = commonContainer.itemKClass.memberProperties.find { it.name == propertyName }
         val kClass = prop?.returnType?.classifier as? KClass<*> ?: return VarCharColumnType()
         return when {
-            kClass == Int::class || kClass == java.lang.Integer::class -> IntegerColumnType()
+            kClass == Int::class || kClass == Integer::class -> IntegerColumnType()
             kClass == Long::class || kClass == java.lang.Long::class -> LongColumnType()
             kClass == Double::class || kClass == java.lang.Double::class -> DoubleColumnType()
             kClass == Float::class || kClass == java.lang.Float::class -> FloatColumnType()
@@ -629,6 +671,7 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
             is StringId<*> -> VarCharColumnType() to value.id
             else -> VarCharColumnType() to value.toString()
         }
+
         is Int -> IntegerColumnType() to value
         is Long -> LongColumnType() to value
         is String -> VarCharColumnType() to value
@@ -654,6 +697,7 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
                 value.content.toDoubleOrNull() != null -> DoubleColumnType() to value.double
                 else -> VarCharColumnType() to value.content
             }
+
             is JsonObject -> VarCharColumnType() to value.toString()
             is JsonArray -> VarCharColumnType() to value.toString()
         }
@@ -710,7 +754,10 @@ abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>
             is FloatColumnType -> value.toFloatOrNull() ?: value
             is BooleanColumnType -> value.toBooleanStrictOrNull() ?: value
             is JavaLocalDateTimeColumnType -> runCatching { LocalDateTime.parse(value) }.getOrDefault(value)
-            is org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType -> runCatching { LocalDate.parse(value) }.getOrDefault(value)
+            is org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType -> runCatching { LocalDate.parse(value) }.getOrDefault(
+                value
+            )
+
             else -> value
         }
     }
