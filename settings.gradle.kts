@@ -16,7 +16,15 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "fsLib"
-include(":base")
-include(":fullStack")
-include(":test1")
-include(":utils")
+include(":core")
+include(":fullstack")
+include(":mongodb")
+include(":sql")
+include(":media")
+include(":ssr")
+include(":samples:fullstack:rpc-demo")
+include(":samples:fullstack:greeting")
+include(":samples:fullstack:contacts")
+include(":samples:ssr:basic")
+include(":samples:ssr:catalog")
+include(":samples:ssr:advanced")

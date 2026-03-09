@@ -1,0 +1,31 @@
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.serialization)
+    application
+}
+
+group = "com.example"
+version = "1.0.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass.set("com.example.ssrsample.catalog.MainKt")
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+dependencies {
+    implementation(project(":ssr"))
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.sessions)
+    implementation(libs.ktor.server.compression)
+    implementation(libs.ktor.server.call.logging)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.logback.classic)
+}

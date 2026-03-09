@@ -10,15 +10,26 @@ FSLib is a Kotlin Multiplatform library (`com.fonrouge.fsLib`) for building full
 
 ```bash
 ./gradlew build                    # Build all modules
-./gradlew :base:build              # Build only the base module
-./gradlew :fullStack:build         # Build only the fullStack module
-./gradlew :utils:build             # Build only the utils module
-./gradlew :test1:build             # Build the test application
-./gradlew :test1:jvmRun            # Run the test1 Ktor server (main class: io.ktor.server.netty.EngineMain)
-./gradlew :test1:jsRun             # Run the test1 JS dev server
-./gradlew :test1:jvmTest           # Run JVM tests in test1
-./gradlew :test1:jsTest            # Run JS tests in test1 (uses Chrome headless via Karma)
+./gradlew :core:build              # Build the core module
+./gradlew :fullstack:build         # Build the fullstack module
+./gradlew :mongodb:build           # Build the MongoDB engine module
+./gradlew :sql:build               # Build the SQL engine module
+./gradlew :media:build             # Build the media module
+./gradlew :ssr:build               # Build the SSR module
+./gradlew :ssr:test                # Run SSR tests
 ./gradlew publishToMavenLocal      # Publish library modules to local Maven
+```
+
+### Sample Applications
+
+```bash
+./gradlew :samples:ssr:basic:run           # Run SSR basic sample
+./gradlew :samples:ssr:catalog:run         # Run SSR catalog sample
+./gradlew :samples:ssr:advanced:run        # Run SSR advanced sample
+./gradlew :samples:fullstack:rpc-demo:jvmRun   # Run fullstack RPC demo (Ktor server)
+./gradlew :samples:fullstack:rpc-demo:jsRun    # Run fullstack RPC demo (JS dev server)
+./gradlew :samples:fullstack:greeting:jvmRun   # Run greeting sample
+./gradlew :samples:fullstack:contacts:jvmRun   # Run contacts sample
 ```
 
 ## Architecture
@@ -26,30 +37,46 @@ FSLib is a Kotlin Multiplatform library (`com.fonrouge.fsLib`) for building full
 ### Module Dependency Graph
 
 ```
-test1 → fullStack → base
-utils → fullStack → base
+samples:fullstack:* → fullstack → core
+                      mongodb ↗
+samples:ssr:*       → ssr → fullstack → core
+                         → mongodb ↗
+media               → mongodb → fullstack → core
+sql                 → fullstack → core
 ```
 
-- **`:base`** — Platform-independent foundation (commonMain/jvmMain/jsMain). Contains `BaseDoc<ID>` (the document interface all models implement), common interfaces (`ICommon`, `ICommonContainer`), date/math utilities, custom serializers (BSON types, dates), SQL database support (`SqlDatabase`), SQL annotations (`@SqlField`, `@SqlIgnoreField`, `@SqlOneToOne`), coroutine helpers, user session/role models, and API interfaces.
+- **`:core`** — Platform-independent foundation (commonMain/jvmMain/jsMain). Contains `BaseDoc<ID>` (the document interface all models implement), common interfaces (`ICommon`, `ICommonContainer`), date/math utilities, custom BSON-aware serializers (ObjectId, dates, numeric types), SQL annotations (`@SqlField`, `@SqlIgnoreField`, `@SqlOneToOne`), coroutine helpers, user session/role models, state management, and API interfaces. Uses `kmongo-coroutine-serialization` for BSON serializer actuals, `ktor-server-core` for `ApplicationCall` typealias, and `kvision-common-remote` for shared date types. Source packages: `com.fonrouge.base.*`.
 
-- **`:fullStack`** — Core library module (commonMain/jvmMain/jsMain). Uses Kilua RPC plugin for frontend-backend communication.
-  - **jvmMain**: `IRepository` — backend-agnostic interface for CRUD, list queries, lifecycle hooks, permissions, and dependencies. `Coll<T: BaseDoc>` — MongoDB implementation providing aggregation pipelines, lookups, filtering, change logging, and role-based access (built on KMongo coroutine driver). `SqlRepository` — SQL implementation using Exposed for relational database access.
-  - **jsMain**: View system — `View`, `ViewItem`, `ViewList`, `ViewFormPanel`, `ViewDataContainer` for rendering CRUD views. `ConfigView`/`ConfigViewItem`/`ConfigViewList`/`ConfigViewContainer` for declarative view configuration. Tabulator wrappers (`TabulatorViewList`, `fsTabulator`) for data grids. Layout helpers (`formRow`, `formColumn`, `toolBarList`, etc.). `ViewRegistry` — centralized registry for view configurations and RPC service managers.
-  - **commonMain**: Shared RPC service interfaces, API definitions.
+- **`:fullstack`** — Core framework module (commonMain/jvmMain/jsMain). Uses Kilua RPC plugin for frontend-backend communication. Database-engine-agnostic.
+  - **jvmMain**: `IRepository` — backend-agnostic interface for CRUD, list queries, lifecycle hooks, permissions, and dependencies. `IRolePermissionProvider` / `PermissionRegistry` — abstraction for role-based permission checks. `IUserRepository`, `IChangeLogRepository` — backend-agnostic interfaces. `HelpDocsService` — help documentation service. Full Ktor client/server stack.
+  - **jsMain**: View system — `View`, `ViewItem`, `ViewList`, `ViewFormPanel`, `ViewDataContainer` for rendering CRUD views. `ConfigView`/`ConfigViewItem`/`ConfigViewList`/`ConfigViewContainer` for declarative view configuration. Tabulator wrappers (`TabulatorViewList`, `fsTabulator`) for data grids. Layout helpers (`formRow`, `formColumn`, `toolBarList`, etc.). `ViewRegistry` — centralized registry for view configurations and RPC service managers. Full KVision UI stack (Bootstrap, FontAwesome, Tabulator, etc.). Also includes UI utility helpers (`toast`, `buttonMenu`, form control helpers, etc.).
+  - **commonMain**: Shared RPC service interfaces, API definitions. Source packages: `com.fonrouge.fullStack.*`.
 
-- **`:utils`** — Extension module adding DataMedia (file/attachment handling) and ChangeLog views on top of fullStack.
+- **`:mongodb`** — MongoDB database engine (JVM-only). `Coll<T: BaseDoc>` — MongoDB implementation of `IRepository` providing aggregation pipelines, lookups, filtering, change logging, and role-based access (built on KMongo coroutine driver). `MongoDb` — database connection management. `FieldPath` — nested property path builder. Registers `MongoRolePermissionProvider` with `PermissionRegistry` for cross-engine permission checks.
 
-- **`:test1`** — Sample/test application using the KVision plugin. Runnable full-stack app with Ktor/Netty backend.
+- **`:sql`** — SQL database engine (JVM-only). `SqlRepository` — SQL implementation of `IRepository` using Exposed for relational database access. `SqlDatabase` — SQL connection management with MSSQL/jTDS JDBC drivers. Uses `PermissionRegistry` for role-based access control.
+
+- **`:ssr`** — Server-Side Rendering module (JVM-only). Provides `PageDef`, `FormContext`, `ColumnDef`, layout builders, and Ktor HTML integration for building server-rendered CRUD pages without a JS frontend.
+
+- **`:media`** — Extension module (commonMain/jvmMain/jsMain) adding DataMedia (file/attachment handling) and ChangeLog views on top of fullstack and mongodb.
+
+- **`samples/`** — Top-level directory containing sample applications:
+  - `samples/ssr/basic/` — Minimal Todo CRUD app
+  - `samples/ssr/catalog/` — Product + Customer catalog
+  - `samples/ssr/advanced/` — Project/Task tracker with advanced features
+  - `samples/fullstack/rpc-demo/` — KVision + Kilua RPC demo
+  - `samples/fullstack/greeting/` — Minimal RPC greeting app
+  - `samples/fullstack/contacts/` — Tabulator grid with contacts
 
 ### Key Patterns
 
-- **Kotlin Multiplatform with `expect`/`actual`**: Source sets are `commonMain`, `jvmMain`, `jsMain`. Shared interfaces in commonMain; platform implementations in jvmMain (MongoDB/Ktor) and jsMain (KVision/browser).
+- **Kotlin Multiplatform with `expect`/`actual`**: Source sets are `commonMain`, `jvmMain`, `jsMain`. Shared interfaces in commonMain; platform implementations in jvmMain (MongoDB/Ktor) and jsMain (KVision/browser). Expect/actual pairs must reside in the same module.
 - **KMongo + coroutines**: Server-side MongoDB access via `CoroutineCollection` from KMongo. The `Coll` class wraps this with CRUD operations, aggregation pipelines, and BSON manipulation.
 - **KVision**: Frontend UI framework. Views extend KVision components. Tabulator is used for data grids with remote data loading.
-- **Kilua RPC**: Used in `:fullStack` for type-safe RPC service definitions shared between client and server.
-- **Kotlinx Serialization**: All models use `@Serializable`. Custom serializers exist for BSON ObjectId, LocalDate, LocalDateTime, OffsetDateTime, and numeric types.
-- **Repository abstraction**: `IRepository` defines the backend-agnostic contract for CRUD, list queries, lifecycle hooks, permissions, and dependency checking. `Coll` (MongoDB) and `SqlRepository` (SQL/Exposed) both implement it. Related interfaces: `IUserRepository`, `IChangeLogRepository`.
-- **State management**: `State`, `ItemState`, `ListState`, `SimpleState` in base module for managing UI/data state.
+- **Kilua RPC**: Used in `:fullstack` for type-safe RPC service definitions shared between client and server.
+- **Kotlinx Serialization**: All models use `@Serializable`. Custom serializers exist for BSON ObjectId, LocalDate, LocalDateTime, OffsetDateTime, and numeric types — these live in `:core` alongside the models that reference them.
+- **Repository abstraction**: `IRepository` in `:fullstack` defines the backend-agnostic contract for CRUD, list queries, lifecycle hooks, permissions, and dependency checking. `Coll` in `:mongodb` and `SqlRepository` in `:sql` both implement it. `IRolePermissionProvider` / `PermissionRegistry` decouple permission checks from any specific database engine. Related interfaces: `IUserRepository`, `IChangeLogRepository`.
+- **State management**: `State`, `ItemState`, `ListState`, `SimpleState` in core module for managing UI/data state.
 
 ### Technology Stack
 
@@ -64,7 +91,7 @@ utils → fullStack → base
 
 ### SQL Annotations
 
-Located in `base/src/commonMain/kotlin/com/fonrouge/base/annotations/`:
+Located in `core/src/commonMain/kotlin/com/fonrouge/base/annotations/`:
 
 - `@SqlField(name, compound)` — Maps a property to a specific SQL column name or marks it as compound.
 - `@SqlIgnoreField` — Excludes the property from SQL INSERT/UPDATE statements.

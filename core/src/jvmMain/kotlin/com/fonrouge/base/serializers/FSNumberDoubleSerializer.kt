@@ -1,0 +1,35 @@
+package com.fonrouge.base.serializers
+
+import com.github.jershell.kbson.BsonFlexibleDecoder
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import org.bson.BsonType
+
+@Suppress("unused")
+actual object FSNumberDoubleSerializer : KSerializer<Double> {
+    actual override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("Number as Double Serializer", PrimitiveKind.DOUBLE)
+
+    actual override fun deserialize(decoder: Decoder): Double {
+        return if (decoder is BsonFlexibleDecoder) {
+            when (decoder.reader.currentBsonType) {
+                BsonType.INT32 -> decoder.decodeInt().toDouble()
+                BsonType.INT64 -> decoder.decodeLong().toDouble()
+                BsonType.DOUBLE -> decoder.decodeDouble()
+                else -> {
+                    throw RuntimeException("NumberDoubleSerializer: Unknown how to decode type '${decoder.reader.currentBsonType}'")
+                }
+            }
+        } else {
+            decoder.decodeDouble()
+        }
+    }
+
+    actual override fun serialize(encoder: Encoder, value: Double) {
+        return encoder.encodeDouble(value = value)
+    }
+}

@@ -8,31 +8,38 @@ FSLib provides a backend-agnostic repository pattern, declarative view configura
 
 ## Key Features
 
-- **Dual Database Engine** — Use MongoDB (via KMongo) and/or SQL (via Exposed) through a single `IRepository` interface. Mix engines in the same application with cross-engine dependency checking.
+- **Modular Database Engines** — MongoDB (via KMongo) and SQL (via Exposed) are independent, optional modules. Use one, the other, or both through a single `IRepository` interface with cross-engine dependency checking.
 - **Full-Stack Type Safety** — Shared Kotlin models, serializers, and RPC service definitions between server and browser via Kilua RPC.
 - **Declarative View System** — Configure list and item views with `ConfigViewList` / `ConfigViewItem`. The framework handles routing, pagination, forms, and CRUD operations.
 - **Tabulator Integration** — Server-side pagination, filtering, and sorting out of the box with `TabulatorViewList`.
 - **Lifecycle Hooks** — `onQueryCreate`, `onBeforeUpdateAction`, `onAfterDeleteAction`, `onValidate`, and many more hooks on the repository for validation, transformation, and side effects.
-- **Role-Based Access Control** — Built-in permission system with users, groups, roles, and per-CRUD-task permissions.
+- **Role-Based Access Control** — Built-in permission system with users, groups, roles, and per-CRUD-task permissions. Decoupled from any specific database engine via `IRolePermissionProvider`.
 - **Change Logging** — Automatic audit trail recording before/after snapshots on create, update, and delete operations.
-- **File Attachments** — `DataMedia` support (via the `:utils` module) for managing file uploads with thumbnails and metadata.
+- **File Attachments** — `DataMedia` support (via the `:media` module) for managing file uploads with thumbnails and metadata.
 - **Help Documentation** — Module-scoped contextual help with tutorial and quick-reference HTML pages, auto-discovered per view.
 - **Multiple ID Types** — `OId` (MongoDB ObjectId), `IntId`, `LongId`, `StringId` — all with custom serializers.
+- **Server-Side Rendering** — The `:ssr` module provides SSR support using Ktor HTML builder.
 
 ---
 
 ## Architecture
 
 ```
-your-app  ──>  fullStack  ──>  base
-               utils  ────>  base
+your-app  ──>  fullstack  ──>  core
+               mongodb    ──>  fullstack, core
+               sql        ──>  fullstack, core
+               media      ──>  fullstack, core, mongodb
+               ssr        ──>  fullstack, core, mongodb
 ```
 
 | Module | Purpose |
 |--------|---------|
-| **`:base`** | Platform-independent foundation: `BaseDoc<ID>`, ID types, annotations, serializers, state management, user/role models, API framework, `SqlDatabase`, date/math utilities. |
-| **`:fullStack`** | Core library. **jvmMain**: `IRepository`, `Coll` (MongoDB), `SqlRepository` (SQL), permissions, change logging. **jsMain**: View system, configuration, Tabulator wrappers, layout helpers, `ViewRegistry`. **commonMain**: Shared RPC interfaces. |
-| **`:utils`** | Extensions: `DataMedia` (file attachments) and `ChangeLog` views built on top of `:fullStack`. |
+| **`:core`** | Platform-independent foundation: `BaseDoc<ID>`, ID types, annotations, serializers, state management, user/role models, API framework, date/math utilities. |
+| **`:fullstack`** | Core library. **jvmMain**: `IRepository` interface, `IRolePermissionProvider`, `PermissionRegistry`, permissions, change logging, Ktor server stack. **jsMain**: View system, configuration, Tabulator wrappers, layout helpers, `ViewRegistry`. **commonMain**: Shared RPC interfaces. |
+| **`:mongodb`** | MongoDB engine (JVM-only). `Coll` implementation with aggregation pipelines, lookups, filtering, change logging, and role-based access via KMongo coroutine driver. |
+| **`:sql`** | SQL engine (JVM-only). `SqlRepository` implementation using Exposed for relational database access with type-aware filtering and identifier quoting. |
+| **`:media`** | Extensions: `DataMedia` (file attachments) and `ChangeLog` views built on top of `:fullstack`. |
+| **`:ssr`** | Server-side rendering with Ktor HTML builder. |
 
 ### Technology Stack
 
@@ -58,23 +65,65 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "2.0.0"
+fslib = "3.0.0"
 
 [libraries]
-fslib-base = { module = "com.fonrouge.fsLib:base", version.ref = "fslib" }
-fslib-fullstack = { module = "com.fonrouge.fsLib:fullStack", version.ref = "fslib" }
-fslib-utils = { module = "com.fonrouge.fsLib:utils", version.ref = "fslib" }
+fslib-core = { module = "com.fonrouge.fsLib:core", version.ref = "fslib" }
+fslib-fullstack = { module = "com.fonrouge.fsLib:fullstack", version.ref = "fslib" }
+fslib-mongodb = { module = "com.fonrouge.fsLib:mongodb", version.ref = "fslib" }
+fslib-sql = { module = "com.fonrouge.fsLib:sql", version.ref = "fslib" }
+fslib-media = { module = "com.fonrouge.fsLib:media", version.ref = "fslib" }
 ```
 
 ```kotlin
-// build.gradle.kts
+// build.gradle.kts — MongoDB application
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fsLib:fullStack:2.0.0")
-                // Optional: file attachments and change log views
-                api("com.fonrouge.fsLib:utils:2.0.0")
+                api("com.fonrouge.fsLib:fullstack:3.0.0")
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation("com.fonrouge.fsLib:mongodb:3.0.0")
+            }
+        }
+    }
+}
+```
+
+```kotlin
+// build.gradle.kts — SQL application
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api("com.fonrouge.fsLib:fullstack:3.0.0")
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation("com.fonrouge.fsLib:sql:3.0.0")
+            }
+        }
+    }
+}
+```
+
+```kotlin
+// build.gradle.kts — Hybrid (MongoDB + SQL)
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api("com.fonrouge.fsLib:fullstack:3.0.0")
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation("com.fonrouge.fsLib:mongodb:3.0.0")
+                implementation("com.fonrouge.fsLib:sql:3.0.0")
             }
         }
     }
@@ -87,7 +136,7 @@ kotlin {
 ./gradlew publishToMavenLocal
 ```
 
-This publishes `:base`, `:fullStack`, and `:utils` to your local Maven repository (`~/.m2/repository`).
+This publishes `:core`, `:fullstack`, `:mongodb`, `:sql`, `:media`, and `:ssr` to your local Maven repository (`~/.m2/repository`).
 
 ---
 
@@ -286,6 +335,8 @@ FSLib includes a built-in RBAC system:
 
 Permissions are checked automatically on every CRUD operation via `getCrudPermission()`. Roles are auto-created for new repository classes on first access.
 
+The permission system is decoupled from the database engine through `IRolePermissionProvider` and `PermissionRegistry`. The MongoDB module registers its provider automatically; SQL repositories consume it without importing MongoDB types.
+
 ---
 
 ## Change Logging
@@ -305,13 +356,13 @@ Every create, update, and delete operation automatically records:
 - Before/after field values (for updates)
 - Client info
 
-View change logs with the `IViewListChangeLog` interface from the `:utils` module.
+View change logs with the `IViewListChangeLog` interface from the `:media` module.
 
 ---
 
 ## File Attachments (DataMedia)
 
-The `:utils` module provides file attachment support:
+The `:media` module provides file attachment support:
 
 ```kotlin
 // Define your DataMedia model implementing IDataMedia<User, OId<User>>
@@ -346,29 +397,36 @@ Help buttons appear automatically when documentation files exist for a view.
 
 ```bash
 ./gradlew build                    # Build all modules
-./gradlew :base:build              # Build only the base module
-./gradlew :fullStack:build         # Build only the fullStack module
-./gradlew :utils:build             # Build only the utils module
+./gradlew :core:build              # Build only the core module
+./gradlew :fullstack:build         # Build only the fullstack module
+./gradlew :mongodb:build           # Build only the mongodb module
+./gradlew :sql:build               # Build only the sql module
+./gradlew :media:build             # Build only the media module
+./gradlew :ssr:build               # Build only the ssr module
 ./gradlew publishToMavenLocal      # Publish to local Maven
 ```
 
-### Sample Application
+### Sample Applications
 
 ```bash
-./gradlew :test1:jvmRun            # Run the Ktor backend server
-./gradlew :test1:jsRun             # Run the JS dev server
-./gradlew :test1:jvmTest           # Run JVM tests
-./gradlew :test1:jsTest            # Run JS tests (Chrome headless)
+# Fullstack samples (KVision + Ktor)
+./gradlew :samples:fullstack:rpc-demo:jvmRun     # Run backend server
+./gradlew :samples:fullstack:rpc-demo:jsRun       # Run JS dev server
+./gradlew :samples:fullstack:rpc-demo:jvmTest     # Run JVM tests
+./gradlew :samples:fullstack:rpc-demo:jsTest      # Run JS tests (Chrome headless)
+
+# SSR samples (Ktor HTML builder)
+./gradlew :samples:ssr:basic:run
+./gradlew :samples:ssr:catalog:run
+./gradlew :samples:ssr:advanced:run
 ```
 
 ---
 
-## Migration from 1.x
+## Migration
 
-See `MIGRATION-GUIDE-2.0.md` for a complete guide covering:
-- Breaking changes (import paths, override modifiers, return type updates)
-- New features (dual database engine, `SqlRepository`, cross-engine dependencies)
-- Step-by-step migration checklist
+- **From 1.x → 2.0:** See `MIGRATION-GUIDE-2.0.md`
+- **From 2.0 → 3.0:** See `MIGRATION-GUIDE-3.0.md` — covers module renames, engine extraction, permission decoupling, and dependency changes.
 
 ---
 
@@ -376,25 +434,40 @@ See `MIGRATION-GUIDE-2.0.md` for a complete guide covering:
 
 ```
 FSLib/
-  base/                          # :base module
+  core/                            # :core module (formerly :base)
     src/
-      commonMain/                # BaseDoc, ID types, annotations, serializers, state, API
-      jvmMain/                   # SqlDatabase, JVM serializers
-      jsMain/                    # Browser utilities, JS serializers
-  fullStack/                     # :fullStack module
+      commonMain/                  # BaseDoc, ID types, annotations, serializers, state, API
+      jvmMain/                     # BSON serializers, JVM utilities
+      jsMain/                      # Browser utilities, JS serializers
+  fullstack/                       # :fullstack module (formerly :fullStack)
     src/
-      commonMain/                # Shared RPC interfaces
-      jvmMain/                   # IRepository, Coll, SqlRepository, permissions
-      jsMain/                    # Views, config, Tabulator, layout helpers
-  utils/                         # :utils module
+      commonMain/                  # Shared RPC interfaces
+      jvmMain/                     # IRepository, IRolePermissionProvider, PermissionRegistry
+      jsMain/                      # Views, config, Tabulator, layout helpers
+  mongodb/                         # :mongodb module (JVM-only, NEW)
+    src/main/kotlin/               # Coll, aggregation pipelines, BSON helpers
+  sql/                             # :sql module (JVM-only, NEW)
+    src/main/kotlin/               # SqlRepository, SqlDatabase
+  media/                           # :media module (formerly :utils)
     src/
-      commonMain/                # DataMedia, ChangeLog interfaces
-      jvmMain/                   # DataMedia MongoDB collection
-      jsMain/                    # DataMedia and ChangeLog views
-  test1/                         # Sample application
-  CLAUDE.md                      # AI assistant instructions
-  HELP-DOCS-GUIDE.md             # Help documentation guide
-  MIGRATION-GUIDE-2.0.md         # 1.x → 2.0 migration guide
+      commonMain/                  # DataMedia, ChangeLog interfaces
+      jvmMain/                     # DataMedia MongoDB collection
+      jsMain/                      # DataMedia and ChangeLog views
+  ssr/                             # :ssr module
+    src/main/kotlin/               # Server-side rendering with Ktor HTML builder
+  samples/                         # Sample applications
+    fullstack/
+      rpc-demo/                    # Full-stack KVision + Ktor sample
+      greeting/                    # Simple greeting sample
+      contacts/                    # Contacts sample
+    ssr/
+      basic/                       # Basic SSR sample
+      catalog/                     # Catalog SSR sample
+      advanced/                    # Advanced SSR sample
+  CLAUDE.md                        # AI assistant instructions
+  HELP-DOCS-GUIDE.md               # Help documentation guide
+  MIGRATION-GUIDE-2.0.md           # 1.x → 2.0 migration guide
+  MIGRATION-GUIDE-3.0.md           # 2.0 → 3.0 migration guide
 ```
 
 ---
@@ -402,8 +475,8 @@ FSLib/
 ## Requirements
 
 - **JDK 21** or higher
-- **MongoDB** (if using MongoDB backend)
-- **SQL Server** (if using SQL backend — MSSQL via jTDS or JDBC driver)
+- **MongoDB** (if using the `:mongodb` module)
+- **SQL Server** (if using the `:sql` module — MSSQL via jTDS or JDBC driver)
 - **Chrome** (for JS tests via Karma)
 
 ---
