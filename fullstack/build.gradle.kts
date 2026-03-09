@@ -39,7 +39,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":core"))
+            api(project(":core"))
             implementation(libs.kilua.rpc.ktor)
             implementation(libs.kvision.common.remote)
             implementation(libs.kotlinx.datetime)
