@@ -9,8 +9,30 @@ import com.fonrouge.base.enums.HelpType
  * When [moduleSlug] is provided, files are looked up in `help-docs/{moduleSlug}/{viewClassName}/`;
  * otherwise they fall back to `help-docs/{viewClassName}/`.
  *
- * Consumer applications must annotate their own copy or re-export of this interface with
- * `@RpcService` and register the generated proxy via [com.fonrouge.fullStack.services.HelpDocsServiceRegistry].
+ * ## Integration steps
+ *
+ * 1. **Server side (JVM):** Create a concrete subclass of
+ *    [HelpDocsService][com.fonrouge.fullStack.services.HelpDocsService], annotate it with
+ *    `@RpcService`, and register it in your Kilua RPC initialization:
+ *    ```kotlin
+ *    @RpcService
+ *    class MyHelpDocsService(call: ApplicationCall) : HelpDocsService(call)
+ *
+ *    // in initRpc:
+ *    registerService<IHelpDocsService> { MyHelpDocsService(it) }
+ *    ```
+ *
+ * 2. **Client side (JS):** Register the KSP-generated proxy with
+ *    [HelpDocsServiceRegistry] during app startup:
+ *    ```kotlin
+ *    HelpDocsServiceRegistry.service = getService<IHelpDocsService>()
+ *    ```
+ *
+ * The `@RpcService` annotation must live in the consumer project (not in this library)
+ * so that the consumer's KSP scope generates the client proxy without causing
+ * split-package conflicts in the `dev.kilua.rpc` package.
+ *
+ * @see HelpDocsServiceRegistry
  */
 interface IHelpDocsService {
     /**

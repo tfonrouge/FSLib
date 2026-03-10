@@ -3,13 +3,24 @@ package com.fonrouge.fullStack.services
 /**
  * Registry for the client-side [IHelpDocsService] proxy.
  *
- * Consumer applications must register their KSP-generated service instance
- * during initialization so the help buttons system can make RPC calls.
+ * The help buttons system ([com.fonrouge.fullStack.layout.helpButtons]) reads from this
+ * registry to make RPC calls. If no service is registered, the help "?" button
+ * simply does not appear (no errors are thrown).
  *
- * Example:
+ * Consumer applications must register their KSP-generated proxy during JS app startup:
+ *
  * ```kotlin
+ * import com.fonrouge.fullStack.services.HelpDocsServiceRegistry
+ * import dev.kilua.rpc.getService
+ *
  * HelpDocsServiceRegistry.service = getService<IHelpDocsService>()
  * ```
+ *
+ * This requires a `@RpcService`-annotated subclass of
+ * [HelpDocsService][com.fonrouge.fullStack.services.HelpDocsService] on the server side
+ * so that KSP generates the client proxy in the consumer project's scope.
+ *
+ * @see IHelpDocsService
  */
 object HelpDocsServiceRegistry {
 

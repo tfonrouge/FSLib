@@ -5,19 +5,38 @@ import io.ktor.server.application.*
 import java.io.File
 
 /**
- * Service for managing help documents associated with application views.
+ * Abstract server-side implementation of [IHelpDocsService].
  *
- * Provides methods to query the availability and content of help files organized
- * by view class name, optional module slug, and help type ([HelpType]).
+ * Provides file-based help document resolution organized by view class name,
+ * optional module slug, and help type ([HelpType]).
  *
  * When a [moduleSlug] is provided, files are first looked up under
  * `helpDocsDir/{moduleSlug}/{viewClassName}/`. If not found, the service falls back
  * to the flat layout `helpDocsDir/{viewClassName}/` for backward compatibility.
  *
+ * ## Usage
+ *
+ * Consumer applications must create a concrete subclass annotated with `@RpcService`
+ * and register it in their Kilua RPC initialization:
+ *
+ * ```kotlin
+ * @RpcService
+ * class MyHelpDocsService(call: ApplicationCall) : HelpDocsService(call)
+ *
+ * // in initRpc:
+ * registerService<IHelpDocsService> { MyHelpDocsService(it) }
+ * ```
+ *
+ * The subclass body can be empty — all logic is provided by this abstract class.
+ * The `@RpcService` annotation must be on the consumer's class so that KSP generates
+ * the RPC proxy in the consumer's scope (not in the library's).
+ *
  * @property call The Ktor HTTP call associated with the current request.
+ * @see IHelpDocsService
+ * @see HelpDocsServiceRegistry
  */
 @Suppress("unused")
-class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
+abstract class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
     companion object {
         private var helpDocsDir: File = File("help-docs")
 
