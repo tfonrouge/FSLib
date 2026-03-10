@@ -453,7 +453,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                     this@startDisplayPage.helpButtons(
                         viewClassName = viewClassName,
                         viewLabel = label,
-                        moduleSlug = helpModule?.slug
+                        moduleSlug = helpModule?.slug,
+                        showTutorial = crudTask == null || actionUpsert
                     )
                 }
             }

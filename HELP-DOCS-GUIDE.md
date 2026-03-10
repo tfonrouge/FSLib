@@ -1,6 +1,6 @@
 # Help System — Unified Build Guide
 
-> **Version:** 1.1.0
+> **Version:** 1.2.0
 
 ## Overview
 
@@ -9,22 +9,44 @@ The help system provides three types of documentation, all sharing a **dark them
 | Type | File | Scope | Audience | Layout |
 |------|------|-------|----------|--------|
 | 📦 **Module Manual** | `manual.html` | Entire module | Anyone learning the business process | Sidebar + scrollable content |
-| 📖 **Tutorial** | `tutorial.html` | Single view | First-time user of this screen | Panel (no sidebar) |
-| ⚡ **Context Help** | `context.html` | Single view | Experienced user needing a reminder | Panel (no sidebar) |
+| 📖 **Tutorial** | `tutorial.html` | Business task (may span multiple views) | User learning to perform a specific task step by step | Panel (no sidebar) |
+| ⚡ **Context Help** | `context.html` | Single view | Any user needing a reference about the view | Panel (no sidebar) |
+
+### What is a Tutorial?
+
+A tutorial is a **teaching guide** designed to help someone learn to perform a specific task step by step. It is the bridge between *"I don't know how to do this"* and *"I've done it"*.
+
+A true tutorial must have these characteristics:
+
+- **Sequentiality**: Follows a logical order (Step 1, Step 2...) that the user must complete in sequence.
+- **Clear objective**: Focuses on a concrete end result (e.g., "How to register a new import project").
+- **Interactivity**: The user actively follows along, performing each action as they read — not just passively reading.
+- **Instructive language**: Uses action verbs throughout (click, select, type, navigate, confirm).
+
+A tutorial is **not** a reference document. It does not describe the interface — it guides the user through it.
+
+**Cross-view scope**: A tutorial may span multiple views when the business task requires it. For example, a tutorial for "How to register a work order" might start in `ViewListWorkOrder` (click **+**), continue in `ViewItemWorkOrder` (fill fields, save), and return to the list (verify result). The tutorial file lives in the directory of the view where the task **begins** (e.g., `ViewListWorkOrder/tutorial.html`), but its steps can guide the user through any views involved in completing the task.
+
+**Detached window for cross-view tutorials**: Since the in-app help panel is tied to the active view and closes on navigation, cross-view tutorials work best when **opened in a separate browser window** (using the existing "detach" button). This lets the user follow the steps while freely navigating between views. When writing a cross-view tutorial, include a tip at the beginning recommending the user to detach the tutorial window before starting. Use clear navigation instructions in each step (e.g., "Navigate to **Workshop → Operators** in the sidebar") — the user knows their own application and can follow along.
+
+### What is Context Help?
+
+Context help is a **view reference card** — a comprehensive description of everything a user needs to know about a specific screen. It covers what the view is, what actions are available, what each column/field means, and important considerations. It serves both first-time users exploring the interface and experienced users who need a quick reminder.
 
 ## Directory Structure
 
 ```
 app-module/
 └── help-docs/
-    ├── {module-slug}/                    ← e.g. importaciones/
+    ├── {module-slug}/                    ← e.g. taller/
     │   ├── manual.html                   ← Module manual (sidebar layout)
     │   ├── ViewListEntity/
-    │   │   ├── tutorial.html
+    │   │   ├── tutorial.html             ← Cross-view tutorial (includes _fields.html)
     │   │   └── context.html
     │   ├── ViewItemEntity/
-    │   │   ├── tutorial.html
-    │   │   └── context.html
+    │   │   ├── tutorial.html             ← Form tutorial (includes _fields.html)
+    │   │   ├── context.html
+    │   │   └── _fields.html              ← Shared form fields fragment
     │   └── ...
     ├── {another-module}/
     │   ├── manual.html
@@ -33,6 +55,66 @@ app-module/
         ├── tutorial.html
         └── context.html
 ```
+
+### Shared Fragments (`_fields.html`)
+
+When a ViewList tutorial crosses into a ViewItem and describes the same form fields that the ViewItem tutorial covers, the field descriptions should be written **once** in a shared HTML fragment to avoid duplication.
+
+**Convention**: The fragment file is named `_fields.html` (prefixed with underscore to distinguish it from served help types) and lives in the **ViewItem's directory**, since the form belongs to that view. Both tutorials include it via a server-side include directive.
+
+**Fragment file** — `ViewItemEntity/_fields.html`:
+
+Contains only the form field steps (no `<html>`, `<head>`, or `<body>` tags). It is a raw HTML fragment that the server injects at build time:
+
+```html
+<!-- _fields.html — Shared form field descriptions for ViewItemEntity -->
+
+<h3>Part A — Header Fields</h3>
+
+<div class="step-card">
+  <div class="step-title">📌 Step 1 — Select the equipment</div>
+  <p>In the <strong>Equipment</strong> field, search and select the equipment
+  that needs maintenance. The equipment type determines which operations
+  are available in the work route.</p>
+</div>
+
+<div class="step-card">
+  <div class="step-title">📌 Step 2 — Set the priority</div>
+  <p>Choose the <strong>Priority</strong> level. <span class="tag tag-red">Urgent</span>
+  orders are highlighted in the list and trigger notifications to supervisors.</p>
+</div>
+
+<!-- ... more steps ... -->
+
+<h3>Part B — Detail List (Work Route)</h3>
+
+<div class="step-card">
+  <div class="step-title">📌 Step N — Add operations to the route</div>
+  <p>Click <strong>+</strong> in the operations table to add a new step.
+  Select the <strong>Operation</strong> and assign an <strong>Operator</strong>.</p>
+</div>
+```
+
+**Including the fragment** — Use an HTML comment directive. The `HelpDocsService` backend resolves these **server-side** before sending the content to the client, so no client-side JavaScript is needed.
+
+From the ViewList tutorial (`ViewListEntity/tutorial.html`):
+
+```html
+<!-- Where the form field steps should appear -->
+<!-- include: ../ViewItemEntity/_fields.html -->
+```
+
+From the ViewItem's own tutorial (`ViewItemEntity/tutorial.html`):
+
+```html
+<!-- include: _fields.html -->
+```
+
+Paths are resolved **relative to the directory of the file containing the directive**. The `../` syntax works for referencing files in sibling view directories.
+
+**How it works**: When `getHelpContent()` reads an HTML file, it scans for `<!-- include: path -->` directives and replaces each one with the content of the referenced file. Includes are resolved recursively (up to 5 levels deep) and are sandboxed to the `help-docs` root directory for security.
+
+**Important**: The `_fields.html` file is **not** a help type — the backend's `getAvailableHelp()` only looks for `tutorial.html`, `context.html`, and `manual.html`. Files prefixed with underscore are ignored by the discovery system.
 
 ### Configuration
 
@@ -62,9 +144,13 @@ Register the KSP-generated proxy with the library's registry:
 
 ```kotlin
 import com.fonrouge.fullStack.services.HelpDocsServiceRegistry
+import com.fonrouge.base.enums.HelpTheme
 import dev.kilua.rpc.getService
 
 HelpDocsServiceRegistry.service = getService<IHelpDocsService>()
+
+// Optional — override the help theme (default is AUTO, which follows OS preference):
+HelpDocsServiceRegistry.theme = HelpTheme.LIGHT
 ```
 
 Without this registration, the help "?" button will not appear (no errors are thrown).
@@ -98,13 +184,24 @@ class ViewListImportProject : ViewList<...>() {
 
 ---
 
-## Shared Dark Theme
+## Theme Support
 
-All three file types use the same dark color palette and typography.
+All three file types support **dark** and **light** color themes. The theme is controlled by the `data-help-theme` attribute that FSLib injects automatically on the help content container. Help HTML files should define both palettes using this attribute.
+
+### Theme Modes
+
+- **`auto`** (default): Follows the user's OS/browser `prefers-color-scheme` preference.
+- **`dark`**: Forces the dark color scheme.
+- **`light`**: Forces the light color scheme.
+
+Consumer apps can override the default via `HelpDocsServiceRegistry.theme = HelpTheme.LIGHT` (see [Configuration](#configuration)).
 
 ### CSS Variables
 
+Define both themes in your help files. The dark palette is the default; the light palette overrides it when the appropriate `data-help-theme` value is active.
+
 ```css
+/* === Dark theme (default) === */
 :root {
   /* Backgrounds */
   --bg: #0d1117;
@@ -118,7 +215,7 @@ All three file types use the same dark color palette and typography.
   /* Text */
   --text: #e8ebff;
   --text-muted: #9da4d1;
-  --text-dim: #b2b7d8;
+  --text-dim: #c8cde6;
 
   /* Accent colors */
   --accent-blue: #38bdf8;
@@ -128,7 +225,53 @@ All three file types use the same dark color palette and typography.
   --accent-red: #e05252;
   --accent-cyan: #00e5e5;
 }
+
+/* === Light theme === */
+body[data-help-theme="light"] {
+  --bg: #ffffff;
+  --bg-card: #f4f6fa;
+  --bg-sidebar: #f0f2f8;
+
+  --border: #d0d5dd;
+  --border-light: #e2e6ed;
+
+  --text: #1a1a2e;
+  --text-muted: #5a6178;
+  --text-dim: #4a5068;
+
+  --accent-blue: #0b7dda;
+  --accent-purple: #5b4cc4;
+  --accent-green: #0f9d76;
+  --accent-yellow: #c78c1e;
+  --accent-red: #c43c3c;
+  --accent-cyan: #0a8f8f;
+}
+
+/* === Auto theme (follows OS preference) === */
+@media (prefers-color-scheme: light) {
+  body[data-help-theme="auto"] {
+    --bg: #ffffff;
+    --bg-card: #f4f6fa;
+    --bg-sidebar: #f0f2f8;
+
+    --border: #d0d5dd;
+    --border-light: #e2e6ed;
+
+    --text: #1a1a2e;
+    --text-muted: #5a6178;
+    --text-dim: #4a5068;
+
+    --accent-blue: #0b7dda;
+    --accent-purple: #5b4cc4;
+    --accent-green: #0f9d76;
+    --accent-yellow: #c78c1e;
+    --accent-red: #c43c3c;
+    --accent-cyan: #0a8f8f;
+  }
+}
 ```
+
+**Important**: When help content is displayed inside the offcanvas panel, FSLib scopes `body` selectors to `.help-content-wrap`. This means `body[data-help-theme="light"]` automatically becomes `.help-content-wrap[data-help-theme="light"]` — no extra work is needed. The theme attribute is set on both the wrapper div (offcanvas) and the `<body>` tag (detached windows and manual iframe).
 
 ### Typography
 
@@ -165,6 +308,7 @@ These components are available in all three file types.
   border-radius: 10px;
   padding: 20px;
   margin: 12px 0;
+  color: var(--text-dim);
 }
 .card-title {
   font-weight: 700;
@@ -359,6 +503,7 @@ Tutorial and context files share the same panel layout (no sidebar). They are di
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{Type} — {View Name}</title>
   <style>
+    /* === Dark theme (default) === */
     :root {
       --bg: #0d1117;
       --bg-card: #111633;
@@ -366,13 +511,31 @@ Tutorial and context files share the same panel layout (no sidebar). They are di
       --border-light: #2a2f5f;
       --text: #e8ebff;
       --text-muted: #9da4d1;
-      --text-dim: #b2b7d8;
+      --text-dim: #c8cde6;
       --accent-blue: #38bdf8;
       --accent-purple: #7f6bff;
       --accent-green: #1ed8a4;
       --accent-yellow: #f5b43f;
       --accent-red: #e05252;
       --accent-cyan: #00e5e5;
+    }
+    /* === Light theme === */
+    body[data-help-theme="light"] {
+      --bg: #ffffff; --bg-card: #f4f6fa;
+      --border: #d0d5dd; --border-light: #e2e6ed;
+      --text: #1a1a2e; --text-muted: #5a6178; --text-dim: #4a5068;
+      --accent-blue: #0b7dda; --accent-purple: #5b4cc4; --accent-green: #0f9d76;
+      --accent-yellow: #c78c1e; --accent-red: #c43c3c; --accent-cyan: #0a8f8f;
+    }
+    /* === Auto theme (follows OS preference) === */
+    @media (prefers-color-scheme: light) {
+      body[data-help-theme="auto"] {
+        --bg: #ffffff; --bg-card: #f4f6fa;
+        --border: #d0d5dd; --border-light: #e2e6ed;
+        --text: #1a1a2e; --text-muted: #5a6178; --text-dim: #4a5068;
+        --accent-blue: #0b7dda; --accent-purple: #5b4cc4; --accent-green: #0f9d76;
+        --accent-yellow: #c78c1e; --accent-red: #c43c3c; --accent-cyan: #0a8f8f;
+      }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -425,6 +588,7 @@ Tutorial and context files share the same panel layout (no sidebar). They are di
       border-radius: 8px;
       padding: 14px 18px;
       margin: 10px 0;
+      color: var(--text-dim);
     }
     .step-title {
       font-weight: 700;
@@ -441,6 +605,7 @@ Tutorial and context files share the same panel layout (no sidebar). They are di
       border-radius: 8px;
       padding: 12px 16px;
       margin: 10px 0;
+      color: var(--text-dim);
     }
     .action-card b { color: var(--accent-blue); }
     .action-card p { color: var(--text-dim); margin: 0; }
@@ -456,11 +621,46 @@ Tutorial and context files share the same panel layout (no sidebar). They are di
 
 #### Step Cards
 
+Use step cards for each step of the tutorial. Each step should tell the user **what to do**, **where to do it**, and **what result to expect**.
+
 ```html
 <div class="step-card">
-  <div class="step-title">📌 Paso 1 — Acceder a la vista</div>
-  <p>Navegue al módulo y seleccione la opción correspondiente.</p>
+  <div class="step-title">📌 Step 1 — Access the view</div>
+  <p>Navigate to the <strong>Imports</strong> module in the sidebar and click <strong>Projects</strong>. The project list will appear with all active records.</p>
 </div>
+
+<div class="step-card">
+  <div class="step-title">📌 Step 2 — Create a new project</div>
+  <p>Click the <strong>+</strong> button in the toolbar. A form will open with the required fields highlighted.</p>
+</div>
+```
+
+#### Expected Result Box (`.result-box`)
+
+Use at the end of the tutorial to show what the user should see when they finish successfully.
+
+```html
+<div class="result-box">
+  <div class="result-title">✅ Expected result</div>
+  <p>The new project appears in the list with status <span class="tag tag-green">Active</span> and today's date.</p>
+</div>
+```
+
+```css
+.result-box {
+  background: rgba(30,216,164,0.08);
+  border: 1px solid var(--accent-green);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+.result-title {
+  font-weight: 700;
+  color: var(--accent-green);
+  margin-bottom: 6px;
+  font-size: 0.95em;
+}
+.result-box p { color: var(--text-dim); }
 ```
 
 ### Context-Specific Components
@@ -469,34 +669,101 @@ Tutorial and context files share the same panel layout (no sidebar). They are di
 
 ```html
 <div class="action-card">
-  <b>➕ Crear registro</b> — Botón <b>+</b> en la barra de herramientas.
+  <b>➕ Create record</b> — <b>+</b> button in the toolbar.
 </div>
 
 <div class="action-card">
-  <b>🔍 Buscar</b> — Use el campo de búsqueda o los filtros disponibles.
+  <b>🔍 Search</b> — Use the search field or available filters.
 </div>
 ```
 
 ### Tutorial Content Sections
 
+A tutorial is a **step-by-step teaching guide** that walks the user through a specific task from start to finish. It uses instructive language (action verbs: click, select, type, navigate) and follows a sequential flow the user performs in real time.
+
 A tutorial **must** include the following sections. The section names shown here are conceptual — use appropriate labels in the project's target language.
 
-1. **📖 What is this view?** — Purpose, role in workflow, where it fits. *(e.g., "¿Qué es esta vista?")*
-2. **📋 Columns / Fields** — Table: column name, description, editable (✅/—). *(e.g., "Columnas / Campos")*
-3. **🏷️ Catalogs and statuses** — Predefined values with descriptions (if applicable). *(e.g., "Catálogos y estados")*
-4. **🔍 Available filters** — What filters exist, default values. *(e.g., "Filtros disponibles")*
-5. **🚶 Step-by-step flow** — Step cards for create/edit/use flow. *(e.g., "Flujo paso a paso")*
-6. **⚠️ Considerations** — Restrictions, warnings, related views (use tip boxes). *(e.g., "Consideraciones")*
-7. **📚 Glossary** — Domain terms used in this view (use glossary grid or table). *(e.g., "Glosario")*
+1. **🎯 Objective** — One clear sentence stating what the user will accomplish by the end of this tutorial. *(e.g., "Objetivo")*
+2. **📋 Prerequisites** — What the user needs before starting: permissions, prior data, previous steps completed. If none, state it explicitly. *(e.g., "Prerrequisitos")*
+3. **🚶 Steps** — The core of the tutorial. A sequential series of step cards, each with: what action to perform, where to perform it (which button, field, menu), and what happens as a result. Use instructive language throughout. The structure of the steps varies by view type (see below). *(e.g., "Pasos")*
+4. **✅ Expected result** — How to verify the task was completed successfully. Use the result-box component. *(e.g., "Resultado esperado")*
+5. **💡 Next steps** — What the user can do after completing this tutorial: related views, follow-up actions, advanced features. *(e.g., "Siguientes pasos")*
+
+#### Steps structure by view type
+
+**ViewList tutorials** — guide a **business task** that starts in the list and may cross into other views (ViewItem, other ViewLists, etc.). Steps follow a navigation flow: open the list, create/select a record, fill data in the detail view, return to verify.
+
+**Cross-view tip**: If the tutorial spans multiple views, include a tip-info box right after the objective recommending the user to open the tutorial in a separate window:
+
+```html
+<div class="tip tip-info">
+  <span class="tip-icon">💡</span>
+  <p><strong>Tip.</strong> This tutorial spans multiple screens. Click the
+  <strong>detach</strong> button (top-right corner) to open it in a separate
+  window so you can follow along while navigating the application.</p>
+</div>
+```
+
+**ViewItem tutorials (create/edit)** — guide the user through **completing the form** that is currently on screen. Since the user is already looking at the form, the steps should explain what to fill, in what order, and why. Structure the steps in two parts when the view has both header fields and an embedded detail list:
+
+- **Part A — Header fields**: Walk through each field or group of related fields in the order they appear. For each step, explain: what the field is for, what to select/type, and any dependencies between fields (e.g., "selecting the equipment type determines the available operations").
+- **Part B — Detail list**: Explain how to add items to the embedded list (e.g., products on an invoice, steps on a work route). Cover: how to add a row, what each column means, how to edit/remove rows, and any automatic calculations (e.g., totals, sequences).
+
+If the view has only header fields (no embedded list), Part B is omitted. Use tip boxes for validations, business rules, and common mistakes within each step.
+
+**Shared fragment**: The form field descriptions (Part A + Part B) should be written in a `_fields.html` fragment (see [Shared Fragments](#shared-fragments-_fieldshtml)) and included via `<!-- include: _fields.html -->` so the same content can be reused by both the ViewList cross-view tutorial and the ViewItem tutorial without duplication.
+
+Example structure for an invoice ViewItem tutorial:
+
+```
+🎯 Objective: Complete a new purchase invoice with its product lines.
+
+📋 Prerequisites: Supplier and products must be registered.
+
+🚶 Steps:
+  [shared-fields loaded from _fields.html]:
+    Part A — Invoice Header
+      Step 1 — Select the supplier (explains the field, what happens when selected)
+      Step 2 — Set the invoice date and due date (explains defaults, constraints)
+      Step 3 — Choose the payment terms (explains options and their effect)
+      ⚠️ Tip: The currency is determined by the supplier and cannot be changed here.
+
+    Part B — Product Lines
+      Step 4 — Add the first product line (click +, select product, set quantity)
+      Step 5 — Adjust price if needed (explains when override is allowed)
+      Step 6 — Repeat for additional products
+      💡 Tip: The total updates automatically as you add lines.
+
+  Step 7 — Review and save (what validations run, what happens on save)
+
+✅ Expected result: Invoice appears with status "Pending" and correct total.
+
+💡 Next steps: How to approve the invoice, how to link it to a purchase order.
+```
+
+### Tutorial Visibility in Detail Views
+
+Tutorials are automatically **hidden** when a `ViewItem` opens in read-only detail mode (`CrudTask.Read`). The system only shows tutorials in create/edit mode, where step-by-step guidance is relevant. This is handled by the `showTutorial` parameter in the `helpButtons()` function — no additional configuration is needed.
+
+In summary:
+- **ViewList**: Tutorial always available (if file exists)
+- **ViewItem in Create/Edit mode**: Tutorial available
+- **ViewItem in Read-only mode**: Tutorial hidden, only context help and manual shown
 
 ### Context Content Sections
 
+A context file is a **view reference card** that describes everything about the view: what it is, what actions are available, what each column means, and important notes. It serves as both introduction and quick reference.
+
 A context file **must** include the following sections. Use appropriate labels in the project's target language.
 
-1. **⚡ Quick actions** — Action cards for each available operation. *(e.g., "Acciones rápidas")*
-2. **📋 Columns** — Compact table (column, description, editable). *(e.g., "Columnas")*
-3. **🏷️ Statuses / key values** — Summary of enumerations or statuses. *(e.g., "Estados / valores clave")*
-4. **💡 Notes** — Tips and warnings (use tip boxes). *(e.g., "Notas")*
+1. **📖 What is this view?** — Purpose, role in workflow, where it fits. *(e.g., "¿Qué es esta vista?")*
+2. **⚡ Quick actions** — Action cards for each available operation (toolbar buttons). *(e.g., "Acciones rápidas")*
+3. **🖱️ Row context menu** *(list views only)* — Options available in the right-click context menu on each row (view detail, edit, delete, domain-specific actions). *(e.g., "Menú contextual")*
+4. **📋 Columns / Fields** — Table: column name, description, editable (✅/—). *(e.g., "Columnas / Campos")*
+5. **🏷️ Catalogs and statuses** — Predefined values with descriptions (if applicable). *(e.g., "Catálogos y estados")*
+6. **🔍 Available filters** *(list views only)* — What filters exist, default values. *(e.g., "Filtros disponibles")*
+7. **💡 Notes and considerations** — Tips, warnings, restrictions, related views (use tip boxes). *(e.g., "Notas y consideraciones")*
+8. **📚 Glossary** — Domain terms used in this view (use glossary grid or table). *(e.g., "Glosario")*
 
 ---
 
@@ -667,7 +934,7 @@ Include `@media print` rules to hide sidebar and make top-bar static.
 | `ViewItem*` | Detail / form view | `ViewItemImportProject` |
 | `View*` (other) | Dashboard, pipeline, special | `ViewImportDashboard` |
 
-Each List/Item pair should have its own tutorial + context.
+Each List/Item pair should have its own context help. Tutorials are optional and should be created when a view involves a task that benefits from guided step-by-step instruction.
 
 ## Emoji Icon Reference
 
@@ -693,9 +960,11 @@ Use emojis consistently as visual anchors:
 | ❓ | FAQ |
 | 🏷️ | Tags, categories, statuses |
 | 🔔 | Alerts, notifications |
+| 🖱️ | Context menu, right-click actions |
+| 🎯 | Objective, goal |
 | 📊 | Dashboard, analytics |
-| 🚶 | Step-by-step flow |
-| 🔗 | Related views, links |
+| 🚶 | Step-by-step tutorial flow |
+| 🔗 | Related views, links, next steps |
 
 ## Content Tone & Language
 
@@ -722,12 +991,15 @@ Use emojis consistently as visual anchors:
 11. Test print output
 12. Link the manual from the module's landing view
 
-### For Tutorial + Context
-1. Identify the exact class name of the view
-2. Create the directory `help-docs/{module-slug}/{ViewClassName}/`
-3. Read the view's source code to understand columns, filters, actions, flow
-4. Create `tutorial.html` with all 7 required sections
-5. Create `context.html` with all 4 required sections
-6. Apply dark theme CSS with emoji icons
-7. Write all content in the project's target language (UTF-8, no HTML entities)
+### For Tutorial + Context (ViewList / ViewItem pair)
+1. Identify the exact class names of both views (ViewList and ViewItem)
+2. Create directories `help-docs/{module-slug}/{ViewListClassName}/` and `help-docs/{module-slug}/{ViewItemClassName}/`
+3. Read the view source code to understand columns, filters, actions, form fields, and flow
+4. Create `_fields.html` in the ViewItem directory — shared form field descriptions (Part A + Part B)
+5. Create `tutorial.html` for the ViewList — cross-view business task, includes `_fields.html` via fetch
+6. Create `tutorial.html` for the ViewItem — form completion guide, includes `_fields.html` via fetch (remember: tutorials are hidden in read-only detail views)
+7. Create `context.html` for both views — comprehensive view reference card with all 8 required sections (include row context menu for list views)
+8. Apply dark theme CSS with emoji icons
+9. Write all content in the project's target language (UTF-8, no HTML entities)
+10. Verify directory names match the class names exactly
 8. Verify directory name matches the class name exactly

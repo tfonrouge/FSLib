@@ -37,18 +37,6 @@ import java.io.File
  */
 @Suppress("unused")
 abstract class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
-    companion object {
-        private var helpDocsDir: File = File("help-docs")
-
-        /**
-         * Sets the root directory where help documents are stored.
-         *
-         * @param dir Path to the help documents directory.
-         */
-        fun setHelpDocsDir(dir: String) {
-            helpDocsDir = File(dir)
-        }
-    }
 
     /**
      * Resolves the view directory, trying the module-scoped path first
@@ -108,14 +96,61 @@ abstract class HelpDocsService(val call: ApplicationCall) : IHelpDocsService {
      * For [HelpType.MANUAL], reads from `helpDocsDir/{moduleSlug}/manual.html`.
      * For other types, reads from the resolved view directory.
      *
+     * After reading the file, any `<!-- include: filename.html -->` directives are resolved
+     * by loading the referenced file relative to the same directory. This enables shared
+     * HTML fragments (e.g., `_fields.html`) to be reused across multiple help documents
+     * without client-side fetch logic.
+     *
      * @param viewClassName Name of the view class associated with the document.
      * @param helpType The requested help type.
      * @param moduleSlug Optional module directory slug.
-     * @return Content of the help file as text, or an empty string if the file does not exist.
+     * @return Content of the help file as text (with includes resolved), or an empty string if the file does not exist.
      */
     override suspend fun getHelpContent(viewClassName: String, helpType: HelpType, moduleSlug: String?): String {
         val file = resolveHelpFile(viewClassName, helpType, moduleSlug) ?: return ""
-        return if (file.exists()) file.readText() else ""
+        if (!file.exists()) return ""
+        return resolveIncludes(file)
+    }
+
+    /**
+     * Resolves `<!-- include: filename -->` directives in an HTML file by replacing each
+     * directive with the content of the referenced file.
+     *
+     * Include paths are resolved relative to the directory of the file containing the directive.
+     * Paths may use `../` to reference files in sibling directories (e.g., `../ViewItemEntity/_fields.html`).
+     * Missing files are replaced with an HTML comment indicating the error.
+     * Nested includes (includes within included files) are supported up to a reasonable depth.
+     *
+     * @param file The HTML file to process.
+     * @param depth Current recursion depth to prevent infinite loops (max 5 levels).
+     * @return The file content with all include directives resolved.
+     */
+    private fun resolveIncludes(file: File, depth: Int = 0): String {
+        if (depth > 5) return file.readText()
+        val content = file.readText()
+        return includeRegex.replace(content) { match ->
+            val includePath = match.groupValues[1].trim()
+            val includeFile = File(file.parentFile, includePath).canonicalFile
+            if (includeFile.exists() && includeFile.startsWith(helpDocsDir.canonicalFile)) {
+                resolveIncludes(includeFile, depth + 1)
+            } else {
+                "<!-- include not found: $includePath -->"
+            }
+        }
+    }
+
+    companion object {
+        private var helpDocsDir: File = File("help-docs")
+        private val includeRegex = Regex("""<!--\s*include:\s*(.+?)\s*-->""")
+
+        /**
+         * Sets the root directory where help documents are stored.
+         *
+         * @param dir Path to the help documents directory.
+         */
+        fun setHelpDocsDir(dir: String) {
+            helpDocsDir = File(dir)
+        }
     }
 
     init {

@@ -1,5 +1,6 @@
 package com.fonrouge.fullStack.layout
 
+import com.fonrouge.base.enums.HelpTheme
 import com.fonrouge.base.enums.HelpType
 import com.fonrouge.fullStack.services.HelpDocsServiceRegistry
 import io.kvision.core.*
@@ -30,9 +31,14 @@ import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 
+/**
+ * Returns the current help theme CSS value from the registry.
+ */
+private fun currentThemeCss(): String = HelpDocsServiceRegistry.theme.cssValue
+
 private val helpStyleRegex = Regex("<style[^>]*>[\\s\\S]*?</style>")
 private val helpBodyRegex = Regex("<body[^>]*>([\\s\\S]*)</body>")
-private val bodySelectorRegex = Regex("""(?<=^|[},\s])body\s*(?=[{\s,])""")
+private val bodySelectorRegex = Regex("""(?<=^|[},\s])body\s*(?=[{\s,\[:.])""")
 
 private var helpButtonsCssInjected = false
 
@@ -121,8 +127,43 @@ private fun injectHelpButtonsCss() {
             color: #0d6efd;
             background: #e7f1ff;
         }
+        .help-theme-toggle {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            transition: background 0.15s ease, border-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .help-theme-toggle:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.5);
+        }
     """.trimIndent()
     document.head?.appendChild(style)
+}
+
+/**
+ * Injects the `data-help-theme` attribute into the `<body>` tag of a raw HTML document.
+ *
+ * If the HTML contains a `<body` tag, the attribute is inserted into it.
+ * If no `<body>` tag is found, the HTML is returned unchanged.
+ *
+ * @param rawHtml The full HTML document string.
+ * @param theme The theme value to inject (e.g., "auto", "dark", "light").
+ * @return The HTML with the theme attribute injected.
+ */
+private fun injectThemeAttribute(rawHtml: String, theme: String): String {
+    return rawHtml.replaceFirst(
+        Regex("""<body([^>]*)>"""),
+        """<body$1 data-help-theme="$theme">"""
+    )
 }
 
 /**
@@ -169,7 +210,8 @@ private fun createBlobUrl(rawHtml: String): String {
  * @param rawHtml The complete HTML document to display.
  */
 private fun showManualModal(title: String, rawHtml: String) {
-    val blobUrl = createBlobUrl(rawHtml)
+    var currentBlobUrl = createBlobUrl(injectThemeAttribute(rawHtml, currentThemeCss()))
+    val iframeUrl = ObservableValue(currentBlobUrl)
     var modal: Modal? = null
     modal = Modal(
         caption = title,
@@ -183,6 +225,18 @@ private fun showManualModal(title: String, rawHtml: String) {
                 color = Color("#9da4d1")
                 fontSize = 0.85.rem
             }
+            val themeBtn = button(
+                text = if (HelpDocsServiceRegistry.theme != HelpTheme.LIGHT) "\u2606" else "\u263E",
+                style = ButtonStyle.OUTLINELIGHT,
+            )
+            themeBtn.setAttribute("title", "Toggle dark/light theme")
+            themeBtn.onClick {
+                val newTheme = if (HelpDocsServiceRegistry.theme == HelpTheme.LIGHT) HelpTheme.DARK else HelpTheme.LIGHT
+                HelpDocsServiceRegistry.theme = newTheme
+                themeBtn.text = if (newTheme != HelpTheme.LIGHT) "\u2606" else "\u263E"
+                currentBlobUrl = createBlobUrl(injectThemeAttribute(rawHtml, newTheme.cssValue))
+                iframeUrl.value = currentBlobUrl
+            }
             button(
                 text = "Ventana separada",
                 icon = "fas fa-external-link-alt",
@@ -190,7 +244,7 @@ private fun showManualModal(title: String, rawHtml: String) {
             ) {
                 onClick {
                     window.open(
-                        blobUrl,
+                        currentBlobUrl,
                         "_blank",
                         "width=1100,height=850,scrollbars=yes,resizable=yes"
                     )
@@ -198,11 +252,15 @@ private fun showManualModal(title: String, rawHtml: String) {
                 }
             }
         }
-        tag(TAG.IFRAME) {
-            setAttribute("src", blobUrl)
-            setAttribute("frameborder", "0")
-            width = 100.perc
-            height = 72.vh
+        div {
+            bind(iframeUrl) { url ->
+                tag(TAG.IFRAME) {
+                    setAttribute("src", url)
+                    setAttribute("frameborder", "0")
+                    width = 100.perc
+                    height = 72.vh
+                }
+            }
         }
     }
     // Clean up after modal is hidden: remove DOM manually
@@ -227,6 +285,7 @@ private fun showManualModal(title: String, rawHtml: String) {
  */
 private fun detachToWindow(title: String, htmlContent: String) {
     val popup = window.open("", "_blank", "width=620,height=760,scrollbars=yes,resizable=yes")
+    val theme = currentThemeCss()
     popup?.document?.write(
         """<!DOCTYPE html>
 <html lang="es">
@@ -251,7 +310,7 @@ body { margin: 0; padding: 0; background: #fdfdfe; }
 .detached-help-content { padding: 16px 20px 24px; }
 </style>
 </head>
-<body>
+<body data-help-theme="$theme">
 <div class="detached-help-bar"><i class="fas fa-external-link-alt"></i> $title</div>
 <div class="detached-help-content">$htmlContent</div>
 </body>
@@ -277,6 +336,7 @@ private fun Container.helpContentWithDetach(
     onDetach: () -> Unit,
 ) {
     div(className = "help-content-wrap") {
+        setAttribute("data-help-theme", currentThemeCss())
         button(
             text = "",
             icon = "fas fa-external-link-alt",
@@ -296,7 +356,7 @@ private fun Container.helpContentWithDetach(
  * Adds a subtle "?" help button (fixed, bottom-right) that uses a KVision [DropDown]
  * triggered on hover. The dropdown menu shows available help options:
  *
- * - **Manual del M\u00f3dulo** (if available): opens a modal with the full manual in an iframe.
+ * - **Manual del Módulo** (if available): opens a modal with the full manual in an iframe.
  * - **Ayuda de esta Vista** (if tutorial/context available): opens an offcanvas panel with
  *   tabbed tutorial and context help content.
  *
@@ -304,8 +364,11 @@ private fun Container.helpContentWithDetach(
  * @param viewLabel The display label of the view, shown in the offcanvas header.
  * @param moduleSlug Optional module slug for module-scoped help file lookup
  *                   (e.g., `"importaciones"` resolves to `help-docs/importaciones/{viewClassName}/`).
+ * @param showTutorial Whether to show the tutorial tab. When `false`, tutorials are excluded
+ *                     even if the file exists on disk. Useful for hiding tutorials in read-only
+ *                     detail views where step-by-step guidance does not apply.
  */
-fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: String? = null) {
+fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: String? = null, showTutorial: Boolean = true) {
     injectHelpButtonsCss()
     val service = HelpDocsServiceRegistry.service ?: return
     val rawHtmlCache = mutableMapOf<HelpType, String>()
@@ -320,6 +383,39 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
         backdrop = false,
         className = "help-offcanvas",
     )
+
+    // Inject theme toggle button into the offcanvas header
+    oc.addAfterInsertHook {
+        val header = oc.getElement()?.querySelector(".offcanvas-header") ?: return@addAfterInsertHook
+        val closeBtn = header.querySelector(".btn-close")
+        if (header.querySelector(".help-theme-toggle") != null) return@addAfterInsertHook
+
+        val toggleBtn = document.createElement("button")
+        toggleBtn.className = "help-theme-toggle"
+        toggleBtn.setAttribute("title", "Toggle dark/light theme")
+
+        fun updateToggleIcon() {
+            val isDark = HelpDocsServiceRegistry.theme != HelpTheme.LIGHT
+            toggleBtn.innerHTML = if (isDark) "&#9788;" else "&#9790;"  // ☀ / ☾
+        }
+        updateToggleIcon()
+
+        toggleBtn.addEventListener("click", {
+            val newTheme = if (HelpDocsServiceRegistry.theme == HelpTheme.LIGHT) HelpTheme.DARK else HelpTheme.LIGHT
+            HelpDocsServiceRegistry.theme = newTheme
+            updateToggleIcon()
+            // Update all help-content-wrap elements in the offcanvas
+            oc.getElement()?.querySelectorAll(".help-content-wrap")?.asList()?.forEach { el ->
+                el.asDynamic().setAttribute("data-help-theme", newTheme.cssValue)
+            }
+        })
+
+        if (closeBtn != null) {
+            header.insertBefore(toggleBtn, closeBtn)
+        } else {
+            header.appendChild(toggleBtn)
+        }
+    }
 
     fun isOcVisible() = oc.getElement()?.classList?.contains("show") == true
 
@@ -374,7 +470,9 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
 
     // Discover available help and build dropdown items + offcanvas content
     KVScope.launch {
-        val allTypes = service.getAvailableHelp(viewClassName, moduleSlug)
+        val allTypes = service.getAvailableHelp(viewClassName, moduleSlug).let { types ->
+            if (showTutorial) types else types - HelpType.TUTORIAL
+        }
         if (allTypes.isEmpty()) return@launch
 
         dd.visible = true

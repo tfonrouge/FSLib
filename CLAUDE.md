@@ -102,7 +102,7 @@ Located in `core/src/commonMain/kotlin/com/fonrouge/base/annotations/`:
 The file `HELP-DOCS-GUIDE.md` contains the full guide for the help documentation system. It must be copied to any project that intends to use the help docs functionality provided by this library.
 
 **Key concepts:**
-- Three help types: **Tutorial** (`tutorial.html`), **Context Help** (`context.html`), and **Module Manual** (`manual.html`).
+- Three help types: **Tutorial** (`tutorial.html`) — step-by-step teaching guide for a specific task; **Context Help** (`context.html`) — comprehensive view reference card; **Module Manual** (`manual.html`) — full module documentation.
 - Files live under `help-docs/{module-slug}/{ViewClassName}/` (tutorial/context) or `help-docs/{module-slug}/manual.html` (manual).
 - Views declare their module via `override val helpModule: IHelpModule`. Discovery can be disabled with `override val helpEnabled: Boolean = false`.
 - The UI auto-discovers help files and shows a floating "?" dropdown: view help opens in an offcanvas panel (with tabs if multiple types exist), module manual opens in a modal with iframe.
