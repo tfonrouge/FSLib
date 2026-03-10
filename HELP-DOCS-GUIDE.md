@@ -1,6 +1,6 @@
 # Help System — Unified Build Guide
 
-> **Version:** 1.0.0
+> **Version:** 1.1.0
 
 ## Overview
 
@@ -34,14 +34,40 @@ app-module/
         └── context.html
 ```
 
-### Configuration in `Main.kt`
+### Configuration
+
+Consumer applications must wire up both the server and client sides.
+
+#### Server side (JVM) — in `Main.kt` or Ktor module setup
+
+Create a concrete subclass annotated with `@RpcService` and register it:
 
 ```kotlin
-// Default directory name is "help-docs" — no call needed if using default
+@RpcService
+class MyHelpDocsService(call: ApplicationCall) : HelpDocsService(call)
+
+// In your Kilua RPC initialization (initRpc or equivalent):
+registerService<IHelpDocsService> { MyHelpDocsService(it) }
+
+// Optional — change the help-docs root directory (default is "help-docs"):
 HelpDocsService.setHelpDocsDir("help-docs")
-registerService<IHelpDocsService> { HelpDocsService(it) }
-applyRoutes(HelpDocsServiceManager)
 ```
+
+The `@RpcService` annotation must be on your subclass (not on the library's `HelpDocsService`)
+so that KSP generates the RPC proxy in your project's scope.
+
+#### Client side (JS) — in app startup
+
+Register the KSP-generated proxy with the library's registry:
+
+```kotlin
+import com.fonrouge.fullStack.services.HelpDocsServiceRegistry
+import dev.kilua.rpc.getService
+
+HelpDocsServiceRegistry.service = getService<IHelpDocsService>()
+```
+
+Without this registration, the help "?" button will not appear (no errors are thrown).
 
 ### Module Grouping (fsLib)
 
@@ -618,7 +644,7 @@ Include `@media print` rules to hide sidebar and make top-bar static.
 
 ## Discovery & FAB Behavior
 
-1. The backend registers `HelpDocsService` in `Main.kt`.
+1. The backend registers a `HelpDocsService` subclass via `registerService` (see [Configuration](#configuration) above), and the client registers the proxy via `HelpDocsServiceRegistry`.
 2. The fsLib base `View` class queries the service automatically using the view's class name + `helpModule.slug`. Discovery can be disabled per-view by overriding `helpEnabled`:
    ```kotlin
    // Disable help discovery for a specific view
