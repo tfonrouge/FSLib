@@ -1,6 +1,6 @@
 # Help System — Unified Build Guide
 
-> **Version:** 1.2.0
+> **Version:** 1.3.0
 
 ## Overview
 
@@ -149,11 +149,13 @@ import dev.kilua.rpc.getService
 
 HelpDocsServiceRegistry.service = getService<IHelpDocsService>()
 
-// Optional — override the help theme (default is AUTO, which follows OS preference):
-HelpDocsServiceRegistry.theme = HelpTheme.LIGHT
+// Optional — set the app-level default theme (used when the user has no stored preference):
+HelpDocsServiceRegistry.defaultTheme = HelpTheme.DARK
 ```
 
 Without this registration, the help "?" button will not appear (no errors are thrown).
+
+> **Theme persistence**: The user's theme choice is automatically saved to `localStorage` when toggled via the theme button in the help panel or manual modal. On subsequent page loads, the stored preference takes priority over `defaultTheme`. If no stored preference exists, `defaultTheme` is used (defaults to `AUTO`).
 
 ### Module Grouping (fsLib)
 
@@ -194,7 +196,7 @@ All three file types support **dark** and **light** color themes. The theme is c
 - **`dark`**: Forces the dark color scheme.
 - **`light`**: Forces the light color scheme.
 
-Consumer apps can override the default via `HelpDocsServiceRegistry.theme = HelpTheme.LIGHT` (see [Configuration](#configuration)).
+Consumer apps can set an app-level default via `HelpDocsServiceRegistry.defaultTheme = HelpTheme.DARK` (see [Configuration](#configuration)). The user can cycle through all three modes using the theme toggle button (☀ → ☾ → ◐) in the help panel header or manual modal. The user's choice is persisted in `localStorage` and takes priority over the app default on subsequent page loads.
 
 ### CSS Variables
 

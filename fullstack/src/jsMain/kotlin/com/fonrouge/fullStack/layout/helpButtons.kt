@@ -127,23 +127,70 @@ private fun injectHelpButtonsCss() {
             color: #0d6efd;
             background: #e7f1ff;
         }
-        .help-theme-toggle {
+        .help-theme-dropdown {
+            position: relative;
+            margin-right: 8px;
+        }
+        .help-theme-dropdown-btn {
             background: none;
             border: 1px solid rgba(255,255,255,0.3);
             color: white;
             cursor: pointer;
-            font-size: 0.85rem;
-            padding: 3px 8px;
+            font-size: 0.82rem;
+            padding: 3px 10px;
             border-radius: 4px;
-            margin-right: 8px;
             transition: background 0.15s ease, border-color 0.15s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
+            white-space: nowrap;
         }
-        .help-theme-toggle:hover {
+        .help-theme-dropdown-btn:hover {
             background: rgba(255,255,255,0.15);
             border-color: rgba(255,255,255,0.5);
+        }
+        .help-theme-dropdown-btn .theme-chevron {
+            font-size: 0.6rem;
+            opacity: 0.7;
+        }
+        .help-theme-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 4px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1060;
+            min-width: 140px;
+            padding: 4px 0;
+        }
+        .help-theme-menu.open { display: block; }
+        .help-theme-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            color: #495057;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: background 0.1s ease;
+        }
+        .help-theme-menu-item:hover { background: #f0f4f8; }
+        .help-theme-menu-item.active {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+        .help-theme-menu-item .theme-check {
+            width: 14px;
+            text-align: center;
+            font-size: 0.75rem;
         }
     """.trimIndent()
     document.head?.appendChild(style)
@@ -220,27 +267,40 @@ private fun showManualModal(title: String, rawHtml: String) {
         hPanel(spacing = 10, alignItems = AlignItems.CENTER) {
             marginBottom = 8.px
             paddingBottom = 8.px
-            borderBottom = Border(1.px, BorderStyle.SOLID, Color("#2a2f5f"))
+            borderBottom = Border(1.px, BorderStyle.SOLID, Color("#dee2e6"))
             span("Navega el manual aqu\u00ed o \u00e1brelo en una ventana separada.") {
-                color = Color("#9da4d1")
+                color = Color("#6c757d")
                 fontSize = 0.85.rem
             }
-            val themeBtn = button(
-                text = if (HelpDocsServiceRegistry.theme != HelpTheme.LIGHT) "\u2606" else "\u263E",
-                style = ButtonStyle.OUTLINELIGHT,
-            )
-            themeBtn.setAttribute("title", "Toggle dark/light theme")
-            themeBtn.onClick {
-                val newTheme = if (HelpDocsServiceRegistry.theme == HelpTheme.LIGHT) HelpTheme.DARK else HelpTheme.LIGHT
-                HelpDocsServiceRegistry.theme = newTheme
-                themeBtn.text = if (newTheme != HelpTheme.LIGHT) "\u2606" else "\u263E"
-                currentBlobUrl = createBlobUrl(injectThemeAttribute(rawHtml, newTheme.cssValue))
-                iframeUrl.value = currentBlobUrl
+            val themeDd = dropDown(
+                text = "${HelpDocsServiceRegistry.theme.icon} ${HelpDocsServiceRegistry.theme.label}",
+                style = ButtonStyle.OUTLINESECONDARY,
+                arrowVisible = false,
+            ) {
+                fontSize = 0.82.rem
+            }
+            HelpTheme.entries.forEach { theme ->
+                val checkMark = if (theme == HelpDocsServiceRegistry.theme) "\u2713 " else "   "
+                themeDd.ddLink(label = "$checkMark${theme.icon} ${theme.label}") {
+                    onClick {
+                        HelpDocsServiceRegistry.theme = theme
+                        HelpDocsServiceRegistry.persistThemeFromToggle(theme)
+                        themeDd.text = "${theme.icon} ${theme.label}"
+                        currentBlobUrl = createBlobUrl(injectThemeAttribute(rawHtml, theme.cssValue))
+                        iframeUrl.value = currentBlobUrl
+                        // Rebuild menu checkmarks
+                        themeDd.getChildren().filterIsInstance<io.kvision.html.Link>().forEachIndexed { idx, link ->
+                            val entry = HelpTheme.entries[idx]
+                            val mark = if (entry == theme) "\u2713 " else "   "
+                            link.label = "$mark${entry.icon} ${entry.label}"
+                        }
+                    }
+                }
             }
             button(
                 text = "Ventana separada",
                 icon = "fas fa-external-link-alt",
-                style = ButtonStyle.OUTLINEINFO,
+                style = ButtonStyle.OUTLINEPRIMARY,
             ) {
                 onClick {
                     window.open(
@@ -384,36 +444,75 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
         className = "help-offcanvas",
     )
 
-    // Inject theme toggle button into the offcanvas header
+    // Inject theme dropdown into the offcanvas header
     oc.addAfterInsertHook {
         val header = oc.getElement()?.querySelector(".offcanvas-header") ?: return@addAfterInsertHook
         val closeBtn = header.querySelector(".btn-close")
-        if (header.querySelector(".help-theme-toggle") != null) return@addAfterInsertHook
+        if (header.querySelector(".help-theme-dropdown") != null) return@addAfterInsertHook
 
-        val toggleBtn = document.createElement("button")
-        toggleBtn.className = "help-theme-toggle"
-        toggleBtn.setAttribute("title", "Toggle dark/light theme")
+        val wrapper = document.createElement("div")
+        wrapper.className = "help-theme-dropdown"
 
-        fun updateToggleIcon() {
-            val isDark = HelpDocsServiceRegistry.theme != HelpTheme.LIGHT
-            toggleBtn.innerHTML = if (isDark) "&#9788;" else "&#9790;"  // ☀ / ☾
+        val btn = document.createElement("button")
+        btn.className = "help-theme-dropdown-btn"
+
+        val menu = document.createElement("div")
+        menu.className = "help-theme-menu"
+
+        fun currentTheme() = HelpDocsServiceRegistry.theme
+
+        fun updateBtnLabel() {
+            val t = currentTheme()
+            btn.innerHTML = "${t.icon} ${t.label} <span class='theme-chevron'>&#9660;</span>"
         }
-        updateToggleIcon()
 
-        toggleBtn.addEventListener("click", {
-            val newTheme = if (HelpDocsServiceRegistry.theme == HelpTheme.LIGHT) HelpTheme.DARK else HelpTheme.LIGHT
+        fun applyTheme(newTheme: HelpTheme) {
             HelpDocsServiceRegistry.theme = newTheme
-            updateToggleIcon()
+            HelpDocsServiceRegistry.persistThemeFromToggle(newTheme)
+            updateBtnLabel()
             // Update all help-content-wrap elements in the offcanvas
             oc.getElement()?.querySelectorAll(".help-content-wrap")?.asList()?.forEach { el ->
                 el.asDynamic().setAttribute("data-help-theme", newTheme.cssValue)
             }
+        }
+
+        fun buildMenu() {
+            menu.innerHTML = ""
+            HelpTheme.entries.forEach { theme ->
+                val item = document.createElement("button")
+                item.className = "help-theme-menu-item" + if (theme == currentTheme()) " active" else ""
+                val check = if (theme == currentTheme()) "&#10003;" else ""
+                item.innerHTML = "<span class='theme-check'>$check</span>${theme.icon} ${theme.label}"
+                item.addEventListener("click", { e ->
+                    e.stopPropagation()
+                    applyTheme(theme)
+                    menu.classList.remove("open")
+                    buildMenu()
+                })
+                menu.appendChild(item)
+            }
+        }
+
+        updateBtnLabel()
+        buildMenu()
+
+        btn.addEventListener("click", { e ->
+            e.stopPropagation()
+            menu.classList.toggle("open")
         })
 
+        // Close menu when clicking outside
+        document.addEventListener("click", {
+            menu.classList.remove("open")
+        })
+
+        wrapper.appendChild(btn)
+        wrapper.appendChild(menu)
+
         if (closeBtn != null) {
-            header.insertBefore(toggleBtn, closeBtn)
+            header.insertBefore(wrapper, closeBtn)
         } else {
-            header.appendChild(toggleBtn)
+            header.appendChild(wrapper)
         }
     }
 
@@ -434,14 +533,22 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
         // Eliminate gap between button and menu so mouseleave doesn't fire in between
         menu.marginBottom = 0.px
         menu.paddingBottom = 2.px
-        // Show dropdown on hover, close on leave
-        // Check button's aria-expanded (not container's class — Bootstrap puts "show" on menu, not container)
+        // Show dropdown on hover, close on leave with a grace period so the user
+        // can move diagonally from the round button toward the wider menu above.
+        var closeTimer: Int? = null
         onEvent {
             mouseenter = {
+                closeTimer?.let { window.clearTimeout(it) }
+                closeTimer = null
                 if (button.getElement()?.getAttribute("aria-expanded") != "true") toggle()
             }
             mouseleave = {
-                if (button.getElement()?.getAttribute("aria-expanded") == "true") toggle()
+                if (button.getElement()?.getAttribute("aria-expanded") == "true") {
+                    closeTimer = window.setTimeout({
+                        closeTimer = null
+                        if (button.getElement()?.getAttribute("aria-expanded") == "true") toggle()
+                    }, 300)
+                }
             }
         }
     }
@@ -455,13 +562,17 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
         padding = 0.px
     }
 
-    // Close offcanvas when clicking outside
+    // Close offcanvas when clicking outside (but not when interacting with the theme dropdown menu)
     val outsideClickHandler: (Event) -> Unit = { e ->
         if (isOcVisible()) {
             val target = e.target as? org.w3c.dom.Element
             val ocEl = oc.getElement()
             val ddEl = dd.getElement()
-            if (target != null && ocEl?.contains(target) != true && ddEl?.contains(target) != true) {
+            val themeMenu = ocEl?.querySelector(".help-theme-menu")
+            val isInsideOc = ocEl?.contains(target) == true
+            val isInsideDd = ddEl?.contains(target) == true
+            val isInsideThemeMenu = themeMenu?.contains(target) == true
+            if (target != null && !isInsideOc && !isInsideDd && !isInsideThemeMenu) {
                 oc.hide()
             }
         }
