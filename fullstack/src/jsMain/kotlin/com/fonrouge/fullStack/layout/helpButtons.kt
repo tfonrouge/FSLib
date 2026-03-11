@@ -444,6 +444,29 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
         className = "help-offcanvas",
     )
 
+    /** Syncs the offcanvas theme UI (header dropdown button, menu checkmarks, and content wraps). */
+    fun syncContentTheme() {
+        val theme = HelpDocsServiceRegistry.theme
+        val css = theme.cssValue
+        // Update content wraps
+        oc.getElement()?.querySelectorAll(".help-content-wrap")?.asList()?.forEach { el ->
+            el.asDynamic().setAttribute("data-help-theme", css)
+        }
+        // Update header dropdown button label
+        oc.getElement()?.querySelector(".help-theme-dropdown-btn")?.let { btn ->
+            btn.innerHTML = "${theme.icon} ${theme.label} <span class='theme-chevron'>&#9660;</span>"
+        }
+        // Update header dropdown menu checkmarks
+        oc.getElement()?.querySelectorAll(".help-theme-menu-item")?.asList()
+            ?.filterIsInstance<org.w3c.dom.Element>()
+            ?.forEachIndexed { idx, el ->
+                val entry = HelpTheme.entries.getOrNull(idx) ?: return@forEachIndexed
+                val isActive = entry == theme
+                el.classList.toggle("active", isActive)
+                el.querySelector(".theme-check")?.innerHTML = if (isActive) "&#10003;" else ""
+            }
+    }
+
     // Inject theme dropdown into the offcanvas header
     oc.addAfterInsertHook {
         val header = oc.getElement()?.querySelector(".offcanvas-header") ?: return@addAfterInsertHook
@@ -466,16 +489,6 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
             btn.innerHTML = "${t.icon} ${t.label} <span class='theme-chevron'>&#9660;</span>"
         }
 
-        fun applyTheme(newTheme: HelpTheme) {
-            HelpDocsServiceRegistry.theme = newTheme
-            HelpDocsServiceRegistry.persistThemeFromToggle(newTheme)
-            updateBtnLabel()
-            // Update all help-content-wrap elements in the offcanvas
-            oc.getElement()?.querySelectorAll(".help-content-wrap")?.asList()?.forEach { el ->
-                el.asDynamic().setAttribute("data-help-theme", newTheme.cssValue)
-            }
-        }
-
         fun buildMenu() {
             menu.innerHTML = ""
             HelpTheme.entries.forEach { theme ->
@@ -485,7 +498,10 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                 item.innerHTML = "<span class='theme-check'>$check</span>${theme.icon} ${theme.label}"
                 item.addEventListener("click", { e ->
                     e.stopPropagation()
-                    applyTheme(theme)
+                    HelpDocsServiceRegistry.theme = theme
+                    HelpDocsServiceRegistry.persistThemeFromToggle(theme)
+                    updateBtnLabel()
+                    syncContentTheme()
                     menu.classList.remove("open")
                     buildMenu()
                 })
@@ -514,6 +530,14 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
         } else {
             header.appendChild(wrapper)
         }
+
+        // Sync theme state every time the offcanvas is shown, so reopening
+        // after a theme change always reflects the current preference.
+        oc.getElement()?.addEventListener("show.bs.offcanvas", {
+            updateBtnLabel()
+            buildMenu()
+            syncContentTheme()
+        })
     }
 
     fun isOcVisible() = oc.getElement()?.classList?.contains("show") == true
@@ -625,6 +649,7 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                         dd.toggle()
                         lazyLoadSingle()
                         oc.show()
+                        syncContentTheme()
                     }
                 }
             } else {
@@ -670,6 +695,7 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                         dd.toggle()
                         lazyLoadTabs()
                         oc.show()
+                        syncContentTheme()
                     }
                 }
             }
