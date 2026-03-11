@@ -16,6 +16,7 @@ FSLib is a Kotlin Multiplatform library (`com.fonrouge.fsLib`) for building full
 ./gradlew :sql:build               # Build the SQL engine module
 ./gradlew :media:build             # Build the media module
 ./gradlew :ssr:build               # Build the SSR module
+./gradlew :memorydb:build          # Build the in-memory DB engine module
 ./gradlew :ssr:test                # Run SSR tests
 ./gradlew publishToMavenLocal      # Publish library modules to local Maven
 ```
@@ -26,10 +27,10 @@ FSLib is a Kotlin Multiplatform library (`com.fonrouge.fsLib`) for building full
 ./gradlew :samples:ssr:basic:run           # Run SSR basic sample
 ./gradlew :samples:ssr:catalog:run         # Run SSR catalog sample
 ./gradlew :samples:ssr:advanced:run        # Run SSR advanced sample
-./gradlew :samples:fullstack:rpc-demo:jvmRun   # Run fullstack RPC demo (Ktor server)
-./gradlew :samples:fullstack:rpc-demo:jsRun    # Run fullstack RPC demo (JS dev server)
-./gradlew :samples:fullstack:greeting:jvmRun   # Run greeting sample
-./gradlew :samples:fullstack:contacts:jvmRun   # Run contacts sample
+./gradlew :samples:fullstack:greeting:run      # Run greeting sample (builds JS + starts Ktor)
+./gradlew :samples:fullstack:contacts:run      # Run contacts sample
+./gradlew :samples:fullstack:rpc-demo:run      # Run fullstack RPC demo
+./gradlew :samples:fullstack:showcase:run      # Run showcase sample (ViewList, ViewItem, InMemoryRepository)
 ```
 
 ## Architecture
@@ -43,6 +44,7 @@ samples:ssr:*       → ssr → fullstack → core
                          → mongodb ↗
 media               → mongodb → fullstack → core
 sql                 → fullstack → core
+memorydb            → fullstack → core
 ```
 
 - **`:core`** — Platform-independent foundation (commonMain/jvmMain/jsMain). Contains `BaseDoc<ID>` (the document interface all models implement), common interfaces (`ICommon`, `ICommonContainer`), date/math utilities, custom BSON-aware serializers (ObjectId, dates, numeric types), SQL annotations (`@SqlField`, `@SqlIgnoreField`, `@SqlOneToOne`), coroutine helpers, user session/role models, state management, and API interfaces. Uses `kmongo-coroutine-serialization` for BSON serializer actuals, `ktor-server-core` for `ApplicationCall` typealias, and `kvision-common-remote` for shared date types. Source packages: `com.fonrouge.base.*`.
@@ -55,6 +57,8 @@ sql                 → fullstack → core
 - **`:mongodb`** — MongoDB database engine (JVM-only). `Coll<T: BaseDoc>` — MongoDB implementation of `IRepository` providing aggregation pipelines, lookups, filtering, change logging, and role-based access (built on KMongo coroutine driver). `MongoDb` — database connection management. `FieldPath` — nested property path builder. Registers `MongoRolePermissionProvider` with `PermissionRegistry` for cross-engine permission checks.
 
 - **`:sql`** — SQL database engine (JVM-only). `SqlRepository` — SQL implementation of `IRepository` using Exposed for relational database access. `SqlDatabase` — SQL connection management with MSSQL/jTDS JDBC drivers. Uses `PermissionRegistry` for role-based access control.
+
+- **`:memorydb`** — In-memory database engine (JVM-only). `InMemoryRepository` — in-memory implementation of `IRepository` using `ConcurrentHashMap` for storage. Designed for samples, tests, and prototyping — no database engine required. Supports CRUD, pagination, column-level filtering/sorting (from Tabulator header filters), and the full `apiItemProcess` lifecycle with hooks. All lifecycle hooks are no-ops by default. Source packages: `com.fonrouge.fullStack.memoryDb`.
 
 - **`:ssr`** — Server-Side Rendering module (JVM-only). Provides `PageDef`, `FormContext`, `ColumnDef`, layout builders, and Ktor HTML integration for building server-rendered CRUD pages without a JS frontend.
 
@@ -88,6 +92,7 @@ sql                 → fullstack → core
 ### Coding Conventions
 
 - Always add KDoc comments to any created or updated class, function, struct, interface, or any other code construct.
+- **Tabulator column `field` parameter**: Use `fieldName(Model::property)` (from `com.fonrouge.base.fieldName`) instead of raw dot-prefix strings like `"._id"`. The `fieldName()` helper generates the correct field path from a Kotlin property reference, ensuring type-safety and avoiding mismatches with the serialized data. Example: `field = fieldName(Task::_id)` instead of `field = "._id"`.
 
 ### SQL Annotations
 

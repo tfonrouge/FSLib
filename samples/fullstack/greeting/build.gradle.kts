@@ -13,6 +13,26 @@ group = "com.example"
 
 val mainClassName = "io.ktor.server.netty.EngineMain"
 
+val copyJsBundleToAssets by tasks.registering(Copy::class) {
+    group = "application"
+    description = "Copies the webpack development bundle and index.html into the JVM classpath under /assets"
+    dependsOn("jsBrowserDevelopmentWebpack", "jsProcessResources")
+    from(tasks.named("jsBrowserDevelopmentWebpack").map { it.outputs.files })
+    from(layout.buildDirectory.dir("processedResources/js/main"))
+    into(layout.buildDirectory.dir("processedResources/jvm/main/assets"))
+}
+
+tasks.matching { it.name == "jvmRun" }.configureEach {
+    dependsOn(copyJsBundleToAssets)
+}
+
+tasks.register("run") {
+    group = "application"
+    description = "Builds the JS frontend and starts the Ktor backend on http://localhost:8080"
+    dependsOn(copyJsBundleToAssets)
+    finalizedBy("jvmRun")
+}
+
 kotlin {
     jvmToolchain(21)
     jvm {

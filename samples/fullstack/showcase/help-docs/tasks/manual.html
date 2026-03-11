@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management Manual</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            min-height: 100vh;
+            color: #2d3748;
+            background: #ffffff;
+        }
+        body[data-help-theme="dark"] {
+            color: #e2e8f0;
+            background: #1a202c;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: #f7fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        body[data-help-theme="dark"] .sidebar {
+            background: #2d3748;
+            border-right-color: #4a5568;
+        }
+        .sidebar h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #a0aec0;
+            margin-bottom: 12px;
+        }
+        .sidebar a {
+            display: block;
+            padding: 6px 10px;
+            color: #4a5568;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+        body[data-help-theme="dark"] .sidebar a { color: #cbd5e0; }
+        .sidebar a:hover { background: #edf2f7; color: #2b6cb0; }
+        body[data-help-theme="dark"] .sidebar a:hover { background: #4a5568; color: #63b3ed; }
+
+        /* Main content */
+        .content {
+            flex: 1;
+            padding: 32px 40px;
+            max-width: 800px;
+        }
+        .content h1 {
+            font-size: 1.8rem;
+            color: #2b6cb0;
+            margin-bottom: 8px;
+        }
+        body[data-help-theme="dark"] .content h1 { color: #63b3ed; }
+        .content h2 {
+            font-size: 1.3rem;
+            color: #2d3748;
+            margin-top: 2em;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        body[data-help-theme="dark"] .content h2 {
+            color: #e2e8f0;
+            border-bottom-color: #4a5568;
+        }
+        .content p { margin: 12px 0; line-height: 1.7; }
+        .content ul { margin: 8px 0 8px 24px; }
+        .content li { margin-bottom: 6px; line-height: 1.6; }
+        .content code {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        body[data-help-theme="dark"] .content code {
+            background: #4a5568;
+        }
+        .highlight {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        body[data-help-theme="dark"] .highlight {
+            background: #2a4365;
+            border-left-color: #63b3ed;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h3>Contents</h3>
+        <a href="#overview">Overview</a>
+        <a href="#task-list">Task List</a>
+        <a href="#task-form">Task Form</a>
+        <a href="#data-model">Data Model</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#faq">FAQ</a>
+    </nav>
+
+    <main class="content">
+        <h1>Task Management Manual</h1>
+        <p>A comprehensive guide to the Task Management module in the FSLib Showcase sample.</p>
+
+        <h2 id="overview">Overview</h2>
+        <p>The Task Management module demonstrates FSLib's full CRUD lifecycle: listing tasks in
+           a data grid, creating new tasks via a form, editing existing ones, and deleting them.
+           All data is stored in an in-memory repository &mdash; no database required.</p>
+
+        <div class="highlight">
+            <strong>Good to know:</strong> Since this sample uses in-memory storage, all data
+            resets when the server restarts. Think of it as a sandbox where you can experiment freely.
+        </div>
+
+        <h2 id="task-list">Task List</h2>
+        <p>The main view shows tasks in a Tabulator data grid with these features:</p>
+        <ul>
+            <li><strong>Server-side pagination</strong> &mdash; only one page of data is loaded at a time.</li>
+            <li><strong>Column sorting</strong> &mdash; click headers to sort ascending or descending.</li>
+            <li><strong>Header filters</strong> &mdash; type in the filter inputs below Title and Assignee.</li>
+            <li><strong>Color-coded badges</strong> &mdash; Priority and Status display as colored labels.</li>
+            <li><strong>Inline delete</strong> &mdash; trash icon in the last column for quick removal.</li>
+        </ul>
+
+        <h2 id="task-form">Task Form</h2>
+        <p>The task form uses FSLib's <code>formRow</code> / <code>formColumn</code> layout helpers
+           for a clean Bootstrap grid arrangement.</p>
+        <ul>
+            <li><strong>Title</strong> (required) &mdash; the task name.</li>
+            <li><strong>Assignee</strong> &mdash; who is responsible.</li>
+            <li><strong>Priority</strong> &mdash; dropdown with Low, Medium, High, Critical.</li>
+            <li><strong>Status</strong> &mdash; dropdown with Open, InProgress, Done, Cancelled.</li>
+            <li><strong>Estimated Hours</strong> &mdash; numeric spinner (0&ndash;1000).</li>
+            <li><strong>Description</strong> &mdash; free-text area for notes.</li>
+        </ul>
+        <p>Validation runs client-side before submission. The Title field must be filled in.</p>
+
+        <h2 id="data-model">Data Model</h2>
+        <p>Each task is a <code>Task</code> data class implementing <code>BaseDoc&lt;String&gt;</code>:</p>
+        <ul>
+            <li><code>_id</code> &mdash; unique string identifier (auto-generated on create).</li>
+            <li><code>title</code>, <code>description</code>, <code>assignee</code> &mdash; text fields.</li>
+            <li><code>priority</code>, <code>status</code> &mdash; string-typed enum values.</li>
+            <li><code>estimatedHours</code> &mdash; integer.</li>
+        </ul>
+
+        <h2 id="architecture">Architecture</h2>
+        <p>This sample follows FSLib's standard fullstack architecture:</p>
+        <ul>
+            <li><strong>commonMain</strong> &mdash; shared model (<code>Task</code>), filter
+                (<code>TaskFilter</code>), and RPC service interface (<code>ITaskService</code>).</li>
+            <li><strong>jvmMain</strong> &mdash; Ktor server with <code>InMemoryRepository</code>
+                backend and <code>TaskService</code> implementation.</li>
+            <li><strong>jsMain</strong> &mdash; KVision frontend with <code>ViewListTask</code>
+                (grid), <code>ViewItemTask</code> (form), and <code>App</code> (routing).</li>
+        </ul>
+        <p>RPC communication between client and server is handled by Kilua RPC with
+           type-safe service interfaces shared across platforms.</p>
+
+        <h2 id="faq">FAQ</h2>
+        <p><strong>Q: Why do my changes disappear after restarting?</strong><br>
+           A: The sample uses <code>InMemoryRepository</code>, which stores data in a
+           <code>ConcurrentHashMap</code>. Data lives only in server memory and is re-seeded on startup.</p>
+
+        <p><strong>Q: Can I change the number of rows per page?</strong><br>
+           A: The default page size is configured in <code>ViewListTask</code>'s Tabulator setup.
+           Look for the <code>fsTabulator</code> call to customize pagination options.</p>
+
+        <p><strong>Q: How do I add a new field?</strong><br>
+           A: Add the property to the <code>Task</code> data class in commonMain, add a column
+           in <code>ViewListTask</code>, and a form field in <code>ViewItemTask</code>. That's it!</p>
+    </main>
+</body>
+</html>

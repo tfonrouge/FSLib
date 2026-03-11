@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7;
+            color: #2d3748;
+        }
+        body[data-help-theme="dark"] {
+            color: #e2e8f0;
+            background: #1a202c;
+        }
+        h2 { color: #2b6cb0; }
+        body[data-help-theme="dark"] h2 { color: #63b3ed; }
+        h3 { color: #4a5568; margin-top: 1.2em; }
+        body[data-help-theme="dark"] h3 { color: #a0aec0; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        body[data-help-theme="dark"] th,
+        body[data-help-theme="dark"] td {
+            border-bottom-color: #4a5568;
+        }
+        th { background: #f7fafc; font-weight: 600; }
+        body[data-help-theme="dark"] th { background: #2d3748; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; }
+        .bg-danger { background: #e53e3e; color: white; }
+        .bg-warning { background: #ecc94b; color: #1a202c; }
+        .bg-info { background: #4299e1; color: white; }
+        .bg-secondary { background: #a0aec0; color: white; }
+    </style>
+</head>
+<body>
+    <h2>Task List Reference</h2>
+
+    <h3>Columns</h3>
+    <table>
+        <tr><th>Column</th><th>Description</th></tr>
+        <tr><td>ID</td><td>Unique task identifier. Sortable.</td></tr>
+        <tr><td>Title</td><td>Task name. Sortable and filterable.</td></tr>
+        <tr><td>Assignee</td><td>Person responsible. Sortable and filterable.</td></tr>
+        <tr><td>Priority</td><td>
+            <span class="badge bg-danger">Critical</span>
+            <span class="badge bg-warning">High</span>
+            <span class="badge bg-info">Medium</span>
+            <span class="badge bg-secondary">Low</span>
+        </td></tr>
+        <tr><td>Status</td><td>Current task state: Open, InProgress, Done, or Cancelled.</td></tr>
+        <tr><td>Est. Hours</td><td>Estimated effort in hours.</td></tr>
+        <tr><td>(delete)</td><td>Click the trash icon to remove a task.</td></tr>
+    </table>
+
+    <h3>Toolbar Actions</h3>
+    <table>
+        <tr><th>Button</th><th>Action</th></tr>
+        <tr><td><strong>New</strong></td><td>Opens an empty form to create a task.</td></tr>
+        <tr><td><strong>Refresh</strong></td><td>Reloads the current page of data.</td></tr>
+    </table>
+
+    <h3>Filtering</h3>
+    <p>Type in the filter box below <em>Title</em> or <em>Assignee</em> to search.
+       Filters use a "contains" match and are processed on the server.</p>
+
+    <h3>Pagination</h3>
+    <p>Results are paginated. Use the navigation controls at the bottom of the table
+       to move between pages.</p>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7;
+            color: #2d3748;
+            max-width: 100%;
+        }
+        body[data-help-theme="dark"] {
+            color: #e2e8f0;
+            background: #1a202c;
+        }
+        h2 { color: #2b6cb0; margin-top: 1.5em; }
+        body[data-help-theme="dark"] h2 { color: #63b3ed; }
+        .step {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        body[data-help-theme="dark"] .step {
+            background: #2a4365;
+            border-left-color: #63b3ed;
+        }
+        .tip {
+            background: #f0fff4;
+            border-left: 4px solid #38a169;
+            padding: 10px 14px;
+            margin: 12px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        body[data-help-theme="dark"] .tip {
+            background: #22543d;
+            border-left-color: #68d391;
+        }
+        kbd {
+            background: #edf2f7;
+            border: 1px solid #cbd5e0;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 0.85em;
+        }
+        body[data-help-theme="dark"] kbd {
+            background: #4a5568;
+            border-color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <h2>Task List Tutorial</h2>
+    <p>Welcome to the Task Manager! This view shows all your tasks in a powerful data grid.
+       Let's walk through what you can do here.</p>
+
+    <div class="step">
+        <strong>Step 1: Browse tasks</strong><br>
+        The table displays all tasks with columns for ID, Title, Assignee, Priority, Status,
+        and Estimated Hours. Colored badges make it easy to spot critical items at a glance.
+    </div>
+
+    <div class="step">
+        <strong>Step 2: Sort columns</strong><br>
+        Click any column header to sort ascending or descending.
+        Click again to toggle the sort direction. You can sort by title, assignee, priority, or any other column.
+    </div>
+
+    <div class="step">
+        <strong>Step 3: Filter rows</strong><br>
+        The Title and Assignee columns have a built-in filter input right below the header.
+        Start typing to narrow down the list instantly. Filtering happens server-side,
+        so it works the same way with thousands of rows.
+    </div>
+
+    <div class="step">
+        <strong>Step 4: Create a new task</strong><br>
+        Click the <strong>New</strong> button in the toolbar to open the task form.
+        Fill in the details and save your new task.
+    </div>
+
+    <div class="step">
+        <strong>Step 5: Edit or delete</strong><br>
+        Click any row to open it for editing. Use the trash icon column on the right
+        to delete a task directly from the list.
+    </div>
+
+    <div class="tip">
+        <strong>Tip:</strong> The grid supports server-side pagination. Use the page
+        controls at the bottom to navigate through larger data sets.
+    </div>
+</body>
+</html>

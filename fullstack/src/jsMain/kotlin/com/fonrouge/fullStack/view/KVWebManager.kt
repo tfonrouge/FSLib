@@ -2,11 +2,11 @@
 
 package com.fonrouge.fullStack.view
 
+import com.fonrouge.fullStack.config.ConfigView
 import com.fonrouge.fullStack.config.ViewRegistry
 import com.fonrouge.fullStack.routing.initialize
 import io.kvision.routing.Routing
 import io.kvision.state.ObservableValue
-import io.kvision.toast.Toast
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,8 +14,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 
 val AppScope = CoroutineScope(window.asCoroutineDispatcher())
-
-interface IConfigViewContainer
 
 /**
  * Singleton object that manages the web application's configuration, routing, and other global settings.
@@ -29,8 +27,11 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     var motto = "<motto>"
     var pageContainerWidth = "md"
 
-    //    var configViewHome: ConfigView<*, *, *>? = null
-    var configViewContainer: IConfigViewContainer? = null
+    /**
+     * The default view configuration to display when navigating to the root path.
+     * If no view is registered with an empty base URL, this view will be used as fallback.
+     */
+    var defaultView: ConfigView<*, *, *>? = null
 
     /**
      * Map of item view configurations. Delegated to [ViewRegistry].
@@ -63,10 +64,6 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
     fun initialize(block: (KVWebManager.() -> Unit)? = null) {
 
         block?.invoke(this)
-
-        if (configViewContainer == null) {
-            Toast.warning("Warning: configViewContainer property not defined")
-        }
 
         routing.initialize().resolve()
     }

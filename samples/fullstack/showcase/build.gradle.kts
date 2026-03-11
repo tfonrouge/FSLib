@@ -67,50 +67,25 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":fullstack"))
+                implementation(project(":core"))
                 implementation(libs.kilua.rpc.ktor)
                 implementation(libs.kvision.common.remote)
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-            }
-        }
         val jvmMain by getting {
             dependencies {
+                implementation(project(":memorydb"))
                 implementation(libs.ktor.server.netty)
                 implementation(libs.ktor.server.compression)
-            }
-        }
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation(kotlin("test-junit"))
             }
         }
         val jsMain by getting {
             dependencies {
                 implementation(libs.kvision)
-                implementation(libs.kvision.datetime)
-                implementation(libs.kvision.richtext)
-                implementation(libs.kvision.tom.select)
-                implementation(libs.kvision.imask)
-                implementation(libs.kvision.toastify)
-                implementation(libs.kvision.fontawesome)
                 implementation(libs.kvision.bootstrap)
-                implementation(libs.kvision.bootstrap.icons)
-                implementation(libs.kvision.i18n)
-//                implementation("io.kvision:kvision-pace:$kvisionVersion")
-                implementation(libs.kvision.print)
-//                implementation("io.kvision:kvision-handlebars:$kvisionVersion")
-                implementation(libs.kvision.chart)
-//                implementation("io.kvision:kvision-tabulator:$kvisionVersion")
-//                implementation("io.kvision:kvision-jquery:$kvisionVersion")
-//                implementation("io.kvision:kvision-routing-navigo-ng:$kvisionVersion")
-//                implementation("io.kvision:kvision-state:$kvisionVersion")
-//                implementation("io.kvision:kvision-state-flow:$kvisionVersion")
-//                implementation("io.kvision:kvision-select-remote:$kvisionVersion")
+                implementation(libs.kvision.fontawesome)
+                implementation(libs.kvision.toastify)
+                implementation(libs.kvision.tom.select)
                 implementation(libs.kvision.tom.select.remote)
                 implementation(libs.kvision.tabulator.remote)
                 implementation(libs.kvision.material)
