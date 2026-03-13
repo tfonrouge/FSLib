@@ -58,6 +58,8 @@ your-app  ──>  fullstack  ──>  core
 
 ## Installation
 
+FSLib is available on [Maven Central](https://central.sonatype.com/namespace/io.github.tfonrouge.fslib).
+
 ### Gradle (Kotlin DSL)
 
 Add the dependency to your module's `build.gradle.kts`:
@@ -65,14 +67,16 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "3.0.0"
+fslib = "3.0.1"
 
 [libraries]
-fslib-core = { module = "com.fonrouge.fsLib:core", version.ref = "fslib" }
-fslib-fullstack = { module = "com.fonrouge.fsLib:fullstack", version.ref = "fslib" }
-fslib-mongodb = { module = "com.fonrouge.fsLib:mongodb", version.ref = "fslib" }
-fslib-sql = { module = "com.fonrouge.fsLib:sql", version.ref = "fslib" }
-fslib-media = { module = "com.fonrouge.fsLib:media", version.ref = "fslib" }
+fslib-core = { module = "io.github.tfonrouge.fslib:core", version.ref = "fslib" }
+fslib-fullstack = { module = "io.github.tfonrouge.fslib:fullstack", version.ref = "fslib" }
+fslib-mongodb = { module = "io.github.tfonrouge.fslib:mongodb", version.ref = "fslib" }
+fslib-sql = { module = "io.github.tfonrouge.fslib:sql", version.ref = "fslib" }
+fslib-memorydb = { module = "io.github.tfonrouge.fslib:memorydb", version.ref = "fslib" }
+fslib-media = { module = "io.github.tfonrouge.fslib:media", version.ref = "fslib" }
+fslib-ssr = { module = "io.github.tfonrouge.fslib:ssr", version.ref = "fslib" }
 ```
 
 ```kotlin
@@ -81,12 +85,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fsLib:fullstack:3.0.0")
+                api("io.github.tfonrouge.fslib:fullstack:3.0.1")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fsLib:mongodb:3.0.0")
+                implementation("io.github.tfonrouge.fslib:mongodb:3.0.1")
             }
         }
     }
@@ -99,12 +103,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fsLib:fullstack:3.0.0")
+                api("io.github.tfonrouge.fslib:fullstack:3.0.1")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fsLib:sql:3.0.0")
+                implementation("io.github.tfonrouge.fslib:sql:3.0.1")
             }
         }
     }
@@ -117,13 +121,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fsLib:fullstack:3.0.0")
+                api("io.github.tfonrouge.fslib:fullstack:3.0.1")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fsLib:mongodb:3.0.0")
-                implementation("com.fonrouge.fsLib:sql:3.0.0")
+                implementation("io.github.tfonrouge.fslib:mongodb:3.0.1")
+                implementation("io.github.tfonrouge.fslib:sql:3.0.1")
             }
         }
     }
@@ -136,7 +140,7 @@ kotlin {
 ./gradlew publishToMavenLocal
 ```
 
-This publishes `:core`, `:fullstack`, `:mongodb`, `:sql`, `:media`, and `:ssr` to your local Maven repository (`~/.m2/repository`).
+This publishes `:core`, `:fullstack`, `:mongodb`, `:sql`, `:memorydb`, `:media`, and `:ssr` to your local Maven repository (`~/.m2/repository`).
 
 ---
 

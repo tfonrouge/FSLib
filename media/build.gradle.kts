@@ -1,10 +1,10 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.serialization)
-    id("maven-publish")
+    id("fslib-publishing")
 }
 
-group = "com.fonrouge.fsLib"
+group = "io.github.tfonrouge.fslib"
 version = libs.versions.fsLib.get()
 
 repositories {

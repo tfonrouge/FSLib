@@ -1,11 +1,11 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.serialization)
-    id("maven-publish")
+    id("fslib-publishing")
     id("org.jetbrains.dokka") version "2.0.0"
 }
 
-group = "com.fonrouge.fsLib"
+group = "io.github.tfonrouge.fslib"
 version = libs.versions.fsLib.get()
 
 repositories {
