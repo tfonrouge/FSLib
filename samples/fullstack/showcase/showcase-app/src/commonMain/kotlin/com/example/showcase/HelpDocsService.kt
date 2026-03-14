@@ -2,6 +2,7 @@ package com.example.showcase
 
 import com.fonrouge.base.enums.HelpType
 import com.fonrouge.fullStack.services.IHelpDocsService
+import dev.kilua.rpc.annotations.RpcBindingRoute
 import dev.kilua.rpc.annotations.RpcService
 
 /**
@@ -12,6 +13,8 @@ import dev.kilua.rpc.annotations.RpcService
  */
 @RpcService
 interface IShowcaseHelpDocsService : IHelpDocsService {
+    @RpcBindingRoute("IShowcaseHelpDocsService.getAvailableHelp")
     override suspend fun getAvailableHelp(viewClassName: String, moduleSlug: String?): Set<HelpType>
+    @RpcBindingRoute("IShowcaseHelpDocsService.getHelpContent")
     override suspend fun getHelpContent(viewClassName: String, helpType: HelpType, moduleSlug: String?): String
 }

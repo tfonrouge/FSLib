@@ -19,7 +19,7 @@ FSLib provides a backend-agnostic repository pattern, declarative view configura
 - **Help Documentation** — Module-scoped contextual help with tutorial and quick-reference HTML pages, auto-discovered per view.
 - **Multiple ID Types** — `OId` (MongoDB ObjectId), `IntId`, `LongId`, `StringId` — all with custom serializers.
 - **In-Memory Repository** — The `:memorydb` module provides an `InMemoryRepository` for samples, tests, and prototyping without any database engine.
-- **Named Routes & API Contract** — The `fslib-named-routes` [Gradle](https://gradle.org/) plugin produces human-readable route paths (`/rpc/ITaskService.apiList`). The `RouteContract` class exposes a `/apiContract` endpoint for third-party client (Android, etc.) route discovery.
+- **Named Routes & API Contract** — Use Kilua RPC's `@RpcBindingRoute` annotation for human-readable route paths (`/rpc/ITaskService.apiList`). The `RouteContract` class exposes a `/apiContract` endpoint for third-party client (Android, etc.) route discovery.
 - **Server-Side Rendering** — The `:ssr` module provides SSR support using [Ktor](https://ktor.io/) HTML builder.
 
 ---
@@ -423,18 +423,22 @@ Help buttons appear automatically when documentation files exist for a view.
 
 FSLib includes a system for exposing RPC endpoints to third-party clients (Android, native, etc.) that don't use KSP-generated Kilua RPC proxies.
 
-### Named Routes (Gradle Plugin)
+### Named Routes
 
-The `fslib-named-routes` convention plugin post-processes KSP-generated `ServiceManager` code, replacing counter-based route names with explicit `"ServiceName.methodName"` strings:
+Annotate RPC service methods with `@RpcBindingRoute` to produce human-readable, order-independent route paths instead of counter-based defaults:
 
 ```kotlin
-// build.gradle.kts
-plugins {
-    id("fslib-named-routes")  // Apply alongside kilua.rpc
+@RpcService
+interface ITaskService {
+    @RpcBindingRoute("ITaskService.apiList")
+    suspend fun apiList(apiList: ApiList<TaskFilter>): ListState<Task>
+
+    @RpcBindingRoute("ITaskService.apiItem")
+    suspend fun apiItem(iApiItem: IApiItem<Task, String, TaskFilter>): ItemState<Task>
 }
 ```
 
-This transforms routes from `/rpc/routeTaskServiceManager0` to `/rpc/ITaskService.apiList` — human-readable, self-documenting, and order-independent.
+This produces routes like `/rpc/ITaskService.apiList` instead of `/rpc/routeTaskServiceManager0`.
 
 ### API Contract Endpoint
 
@@ -559,7 +563,6 @@ FSLib/
   buildSrc/                        # Gradle convention plugins
     src/main/kotlin/
       fslib-publishing.gradle.kts  # Maven Central publishing
-      fslib-named-routes.gradle.kts # Named routes for Kilua RPC
   samples/                         # Sample applications
     fullstack/
       rpc-demo/                    # Full-stack KVision + Ktor sample

@@ -1,5 +1,6 @@
 package com.example.contacts
 
+import dev.kilua.rpc.annotations.RpcBindingRoute
 import dev.kilua.rpc.annotations.RpcService
 import kotlinx.serialization.Serializable
 
@@ -22,15 +23,18 @@ interface IContactService {
     /**
      * Returns all contacts.
      */
+    @RpcBindingRoute("IContactService.listContacts")
     suspend fun listContacts(): ContactListResult
 
     /**
      * Creates a new contact and returns it with a generated ID.
      */
+    @RpcBindingRoute("IContactService.createContact")
     suspend fun createContact(contact: Contact): Contact
 
     /**
      * Deletes a contact by ID and returns the updated list.
      */
+    @RpcBindingRoute("IContactService.deleteContact")
     suspend fun deleteContact(id: String): ContactListResult
 }

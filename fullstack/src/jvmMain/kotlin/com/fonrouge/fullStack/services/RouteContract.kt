@@ -54,7 +54,7 @@ data class ApiContract(
  * Builds an API contract by reading actual routes from Kilua RPC's
  * [RpcServiceManager.routeMapRegistry].
  *
- * When the `fslib-named-routes` Gradle plugin is applied, routes use
+ * When RPC methods are annotated with `@RpcBindingRoute`, routes use
  * explicit names like `/rpc/ITaskService.apiList`, and method names
  * are extracted directly from the route path. Otherwise, falls back
  * to sorting counter-based routes and pairing them with method names

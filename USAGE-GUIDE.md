@@ -1211,16 +1211,20 @@ FSLib provides a complete system for exposing RPC endpoints to third-party clien
 
 ### Named Routes
 
-Apply the `fslib-named-routes` Gradle plugin to any module that uses `@RpcService`:
+Annotate RPC service methods with `@RpcBindingRoute` to produce human-readable, order-independent route paths:
 
 ```kotlin
-plugins {
-    alias(libs.plugins.kilua.rpc)
-    id("fslib-named-routes")
+@RpcService
+interface ITaskService {
+    @RpcBindingRoute("ITaskService.apiList")
+    suspend fun apiList(apiList: ApiList<TaskFilter>): ListState<Task>
+
+    @RpcBindingRoute("ITaskService.apiItem")
+    suspend fun apiItem(iApiItem: IApiItem<Task, String, TaskFilter>): ItemState<Task>
 }
 ```
 
-This post-processes KSP-generated `ServiceManager` code, replacing counter-based route names with explicit `"ServiceName.methodName"` strings. Routes become human-readable (`/rpc/ITaskService.apiList`) and order-independent.
+This produces routes like `/rpc/ITaskService.apiList` instead of counter-based defaults like `/rpc/routeTaskServiceManager0`.
 
 ### RouteContract
 
