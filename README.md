@@ -529,13 +529,6 @@ See `samples/fullstack/showcase/` for a complete working example with `showcase-
 
 ---
 
-## Migration
-
-- **From 1.x → 2.0:** See `MIGRATION-GUIDE-2.0.md`
-- **From 2.0 → 3.0:** See `MIGRATION-GUIDE-3.0.md` — covers module renames, engine extraction, permission decoupling, and dependency changes.
-
----
-
 ## Project Structure
 
 ```
@@ -581,8 +574,6 @@ FSLib/
       advanced/                    # Advanced SSR sample
   CLAUDE.md                        # AI assistant instructions
   HELP-DOCS-GUIDE.md               # Help documentation guide
-  MIGRATION-GUIDE-2.0.md           # 1.x → 2.0 migration guide
-  MIGRATION-GUIDE-3.0.md           # 2.0 → 3.0 migration guide
 ```
 
 ---

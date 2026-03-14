@@ -114,10 +114,6 @@ The file `HELP-DOCS-GUIDE.md` contains the full guide for the help documentation
 - Content tone should be **enjoyable and fun** — friendly, conversational, with light humor where appropriate.
 - Content language is determined by each downstream project (language-agnostic).
 
-### Migration Guide
-
-The file `MIGRATION-GUIDE-2.0.md` documents all breaking changes, new features, and migration steps from FSLib 1.x to 2.0 (dual database engine support).
-
 ### Language
 
 Code comments, KDoc, and user-facing strings should be written in **English**. The project uses KVision's i18n module for internationalization, allowing downstream applications to provide translations for any target language.
