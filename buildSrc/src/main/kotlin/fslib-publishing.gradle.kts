@@ -16,6 +16,10 @@
 //   ./gradlew publishAllPublicationsToStagingRepository  (all modules)
 //   ./gradlew :core:publishAllPublicationsToStagingRepository  (single module)
 //   Then from root: ./gradlew publishToCentralPortal
+//
+// Local development:
+//   ./gradlew publishToMavenLocal -PSNAPSHOT
+//   Appends "-SNAPSHOT" to the version automatically.
 // ---------------------------------------------------------------------------
 
 plugins {
@@ -50,6 +54,12 @@ publishing {
             artifact(javadocJar)
         }
     }
+}
+
+// Append "-SNAPSHOT" to the version when the -PSNAPSHOT flag is passed.
+// Usage: ./gradlew publishToMavenLocal -PSNAPSHOT
+if (hasProperty("SNAPSHOT") && !version.toString().endsWith("-SNAPSHOT")) {
+    version = "${version}-SNAPSHOT"
 }
 
 publishing {

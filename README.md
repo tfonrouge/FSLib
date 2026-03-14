@@ -522,6 +522,29 @@ A standalone Android client that consumes the showcase API contract is available
 ./gradlew publishToMavenLocal      # Publish to local Maven
 ```
 
+### Local Development with SNAPSHOT
+
+To publish a SNAPSHOT version to your local Maven repository for development and testing:
+
+```bash
+./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 3.0.3-SNAPSHOT to ~/.m2/
+./gradlew :core:publishToMavenLocal -PSNAPSHOT  # Single module only
+```
+
+The `-PSNAPSHOT` flag automatically appends `-SNAPSHOT` to the version defined in `libs.versions.toml` — no manual version editing required. In your consuming project, add `mavenLocal()` and reference the snapshot:
+
+```kotlin
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    implementation("com.fonrouge.fsLib:fullstack:3.0.3-SNAPSHOT")
+}
+```
+
+> **Tip:** Gradle caches SNAPSHOT dependencies. If you republish the same snapshot version, use `--refresh-dependencies` in the consuming project to pick up the latest artifacts.
+
 ### Sample Applications
 
 ```bash

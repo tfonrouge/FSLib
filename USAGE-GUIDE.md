@@ -79,6 +79,31 @@ kotlin {
 }
 ```
 
+### Local Development with SNAPSHOT
+
+To develop and test against a local build of FSLib, publish a SNAPSHOT version to your local Maven repository:
+
+```bash
+./gradlew publishToMavenLocal -PSNAPSHOT
+```
+
+The `-PSNAPSHOT` flag automatically appends `-SNAPSHOT` to the version (e.g., `3.0.3` becomes `3.0.3-SNAPSHOT`) without modifying `libs.versions.toml`. Then in your consuming project:
+
+```kotlin
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    // Use the SNAPSHOT version matching what you published
+    api("com.fonrouge.fslib:fullstack:3.0.3-SNAPSHOT")
+}
+```
+
+You can also publish a single module: `./gradlew :fullstack:publishToMavenLocal -PSNAPSHOT`
+
+> **Tip:** Gradle caches SNAPSHOT dependencies. Use `--refresh-dependencies` in the consuming project after republishing to pick up the latest artifacts.
+
 ### Application Entry Point (jvmMain)
 
 ```kotlin

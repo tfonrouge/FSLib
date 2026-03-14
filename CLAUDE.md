@@ -18,7 +18,7 @@ FSLib is a Kotlin Multiplatform library (`com.fonrouge.fsLib`) for building full
 ./gradlew :ssr:build               # Build the SSR module
 ./gradlew :memorydb:build          # Build the in-memory DB engine module
 ./gradlew :ssr:test                # Run SSR tests
-./gradlew publishToMavenLocal      # Publish library modules to local Maven
+./gradlew publishToMavenLocal -PSNAPSHOT  # Publish SNAPSHOT to local Maven (~/.m2/)
 ```
 
 ### Sample Applications
