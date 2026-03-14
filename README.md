@@ -1,6 +1,6 @@
 # FSLib
 
-**Kotlin Multiplatform full-stack CRUD library for MongoDB and SQL backends with KVision frontend.**
+**[Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) full-stack CRUD library for [MongoDB](https://www.mongodb.com/) and SQL backends with [KVision](https://kvision.io/) frontend.**
 
 FSLib provides a backend-agnostic repository pattern, declarative view configuration, Tabulator-based data grids, role-based access control, change logging, and shared data models across JVM/JS targets. It eliminates repetitive CRUD boilerplate so you can focus on business logic.
 
@@ -8,10 +8,10 @@ FSLib provides a backend-agnostic repository pattern, declarative view configura
 
 ## Key Features
 
-- **Modular Database Engines** — MongoDB (via KMongo) and SQL (via Exposed) are independent, optional modules. Use one, the other, or both through a single `IRepository` interface with cross-engine dependency checking.
-- **Full-Stack Type Safety** — Shared Kotlin models, serializers, and RPC service definitions between server and browser via Kilua RPC.
+- **Modular Database Engines** — MongoDB (via [KMongo](https://litote.org/kmongo/)) and SQL (via [Exposed](https://github.com/JetBrains/Exposed)) are independent, optional modules. Use one, the other, or both through a single `IRepository` interface with cross-engine dependency checking.
+- **Full-Stack Type Safety** — Shared Kotlin models, serializers, and RPC service definitions between server and browser via [Kilua RPC](https://github.com/rjaros/kilua-rpc).
 - **Declarative View System** — Configure list and item views with `ConfigViewList` / `ConfigViewItem`. The framework handles routing, pagination, forms, and CRUD operations.
-- **Tabulator Integration** — Server-side pagination, filtering, and sorting out of the box with `TabulatorViewList`.
+- **[Tabulator](https://tabulator.info/) Integration** — Server-side pagination, filtering, and sorting out of the box with `TabulatorViewList`.
 - **Lifecycle Hooks** — `onQueryCreate`, `onBeforeUpdateAction`, `onAfterDeleteAction`, `onValidate`, and many more hooks on the repository for validation, transformation, and side effects.
 - **Role-Based Access Control** — Built-in permission system with users, groups, roles, and per-CRUD-task permissions. Decoupled from any specific database engine via `IRolePermissionProvider`.
 - **Change Logging** — Automatic audit trail recording before/after snapshots on create, update, and delete operations.
@@ -19,8 +19,8 @@ FSLib provides a backend-agnostic repository pattern, declarative view configura
 - **Help Documentation** — Module-scoped contextual help with tutorial and quick-reference HTML pages, auto-discovered per view.
 - **Multiple ID Types** — `OId` (MongoDB ObjectId), `IntId`, `LongId`, `StringId` — all with custom serializers.
 - **In-Memory Repository** — The `:memorydb` module provides an `InMemoryRepository` for samples, tests, and prototyping without any database engine.
-- **Named Routes & API Contract** — The `fslib-named-routes` Gradle plugin produces human-readable route paths (`/rpc/ITaskService.apiList`). The `RouteContract` class exposes a `/apiContract` endpoint for third-party client (Android, etc.) route discovery.
-- **Server-Side Rendering** — The `:ssr` module provides SSR support using Ktor HTML builder.
+- **Named Routes & API Contract** — The `fslib-named-routes` [Gradle](https://gradle.org/) plugin produces human-readable route paths (`/rpc/ITaskService.apiList`). The `RouteContract` class exposes a `/apiContract` endpoint for third-party client (Android, etc.) route discovery.
+- **Server-Side Rendering** — The `:ssr` module provides SSR support using [Ktor](https://ktor.io/) HTML builder.
 
 ---
 
@@ -38,24 +38,24 @@ your-app  ──>  fullstack  ──>  core
 | Module | Purpose |
 |--------|---------|
 | **`:core`** | Platform-independent foundation: `BaseDoc<ID>`, ID types, annotations, serializers, state management, user/role models, API framework, date/math utilities. |
-| **`:fullstack`** | Core library. **jvmMain**: `IRepository` interface, `IRolePermissionProvider`, `PermissionRegistry`, permissions, change logging, `RouteContract` for API contract discovery, Ktor server stack. **jsMain**: View system, configuration, Tabulator wrappers, layout helpers, `ViewRegistry`. **commonMain**: Shared RPC interfaces. |
-| **`:mongodb`** | MongoDB engine (JVM-only). `Coll` implementation with aggregation pipelines, lookups, filtering, change logging, and role-based access via KMongo coroutine driver. |
-| **`:sql`** | SQL engine (JVM-only). `SqlRepository` implementation using Exposed for relational database access with type-aware filtering and identifier quoting. |
+| **`:fullstack`** | Core library. **jvmMain**: `IRepository` interface, `IRolePermissionProvider`, `PermissionRegistry`, permissions, change logging, `RouteContract` for API contract discovery, [Ktor](https://ktor.io/) server stack. **jsMain**: View system, configuration, [Tabulator](https://tabulator.info/) wrappers, layout helpers, `ViewRegistry`. **commonMain**: Shared RPC interfaces via [Kilua RPC](https://github.com/rjaros/kilua-rpc). |
+| **`:mongodb`** | MongoDB engine (JVM-only). `Coll` implementation with aggregation pipelines, lookups, filtering, change logging, and role-based access via [KMongo](https://litote.org/kmongo/) coroutine driver. |
+| **`:sql`** | SQL engine (JVM-only). `SqlRepository` implementation using [Exposed](https://github.com/JetBrains/Exposed) for relational database access with type-aware filtering and identifier quoting. |
 | **`:memorydb`** | In-memory database engine (JVM-only). `InMemoryRepository` using `ConcurrentHashMap` for storage. Designed for samples, tests, and prototyping — no database engine required. |
 | **`:media`** | Extensions: `DataMedia` (file attachments) and `ChangeLog` views built on top of `:fullstack`. |
-| **`:ssr`** | Server-side rendering with Ktor HTML builder. |
+| **`:ssr`** | Server-side rendering with [Ktor](https://ktor.io/) HTML builder. |
 
 ### Technology Stack
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| Language | Kotlin (Multiplatform) | 2.3.x |
-| Backend | Ktor (Netty) | 3.4.x |
-| MongoDB | KMongo (coroutine) | 5.5.x |
-| SQL | Exposed | 0.61.x |
-| Frontend | KVision | 9.4.x |
-| RPC | Kilua RPC | 0.0.42 |
-| Serialization | kotlinx-serialization | 1.10.x |
+| Language | [Kotlin](https://kotlinlang.org/) (Multiplatform) | 2.3.x |
+| Backend | [Ktor](https://ktor.io/) (Netty) | 3.4.x |
+| MongoDB | [KMongo](https://litote.org/kmongo/) (coroutine) | 5.5.x |
+| SQL | [Exposed](https://github.com/JetBrains/Exposed) | 0.61.x |
+| Frontend | [KVision](https://kvision.io/) | 9.4.x |
+| RPC | [Kilua RPC](https://github.com/rjaros/kilua-rpc) | 0.0.42 |
+| Serialization | [kotlinx-serialization](https://github.com/Kotlin/kotlinx.serialization) | 1.10.x |
 | JVM | Toolchain 21 | |
 
 ---

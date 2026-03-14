@@ -1,6 +1,6 @@
 # FSLib Usage Guide
 
-This guide walks through building a full-stack CRUD application with FSLib, from project setup to advanced features like master-detail views, change logging, and role-based access control.
+This guide walks through building a full-stack CRUD application with FSLib, from project setup to advanced features like master-detail views, change logging, and role-based access control. FSLib integrates [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html), [Ktor](https://ktor.io/), [KVision](https://kvision.io/), and [Kilua RPC](https://github.com/rjaros/kilua-rpc).
 
 ---
 
@@ -221,7 +221,7 @@ The `masterItemId` property is inherited from `IApiFilter` and populated automat
 
 ## 5. RPC Services
 
-Define shared RPC interfaces in `commonMain` using Kilua RPC:
+Define shared RPC interfaces in `commonMain` using [Kilua RPC](https://github.com/rjaros/kilua-rpc):
 
 ```kotlin
 @KiluaRpcServiceName("ICustomerService")
@@ -250,7 +250,7 @@ interface ICustomerService {
 
 ## 6. MongoDB Repository (Coll)
 
-`Coll` is the MongoDB implementation of `IRepository`. It wraps KMongo's coroutine driver with CRUD operations, aggregation pipelines, and lifecycle hooks.
+`Coll` is the MongoDB implementation of `IRepository`. It wraps [KMongo](https://litote.org/kmongo/)'s coroutine driver with CRUD operations, aggregation pipelines, and lifecycle hooks.
 
 ```kotlin
 class CustomerColl : Coll<CommonCustomer, Customer, OId<Customer>, CustomerFilter, OId<User>>(
@@ -309,7 +309,7 @@ class OrderColl : Coll<CommonOrder, Order, OId<Order>, OrderFilter, OId<User>>(
 
 ## 7. SQL Repository (SqlRepository)
 
-`SqlRepository` is the SQL implementation of `IRepository`, using Exposed for relational database access.
+`SqlRepository` is the SQL implementation of `IRepository`, using [Exposed](https://github.com/JetBrains/Exposed) for relational database access.
 
 ```kotlin
 class ProductSqlRepo : SqlRepository<CommonProduct, Product, IntId<Product>, ProductFilter, OId<User>>(
@@ -450,7 +450,7 @@ actual class CustomerService : ICustomerService {
 
 ## 10. Frontend View Configuration
 
-Before creating views, initialize the `ViewRegistry` in your KVision application:
+Before creating views, initialize the `ViewRegistry` in your [KVision](https://kvision.io/) application:
 
 ```kotlin
 class App : Application() {
@@ -516,7 +516,7 @@ object ConfigViewItemCustomer : ConfigViewItem<
 
 ## 11. List Views
 
-A `ViewList` displays a paginated data grid using Tabulator:
+A `ViewList` displays a paginated data grid using [Tabulator](https://tabulator.info/):
 
 ```kotlin
 class ViewListCustomer : ViewList<
@@ -553,10 +553,10 @@ class ViewListCustomer : ViewList<
 }
 ```
 
-### Tabulator Features
+### [Tabulator](https://tabulator.info/) Features
 
 - **Server-side pagination** — Automatic via `TabulatorViewList`.
-- **Column filtering** — Header filters map to Tabulator remote filters, translated to MongoDB match stages or SQL WHERE clauses.
+- **Column filtering** — Header filters map to [Tabulator](https://tabulator.info/) remote filters, translated to MongoDB match stages or SQL WHERE clauses.
 - **Column sorting** — Click column headers; translated to MongoDB sort stages or SQL ORDER BY.
 - **Column persistence** — Layout (widths, order, visibility) persisted to localStorage.
 - **Row selection** — Bound to `selectedItemObs` observable.
@@ -973,7 +973,7 @@ val profile: UserProfile? = null
 
 ## 22. Custom Serializers
 
-FSLib provides custom multiplatform serializers for types that need special handling:
+FSLib provides custom multiplatform serializers (using [kotlinx-serialization](https://github.com/Kotlin/kotlinx.serialization)) for types that need special handling:
 
 | Serializer | Type | Usage |
 |-----------|------|-------|
@@ -987,7 +987,7 @@ FSLib provides custom multiplatform serializers for types that need special hand
 | `FSNumberDoubleSerializer` | `Double` | Custom double handling |
 | `FSNumberInt32Serializer` | `Int` | Custom int handling |
 
-These are applied automatically through the kotlinx-serialization module registered with Kilua RPC. You generally do not need to reference them directly unless building custom serialization logic.
+These are applied automatically through the [kotlinx-serialization](https://github.com/Kotlin/kotlinx.serialization) module registered with [Kilua RPC](https://github.com/rjaros/kilua-rpc). You generally do not need to reference them directly unless building custom serialization logic.
 
 ---
 
@@ -1207,7 +1207,7 @@ class ReportColl : Coll<...>(...) {
 
 ## 27. Named Routes & API Contract
 
-FSLib provides a complete system for exposing RPC endpoints to third-party clients (Android, native apps, etc.) that don't use KSP-generated Kilua RPC proxies.
+FSLib provides a complete system for exposing RPC endpoints to third-party clients (Android, native apps, etc.) that don't use KSP-generated [Kilua RPC](https://github.com/rjaros/kilua-rpc) proxies.
 
 ### Named Routes
 
@@ -1224,7 +1224,7 @@ This post-processes KSP-generated `ServiceManager` code, replacing counter-based
 
 ### RouteContract
 
-`RouteContract` reads actual routes from Kilua RPC's `routeMapRegistry` and serves them via an API endpoint:
+`RouteContract` reads actual routes from [Kilua RPC](https://github.com/rjaros/kilua-rpc)'s `routeMapRegistry` and serves them via an API endpoint:
 
 ```kotlin
 fun Application.main() {
