@@ -3,12 +3,10 @@
 build
 /build/classes/kotlin/backend/main/
 /fsLib/build/
-/.idea/
-/.kotlin-js-store/yarn.lock
 .idea/
+**/yarn.lock
 .DS_Store
 /local.properties
-/kotlin-js-store/yarn.lock
 /.kotlin/
 /backendLib/build
 /utils/build/
