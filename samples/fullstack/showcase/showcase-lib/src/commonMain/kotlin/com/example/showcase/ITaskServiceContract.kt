@@ -4,14 +4,17 @@ import com.fonrouge.base.api.ApiList
 import com.fonrouge.base.api.IApiItem
 import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.ListState
-import dev.kilua.rpc.annotations.RpcService
 
 /**
- * RPC service interface for Task operations.
- * Shared between JVM (implementation) and JS (client proxy).
+ * Contract interface for Task service operations.
+ *
+ * Shared between server (@RpcService interface extends this) and
+ * Android client (proxy class implements this). Provides compile-time
+ * validation that method signatures match on both sides.
+ *
+ * This interface has no Kilua RPC, Ktor, or other server-side dependencies.
  */
-@RpcService
-interface ITaskService {
+interface ITaskServiceContract {
 
     /**
      * Processes a paginated list request with filtering and sorting.

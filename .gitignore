@@ -13,3 +13,4 @@ build
 /backendLib/build
 /utils/build/
 /modelUtils/build/
+/buildSrc/.gradle/

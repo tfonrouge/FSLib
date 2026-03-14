@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kilua.rpc)
     alias(libs.plugins.kvision)
+    id("fslib-named-routes")
 }
 
 version = "1.0.0-SNAPSHOT"

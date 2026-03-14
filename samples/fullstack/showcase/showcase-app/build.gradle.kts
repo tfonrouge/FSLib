@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kilua.rpc)
     alias(libs.plugins.kvision)
+    id("fslib-named-routes")
 }
 
 version = "1.0.0-SNAPSHOT"
@@ -66,6 +67,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":samples:fullstack:showcase:showcase-lib"))
                 implementation(project(":fullstack"))
                 implementation(project(":core"))
                 implementation(libs.kilua.rpc.ktor)

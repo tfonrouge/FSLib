@@ -2,6 +2,8 @@ package com.example.showcase
 
 import com.fonrouge.fullStack.memoryDb.InMemoryRepository
 import com.fonrouge.fullStack.services.HelpDocsService
+import com.fonrouge.fullStack.services.RouteContract
+import com.fonrouge.fullStack.services.apiContractEndpoint
 import dev.kilua.rpc.applyRoutes
 import dev.kilua.rpc.getAllServiceManagers
 import dev.kilua.rpc.initRpc
@@ -15,6 +17,10 @@ import io.kvision.remote.registerRemoteTypes
 /**
  * Ktor application module for the showcase sample.
  * Sets up the [InMemoryRepository] with seed data and registers the RPC service.
+ *
+ * Serves both the KVision web frontend and Android clients:
+ * - Standard Kilua RPC routes for KVision (JSON-RPC 2.0)
+ * - `/apiContract` endpoint for Android route discovery
  */
 fun Application.main() {
     registerRemoteTypes()
@@ -27,6 +33,7 @@ fun Application.main() {
         commonContainer = CommonTask,
     ).seed(seedTasks())
 
+    // Install Kilua RPC routes first — this populates the route registries
     routing {
         getAllServiceManagers().forEach { applyRoutes(it) }
     }
@@ -34,6 +41,18 @@ fun Application.main() {
         registerService<ITaskService> { TaskService(repo) }
         registerService<IShowcaseHelpDocsService> { ShowcaseHelpDocsService(it) }
     }
+
+    // Build API contract by reading actual routes from the registries
+    val contract = RouteContract(version = "1.0.0")
+    contract.register(TaskServiceManager, "ITaskService")
+    contract.register(ShowcaseHelpDocsServiceManager, "IShowcaseHelpDocsService")
+
+    routing {
+        apiContractEndpoint(contract)
+    }
+
+    // Verify contract consistency
+    contract.validate(getAllServiceManagers())
 }
 
 /**
