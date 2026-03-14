@@ -71,7 +71,7 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "1.0.0"
+fslib = "3.0.2"
 
 [libraries]
 fslib-core = { module = "com.fonrouge.fslib:core", version.ref = "fslib" }
@@ -89,12 +89,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:1.0.0")
+                api("com.fonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:memorydb:1.0.0")
+                implementation("com.fonrouge.fslib:memorydb:3.0.2")
             }
         }
     }
@@ -107,12 +107,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:1.0.0")
+                api("com.fonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:1.0.0")
+                implementation("com.fonrouge.fslib:mongodb:3.0.2")
             }
         }
     }
@@ -125,12 +125,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:1.0.0")
+                api("com.fonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:sql:1.0.0")
+                implementation("com.fonrouge.fslib:sql:3.0.2")
             }
         }
     }
@@ -143,13 +143,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:1.0.0")
+                api("com.fonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:1.0.0")
-                implementation("com.fonrouge.fslib:sql:1.0.0")
+                implementation("com.fonrouge.fslib:mongodb:3.0.2")
+                implementation("com.fonrouge.fslib:sql:3.0.2")
             }
         }
     }
@@ -442,7 +442,7 @@ This transforms routes from `/rpc/routeTaskServiceManager0` to `/rpc/ITaskServic
 
 ```kotlin
 // Main.kt (jvmMain)
-val contract = RouteContract(version = "1.0.0")
+val contract = RouteContract(version = "3.0.2")
 contract.register(TaskServiceManager, "ITaskService")
 
 routing {
@@ -454,7 +454,7 @@ Third-party clients fetch the contract at startup to discover available services
 
 ```json
 {
-  "version": "1.0.0",
+  "version": "3.0.2",
   "protocol": {
     "format": "json-rpc-2.0",
     "contentType": "application/json",
