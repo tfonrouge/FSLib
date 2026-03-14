@@ -71,7 +71,7 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "3.0.2"
+fslib = "1.0.0"
 
 [libraries]
 fslib-core = { module = "com.fonrouge.fslib:core", version.ref = "fslib" }
@@ -89,12 +89,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.2")
+                api("com.fonrouge.fslib:fullstack:1.0.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:memorydb:3.0.2")
+                implementation("com.fonrouge.fslib:memorydb:1.0.0")
             }
         }
     }
@@ -107,12 +107,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.2")
+                api("com.fonrouge.fslib:fullstack:1.0.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:3.0.2")
+                implementation("com.fonrouge.fslib:mongodb:1.0.0")
             }
         }
     }
@@ -125,12 +125,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.2")
+                api("com.fonrouge.fslib:fullstack:1.0.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:sql:3.0.2")
+                implementation("com.fonrouge.fslib:sql:1.0.0")
             }
         }
     }
@@ -143,13 +143,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.2")
+                api("com.fonrouge.fslib:fullstack:1.0.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:3.0.2")
-                implementation("com.fonrouge.fslib:sql:3.0.2")
+                implementation("com.fonrouge.fslib:mongodb:1.0.0")
+                implementation("com.fonrouge.fslib:sql:1.0.0")
             }
         }
     }
