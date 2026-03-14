@@ -454,6 +454,8 @@ routing {
 }
 ```
 
+> **Note:** The `/apiContract` endpoint is optional when using a [shared contract library](#shared-contract-library) with `@RpcBindingRoute` named routes. Since routes follow the `"/rpc/InterfaceName.methodName"` pattern, clients that share the contract library can construct routes at compile time without runtime discovery.
+
 Third-party clients fetch the contract at startup to discover available services:
 
 ```json
@@ -503,7 +505,7 @@ See `samples/fullstack/showcase/` for a complete working example with `showcase-
 
 ### Android Sample
 
-A standalone Android client that consumes the showcase API contract is available at [showcase-android](https://github.com/tfonrouge/fslib-android/tree/main/samples/showcase-android). It demonstrates route discovery via `/apiContract`, JSON-RPC communication, and shared model deserialization from an Android app.
+A standalone Android client that consumes the showcase API contract is available at [showcase-android](https://github.com/tfonrouge/fslib-android/tree/main/samples/showcase-android). It demonstrates both approaches: runtime route discovery via `/apiContract`, and compile-time route construction using the shared `showcase-lib` contract with `@RpcBindingRoute` named routes.
 
 ---
 
