@@ -519,7 +519,7 @@ A standalone Android client that consumes the showcase API contract is available
 ./gradlew :sql:build               # Build only the sql module
 ./gradlew :media:build             # Build only the media module
 ./gradlew :ssr:build               # Build only the ssr module
-./gradlew publishToMavenLocal      # Publish to local Maven
+./gradlew publishToMavenLocal -PSNAPSHOT  # Publish SNAPSHOT to local Maven (~/.m2/)
 ```
 
 ### Local Development with SNAPSHOT
@@ -544,6 +544,8 @@ dependencies {
 ```
 
 > **Tip:** Gradle caches SNAPSHOT dependencies. If you republish the same snapshot version, use `--refresh-dependencies` in the consuming project to pick up the latest artifacts.
+
+> **Safety:** Running `publishToMavenLocal` without `-PSNAPSHOT` is blocked by default. Publishing a release version (e.g., `3.0.3`) to `~/.m2/` would silently shadow the official Maven Central artifact for every project on the machine. If you need to override this check, use `-PFORCE_LOCAL`.
 
 ### Sample Applications
 

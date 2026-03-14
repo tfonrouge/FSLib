@@ -20,6 +20,9 @@
 // Local development:
 //   ./gradlew publishToMavenLocal -PSNAPSHOT
 //   Appends "-SNAPSHOT" to the version automatically.
+//   The -PSNAPSHOT flag is required — publishing a release version to mavenLocal
+//   is blocked to prevent silently shadowing Maven Central artifacts.
+//   To override this safety check: ./gradlew publishToMavenLocal -PFORCE_LOCAL
 // ---------------------------------------------------------------------------
 
 plugins {
@@ -60,6 +63,21 @@ publishing {
 // Usage: ./gradlew publishToMavenLocal -PSNAPSHOT
 if (hasProperty("SNAPSHOT") && !version.toString().endsWith("-SNAPSHOT")) {
     version = "${version}-SNAPSHOT"
+}
+
+// Prevent publishing release versions to mavenLocal — this would silently shadow
+// Maven Central artifacts for every project on the machine that uses mavenLocal().
+tasks.withType<PublishToMavenLocal> {
+    doFirst {
+        if (!project.hasProperty("SNAPSHOT") && !project.hasProperty("FORCE_LOCAL")) {
+            error(
+                "Publishing release version ${project.version} to mavenLocal is blocked to prevent " +
+                    "shadowing Maven Central artifacts.\n" +
+                    "  Use: ./gradlew publishToMavenLocal -PSNAPSHOT  (recommended)\n" +
+                    "  Or:  ./gradlew publishToMavenLocal -PFORCE_LOCAL  (override safety check)"
+            )
+        }
+    }
 }
 
 publishing {

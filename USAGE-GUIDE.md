@@ -104,6 +104,8 @@ You can also publish a single module: `./gradlew :fullstack:publishToMavenLocal 
 
 > **Tip:** Gradle caches SNAPSHOT dependencies. Use `--refresh-dependencies` in the consuming project after republishing to pick up the latest artifacts.
 
+> **Safety:** Running `publishToMavenLocal` without `-PSNAPSHOT` is blocked by default to prevent silently shadowing Maven Central release artifacts in `~/.m2/`. Use `-PFORCE_LOCAL` to override this check if needed.
+
 ### Application Entry Point (jvmMain)
 
 ```kotlin
