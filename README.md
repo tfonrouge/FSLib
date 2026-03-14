@@ -501,6 +501,10 @@ class ITaskService : ITaskServiceContract {
 
 See `samples/fullstack/showcase/` for a complete working example with `showcase-lib` and `showcase-app`.
 
+### Android Sample
+
+A standalone Android client that consumes the showcase API contract is available at [showcase-android](https://github.com/tfonrouge/fslib-android/tree/main/samples/showcase-android). It demonstrates route discovery via `/apiContract`, JSON-RPC communication, and shared model deserialization from an Android app.
+
 ---
 
 ## Build Commands

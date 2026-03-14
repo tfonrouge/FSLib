@@ -1305,4 +1305,4 @@ The API contract response includes protocol documentation so third-party clients
 3. Call methods using `call("methodName", param)` → resolves route, builds JSON-RPC request
 4. Deserialize `ListState<T>` or `ItemState<T>` response
 
-See `samples/fullstack/showcase/` for the complete server-side example.
+See `samples/fullstack/showcase/` for the complete server-side example, and [showcase-android](https://github.com/tfonrouge/fslib-android/tree/main/samples/showcase-android) for a working Android client.
