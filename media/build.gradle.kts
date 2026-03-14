@@ -4,7 +4,7 @@ plugins {
     id("fslib-publishing")
 }
 
-group = "io.github.tfonrouge.fslib"
+group = "com.fonrouge.fslib"
 version = libs.versions.fsLib.get()
 
 repositories {

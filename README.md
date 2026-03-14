@@ -62,7 +62,7 @@ your-app  ──>  fullstack  ──>  core
 
 ## Installation
 
-FSLib is available on [Maven Central](https://central.sonatype.com/namespace/io.github.tfonrouge.fslib).
+FSLib is available on [Maven Central](https://central.sonatype.com/namespace/com.fonrouge.fslib).
 
 ### Gradle (Kotlin DSL)
 
@@ -74,13 +74,13 @@ Add the dependency to your module's `build.gradle.kts`:
 fslib = "3.0.2"
 
 [libraries]
-fslib-core = { module = "io.github.tfonrouge.fslib:core", version.ref = "fslib" }
-fslib-fullstack = { module = "io.github.tfonrouge.fslib:fullstack", version.ref = "fslib" }
-fslib-mongodb = { module = "io.github.tfonrouge.fslib:mongodb", version.ref = "fslib" }
-fslib-sql = { module = "io.github.tfonrouge.fslib:sql", version.ref = "fslib" }
-fslib-memorydb = { module = "io.github.tfonrouge.fslib:memorydb", version.ref = "fslib" }
-fslib-media = { module = "io.github.tfonrouge.fslib:media", version.ref = "fslib" }
-fslib-ssr = { module = "io.github.tfonrouge.fslib:ssr", version.ref = "fslib" }
+fslib-core = { module = "com.fonrouge.fslib:core", version.ref = "fslib" }
+fslib-fullstack = { module = "com.fonrouge.fslib:fullstack", version.ref = "fslib" }
+fslib-mongodb = { module = "com.fonrouge.fslib:mongodb", version.ref = "fslib" }
+fslib-sql = { module = "com.fonrouge.fslib:sql", version.ref = "fslib" }
+fslib-memorydb = { module = "com.fonrouge.fslib:memorydb", version.ref = "fslib" }
+fslib-media = { module = "com.fonrouge.fslib:media", version.ref = "fslib" }
+fslib-ssr = { module = "com.fonrouge.fslib:ssr", version.ref = "fslib" }
 ```
 
 ```kotlin
@@ -89,12 +89,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
+                api("com.fonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("io.github.tfonrouge.fslib:memorydb:3.0.2")
+                implementation("com.fonrouge.fslib:memorydb:3.0.2")
             }
         }
     }
@@ -107,12 +107,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
+                api("com.fonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("io.github.tfonrouge.fslib:mongodb:3.0.2")
+                implementation("com.fonrouge.fslib:mongodb:3.0.2")
             }
         }
     }
@@ -125,12 +125,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
+                api("com.fonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("io.github.tfonrouge.fslib:sql:3.0.2")
+                implementation("com.fonrouge.fslib:sql:3.0.2")
             }
         }
     }
@@ -143,13 +143,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
+                api("com.fonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("io.github.tfonrouge.fslib:mongodb:3.0.2")
-                implementation("io.github.tfonrouge.fslib:sql:3.0.2")
+                implementation("com.fonrouge.fslib:mongodb:3.0.2")
+                implementation("com.fonrouge.fslib:sql:3.0.2")
             }
         }
     }
