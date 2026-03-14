@@ -18,6 +18,8 @@ FSLib provides a backend-agnostic repository pattern, declarative view configura
 - **File Attachments** — `DataMedia` support (via the `:media` module) for managing file uploads with thumbnails and metadata.
 - **Help Documentation** — Module-scoped contextual help with tutorial and quick-reference HTML pages, auto-discovered per view.
 - **Multiple ID Types** — `OId` (MongoDB ObjectId), `IntId`, `LongId`, `StringId` — all with custom serializers.
+- **In-Memory Repository** — The `:memorydb` module provides an `InMemoryRepository` for samples, tests, and prototyping without any database engine.
+- **Named Routes & API Contract** — The `fslib-named-routes` Gradle plugin produces human-readable route paths (`/rpc/ITaskService.apiList`). The `RouteContract` class exposes a `/apiContract` endpoint for third-party client (Android, etc.) route discovery.
 - **Server-Side Rendering** — The `:ssr` module provides SSR support using Ktor HTML builder.
 
 ---
@@ -28,6 +30,7 @@ FSLib provides a backend-agnostic repository pattern, declarative view configura
 your-app  ──>  fullstack  ──>  core
                mongodb    ──>  fullstack, core
                sql        ──>  fullstack, core
+               memorydb   ──>  fullstack, core
                media      ──>  fullstack, core, mongodb
                ssr        ──>  fullstack, core, mongodb
 ```
@@ -35,9 +38,10 @@ your-app  ──>  fullstack  ──>  core
 | Module | Purpose |
 |--------|---------|
 | **`:core`** | Platform-independent foundation: `BaseDoc<ID>`, ID types, annotations, serializers, state management, user/role models, API framework, date/math utilities. |
-| **`:fullstack`** | Core library. **jvmMain**: `IRepository` interface, `IRolePermissionProvider`, `PermissionRegistry`, permissions, change logging, Ktor server stack. **jsMain**: View system, configuration, Tabulator wrappers, layout helpers, `ViewRegistry`. **commonMain**: Shared RPC interfaces. |
+| **`:fullstack`** | Core library. **jvmMain**: `IRepository` interface, `IRolePermissionProvider`, `PermissionRegistry`, permissions, change logging, `RouteContract` for API contract discovery, Ktor server stack. **jsMain**: View system, configuration, Tabulator wrappers, layout helpers, `ViewRegistry`. **commonMain**: Shared RPC interfaces. |
 | **`:mongodb`** | MongoDB engine (JVM-only). `Coll` implementation with aggregation pipelines, lookups, filtering, change logging, and role-based access via KMongo coroutine driver. |
 | **`:sql`** | SQL engine (JVM-only). `SqlRepository` implementation using Exposed for relational database access with type-aware filtering and identifier quoting. |
+| **`:memorydb`** | In-memory database engine (JVM-only). `InMemoryRepository` using `ConcurrentHashMap` for storage. Designed for samples, tests, and prototyping — no database engine required. |
 | **`:media`** | Extensions: `DataMedia` (file attachments) and `ChangeLog` views built on top of `:fullstack`. |
 | **`:ssr`** | Server-side rendering with Ktor HTML builder. |
 
@@ -67,7 +71,7 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "3.0.1"
+fslib = "3.0.2"
 
 [libraries]
 fslib-core = { module = "io.github.tfonrouge.fslib:core", version.ref = "fslib" }
@@ -80,17 +84,35 @@ fslib-ssr = { module = "io.github.tfonrouge.fslib:ssr", version.ref = "fslib" }
 ```
 
 ```kotlin
+// build.gradle.kts — In-memory (prototyping/samples, no database required)
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation("io.github.tfonrouge.fslib:memorydb:3.0.2")
+            }
+        }
+    }
+}
+```
+
+```kotlin
 // build.gradle.kts — MongoDB application
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("io.github.tfonrouge.fslib:fullstack:3.0.1")
+                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("io.github.tfonrouge.fslib:mongodb:3.0.1")
+                implementation("io.github.tfonrouge.fslib:mongodb:3.0.2")
             }
         }
     }
@@ -103,12 +125,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("io.github.tfonrouge.fslib:fullstack:3.0.1")
+                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("io.github.tfonrouge.fslib:sql:3.0.1")
+                implementation("io.github.tfonrouge.fslib:sql:3.0.2")
             }
         }
     }
@@ -121,13 +143,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("io.github.tfonrouge.fslib:fullstack:3.0.1")
+                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("io.github.tfonrouge.fslib:mongodb:3.0.1")
-                implementation("io.github.tfonrouge.fslib:sql:3.0.1")
+                implementation("io.github.tfonrouge.fslib:mongodb:3.0.2")
+                implementation("io.github.tfonrouge.fslib:sql:3.0.2")
             }
         }
     }
@@ -397,6 +419,86 @@ Help buttons appear automatically when documentation files exist for a view.
 
 ---
 
+## Named Routes & API Contract
+
+FSLib includes a system for exposing RPC endpoints to third-party clients (Android, native, etc.) that don't use KSP-generated Kilua RPC proxies.
+
+### Named Routes (Gradle Plugin)
+
+The `fslib-named-routes` convention plugin post-processes KSP-generated `ServiceManager` code, replacing counter-based route names with explicit `"ServiceName.methodName"` strings:
+
+```kotlin
+// build.gradle.kts
+plugins {
+    id("fslib-named-routes")  // Apply alongside kilua.rpc
+}
+```
+
+This transforms routes from `/rpc/routeTaskServiceManager0` to `/rpc/ITaskService.apiList` — human-readable, self-documenting, and order-independent.
+
+### API Contract Endpoint
+
+`RouteContract` reads actual routes from Kilua RPC's registry and serves them at `/apiContract`:
+
+```kotlin
+// Main.kt (jvmMain)
+val contract = RouteContract(version = "1.0.0")
+contract.register(TaskServiceManager, "ITaskService")
+
+routing {
+    apiContractEndpoint(contract)
+}
+```
+
+Third-party clients fetch the contract at startup to discover available services:
+
+```json
+{
+  "version": "1.0.0",
+  "protocol": {
+    "format": "json-rpc-2.0",
+    "contentType": "application/json",
+    "paramEncoding": "each parameter is individually JSON-serialized into a string element of the params array",
+    "resultEncoding": "the result field contains a JSON-serialized string that must be deserialized a second time"
+  },
+  "services": [
+    {
+      "service": "ITaskService",
+      "methods": {
+        "apiList": { "route": "/rpc/ITaskService.apiList", "method": "POST" },
+        "apiItem": { "route": "/rpc/ITaskService.apiItem", "method": "POST" }
+      }
+    }
+  ]
+}
+```
+
+### Shared Contract Library
+
+For compile-time type safety between server and client, split your models and service contract into a shared library module:
+
+```kotlin
+// showcase-lib (shared, no server/frontend dependencies)
+interface ITaskServiceContract {
+    suspend fun apiList(apiList: ApiList<TaskFilter>): ListState<Task>
+    suspend fun apiItem(iApiItem: IApiItem<Task, String, TaskFilter>): ItemState<Task>
+}
+
+// showcase-app (server) — extends the contract with @RpcService
+@RpcService
+interface ITaskService : ITaskServiceContract { ... }
+
+// Android client — implements the contract with HTTP calls
+class ITaskService : ITaskServiceContract {
+    override suspend fun apiList(apiList: ApiList<TaskFilter>): ListState<Task> =
+        call("apiList", apiList)
+}
+```
+
+See `samples/fullstack/showcase/` for a complete working example with `showcase-lib` and `showcase-app`.
+
+---
+
 ## Build Commands
 
 ```bash
@@ -414,10 +516,10 @@ Help buttons appear automatically when documentation files exist for a view.
 
 ```bash
 # Fullstack samples (KVision + Ktor)
-./gradlew :samples:fullstack:rpc-demo:jvmRun     # Run backend server
-./gradlew :samples:fullstack:rpc-demo:jsRun       # Run JS dev server
-./gradlew :samples:fullstack:rpc-demo:jvmTest     # Run JVM tests
-./gradlew :samples:fullstack:rpc-demo:jsTest      # Run JS tests (Chrome headless)
+./gradlew :samples:fullstack:rpc-demo:run          # RPC demo
+./gradlew :samples:fullstack:greeting:run           # Simple greeting
+./gradlew :samples:fullstack:contacts:run           # Contacts grid
+./gradlew :samples:fullstack:showcase:showcase-app:run  # Showcase (InMemoryRepository + API contract)
 
 # SSR samples (Ktor HTML builder)
 ./gradlew :samples:ssr:basic:run
@@ -448,10 +550,12 @@ FSLib/
       commonMain/                  # Shared RPC interfaces
       jvmMain/                     # IRepository, IRolePermissionProvider, PermissionRegistry
       jsMain/                      # Views, config, Tabulator, layout helpers
-  mongodb/                         # :mongodb module (JVM-only, NEW)
+  mongodb/                         # :mongodb module (JVM-only)
     src/main/kotlin/               # Coll, aggregation pipelines, BSON helpers
-  sql/                             # :sql module (JVM-only, NEW)
+  sql/                             # :sql module (JVM-only)
     src/main/kotlin/               # SqlRepository, SqlDatabase
+  memorydb/                        # :memorydb module (JVM-only)
+    src/main/kotlin/               # InMemoryRepository
   media/                           # :media module (formerly :utils)
     src/
       commonMain/                  # DataMedia, ChangeLog interfaces
@@ -459,11 +563,18 @@ FSLib/
       jsMain/                      # DataMedia and ChangeLog views
   ssr/                             # :ssr module
     src/main/kotlin/               # Server-side rendering with Ktor HTML builder
+  buildSrc/                        # Gradle convention plugins
+    src/main/kotlin/
+      fslib-publishing.gradle.kts  # Maven Central publishing
+      fslib-named-routes.gradle.kts # Named routes for Kilua RPC
   samples/                         # Sample applications
     fullstack/
       rpc-demo/                    # Full-stack KVision + Ktor sample
       greeting/                    # Simple greeting sample
       contacts/                    # Contacts sample
+      showcase/
+        showcase-lib/              # Shared models + contract (publishable)
+        showcase-app/              # Full-stack app with API contract endpoint
     ssr/
       basic/                       # Basic SSR sample
       catalog/                     # Catalog SSR sample

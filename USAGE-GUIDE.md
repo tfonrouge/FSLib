@@ -13,24 +13,26 @@ This guide walks through building a full-stack CRUD application with FSLib, from
 5. [RPC Services](#5-rpc-services)
 6. [MongoDB Repository (Coll)](#6-mongodb-repository-coll)
 7. [SQL Repository (SqlRepository)](#7-sql-repository-sqlrepository)
-8. [Backend Service Implementation](#8-backend-service-implementation)
-9. [Frontend View Configuration](#9-frontend-view-configuration)
-10. [List Views](#10-list-views)
-11. [Item Views (Forms)](#11-item-views-forms)
-12. [Master-Detail Views](#12-master-detail-views)
-13. [MongoDB Lookups and Aggregation](#13-mongodb-lookups-and-aggregation)
-14. [Lifecycle Hooks](#14-lifecycle-hooks)
-15. [Validation](#15-validation)
-16. [Dependencies (Referential Integrity)](#16-dependencies-referential-integrity)
-17. [Change Logging](#17-change-logging)
-18. [Role-Based Access Control](#18-role-based-access-control)
-19. [State Management](#19-state-management)
-20. [SQL Annotations](#20-sql-annotations)
-21. [Custom Serializers](#21-custom-serializers)
-22. [Help Documentation](#22-help-documentation)
-23. [File Attachments (DataMedia)](#23-file-attachments-datamedia)
-24. [Periodic Data Updates](#24-periodic-data-updates)
-25. [View Navigation and Routing](#25-view-navigation-and-routing)
+8. [In-Memory Repository](#8-in-memory-repository)
+9. [Backend Service Implementation](#9-backend-service-implementation)
+10. [Frontend View Configuration](#10-frontend-view-configuration)
+11. [List Views](#11-list-views)
+12. [Item Views (Forms)](#12-item-views-forms)
+13. [Master-Detail Views](#13-master-detail-views)
+14. [MongoDB Lookups and Aggregation](#14-mongodb-lookups-and-aggregation)
+15. [Lifecycle Hooks](#15-lifecycle-hooks)
+16. [Validation](#16-validation)
+17. [Dependencies (Referential Integrity)](#17-dependencies-referential-integrity)
+18. [Change Logging](#18-change-logging)
+19. [Role-Based Access Control](#19-role-based-access-control)
+20. [State Management](#20-state-management)
+21. [SQL Annotations](#21-sql-annotations)
+22. [Custom Serializers](#22-custom-serializers)
+23. [Help Documentation](#23-help-documentation)
+24. [File Attachments (DataMedia)](#24-file-attachments-datamedia)
+25. [Periodic Data Updates](#25-periodic-data-updates)
+26. [View Navigation and Routing](#26-view-navigation-and-routing)
+27. [Named Routes & API Contract](#27-named-routes--api-contract)
 
 ---
 
@@ -58,9 +60,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fsLib:fullStack:2.0.0")
-                // Optional
-                api("com.fonrouge.fsLib:utils:2.0.0")
+                api("io.github.tfonrouge.fslib:fullstack:3.0.2")
             }
         }
         jvmMain {
@@ -386,7 +386,39 @@ class ProductSqlRepo : SqlRepository<...>(...) {
 
 ---
 
-## 8. Backend Service Implementation
+## 8. In-Memory Repository
+
+`InMemoryRepository` is a lightweight `IRepository` implementation backed by `ConcurrentHashMap`. It requires no database engine, making it ideal for samples, tests, and prototyping.
+
+```kotlin
+val repo = InMemoryRepository<CommonTask, Task, String, TaskFilter, String>(
+    commonContainer = CommonTask,
+).seed(listOf(
+    Task(_id = "1", title = "Setup CI/CD", priority = Priority.HIGH, status = TaskStatus.OPEN),
+    Task(_id = "2", title = "Write tests", priority = Priority.MEDIUM, status = TaskStatus.IN_PROGRESS),
+))
+```
+
+### Features
+
+- Full CRUD support (create, read, update, delete) via `apiItemProcess` / `apiListProcess`
+- Pagination with `tabPage` and `tabSize`
+- Column-level filtering and sorting from Tabulator header filters
+- All lifecycle hooks supported (no-ops by default)
+- Thread-safe via `ConcurrentHashMap`
+
+### Dependency
+
+```kotlin
+// build.gradle.kts (jvmMain)
+implementation("io.github.tfonrouge.fslib:memorydb:3.0.2")
+```
+
+See `samples/fullstack/showcase/` for a complete example using `InMemoryRepository`.
+
+---
+
+## 9. Backend Service Implementation
 
 Implement the RPC service interface on the server side:
 
@@ -416,7 +448,7 @@ actual class CustomerService : ICustomerService {
 
 ---
 
-## 9. Frontend View Configuration
+## 10. Frontend View Configuration
 
 Before creating views, initialize the `ViewRegistry` in your KVision application:
 
@@ -482,7 +514,7 @@ object ConfigViewItemCustomer : ConfigViewItem<
 
 ---
 
-## 10. List Views
+## 11. List Views
 
 A `ViewList` displays a paginated data grid using Tabulator:
 
@@ -531,7 +563,7 @@ class ViewListCustomer : ViewList<
 
 ---
 
-## 11. Item Views (Forms)
+## 12. Item Views (Forms)
 
 A `ViewItem` displays a form for creating or editing a single item:
 
@@ -586,7 +618,7 @@ The CRUD task is determined by URL parameters or by how the view is opened progr
 
 ---
 
-## 12. Master-Detail Views
+## 13. Master-Detail Views
 
 Display a parent item with one or more child lists:
 
@@ -629,7 +661,7 @@ class OrderColl : Coll<...>(...) {
 
 ---
 
-## 13. MongoDB Lookups and Aggregation
+## 14. MongoDB Lookups and Aggregation
 
 ### Simple Lookup (Join)
 
@@ -691,7 +723,7 @@ override fun morphingStage(): List<Bson>? {
 
 ---
 
-## 14. Lifecycle Hooks
+## 15. Lifecycle Hooks
 
 ### Query Hooks (Before Database Access)
 
@@ -736,7 +768,7 @@ override suspend fun onAfterCreateAction(
 
 ---
 
-## 15. Validation
+## 16. Validation
 
 Override `onValidate` to check item contents before any create or update:
 
@@ -756,7 +788,7 @@ Validation errors are returned to the frontend and displayed to the user automat
 
 ---
 
-## 16. Dependencies (Referential Integrity)
+## 17. Dependencies (Referential Integrity)
 
 Prevent deleting a record that is referenced by other records:
 
@@ -784,7 +816,7 @@ When a user attempts to delete a customer, FSLib automatically checks all depend
 
 ---
 
-## 17. Change Logging
+## 18. Change Logging
 
 ### Enable Change Logging
 
@@ -824,7 +856,7 @@ class ViewItemCustomer : ViewItem<...>(), IViewListChangeLog<...> {
 
 ---
 
-## 18. Role-Based Access Control
+## 19. Role-Based Access Control
 
 ### Architecture
 
@@ -861,7 +893,7 @@ class CustomerColl : Coll<...>(...) {
 
 ---
 
-## 19. State Management
+## 20. State Management
 
 FSLib uses three state types to communicate operation results:
 
@@ -905,7 +937,7 @@ All state types implement `ISimpleState` with:
 
 ---
 
-## 20. SQL Annotations
+## 21. SQL Annotations
 
 ### @SqlField
 
@@ -939,7 +971,7 @@ val profile: UserProfile? = null
 
 ---
 
-## 21. Custom Serializers
+## 22. Custom Serializers
 
 FSLib provides custom multiplatform serializers for types that need special handling:
 
@@ -959,7 +991,7 @@ These are applied automatically through the kotlinx-serialization module registe
 
 ---
 
-## 22. Help Documentation
+## 23. Help Documentation
 
 ### Setup
 
@@ -1009,7 +1041,7 @@ class ViewListCustomer : ViewList<...>() {
 
 ---
 
-## 23. File Attachments (DataMedia)
+## 24. File Attachments (DataMedia)
 
 The `:utils` module provides a complete file attachment system.
 
@@ -1063,7 +1095,7 @@ Features:
 
 ---
 
-## 24. Periodic Data Updates
+## 25. Periodic Data Updates
 
 Views can automatically refresh their data at intervals:
 
@@ -1081,7 +1113,7 @@ The refresh interval is controlled by `UserSessionParams.inactivityUiSecsToNoRef
 
 ---
 
-## 25. View Navigation and Routing
+## 26. View Navigation and Routing
 
 ### Open a View Programmatically
 
@@ -1170,3 +1202,103 @@ class ReportColl : Coll<...>(...) {
     override val readOnly = true  // Blocks all write operations
 }
 ```
+
+---
+
+## 27. Named Routes & API Contract
+
+FSLib provides a complete system for exposing RPC endpoints to third-party clients (Android, native apps, etc.) that don't use KSP-generated Kilua RPC proxies.
+
+### Named Routes
+
+Apply the `fslib-named-routes` Gradle plugin to any module that uses `@RpcService`:
+
+```kotlin
+plugins {
+    alias(libs.plugins.kilua.rpc)
+    id("fslib-named-routes")
+}
+```
+
+This post-processes KSP-generated `ServiceManager` code, replacing counter-based route names with explicit `"ServiceName.methodName"` strings. Routes become human-readable (`/rpc/ITaskService.apiList`) and order-independent.
+
+### RouteContract
+
+`RouteContract` reads actual routes from Kilua RPC's `routeMapRegistry` and serves them via an API endpoint:
+
+```kotlin
+fun Application.main() {
+    // Install Kilua RPC routes first
+    routing {
+        getAllServiceManagers().forEach { applyRoutes(it) }
+    }
+    initRpc {
+        registerService<ITaskService> { TaskService(repo) }
+    }
+
+    // Build and serve the API contract
+    val contract = RouteContract(version = "1.0.0")
+    contract.register(TaskServiceManager, "ITaskService")
+
+    routing {
+        apiContractEndpoint(contract)  // GET /apiContract
+    }
+
+    contract.validate(getAllServiceManagers())
+}
+```
+
+### Shared Contract Library
+
+For compile-time type safety across server and client, define models and a contract interface in a shared library module that has no server or frontend dependencies:
+
+```kotlin
+// showcase-lib/commonMain — shared between server and Android
+interface ITaskServiceContract {
+    suspend fun apiList(apiList: ApiList<TaskFilter>): ListState<Task>
+    suspend fun apiItem(iApiItem: IApiItem<Task, String, TaskFilter>): ItemState<Task>
+}
+```
+
+The server's `@RpcService` interface extends this contract:
+
+```kotlin
+// showcase-app/commonMain — server module
+@RpcService
+interface ITaskService : ITaskServiceContract {
+    override suspend fun apiList(apiList: ApiList<TaskFilter>): ListState<Task>
+    override suspend fun apiItem(iApiItem: IApiItem<Task, String, TaskFilter>): ItemState<Task>
+}
+```
+
+The Android client implements it with HTTP calls:
+
+```kotlin
+// Android app — implements the same contract
+class ITaskService : ITaskServiceContract {
+    override suspend fun apiList(apiList: ApiList<TaskFilter>): ListState<Task> =
+        call("apiList", apiList)
+
+    override suspend fun apiItem(iApiItem: IApiItem<Task, String, TaskFilter>): ItemState<Task> =
+        call("apiItem", iApiItem)
+}
+```
+
+### Wire Protocol
+
+The API contract response includes protocol documentation so third-party clients know how to construct requests:
+
+- **Format**: JSON-RPC 2.0
+- **Parameters**: Each parameter is individually JSON-serialized into a string element of the `params` array
+- **Result**: The `result` field contains a JSON-serialized string that must be deserialized a second time
+- **Request body**: `{"id": 1, "method": "", "params": ["<json-string>"], "jsonrpc": "2.0"}`
+- **Response body**: `{"id": 1, "result": "<json-string>", "jsonrpc": "2.0"}`
+
+### Android Client Flow
+
+1. Fetch `GET /apiContract` → discover available services and routes
+2. Cache method→route mappings (via `RouteRegistry`)
+3. Call methods using `call("methodName", param)` → resolves route, builds JSON-RPC request
+4. Deserialize `ListState<T>` or `ItemState<T>` response
+
+See `samples/fullstack/showcase/` for the complete server-side example.
