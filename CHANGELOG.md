@@ -4,10 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [3.0.3] - 2026-03-14
 
+### Added
+- `-PSNAPSHOT` flag for `publishToMavenLocal` — automatically appends `-SNAPSHOT` to the version without editing `libs.versions.toml`
+- Safety guard that blocks `publishToMavenLocal` without `-PSNAPSHOT` to prevent shadowing Maven Central release artifacts (override with `-PFORCE_LOCAL`)
+- Documentation clarifying that `/apiContract` is optional when using a shared contract library with `@RpcBindingRoute` named routes
+
 ### Changed
 - Maven groupId changed from `io.github.tfonrouge.fslib` to `com.fonrouge.fslib`
 - Replace `fslib-named-routes` Gradle plugin with Kilua RPC's built-in `@RpcBindingRoute` annotation
 - Update documentation with Android sample link
+- Signing tasks are now disabled for local/snapshot publishes (configuration cache compatible)
 
 ### Removed
 - `fslib-named-routes.gradle.kts` convention plugin (no longer needed)
