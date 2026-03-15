@@ -25,7 +25,6 @@ import kotlin.reflect.full.memberProperties
  * All lifecycle hooks are no-ops by default and can be overridden in subclasses.
  * Permissions always return OK; change logging and user lookups are disabled.
  *
- * @param CC The [ICommonContainer] type providing metadata about the entity.
  * @param T The entity type, must extend [BaseDoc].
  * @param ID The identifier type.
  * @param FILT The filter type, must extend [IApiFilter].
@@ -34,11 +33,11 @@ import kotlin.reflect.full.memberProperties
  * @param readOnly Whether this repository blocks all write operations.
  * @param readOnlyErrorMsg Error message for write attempts on a read-only repository.
  */
-open class InMemoryRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
-    override val commonContainer: CC,
+open class InMemoryRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
+    override val commonContainer: ICommonContainer<T, ID, FILT>,
     override val readOnly: Boolean = false,
     override val readOnlyErrorMsg: String = "Repository is read-only",
-) : IRepository<CC, T, ID, FILT, UID> {
+) : IRepository<T, ID, FILT, UID> {
 
     /** In-memory data store keyed by entity ID. */
     protected val store: ConcurrentHashMap<ID, T> = ConcurrentHashMap()
@@ -472,7 +471,7 @@ open class InMemoryRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
      * @param items The items to add to the store.
      * @return This repository instance for chaining.
      */
-    fun seed(vararg items: T): InMemoryRepository<CC, T, ID, FILT, UID> {
+    fun seed(vararg items: T): InMemoryRepository<T, ID, FILT, UID> {
         items.forEach { store[it._id] = it }
         return this
     }
@@ -483,7 +482,7 @@ open class InMemoryRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
      * @param items The list of items to add.
      * @return This repository instance for chaining.
      */
-    fun seed(items: List<T>): InMemoryRepository<CC, T, ID, FILT, UID> {
+    fun seed(items: List<T>): InMemoryRepository<T, ID, FILT, UID> {
         items.forEach { store[it._id] = it }
         return this
     }

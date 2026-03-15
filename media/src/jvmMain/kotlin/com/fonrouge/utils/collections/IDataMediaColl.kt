@@ -21,9 +21,9 @@ import java.io.File
 import kotlin.reflect.KProperty1
 
 @Suppress("unused")
-abstract class IDataMediaColl<CC : ICommonDataMedia<DM, U, UID>, DM : IDataMedia<U, UID>, U : IUser<UID>, UID : Any>(
-    commonContainer: CC,
-) : Coll<CC, DM, StringId<IDataMedia<U, UID>>, DataMediaFilter, UID>(
+abstract class IDataMediaColl<DM : IDataMedia<U, UID>, U : IUser<UID>, UID : Any>(
+    commonContainer: ICommonDataMedia<DM, U, UID>,
+) : Coll<DM, StringId<IDataMedia<U, UID>>, DataMediaFilter, UID>(
     commonContainer = commonContainer
 ) {
     override fun fixedLookupList(apiFilter: DataMediaFilter): List<KProperty1<in IDataMedia<U, UID>, *>>? = listOf(

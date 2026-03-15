@@ -99,7 +99,7 @@ fun Container.dropItem(
  */
 @Suppress("unused")
 fun <ID : Any, FILT : IApiFilter<*>> Container.dropItem(
-    configViewItem: ConfigViewItem<*, *, ID, *, FILT, *>,
+    configViewItem: ConfigViewItem<*, ID, *, FILT, *>,
     id: ID,
     apiFilter: FILT = configViewItem.commonContainer.apiFilterInstance(),
     vmode: ConfigViewContainer.VMode = defaultViewItemMode,
@@ -139,7 +139,7 @@ fun <ID : Any, FILT : IApiFilter<*>> Container.dropItem(
  */
 @Suppress("unused")
 fun <FILT : IApiFilter<*>> Container.dropItem(
-    configViewList: ConfigViewList<*, *, *, *, FILT, *, *>,
+    configViewList: ConfigViewList<*, *, *, FILT, *, *>,
     apiFilter: FILT = configViewList.commonContainer.apiFilterInstance(),
     vmode: ConfigViewContainer.VMode = defaultViewMode,
     toggleDropDown: Boolean = false,
@@ -168,7 +168,7 @@ fun <FILT : IApiFilter<*>> Container.dropItem(
  */
 @Suppress("unused")
 fun <FILT : IApiFilter<*>> Container.dropItem(
-    configView: ConfigView<*, *, FILT>,
+    configView: ConfigView<*, FILT>,
     apiFilter: FILT = configView.commonContainer.apiFilterInstance(),
     vmode: ConfigViewContainer.VMode = defaultViewMode,
     toggleDropDown: Boolean = false,

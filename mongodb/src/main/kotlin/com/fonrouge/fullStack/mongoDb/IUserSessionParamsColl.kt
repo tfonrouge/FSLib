@@ -19,7 +19,7 @@ import kotlin.time.Duration
 @Suppress("unused")
 abstract class IUserSessionParamsColl<UID : Any>(
     debug: Boolean = false
-) : Coll<CommonUserSessionParams, UserSessionParams, StringId<UserSessionParams>, ApiFilter, UID>(
+) : Coll<UserSessionParams, StringId<UserSessionParams>, ApiFilter, UID>(
     commonContainer = CommonUserSessionParams,
     debug = debug
 ) {

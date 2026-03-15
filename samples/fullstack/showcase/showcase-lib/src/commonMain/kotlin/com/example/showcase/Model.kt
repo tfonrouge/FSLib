@@ -1,10 +1,9 @@
 package com.example.showcase
 
-import com.fonrouge.base.api.IApiFilter
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 
 /**
  * Priority levels for a task.
@@ -47,18 +46,11 @@ data class Task(
 ) : BaseDoc<String>
 
 /**
- * API filter for Task queries.
- */
-@Serializable
-class TaskFilter : IApiFilter<String>()
-
-/**
  * Metadata container for [Task].
  */
-object CommonTask : ICommonContainer<Task, String, TaskFilter>(
+object CommonTask : ICommonContainer<Task, String, ApiFilter>(
     itemKClass = Task::class,
-    idSerializer = String.serializer(),
-    apiFilterSerializer = TaskFilter.serializer(),
+    filterKClass = ApiFilter::class,
     labelItem = "Task",
     labelList = "Tasks",
     labelId = { it?.let { "${it.title} (${it._id})" } ?: "<no-task>" },

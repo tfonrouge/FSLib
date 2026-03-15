@@ -1,6 +1,5 @@
 package com.fonrouge.fullStack.mongoDb
 
-import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import com.mongodb.client.model.Field
 import org.bson.conversions.Bson
@@ -18,7 +17,7 @@ import kotlin.reflect.KProperty1
  * @return A configured `LookupPipelineBuilder` to execute the lookup operation.
  */
 @Suppress("unused", "UnusedReceiverParameter")
-fun <T : BaseDoc<*>, CF : Coll<out ICommonContainer<F, FID, *>, F, FID, *, *>, F : BaseDoc<FID>, FID : Any> Coll<out ICommonContainer<T, *, *>, T, *, *, *>.buildCount(
+fun <T : BaseDoc<*>, CF : Coll<F, FID, *, *>, F : BaseDoc<FID>, FID : Any> Coll<T, *, *, *>.buildCount(
     collForeign: CF,
     localKey: KProperty1<T, Any?>,
     foreignIdKey: KProperty1<F, Any?>,

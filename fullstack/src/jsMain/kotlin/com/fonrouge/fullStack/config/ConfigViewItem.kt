@@ -28,7 +28,6 @@ import kotlin.reflect.KClass
  * with items and views in a structured manner. It provides utilities for managing URLs, navigating views, and
  * querying API-related operations.
  *
- * @param CC The type of the common container that manages item interactions.
  * @param T The type of the item or document being processed.
  * @param ID The type of the identifier associated with the item or document.
  * @param V The type of the view item associated with the configuration.
@@ -40,13 +39,13 @@ import kotlin.reflect.KClass
  * @param contextMenuItems An optional function providing context menu items for a specific item.
  * @param baseUrl The base URL for the configuration; defaults to the name of the view class if not specified.
  */
-abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any>(
-    commonContainer: CC,
+abstract class ConfigViewItem<T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any>(
+    commonContainer: ICommonContainer<T, ID, FILT>,
     val apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     viewKClass: KClass<out V>,
     val contextMenuItems: ((T) -> List<TabulatorMenuItem>)? = null,
     baseUrl: String? = null,
-) : ConfigViewContainer<CC, T, ID, V, FILT>(
+) : ConfigViewContainer<T, ID, V, FILT>(
     commonContainer = commonContainer,
     viewKClass = viewKClass,
     baseUrl = baseUrl,
@@ -73,7 +72,7 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
          *
          * It is nullable, meaning the default context menu may not always be configured.
          */
-        var contextMenuDefault: (ConfigViewItem<*, *, *, *, *, *>.() -> List<TabulatorMenuItem>?)? =
+        var contextMenuDefault: (ConfigViewItem<*, *, *, *, *>.() -> List<TabulatorMenuItem>?)? =
             null
 
         /**
@@ -364,13 +363,13 @@ abstract class ConfigViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDo
  * @return A configuration object of the type ConfigViewItem for the provided generic parameters.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewItem<CC, T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any> configViewItem(
+fun <T : BaseDoc<ID>, ID : Any, V : ViewItem<T, ID, FILT>, FILT : IApiFilter<*>, AIS : Any> configViewItem(
     viewKClass: KClass<out V>,
-    commonContainer: CC,
+    commonContainer: ICommonContainer<T, ID, FILT>,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     contextMenuItems: ((T) -> List<TabulatorMenuItem>)? = null,
     baseUrl: String? = null,
-): ConfigViewItem<CC, T, ID, V, FILT, AIS> = object : ConfigViewItem<CC, T, ID, V, FILT, AIS>(
+): ConfigViewItem<T, ID, V, FILT, AIS> = object : ConfigViewItem<T, ID, V, FILT, AIS>(
     commonContainer = commonContainer,
     apiItemFun = apiItemFun,
     viewKClass = viewKClass,

@@ -14,7 +14,6 @@ import kotlin.reflect.KClass
  * Abstract class that provides a configuration for a view that handles listing and displaying collections of items,
  * extending the functionality of a container-base class.
  *
- * @param CC The type of the common container managing the API items and metadata, must extend ICommonContainer.
  * @param T The type of the items within the list, must implement BaseDoc.
  * @param ID The identifier type of the items in the list, must be non-nullable.
  * @param V The type of the view list class, extending ViewList.
@@ -26,12 +25,12 @@ import kotlin.reflect.KClass
  * @param viewKClass The KClass instance of the view list class, representing the specific view type.
  * @param baseUrl Optional; a custom base URL for the configuration. Defaults to the simple name of the view class.
  */
-abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, FILT : IApiFilter<MID>, MID : Any, ALS : Any>(
-    commonContainer: CC,
+abstract class ConfigViewList<T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, FILT, MID>, FILT : IApiFilter<MID>, MID : Any, ALS : Any>(
+    commonContainer: ICommonContainer<T, ID, FILT>,
     val apiListFun: suspend ALS.(ApiList<FILT>) -> ListState<T>,
     viewKClass: KClass<V>,
     baseUrl: String? = null,
-) : ConfigViewContainer<CC, T, ID, V, FILT>(
+) : ConfigViewContainer<T, ID, V, FILT>(
     commonContainer = commonContainer,
     viewKClass = viewKClass,
     baseUrl = baseUrl
@@ -74,12 +73,12 @@ abstract class ConfigViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID
  * @return An instance of `ConfigViewList` configured with the provided parameters.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, V : ViewList<CC, T, ID, FILT, MID>, FILT : IApiFilter<MID>, MID : Any, ALS : Any> configViewList(
+fun <T : BaseDoc<ID>, ID : Any, V : ViewList<T, ID, FILT, MID>, FILT : IApiFilter<MID>, MID : Any, ALS : Any> configViewList(
     viewKClass: KClass<V>,
-    commonContainer: CC,
+    commonContainer: ICommonContainer<T, ID, FILT>,
     apiListFun: suspend ALS.(ApiList<FILT>) -> ListState<T>,
     baseUrl: String? = null,
-): ConfigViewList<CC, T, ID, V, FILT, MID, ALS> = object : ConfigViewList<CC, T, ID, V, FILT, MID, ALS>(
+): ConfigViewList<T, ID, V, FILT, MID, ALS> = object : ConfigViewList<T, ID, V, FILT, MID, ALS>(
     commonContainer = commonContainer,
     apiListFun = apiListFun,
     viewKClass = viewKClass,

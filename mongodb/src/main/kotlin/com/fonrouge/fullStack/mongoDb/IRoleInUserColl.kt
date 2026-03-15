@@ -34,7 +34,7 @@ import kotlin.reflect.KClass
 @Suppress("unused")
 abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<UID>, UID : Any, GR : IRoleInGroup<*, GOU>, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<RIU, OId<IRoleInUser<U, UID>>, FILT>,
-) : Coll<ICommonContainer<RIU, OId<IRoleInUser<U, UID>>, FILT>, RIU, OId<IRoleInUser<U, UID>>, FILT, UID>(
+) : Coll<RIU, OId<IRoleInUser<U, UID>>, FILT, UID>(
     commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<RIU>.indexes() {
@@ -44,7 +44,7 @@ abstract class IRoleInUserColl<RIU : IRoleInUser<U, UID>, U : IUser<UID>, UID : 
     }
 
     //    abstract val appRoleColl: Coll<out ICommonContainer<out IAppRole, OId<IAppRole>, out IApiFilter<*>>, out IAppRole, OId<IAppRole>, out IApiFilter<*>>
-    abstract val appRoleColl: IAppRoleColl<*, *, *, *, UID>
+    abstract val appRoleColl: IAppRoleColl<*, *, *, UID>
     abstract val roleInGroupColl: IRoleInGroupColl<GR, *, GOU, *, UID>
     abstract val userGroupColl: IUserGroupColl<out IUserGroup<U, UID, *, *>, U, UID, *, *, out IApiFilter<*>>
 

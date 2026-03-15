@@ -48,7 +48,7 @@ data class PageCountInfo(
      * @param coll The collection to count documents in.
      * @param pageSize The number of items per page.
      */
-    suspend fun count(coll: Coll<*, *, *, *, *>, pageSize: Int) {
+    suspend fun count(coll: Coll<*, *, *, *>, pageSize: Int) {
         val count = when (countType) {
             CountType.PreLookup ->
                 coll.mongoColl.coroutine.countDocuments(

@@ -43,8 +43,6 @@ import kotlin.reflect.KClass
  * and remote API calls. This class supports server-side pagination, filtering, and sorting,
  * while maintaining compatibility with Kotlin serialization and Tabulator options.
  *
- * @param CC The type of the container used for managing the underlying data, which extends
- * `ICommonContainer` with its generic type parameters.
  * @param T The type of the data model being displayed in the Tabulator. This type must extend `BaseDoc`.
  * @param ID The type of the unique identifier for the data model.
  * @param FILT The type of the filter used for API interactions, extending `IApiFilter`.
@@ -63,8 +61,8 @@ import kotlin.reflect.KClass
  * @param module An optional `SerializersModule` used for custom serialization scenarios.
  */
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
-    val viewList: ViewList<CC, T, ID, FILT, MID>,
+class TabulatorViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
+    val viewList: ViewList<T, ID, FILT, MID>,
     private val apiListBlock: (() -> ApiList<FILT>),
     private val apiListSerialize: (ApiList<FILT>) -> String?,
     val debug: Boolean = false,
@@ -337,8 +335,8 @@ class TabulatorViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
  * @param init An optional block to apply additional initialization logic to the TabulatorViewList.
  * @return The created and initialized TabulatorViewList instance.
  */
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
-    viewList: ViewList<CC, T, ID, FILT, MID>,
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.tabulatorViewList(
+    viewList: ViewList<T, ID, FILT, MID>,
     apiListBlock: (() -> ApiList<FILT>),
     apiListSerialize: (ApiList<FILT>) -> String?,
     tabulatorOptions: TabulatorOptions<T> = viewList.defaultTabulatorOptions(),
@@ -347,9 +345,9 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     serializer: KSerializer<T>? = null,
     module: SerializersModule? = null,
     debug: Boolean = false,
-    init: (TabulatorViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,
-): TabulatorViewList<CC, T, ID, FILT, MID> {
-    val tabulatorViewList: TabulatorViewList<CC, T, ID, FILT, MID> =
+    init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
+): TabulatorViewList<T, ID, FILT, MID> {
+    val tabulatorViewList: TabulatorViewList<T, ID, FILT, MID> =
         TabulatorViewList(
             viewList = viewList,
             apiListBlock = apiListBlock,

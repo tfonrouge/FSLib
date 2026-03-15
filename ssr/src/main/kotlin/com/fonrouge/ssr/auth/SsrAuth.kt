@@ -19,7 +19,7 @@ interface SsrAuth {
     suspend fun checkPermission(
         call: ApplicationCall,
         crudTask: CrudTask,
-        repository: IRepository<*, *, *, *, *>,
+        repository: IRepository<*, *, *, *>,
     ): SimpleState
 }
 
@@ -31,7 +31,7 @@ class RepositoryAuth : SsrAuth {
     override suspend fun checkPermission(
         call: ApplicationCall,
         crudTask: CrudTask,
-        repository: IRepository<*, *, *, *, *>,
+        repository: IRepository<*, *, *, *>,
     ): SimpleState = repository.getCrudPermission(call, crudTask)
 }
 
@@ -44,6 +44,6 @@ class AllowAllAuth : SsrAuth {
     override suspend fun checkPermission(
         call: ApplicationCall,
         crudTask: CrudTask,
-        repository: IRepository<*, *, *, *, *>,
+        repository: IRepository<*, *, *, *>,
     ): SimpleState = SimpleState(State.Ok)
 }

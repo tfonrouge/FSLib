@@ -45,9 +45,9 @@ import kotlin.js.json
  * @param configViewList The configuration object for this view, used to define the behavior
  * and settings of the change log list.
  */
-abstract class IViewListChangeLog<CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, ChgLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
-    configViewList: ConfigViewList<CmnChgLog, ChgLog, OId<IChangeLog<U, UID>>, *, ChangeLogFilter, Unit, *>,
-) : ViewList<CmnChgLog, ChgLog, OId<IChangeLog<U, UID>>, ChangeLogFilter, Unit>(
+abstract class IViewListChangeLog<ChgLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
+    configViewList: ConfigViewList<ChgLog, OId<IChangeLog<U, UID>>, *, ChangeLogFilter, Unit, *>,
+) : ViewList<ChgLog, OId<IChangeLog<U, UID>>, ChangeLogFilter, Unit>(
     configView = configViewList
 ) {
     companion object {
@@ -57,7 +57,7 @@ abstract class IViewListChangeLog<CmnChgLog : ICommonChangeLog<ChgLog, U, UID>, 
          * @param viewListChangeLog The instance of IViewListChangeLog used to configure the change log menu item behavior.
          */
         @Suppress("unused")
-        fun initializeChangeLogMenuItem(viewListChangeLog: IViewListChangeLog<*, *, *, *>) {
+        fun initializeChangeLogMenuItem(viewListChangeLog: IViewListChangeLog<*, *, *>) {
             ConfigViewItem.contextMenuDefault = {
                 listOf(
                     menuItem(

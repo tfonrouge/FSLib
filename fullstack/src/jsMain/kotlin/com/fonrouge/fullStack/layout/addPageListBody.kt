@@ -9,7 +9,7 @@ import io.kvision.core.Container
  * @param viewList The view list object that contains the page list implementation to be added.
  */
 @Suppress("unused")
-fun Container.addPageListBody(viewList: ViewList<*, *, *, *, *>) {
+fun Container.addPageListBody(viewList: ViewList<*, *, *, *>) {
     with(viewList) {
         pageListBody()
     }

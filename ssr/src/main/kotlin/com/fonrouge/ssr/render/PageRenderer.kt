@@ -17,7 +17,7 @@ import kotlinx.html.*
  * @param layout the layout to wrap content in
  */
 class PageRenderer<T : BaseDoc<*>>(
-    private val pageDef: PageDef<*, T, *, *>,
+    private val pageDef: PageDef<T, *, *>,
     private val layout: SsrLayout,
 ) {
     /**

@@ -1,5 +1,6 @@
 package com.example.ssrsample.basic
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.ssr.PageDef
 
 /**
@@ -7,8 +8,8 @@ import com.fonrouge.ssr.PageDef
  * Uses default layout, no customization — shows the simplest possible SSR setup.
  */
 class TodoPage(
-    repo: InMemoryRepository<CommonTodo, Todo, TodoFilter>,
-) : PageDef<CommonTodo, Todo, String, TodoFilter>(
+    repo: InMemoryRepository<Todo, ApiFilter>,
+) : PageDef<Todo, String, ApiFilter>(
     commonContainer = CommonTodo,
     repository = repo,
     basePath = "/todos",

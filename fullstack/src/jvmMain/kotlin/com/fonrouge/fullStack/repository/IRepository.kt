@@ -18,18 +18,17 @@ import kotlin.reflect.KProperty1
  * parameters (BSON filters, lookup wrappers, aggregation pipelines) are left to concrete implementations
  * as additional overloads.
  *
- * @param CC The [ICommonContainer] type providing metadata about the entity.
  * @param T The entity type, must extend [BaseDoc].
  * @param ID The identifier type.
  * @param FILT The filter type, must extend [IApiFilter].
  * @param UID The user identifier type (for role-based access control).
  */
-interface IRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any> {
+interface IRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any> {
 
     // ── Metadata ──────────────────────────────────────────────
 
     /** The container providing entity metadata (KClass, serializers, labels). */
-    val commonContainer: CC
+    val commonContainer: ICommonContainer<T, ID, FILT>
 
     /** Whether this repository is read-only (blocks all write operations). */
     val readOnly: Boolean
@@ -379,6 +378,6 @@ interface IRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : 
     data class Dependency<T : BaseDoc<*>, ID : Any>(
         val common: ICommonContainer<T, *, *>,
         val property: KProperty1<out T, ID?>,
-        val repositoryFun: (() -> IRepository<*, *, *, *, *>)? = null,
+        val repositoryFun: (() -> IRepository<*, *, *, *>)? = null,
     )
 }

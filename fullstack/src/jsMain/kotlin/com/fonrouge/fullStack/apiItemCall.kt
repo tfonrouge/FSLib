@@ -17,7 +17,7 @@ import kotlin.js.Promise
  * @return A promise containing the transformed result of the item state.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryCreateCall(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> ICommonContainer<T, ID, FILT>.apiItemQueryCreateCall(
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID? = null,
     apiFilter: FILT = apiFilterInstance(),
@@ -39,7 +39,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @return A `Promise` wrapping the result of the transform function applied to the `ItemState` of the queried item.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryReadCall(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> ICommonContainer<T, ID, FILT>.apiItemQueryReadCall(
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
@@ -60,7 +60,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @return A `Promise` containing the transformed result of the query update call.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryUpdateCall(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> ICommonContainer<T, ID, FILT>.apiItemQueryUpdateCall(
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
@@ -81,7 +81,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @return A `Promise` of the transformed result produced by the transformation function.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemQueryDeleteCall(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> ICommonContainer<T, ID, FILT>.apiItemQueryDeleteCall(
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
     apiFilter: FILT = apiFilterInstance(),
@@ -102,7 +102,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @return A `Promise` of the transformed result, which is of type `R`.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemActionCreateCall(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> ICommonContainer<T, ID, FILT>.apiItemActionCreateCall(
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
@@ -128,7 +128,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @return A [Promise] wrapping the transformed result of type [R].
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemActionUpdateCall(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> ICommonContainer<T, ID, FILT>.apiItemActionUpdateCall(
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),
@@ -149,7 +149,7 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @return A `Promise` of the transformed result of type `R`.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> CC.apiItemActionDeleteCall(
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : IApiCommonService, R : Any?> ICommonContainer<T, ID, FILT>.apiItemActionDeleteCall(
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
     apiFilter: FILT = apiFilterInstance(),

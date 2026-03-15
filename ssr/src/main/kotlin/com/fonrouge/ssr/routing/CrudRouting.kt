@@ -43,14 +43,11 @@ import io.ktor.server.routing.*
  * @param layout the page layout
  * @param auth the auth strategy, defaults to [AllowAllAuth]
  */
-fun <CC, T, ID, FILT> Route.installCrudRoutes(
-    pageDef: PageDef<CC, T, ID, FILT>,
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Route.installCrudRoutes(
+    pageDef: PageDef<T, ID, FILT>,
     layout: SsrLayout,
     auth: SsrAuth = AllowAllAuth(),
-) where CC : ICommonContainer<T, ID, FILT>,
-        T : BaseDoc<ID>,
-        ID : Any,
-        FILT : IApiFilter<*> {
+) {
 
     val renderer = PageRenderer(pageDef, layout)
     val binder = FormBinder(pageDef.commonContainer.itemKClass, pageDef.fields)
@@ -242,8 +239,8 @@ fun <CC, T, ID, FILT> Route.installCrudRoutes(
 /**
  * Builds a [RequestContext] with the default API filter from the page definition.
  */
-private fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
-    buildContext(call: ApplicationCall, pageDef: PageDef<CC, T, ID, FILT>): RequestContext<FILT> {
+private fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>
+    buildContext(call: ApplicationCall, pageDef: PageDef<T, ID, FILT>): RequestContext<FILT> {
     val apiFilter = pageDef.commonContainer.apiFilterInstance()
     return RequestContext.from(call, apiFilter)
 }
@@ -255,7 +252,7 @@ private suspend fun checkPermissionOrDeny(
     call: ApplicationCall,
     auth: SsrAuth,
     crudTask: CrudTask,
-    pageDef: PageDef<*, *, *, *>,
+    pageDef: PageDef<*, *, *>,
 ) {
     val result = auth.checkPermission(call, crudTask, pageDef.repository)
     if (result.hasError) {

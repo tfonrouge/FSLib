@@ -57,16 +57,16 @@ import kotlin.reflect.KClass
  * @param viewItem Object containing the data and configuration for the associated ICommonContainer.
  * @param classifierClass Optional classifier for identifying the media type, defaulted based on viewItem.
  */
-abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDataMedia<U, UID>, ID : Any, U : IUser<UID>, UID : Any>(
-    configViewList: ConfigViewList<CmnDM, DM, StringId<IDataMedia<U, UID>>, *, DataMediaFilter, Unit, *>,
-    val viewItem: ViewItem<*, *, ID, *>,
+abstract class IViewListDataMedia<DM : IDataMedia<U, UID>, ID : Any, U : IUser<UID>, UID : Any>(
+    configViewList: ConfigViewList<DM, StringId<IDataMedia<U, UID>>, *, DataMediaFilter, Unit, *>,
+    val viewItem: ViewItem<*, ID, *>,
     classifierClass: KClass<*>? = null,
-) : ViewList<CmnDM, DM, StringId<IDataMedia<U, UID>>, DataMediaFilter, Unit>(
+) : ViewList<DM, StringId<IDataMedia<U, UID>>, DataMediaFilter, Unit>(
     configView = configViewList
 ) {
     companion object {
         private var dataMediaService: IApiDataMediaService? = null
-        private var buildViewListDataMedia: ((viewItem: ViewItem<*, *, *, *>, classifierClass: KClass<*>?) -> IViewListDataMedia<*, *, *, *, *>)? =
+        private var buildViewListDataMedia: ((viewItem: ViewItem<*, *, *>, classifierClass: KClass<*>?) -> IViewListDataMedia<*, *, *, *>)? =
             null
 
         /**
@@ -79,7 +79,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
         @Suppress("unused")
         fun initializeViewListDataMedia(
             dataMediaService: IApiDataMediaService,
-            buildViewListDataMedia: (viewItem: ViewItem<*, *, *, *>, classifierClass: KClass<*>?) -> IViewListDataMedia<*, *, *, *, *>,
+            buildViewListDataMedia: (viewItem: ViewItem<*, *, *>, classifierClass: KClass<*>?) -> IViewListDataMedia<*, *, *, *>,
         ) {
             this.dataMediaService = dataMediaService
             this.buildViewListDataMedia = buildViewListDataMedia
@@ -97,7 +97,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
          */
         @Suppress("unused")
         fun TabPanel.tabDataMedia(
-            viewItem: ViewItem<*, *, *, *>,
+            viewItem: ViewItem<*, *, *>,
             classifierClass: KClass<*>? = null,
         ) {
             if (viewItem.crudTask == CrudTask.Create) return
@@ -261,7 +261,7 @@ abstract class IViewListDataMedia<CmnDM : ICommonDataMedia<DM, U, UID>, DM : IDa
                 }
                 hPanel(spacing = 10) {
                     div(className = "col-md-6") {
-                        fsTabulator<CmnDM, DM, StringId<IDataMedia<U, UID>>, DataMediaFilter, Unit>(
+                        fsTabulator<DM, StringId<IDataMedia<U, UID>>, DataMediaFilter, Unit>(
                             viewList = this@IViewListDataMedia,
                             tabulatorOptions = defaultTabulatorOptions(selectableRows = 1)
                         )

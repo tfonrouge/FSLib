@@ -1,5 +1,6 @@
 package com.fonrouge.fullStack.memoryDb
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.api.ApiList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -14,7 +15,7 @@ import kotlin.test.assertTrue
  */
 class InMemoryRepositoryTest {
 
-    private fun createRepo() = InMemoryRepository<CommonTestItem, TestItem, String, TestFilter, String>(
+    private fun createRepo() = InMemoryRepository<TestItem, String, ApiFilter, String>(
         commonContainer = CommonTestItem,
     )
 
@@ -32,7 +33,7 @@ class InMemoryRepositoryTest {
     fun insertAndFindById() = runTest {
         val repo = createRepo()
         val item = TestItem(_id = "x1", name = "Widget", price = 9.99)
-        val filter = TestFilter()
+        val filter = ApiFilter()
 
         val result = repo.insertOne(item, filter)
         assertFalse(result.hasError)
@@ -46,14 +47,14 @@ class InMemoryRepositoryTest {
     @Test
     fun findByIdReturnsNullForMissing() = runTest {
         val repo = createRepo()
-        val found = repo.findById("nonexistent", TestFilter())
+        val found = repo.findById("nonexistent", ApiFilter())
         assertNull(found)
     }
 
     @Test
     fun updateModifiesItem() = runTest {
         val repo = seededRepo()
-        val filter = TestFilter()
+        val filter = ApiFilter()
 
         val updated = TestItem(_id = "1", name = "Alpha Updated", price = 15.0)
         val result = repo.updateOne(updated, filter)
@@ -67,7 +68,7 @@ class InMemoryRepositoryTest {
     @Test
     fun deleteRemovesItem() = runTest {
         val repo = seededRepo()
-        val filter = TestFilter()
+        val filter = ApiFilter()
 
         val result = repo.deleteOne("2", filter)
         assertFalse(result.hasError)
@@ -79,7 +80,7 @@ class InMemoryRepositoryTest {
     @Test
     fun deleteNonexistentReturnsError() = runTest {
         val repo = createRepo()
-        val result = repo.deleteOne("nonexistent", TestFilter())
+        val result = repo.deleteOne("nonexistent", ApiFilter())
         assertTrue(result.hasError)
     }
 
@@ -88,7 +89,7 @@ class InMemoryRepositoryTest {
     @Test
     fun seedPopulatesStore() = runTest {
         val repo = seededRepo()
-        val filter = TestFilter()
+        val filter = ApiFilter()
 
         val list = repo.findList(filter)
         assertEquals(3, list.size)
@@ -100,22 +101,22 @@ class InMemoryRepositoryTest {
     fun apiListProcessPaginates() = runTest {
         val repo = createRepo()
         for (i in 1..25) {
-            repo.insertOne(TestItem(_id = "p$i", name = "Product $i", price = i.toDouble()), TestFilter())
+            repo.insertOne(TestItem(_id = "p$i", name = "Product $i", price = i.toDouble()), ApiFilter())
         }
 
-        val page1 = repo.apiListProcess(null, ApiList(tabPage = 1, tabSize = 10, apiFilter = TestFilter()))
+        val page1 = repo.apiListProcess(null, ApiList(tabPage = 1, tabSize = 10, apiFilter = ApiFilter()))
         assertEquals(10, page1.data.size)
         assertEquals(3, page1.last_page)
         assertEquals(25, page1.last_row)
 
-        val page3 = repo.apiListProcess(null, ApiList(tabPage = 3, tabSize = 10, apiFilter = TestFilter()))
+        val page3 = repo.apiListProcess(null, ApiList(tabPage = 3, tabSize = 10, apiFilter = ApiFilter()))
         assertEquals(5, page3.data.size)
     }
 
     @Test
     fun apiListProcessEmptyRepo() = runTest {
         val repo = createRepo()
-        val result = repo.apiListProcess(null, ApiList(tabPage = 1, tabSize = 10, apiFilter = TestFilter()))
+        val result = repo.apiListProcess(null, ApiList(tabPage = 1, tabSize = 10, apiFilter = ApiFilter()))
         assertEquals(0, result.data.size)
     }
 
@@ -124,21 +125,21 @@ class InMemoryRepositoryTest {
     @Test
     fun findListReturnsAllItems() = runTest {
         val repo = seededRepo()
-        val list = repo.findList(TestFilter())
+        val list = repo.findList(ApiFilter())
         assertEquals(3, list.size)
     }
 
     @Test
     fun findOneReturnsFirstMatch() = runTest {
         val repo = seededRepo()
-        val item = repo.findOne(TestFilter())
+        val item = repo.findOne(ApiFilter())
         assertNotNull(item)
     }
 
     @Test
     fun findOneReturnsNullOnEmpty() = runTest {
         val repo = createRepo()
-        val item = repo.findOne(TestFilter())
+        val item = repo.findOne(ApiFilter())
         assertNull(item)
     }
 
@@ -146,11 +147,11 @@ class InMemoryRepositoryTest {
 
     @Test
     fun readOnlyBlocksInsert() = runTest {
-        val repo = InMemoryRepository<CommonTestItem, TestItem, String, TestFilter, String>(
+        val repo = InMemoryRepository<TestItem, String, ApiFilter, String>(
             commonContainer = CommonTestItem,
             readOnly = true,
         )
-        val result = repo.insertOne(TestItem(_id = "x", name = "Test"), TestFilter())
+        val result = repo.insertOne(TestItem(_id = "x", name = "Test"), ApiFilter())
         assertTrue(result.hasError)
     }
 }

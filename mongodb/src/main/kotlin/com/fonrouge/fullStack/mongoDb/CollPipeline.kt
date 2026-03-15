@@ -31,7 +31,7 @@ internal data class ResultField(
  * @param apiFilter The API filter for lookup function resolution.
  * @return A mutable list of BSON stages for the lookup pipeline.
  */
-internal fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Coll<*, T, ID, FILT, *>.buildLookupList(
+internal fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Coll<T, ID, FILT, *>.buildLookupList(
     lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),
     apiFilter: FILT = commonContainer.apiFilterInstance(),
 ): MutableList<Bson> {
@@ -108,7 +108,7 @@ internal fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Coll<*, T, ID, FI
  * @param resultUnit Whether the result is a single item or a list.
  * @return A mutable list of BSON pipeline stages.
  */
-internal fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Coll<*, T, ID, FILT, *>.buildPipeline(
+internal fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Coll<T, ID, FILT, *>.buildPipeline(
     call: ApplicationCall? = null,
     apiFilter: FILT = commonContainer.apiFilterInstance(),
     apiRequestParams: ApiRequestParams? = null,
@@ -195,7 +195,7 @@ internal fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Coll<*, T, ID, FI
  *
  * @param pipeline The pipeline stages to print.
  */
-internal fun Coll<*, *, *, *, *>.printOutPipeline(pipeline: List<Bson>) {
+internal fun Coll<*, *, *, *>.printOutPipeline(pipeline: List<Bson>) {
     println("-".repeat(40))
     println("Class: ${commonContainer.itemKClass.simpleName} ('${commonContainer.itemKClass.collectionName}'), Aggregate pipeline:")
     println("*".repeat(40))
@@ -217,7 +217,7 @@ internal fun Coll<*, *, *, *, *>.printOutPipeline(pipeline: List<Bson>) {
  * @param pageStateInfoFun Callback to receive pagination info.
  * @return An AggregatePublisher for the constructed pipeline.
  */
-internal fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Coll<*, T, ID, FILT, *>.buildAggregatePublisher(
+internal fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> Coll<T, ID, FILT, *>.buildAggregatePublisher(
     call: ApplicationCall? = null,
     pipeline: MutableList<Bson> = mutableListOf(),
     lookupWrappers: List<LookupWrapper<*, *>> = emptyList(),

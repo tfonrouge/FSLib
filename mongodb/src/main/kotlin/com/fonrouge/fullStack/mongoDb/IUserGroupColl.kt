@@ -22,7 +22,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
  */
 abstract class IUserGroupColl<UG : IUserGroup<U, UID, GOU, GR>, U : IUser<out UID>, UID : Any, GOU : IGroupOfUser<*>, GR : IRoleInGroup<*, GOU>, FILT : IApiFilter<*>>(
     commonContainer: ICommonContainer<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>,
-) : Coll<ICommonContainer<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT>, UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT, UID>(
+) : Coll<UG, OId<IUserGroup<U, UID, GOU, GR>>, FILT, UID>(
     commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<UG>.indexes() {

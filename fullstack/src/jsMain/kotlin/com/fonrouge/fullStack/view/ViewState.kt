@@ -12,7 +12,7 @@ import io.kvision.core.Container
  * @property urlParams URL parameters for the view. It is an instance of the `UrlParams` class, which contains key-value pairs parsed from the URL.
  */
 class ViewState(
-    val configView: ConfigView<*, *, *>,
+    val configView: ConfigView<*, *>,
     val urlParams: UrlParams?,
 )
 

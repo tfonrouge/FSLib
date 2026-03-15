@@ -19,15 +19,14 @@ import kotlin.reflect.createInstance
  * Abstract class that represents a configuration view for managing connections between common containers,
  * views, and API filters. This class provides utility methods for URL management and API filter handling.
  *
- * @param CC The type of the common container implementing ICommon.
  * @param V The type of the associated view.
  * @param FILT The type of the API filter.
  * @property commonContainer The common container defining shared data, filter serializers, and properties such as labels.
  * @property viewKClass The Kotlin class reference for the associated view.
  * @property _baseUrl The optional base URL for this configuration view.
  */
-abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IApiFilter<*>>(
-    val commonContainer: CC,
+abstract class ConfigView<V : View<FILT>, FILT : IApiFilter<*>>(
+    open val commonContainer: ICommon<FILT>,
     val viewKClass: KClass<out V>,
     @Suppress("PropertyName") internal val _baseUrl: String? = null,
 ) {
@@ -192,7 +191,7 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
         pairParam(key = "apiFilter", serializer = commonContainer.apiFilterSerializer, obj = obj)
 
     init {
-        if (this !is ConfigViewContainer<*, *, *, *, *>) {
+        if (this !is ConfigViewContainer<*, *, *, *>) {
             configViewMap[this.baseUrl] = this
         }
     }
@@ -207,11 +206,11 @@ abstract class ConfigView<out CC : ICommon<FILT>, V : View<CC, FILT>, FILT : IAp
  * @return A `ConfigView` instance configured with the specified parameters and types.
  */
 @Suppress("unused")
-inline fun <CC : ICommon<FILT>, V : View<CC, FILT>, reified FILT : IApiFilter<*>> configView(
+inline fun <V : View<FILT>, reified FILT : IApiFilter<*>> configView(
     viewKClass: KClass<out V>,
-    commonContainer: CC,
+    commonContainer: ICommon<FILT>,
     baseUrl: String? = null,
-): ConfigView<CC, V, FILT> = object : ConfigView<CC, V, FILT>(
+): ConfigView<V, FILT> = object : ConfigView<V, FILT>(
     commonContainer = commonContainer,
     viewKClass = viewKClass,
     _baseUrl = baseUrl,

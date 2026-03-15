@@ -32,10 +32,10 @@ import org.litote.kmongo.eq
  * @param U The user entity type.
  * @param UID The user identifier type.
  */
-abstract class IChangeLogColl<CC : ICommonChangeLog<ChangeLog, U, UID>, ChangeLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
-    commonContainer: CC,
-    override val userCollFun: () -> IUserColl<*, U, UID, *>,
-) : Coll<CC, ChangeLog, OId<IChangeLog<U, UID>>, ChangeLogFilter, UID>(
+abstract class IChangeLogColl<ChangeLog : IChangeLog<U, UID>, U : IUser<UID>, UID : Any>(
+    commonContainer: ICommonChangeLog<ChangeLog, U, UID>,
+    override val userCollFun: () -> IUserColl<U, UID, *>,
+) : Coll<ChangeLog, OId<IChangeLog<U, UID>>, ChangeLogFilter, UID>(
     commonContainer = commonContainer
 ), IChangeLogRepository {
     abstract val commonContainerUser: ICommonContainer<U, UID, *>

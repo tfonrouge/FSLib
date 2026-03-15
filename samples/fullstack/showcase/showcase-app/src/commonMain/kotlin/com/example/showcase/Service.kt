@@ -1,5 +1,6 @@
 package com.example.showcase
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.api.ApiList
 import com.fonrouge.base.api.IApiItem
 import com.fonrouge.base.state.ItemState
@@ -20,7 +21,7 @@ import dev.kilua.rpc.annotations.RpcService
 @RpcService
 interface ITaskService : ITaskServiceContract {
     @RpcBindingRoute("ITaskService.apiList")
-    override suspend fun apiList(apiList: ApiList<TaskFilter>): ListState<Task>
+    override suspend fun apiList(apiList: ApiList<ApiFilter>): ListState<Task>
     @RpcBindingRoute("ITaskService.apiItem")
-    override suspend fun apiItem(iApiItem: IApiItem<Task, String, TaskFilter>): ItemState<Task>
+    override suspend fun apiItem(iApiItem: IApiItem<Task, String, ApiFilter>): ItemState<Task>
 }

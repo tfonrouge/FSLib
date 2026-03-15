@@ -34,19 +34,18 @@ import org.w3c.dom.events.Event
 /**
  * Abstract class representing a list view with various properties and methods to manage and display collections of data items.
  *
- * @param CC Type of the common container.
  * @param T Type of the data item.
  * @param ID Type representing the identifier of the data item.
  * @param FILT Type of the API filter used.
  * @param MID Type representing the master item identifier.
  */
 @Suppress("unused")
-abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
-    final override val configView: ConfigViewList<out CC, T, ID, out ViewList<CC, T, ID, FILT, MID>, FILT, MID, *>,
-    configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = null,
+abstract class ViewList<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any>(
+    final override val configView: ConfigViewList<T, ID, out ViewList<T, ID, FILT, MID>, FILT, MID, *>,
+    configViewItem: ConfigViewItem<T, ID, *, FILT, *>? = null,
     periodicUpdateDataView: Boolean? = null,
     var editable: (() -> Boolean) = { true },
-) : ViewDataContainer<CC, T, ID, FILT>(
+) : ViewDataContainer<T, ID, FILT>(
     configViewContainer = configView,
 ) {
     companion object {
@@ -80,8 +79,8 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      * configuring CRUD-related operations, backend API interactions, and other functionalities tied to
      * the view item.
      */
-    private var _configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>? = configViewItem
-    fun configViewItem(): ConfigViewItem<CC, T, ID, *, FILT, *>? {
+    private var _configViewItem: ConfigViewItem<T, ID, *, FILT, *>? = configViewItem
+    fun configViewItem(): ConfigViewItem<T, ID, *, FILT, *>? {
         if (_configViewItem != null) return _configViewItem
         val viewClassName = configView.viewKClass.simpleName!!
         val name = if (viewClassName.startsWith("ViewList")) {
@@ -89,7 +88,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
         } else {
             "ViewItem${configView.commonContainer.itemKClass.js.name}"
         }
-        _configViewItem = configViewItemMap[name]?.unsafeCast<ConfigViewItem<CC, T, ID, *, FILT, *>>()
+        _configViewItem = configViewItemMap[name]?.unsafeCast<ConfigViewItem<T, ID, *, FILT, *>>()
         return _configViewItem
     }
 
@@ -353,7 +352,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
      */
     open fun columnDefinitionList(): List<ColumnDefinition<T>> = emptyList()
 
-    var masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null
+    var masterViewItem: ViewItem<out BaseDoc<MID>, MID, *>? = null
         set(value) {
             editable = { value?.actionUpsert == true }
             crudTask = value?.crudTask
@@ -381,7 +380,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     /**
      * the tabulator list
      */
-    var tabulator: TabulatorViewList<CC, T, ID, FILT, MID>? = null
+    var tabulator: TabulatorViewList<T, ID, FILT, MID>? = null
 
     /**
      * On calling crud actions [[Create, Update]] on this list, checks if it has a masterViewItem
@@ -391,7 +390,7 @@ abstract class ViewList<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID 
     open fun goActionUrl(
         crudTask: CrudTask,
         item: T? = selectedItemObs.value,
-        configViewItem: ConfigViewItem<@UnsafeVariance CC, T, ID, *, FILT, *>? = configViewItem(),
+        configViewItem: ConfigViewItem<T, ID, *, FILT, *>? = configViewItem(),
     ) {
         configViewItem ?: return
         val apiItem = when (crudTask) {

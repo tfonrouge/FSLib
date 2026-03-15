@@ -1,5 +1,6 @@
 package com.example.showcase
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.fieldName
 import com.fonrouge.fullStack.config.configViewList
 import com.fonrouge.fullStack.help.IHelpModule
@@ -16,7 +17,7 @@ import io.kvision.tabulator.Formatter
  * Demonstrates FSLib's ViewList with Tabulator grid, column definitions,
  * toolbar, pagination, filtering, and sorting.
  */
-class ViewListTask : ViewList<CommonTask, Task, String, TaskFilter, String>(
+class ViewListTask : ViewList<Task, String, ApiFilter, Unit>(
     configView = configViewList,
 ) {
     override val helpModule: IHelpModule = ShowcaseModule.Tasks

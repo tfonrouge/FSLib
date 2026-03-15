@@ -14,17 +14,17 @@ object ViewRegistry {
     /**
      * Map of general view configurations, indexed by base URL.
      */
-    val configViewMap = mutableMapOf<String, ConfigView<*, *, *>>()
+    val configViewMap = mutableMapOf<String, ConfigView<*, *>>()
 
     /**
      * Map of item view configurations, indexed by base URL.
      */
-    val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *, *>>()
+    val configViewItemMap = mutableMapOf<String, ConfigViewItem<*, *, *, *, *>>()
 
     /**
      * Map of list view configurations, indexed by base URL.
      */
-    val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *, *>>()
+    val configViewListMap = mutableMapOf<String, ConfigViewList<*, *, *, *, *, *>>()
 
     private var _itemServiceManager: RpcServiceManager<*>? = null
     private var _listServiceManager: RpcServiceManager<*>? = null
@@ -59,7 +59,7 @@ object ViewRegistry {
      * @param baseUrl The base URL of the view to find.
      * @return The matching view configuration, or null if not found in any map.
      */
-    fun findByUrl(baseUrl: String): ConfigView<*, *, *>? =
+    fun findByUrl(baseUrl: String): ConfigView<*, *>? =
         configViewMap[baseUrl] ?: configViewItemMap[baseUrl] ?: configViewListMap[baseUrl]
 
     /**

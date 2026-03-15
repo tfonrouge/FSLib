@@ -21,9 +21,9 @@ import org.litote.kmongo.eq
  *
  * @param commonContainer The common container instance used by this collection.
  */
-abstract class IAppRoleColl<CC : ICommonContainer<T, ID, FILT>, T : IAppRole<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
-    commonContainer: CC,
-) : Coll<CC, T, ID, FILT, UID>(
+abstract class IAppRoleColl<T : IAppRole<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
+    commonContainer: ICommonContainer<T, ID, FILT>,
+) : Coll<T, ID, FILT, UID>(
     commonContainer = commonContainer
 ) {
     open suspend fun insertSingleActionRole(

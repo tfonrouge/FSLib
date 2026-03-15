@@ -13,7 +13,7 @@ import io.kvision.core.Container
  * @return The container itself, allowing for method chaining.
  */
 @Suppress("unused")
-fun Container.addView(view: View<*, *>): Container {
+fun Container.addView(view: View<*>): Container {
     view.apply {
         startDisplayPage()
     }

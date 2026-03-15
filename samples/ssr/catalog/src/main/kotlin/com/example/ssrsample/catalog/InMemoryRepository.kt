@@ -17,14 +17,13 @@ import kotlin.reflect.KProperty1
  * Generic in-memory [IRepository] implementation for the SSR sample.
  * Stores items in a mutable map keyed by their `_id`.
  *
- * @param CC common container type
  * @param T document type
  * @param FILT API filter type
  * @param container the common container providing entity metadata
  */
-class InMemoryRepository<CC : ICommonContainer<T, String, FILT>, T : BaseDoc<String>, FILT : IApiFilter<*>>(
-    container: CC,
-) : IRepository<CC, T, String, FILT, String> {
+class InMemoryRepository<T : BaseDoc<String>, FILT : IApiFilter<*>>(
+    container: ICommonContainer<T, String, FILT>,
+) : IRepository<T, String, FILT, String> {
 
     /** In-memory data store. */
     val store = mutableMapOf<String, T>()

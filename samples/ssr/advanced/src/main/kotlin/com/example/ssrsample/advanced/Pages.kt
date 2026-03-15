@@ -1,5 +1,6 @@
 package com.example.ssrsample.advanced
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.api.CrudTask
 import com.fonrouge.ssr.PageDef
 import com.fonrouge.ssr.context.RequestContext
@@ -15,8 +16,8 @@ import kotlinx.html.small
  * Demonstrates [FormContext.card] and [FormContext.row] layout helpers.
  */
 class ProjectPage(
-    repo: InMemoryRepository<CommonProject, Project, ProjectFilter>,
-) : PageDef<CommonProject, Project, String, ProjectFilter>(
+    repo: InMemoryRepository<Project, ApiFilter>,
+) : PageDef<Project, String, ApiFilter>(
     commonContainer = CommonProject,
     repository = repo,
     basePath = "/projects",
@@ -68,7 +69,7 @@ class ProjectPage(
     override suspend fun onBeforeForm(
         item: Project?,
         crudTask: CrudTask,
-        ctx: RequestContext<ProjectFilter>,
+        ctx: RequestContext<ApiFilter>,
     ): SsrHookResult {
         if (crudTask == CrudTask.Delete && item?.status == "active") {
             return SsrHookResult.Redirect(
@@ -83,7 +84,7 @@ class ProjectPage(
     override suspend fun onAfterAction(
         item: Project,
         crudTask: CrudTask,
-        ctx: RequestContext<ProjectFilter>,
+        ctx: RequestContext<ApiFilter>,
     ): String {
         return basePath
     }
@@ -96,9 +97,9 @@ class ProjectPage(
  * and additional content below the form.
  */
 class TaskPage(
-    private val projectRepo: InMemoryRepository<CommonProject, Project, ProjectFilter>,
-    taskRepo: InMemoryRepository<CommonTask, Task, TaskFilter>,
-) : PageDef<CommonTask, Task, String, TaskFilter>(
+    private val projectRepo: InMemoryRepository<Project, ApiFilter>,
+    taskRepo: InMemoryRepository<Task, ApiFilter>,
+) : PageDef<Task, String, ApiFilter>(
     commonContainer = CommonTask,
     repository = taskRepo,
     basePath = "/tasks",
@@ -154,7 +155,7 @@ class TaskPage(
     override suspend fun onBeforeForm(
         item: Task?,
         crudTask: CrudTask,
-        ctx: RequestContext<TaskFilter>,
+        ctx: RequestContext<ApiFilter>,
     ): SsrHookResult {
         if (crudTask == CrudTask.Create) {
             // Allow — validation will catch invalid project codes
@@ -167,7 +168,7 @@ class TaskPage(
     override suspend fun onAfterAction(
         item: Task,
         crudTask: CrudTask,
-        ctx: RequestContext<TaskFilter>,
+        ctx: RequestContext<ApiFilter>,
     ): String = basePath
 
     override fun parseId(raw: String): String = raw

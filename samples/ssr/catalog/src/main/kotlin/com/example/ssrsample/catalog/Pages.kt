@@ -1,5 +1,6 @@
 package com.example.ssrsample.catalog
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.ssr.PageDef
 
 /**
@@ -7,8 +8,8 @@ import com.fonrouge.ssr.PageDef
  * Defines list columns and form fields for product management.
  */
 class ProductPage(
-    repo: InMemoryRepository<CommonProduct, Product, ProductFilter>,
-) : PageDef<CommonProduct, Product, String, ProductFilter>(
+    repo: InMemoryRepository<Product, ApiFilter>,
+) : PageDef<Product, String, ApiFilter>(
     commonContainer = CommonProduct,
     repository = repo,
     basePath = "/products",
@@ -39,8 +40,8 @@ class ProductPage(
  * Defines list columns and form fields for customer management.
  */
 class CustomerPage(
-    repo: InMemoryRepository<CommonCustomer, Customer, CustomerFilter>,
-) : PageDef<CommonCustomer, Customer, String, CustomerFilter>(
+    repo: InMemoryRepository<Customer, ApiFilter>,
+) : PageDef<Customer, String, ApiFilter>(
     commonContainer = CommonCustomer,
     repository = repo,
     basePath = "/customers",

@@ -19,7 +19,7 @@ import kotlin.reflect.full.isSubclassOf
  * @param apiItem The API item containing the call and CRUD task context.
  * @return A [SimpleState] indicating whether the operation is permitted.
  */
-internal suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any> Coll<*, T, ID, FILT, UID>.checkCrudPermission(
+internal suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any> Coll<T, ID, FILT, UID>.checkCrudPermission(
     apiItem: ApiItem<T, ID, FILT>,
 ): SimpleState =
     apiItem.call?.let { call -> checkCrudPermission(call, apiItem.crudTask) } ?: SimpleState(isOk = true)
@@ -31,7 +31,7 @@ internal suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any
  * @param crudTask The specific CRUD task for which permission is being checked.
  * @return A [SimpleState] indicating whether the permission check was successful.
  */
-internal suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any> Coll<*, T, ID, FILT, UID>.checkCrudPermission(
+internal suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any> Coll<T, ID, FILT, UID>.checkCrudPermission(
     call: ApplicationCall,
     crudTask: CrudTask,
 ): SimpleState {

@@ -22,16 +22,15 @@ import kotlin.time.ExperimentalTime
  * An abstract class `ViewDataContainer` which extends from the `View`. This class is designed
  * to manage the configuration and periodic update of a view container.
  *
- * @param CC The type of the common container must extend from `ICommonContainer`.
  * @param T The type of the data item must extend from `BaseDoc`.
  * @param ID The type out of the ID of a data item, which must be a non-nullable type.
  * @param FILT The type of the API filter used for querying, must extend `IApiFilter`.
  * @property configViewContainer The configuration object for the view container.
  */
 @OptIn(ExperimentalTime::class)
-abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-    val configViewContainer: ConfigViewContainer<CC, T, ID, *, FILT>,
-) : View<CC, FILT>(
+abstract class ViewDataContainer<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+    val configViewContainer: ConfigViewContainer<T, ID, *, FILT>,
+) : View<FILT>(
     configView = configViewContainer,
 ) {
     companion object {
@@ -79,11 +78,11 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
     fun confirmDeleteView(
         apiItemFun: Function<*>,
         item: T,
-        apiFilter: FILT = configView.commonContainer.apiFilterInstance(),
+        apiFilter: FILT = configViewContainer.commonContainer.apiFilterInstance(),
         onFail: ((ItemState<T>) -> Unit)? = null,
         onSuccess: (() -> Unit)? = null,
     ) {
-        configView.commonContainer.callItemService(
+        configViewContainer.commonContainer.callItemService(
             apiItemFun = apiItemFun,
             crudTask = CrudTask.Delete,
             callType = CallType.Query,
@@ -92,15 +91,15 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
             apiFilter = apiFilter,
         ) { itemState ->
             if (itemState.hasError.not()) {
-                val numSelectedRows = if (this is ViewList<*, *, *, *, *>)
+                val numSelectedRows = if (this is ViewList<*, *, *, *>)
                     tabulator?.getSelectedRows()?.size ?: 0 else null
                 val deleteWord = gettext("Delete")
                 val text = if (numSelectedRows != null && numSelectedRows > 0) {
-                    "<b>$deleteWord</b> $numSelectedRows selected '<i>${configView.commonContainer.labelItem}</i>', id: <b>${
-                        configView.commonContainer.labelId(item)
+                    "<b>$deleteWord</b> $numSelectedRows selected '<i>${configViewContainer.commonContainer.labelItem}</i>', id: <b>${
+                        configViewContainer.commonContainer.labelId(item)
                     }</b> ?"
-                } else "<b>$deleteWord</b> '<i>${configView.commonContainer.labelItem}</i>', id: <b>${
-                    configView.commonContainer.labelId(item)
+                } else "<b>$deleteWord</b> '<i>${configViewContainer.commonContainer.labelItem}</i>', id: <b>${
+                    configViewContainer.commonContainer.labelId(item)
                 }</b> ?"
                 val modal = Confirm(
                     caption = "Please Confirm",
@@ -113,7 +112,7 @@ abstract class ViewDataContainer<out CC : ICommonContainer<T, ID, FILT>, T : Bas
                         Toast.warning("Delete canceled")
                     },
                     yesCallback = {
-                        configView.commonContainer.callItemService(
+                        configViewContainer.commonContainer.callItemService(
                             apiItemFun = apiItemFun,
                             crudTask = CrudTask.Delete,
                             callType = CallType.Action,

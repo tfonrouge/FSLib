@@ -1,10 +1,9 @@
 package com.example.ssrsample.basic
 
-import com.fonrouge.base.api.IApiFilter
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 
 /**
  * A simple to-do item.
@@ -17,18 +16,11 @@ data class Todo(
 ) : BaseDoc<String>
 
 /**
- * API filter for Todo queries.
- */
-@Serializable
-class TodoFilter : IApiFilter<String>()
-
-/**
  * Metadata container for [Todo].
  */
-object CommonTodo : ICommonContainer<Todo, String, TodoFilter>(
+object CommonTodo : ICommonContainer<Todo, String, ApiFilter>(
     itemKClass = Todo::class,
-    idSerializer = String.serializer(),
-    apiFilterSerializer = TodoFilter.serializer(),
+    filterKClass = ApiFilter::class,
     labelItem = "Todo",
     labelList = "Todos",
 )

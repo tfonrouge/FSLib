@@ -45,8 +45,8 @@ fun Application.module() {
  * Populates repositories with sample project and task data.
  */
 private fun seedData(
-    projectRepo: InMemoryRepository<*, Project, *>,
-    taskRepo: InMemoryRepository<*, Task, *>,
+    projectRepo: InMemoryRepository<Project, *>,
+    taskRepo: InMemoryRepository<Task, *>,
 ) {
     projectRepo.store["p1"] = Project(
         _id = "p1", code = "WEB", name = "Website Redesign",

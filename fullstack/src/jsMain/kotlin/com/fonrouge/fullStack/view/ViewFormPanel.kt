@@ -53,7 +53,7 @@ open class ViewFormPanel<T : BaseDoc<*>>(
     className: String? = null,
     val serializer: KSerializer<T>,
     customSerializers: Map<KClass<*>, KSerializer<*>>? = null,
-    val viewItem: ViewItem<*, T, *, *>? = null,
+    val viewItem: ViewItem<T, *, *>? = null,
     val getModel: (() -> T?) = { viewItem?.item },
     serializedValueMap: Map<String, String?>? = null
 ) : FormPanel<T>(
@@ -73,7 +73,7 @@ open class ViewFormPanel<T : BaseDoc<*>>(
             type: FormType? = null, condensed: Boolean = false,
             horizRatio: FormHorizontalRatio = FormHorizontalRatio.RATIO_2, className: String? = null,
             customSerializers: Map<KClass<*>, KSerializer<*>>? = null,
-            viewItem: ViewItem<*, K, *, *>? = null,
+            viewItem: ViewItem<K, *, *>? = null,
             noinline getModel: (() -> K?) = { viewItem?.item },
             serializedValueMap: MutableMap<String, String?>? = null,
             noinline init: (FormPanel<K>.() -> Unit)? = null
@@ -442,7 +442,7 @@ inline fun <reified K : BaseDoc<*>> Container.viewFormPanel(
     horizRatio: FormHorizontalRatio = FormHorizontalRatio.RATIO_2,
     className: String? = null,
     customSerializers: Map<KClass<*>, KSerializer<*>>? = null,
-    viewItem: ViewItem<*, K, *, *>? = null,
+    viewItem: ViewItem<K, *, *>? = null,
     noinline getModel: (() -> K?) = { viewItem?.item },
     noinline init: (FormPanel<K>.() -> Unit)? = null
 ): ViewFormPanel<K> {

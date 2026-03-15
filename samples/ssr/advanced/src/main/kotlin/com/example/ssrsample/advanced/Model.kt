@@ -1,10 +1,9 @@
 package com.example.ssrsample.advanced
 
-import com.fonrouge.base.api.IApiFilter
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 
 // ── Models ──────────────────────────────────────────────────
 
@@ -36,32 +35,20 @@ data class Task(
     val description: String = "",
 ) : BaseDoc<String>
 
-// ── Filters ─────────────────────────────────────────────────
-
-/** API filter for Project queries. */
-@Serializable
-class ProjectFilter : IApiFilter<String>()
-
-/** API filter for Task queries. */
-@Serializable
-class TaskFilter : IApiFilter<String>()
-
 // ── Common Containers ───────────────────────────────────────
 
 /** Metadata container for [Project]. */
-object CommonProject : ICommonContainer<Project, String, ProjectFilter>(
+object CommonProject : ICommonContainer<Project, String, ApiFilter>(
     itemKClass = Project::class,
-    idSerializer = String.serializer(),
-    apiFilterSerializer = ProjectFilter.serializer(),
+    filterKClass = ApiFilter::class,
     labelItem = "Project",
     labelList = "Projects",
 )
 
 /** Metadata container for [Task]. */
-object CommonTask : ICommonContainer<Task, String, TaskFilter>(
+object CommonTask : ICommonContainer<Task, String, ApiFilter>(
     itemKClass = Task::class,
-    idSerializer = String.serializer(),
-    apiFilterSerializer = TaskFilter.serializer(),
+    filterKClass = ApiFilter::class,
     labelItem = "Task",
     labelList = "Tasks",
 )

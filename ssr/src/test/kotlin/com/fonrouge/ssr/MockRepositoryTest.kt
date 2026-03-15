@@ -1,5 +1,6 @@
 package com.fonrouge.ssr
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.api.ApiList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -15,7 +16,7 @@ import kotlin.test.assertTrue
 class MockRepositoryTest {
 
     private val repo = MockRepository()
-    private val filter = TestFilter()
+    private val filter = ApiFilter()
 
     @Test
     fun insertAndFindById() = runTest {

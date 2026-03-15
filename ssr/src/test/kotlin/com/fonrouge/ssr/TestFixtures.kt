@@ -11,9 +11,7 @@ import com.fonrouge.fullStack.repository.IChangeLogRepository
 import com.fonrouge.fullStack.repository.IRepository
 import com.fonrouge.fullStack.repository.IUserRepository
 import io.ktor.server.application.*
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 import kotlin.reflect.KProperty1
 
 // ── Test Model ──────────────────────────────────────────────
@@ -31,18 +29,11 @@ data class TestProduct(
 ) : BaseDoc<String>
 
 /**
- * Simple API filter for tests.
- */
-@Serializable
-class TestFilter : IApiFilter<String>()
-
-/**
  * Common container providing metadata for [TestProduct].
  */
-object CommonTestProduct : ICommonContainer<TestProduct, String, TestFilter>(
+object CommonTestProduct : ICommonContainer<TestProduct, String, ApiFilter>(
     itemKClass = TestProduct::class,
-    idSerializer = String.serializer(),
-    apiFilterSerializer = TestFilter.serializer(),
+    filterKClass = ApiFilter::class,
     labelItem = "Product",
     labelList = "Products",
 )
@@ -54,10 +45,9 @@ object CommonTestProduct : ICommonContainer<TestProduct, String, TestFilter>(
  * Stores items in a mutable map and supports basic CRUD operations.
  */
 class MockRepository : IRepository<
-    ICommonContainer<TestProduct, String, TestFilter>,
     TestProduct,
     String,
-    TestFilter,
+    ApiFilter,
     String,
 > {
     /** In-memory data store. */
@@ -73,29 +63,29 @@ class MockRepository : IRepository<
     override val dependencies: (() -> List<IRepository.Dependency<*, String>>)? = null
     override val userCollFun: () -> IUserRepository<*, String>? = { null }
 
-    override suspend fun insertOne(item: TestProduct, apiFilter: TestFilter, call: ApplicationCall?): ItemState<TestProduct> {
+    override suspend fun insertOne(item: TestProduct, apiFilter: ApiFilter, call: ApplicationCall?): ItemState<TestProduct> {
         lastOperation = "insert"
         store[item._id] = item
         return ItemState(item = item)
     }
 
-    override suspend fun findById(id: String?, apiFilter: TestFilter): TestProduct? {
+    override suspend fun findById(id: String?, apiFilter: ApiFilter): TestProduct? {
         lastOperation = "findById"
         return store[id]
     }
 
-    override suspend fun findItemStateById(id: String?, apiFilter: TestFilter): ItemState<TestProduct> {
+    override suspend fun findItemStateById(id: String?, apiFilter: ApiFilter): ItemState<TestProduct> {
         val item = store[id]
         return if (item != null) ItemState(item = item) else ItemState()
     }
 
-    override suspend fun updateOne(item: TestProduct, apiFilter: TestFilter, call: ApplicationCall?): ItemState<TestProduct> {
+    override suspend fun updateOne(item: TestProduct, apiFilter: ApiFilter, call: ApplicationCall?): ItemState<TestProduct> {
         lastOperation = "update"
         store[item._id] = item
         return ItemState(item = item)
     }
 
-    override suspend fun deleteOne(id: String, apiFilter: TestFilter): ItemState<TestProduct> {
+    override suspend fun deleteOne(id: String, apiFilter: ApiFilter): ItemState<TestProduct> {
         lastOperation = "delete"
         val item = store.remove(id)
         return if (item != null) ItemState(item = item) else ItemState(
@@ -104,11 +94,11 @@ class MockRepository : IRepository<
         )
     }
 
-    override suspend fun apiItemProcess(call: ApplicationCall?, iApiItem: IApiItem<TestProduct, String, TestFilter>): ItemState<TestProduct> {
+    override suspend fun apiItemProcess(call: ApplicationCall?, iApiItem: IApiItem<TestProduct, String, ApiFilter>): ItemState<TestProduct> {
         return ItemState()
     }
 
-    override suspend fun apiListProcess(call: ApplicationCall?, apiList: ApiList<TestFilter>): ListState<TestProduct> {
+    override suspend fun apiListProcess(call: ApplicationCall?, apiList: ApiList<ApiFilter>): ListState<TestProduct> {
         lastOperation = "list"
         val page = apiList.tabPage ?: 1
         val size = apiList.tabSize ?: 25
@@ -123,8 +113,8 @@ class MockRepository : IRepository<
         )
     }
 
-    override suspend fun findList(apiFilter: TestFilter): List<TestProduct> = store.values.toList()
-    override suspend fun findOne(apiFilter: TestFilter): TestProduct? = store.values.firstOrNull()
+    override suspend fun findList(apiFilter: ApiFilter): List<TestProduct> = store.values.toList()
+    override suspend fun findOne(apiFilter: ApiFilter): TestProduct? = store.values.firstOrNull()
 
     override suspend fun getCrudPermission(call: ApplicationCall, crudTask: CrudTask): SimpleState {
         return SimpleState(State.Ok)
@@ -134,23 +124,23 @@ class MockRepository : IRepository<
     override suspend fun findChildrenNot(item: TestProduct): ItemState<TestProduct> = ItemState(item = item)
 
     // Lifecycle hooks — all no-op for testing
-    override suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<TestProduct, String, TestFilter>) = SimpleState(State.Ok)
-    override suspend fun onQueryCreateItem(apiItem: ApiItem.Query.Create<TestProduct, String, TestFilter>) = ItemState<TestProduct>()
-    override suspend fun onQueryRead(apiItem: ApiItem.Query.Read<TestProduct, String, TestFilter>) = SimpleState(State.Ok)
-    override suspend fun onQueryUpdate(apiItem: ApiItem.Query.Update<TestProduct, String, TestFilter>, orig: TestProduct) = SimpleState(State.Ok)
-    override suspend fun onQueryDelete(apiItem: ApiItem.Query.Delete<TestProduct, String, TestFilter>, item: TestProduct) = SimpleState(State.Ok)
-    override suspend fun onQueryUpsert(apiItem: ApiItem.Query<TestProduct, String, TestFilter>, orig: TestProduct?) = SimpleState(State.Ok)
-    override suspend fun onBeforeCreateAction(apiItem: ApiItem.Action.Create<TestProduct, String, TestFilter>) = ItemState<TestProduct>()
-    override suspend fun onBeforeUpdateAction(apiItem: ApiItem.Action.Update<TestProduct, String, TestFilter>, orig: TestProduct) = ItemState<TestProduct>()
-    override suspend fun onBeforeDeleteAction(apiItem: ApiItem.Action.Delete<TestProduct, String, TestFilter>) = ItemState<TestProduct>()
-    override suspend fun onBeforeUpsertAction(apiItem: ApiItem.Action<TestProduct, String, TestFilter>, orig: TestProduct?) = ItemState<TestProduct>()
-    override suspend fun onAfterCreateAction(apiItem: ApiItem.Action.Create<TestProduct, String, TestFilter>, result: Boolean) {}
-    override suspend fun onAfterUpdateAction(apiItem: ApiItem.Action.Update<TestProduct, String, TestFilter>, orig: TestProduct, result: Boolean) {}
-    override suspend fun onAfterDeleteAction(apiItem: ApiItem.Action.Delete<TestProduct, String, TestFilter>, result: Boolean) {}
-    override suspend fun onAfterUpsertAction(apiItem: ApiItem.Action<TestProduct, String, TestFilter>, orig: TestProduct?, result: Boolean) {}
+    override suspend fun onQueryCreate(apiItem: ApiItem.Query.Create<TestProduct, String, ApiFilter>) = SimpleState(State.Ok)
+    override suspend fun onQueryCreateItem(apiItem: ApiItem.Query.Create<TestProduct, String, ApiFilter>) = ItemState<TestProduct>()
+    override suspend fun onQueryRead(apiItem: ApiItem.Query.Read<TestProduct, String, ApiFilter>) = SimpleState(State.Ok)
+    override suspend fun onQueryUpdate(apiItem: ApiItem.Query.Update<TestProduct, String, ApiFilter>, orig: TestProduct) = SimpleState(State.Ok)
+    override suspend fun onQueryDelete(apiItem: ApiItem.Query.Delete<TestProduct, String, ApiFilter>, item: TestProduct) = SimpleState(State.Ok)
+    override suspend fun onQueryUpsert(apiItem: ApiItem.Query<TestProduct, String, ApiFilter>, orig: TestProduct?) = SimpleState(State.Ok)
+    override suspend fun onBeforeCreateAction(apiItem: ApiItem.Action.Create<TestProduct, String, ApiFilter>) = ItemState<TestProduct>()
+    override suspend fun onBeforeUpdateAction(apiItem: ApiItem.Action.Update<TestProduct, String, ApiFilter>, orig: TestProduct) = ItemState<TestProduct>()
+    override suspend fun onBeforeDeleteAction(apiItem: ApiItem.Action.Delete<TestProduct, String, ApiFilter>) = ItemState<TestProduct>()
+    override suspend fun onBeforeUpsertAction(apiItem: ApiItem.Action<TestProduct, String, ApiFilter>, orig: TestProduct?) = ItemState<TestProduct>()
+    override suspend fun onAfterCreateAction(apiItem: ApiItem.Action.Create<TestProduct, String, ApiFilter>, result: Boolean) {}
+    override suspend fun onAfterUpdateAction(apiItem: ApiItem.Action.Update<TestProduct, String, ApiFilter>, orig: TestProduct, result: Boolean) {}
+    override suspend fun onAfterDeleteAction(apiItem: ApiItem.Action.Delete<TestProduct, String, ApiFilter>, result: Boolean) {}
+    override suspend fun onAfterUpsertAction(apiItem: ApiItem.Action<TestProduct, String, ApiFilter>, orig: TestProduct?, result: Boolean) {}
     override suspend fun onAfterOpen() {}
-    override suspend fun onValidate(apiItem: ApiItem.Action<TestProduct, String, TestFilter>, item: TestProduct) = SimpleState(State.Ok)
-    override suspend fun asApiItem(apiItem: ApiItem<TestProduct, String, TestFilter>) = ItemState(item = apiItem)
+    override suspend fun onValidate(apiItem: ApiItem.Action<TestProduct, String, ApiFilter>, item: TestProduct) = SimpleState(State.Ok)
+    override suspend fun asApiItem(apiItem: ApiItem<TestProduct, String, ApiFilter>) = ItemState(item = apiItem)
 }
 
 // ── Test PageDef ────────────────────────────────────────────
@@ -159,10 +149,9 @@ class MockRepository : IRepository<
  * PageDef for [TestProduct] used in integration tests.
  */
 class TestProductPageDef(repo: MockRepository) : PageDef<
-    ICommonContainer<TestProduct, String, TestFilter>,
     TestProduct,
     String,
-    TestFilter,
+    ApiFilter,
 >(
     commonContainer = CommonTestProduct,
     repository = repo,

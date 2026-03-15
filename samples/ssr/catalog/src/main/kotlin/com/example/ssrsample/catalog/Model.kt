@@ -1,10 +1,9 @@
 package com.example.ssrsample.catalog
 
-import com.fonrouge.base.api.IApiFilter
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 
 // ── Models ──────────────────────────────────────────────────
 
@@ -35,32 +34,20 @@ data class Customer(
     val active: Boolean = true,
 ) : BaseDoc<String>
 
-// ── Filters ─────────────────────────────────────────────────
-
-/** API filter for Product queries. */
-@Serializable
-class ProductFilter : IApiFilter<String>()
-
-/** API filter for Customer queries. */
-@Serializable
-class CustomerFilter : IApiFilter<String>()
-
 // ── Common Containers ───────────────────────────────────────
 
 /** Metadata container for [Product]. */
-object CommonProduct : ICommonContainer<Product, String, ProductFilter>(
+object CommonProduct : ICommonContainer<Product, String, ApiFilter>(
     itemKClass = Product::class,
-    idSerializer = String.serializer(),
-    apiFilterSerializer = ProductFilter.serializer(),
+    filterKClass = ApiFilter::class,
     labelItem = "Product",
     labelList = "Products",
 )
 
 /** Metadata container for [Customer]. */
-object CommonCustomer : ICommonContainer<Customer, String, CustomerFilter>(
+object CommonCustomer : ICommonContainer<Customer, String, ApiFilter>(
     itemKClass = Customer::class,
-    idSerializer = String.serializer(),
-    apiFilterSerializer = CustomerFilter.serializer(),
+    filterKClass = ApiFilter::class,
     labelItem = "Customer",
     labelList = "Customers",
 )

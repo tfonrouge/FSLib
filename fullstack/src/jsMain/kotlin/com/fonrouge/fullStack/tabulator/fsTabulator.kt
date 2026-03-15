@@ -38,9 +38,9 @@ import org.w3c.dom.events.Event
  */
 @Suppress("unused")
 @OptIn(InternalSerializationApi::class)
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
-    viewList: ViewList<CC, T, ID, FILT, MID>,
-    masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.fsTabulator(
+    viewList: ViewList<T, ID, FILT, MID>,
+    masterViewItem: ViewItem<out BaseDoc<MID>, MID, *>? = null,
     tabulatorOptions: TabulatorOptions<T> = viewList.defaultTabulatorOptions(),
     types: Set<TableType> = setOf(
         TableType.STRIPED,
@@ -51,8 +51,8 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
     minToolbarSize: Boolean = false,
     editable: (() -> Boolean)? = null,
     debug: Boolean = false,
-    init: (TabulatorViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,
-): ViewList<CC, T, ID, FILT, MID> {
+    init: (TabulatorViewList<T, ID, FILT, MID>.() -> Unit)? = null,
+): ViewList<T, ID, FILT, MID> {
     masterViewItem?.let {
         viewList.masterViewItem = it
         viewList.crudTask = it.crudTask

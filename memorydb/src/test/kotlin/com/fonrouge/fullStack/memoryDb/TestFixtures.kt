@@ -1,10 +1,9 @@
 package com.fonrouge.fullStack.memoryDb
 
-import com.fonrouge.base.api.IApiFilter
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.base.common.ICommonContainer
 import com.fonrouge.base.model.BaseDoc
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 
 /**
  * Simple test model for InMemoryRepository tests.
@@ -19,18 +18,11 @@ data class TestItem(
 ) : BaseDoc<String>
 
 /**
- * API filter for tests.
- */
-@Serializable
-class TestFilter : IApiFilter<Unit>()
-
-/**
  * Common container providing metadata for [TestItem].
  */
-object CommonTestItem : ICommonContainer<TestItem, String, TestFilter>(
+object CommonTestItem : ICommonContainer<TestItem, String, ApiFilter>(
     itemKClass = TestItem::class,
-    idSerializer = String.serializer(),
-    apiFilterSerializer = TestFilter.serializer(),
+    filterKClass = ApiFilter::class,
     labelItem = "Item",
     labelList = "Items",
 )

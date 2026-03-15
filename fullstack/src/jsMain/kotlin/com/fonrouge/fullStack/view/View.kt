@@ -44,12 +44,11 @@ import kotlin.time.Instant
  * This class provides functionality to manage URL parameters, display labels,
  * periodic updates, API filters, banners, and navigation buttons.
  *
- * @param CC The type of the common container that implements ICommon.
  * @param FILT The type of the API filter that implements IApiFilter.
  * @property configView The configuration view instance providing necessary configurations.
  */
-abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
-    open val configView: ConfigView<CC, *, FILT>,
+abstract class View<FILT : IApiFilter<*>>(
+    open val configView: ConfigView<*, FILT>,
 ) {
     companion object {
         /**
@@ -297,9 +296,9 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      * @param init An optional initialization block to configure the `viewList`. Defaults to null.
      */
     @Suppress("unused")
-    fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.addPageListBody(
-        viewList: ViewList<CC, T, ID, FILT, MID>,
-        init: (ViewList<CC, T, ID, FILT, MID>.() -> Unit)? = null,
+    fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<MID>, MID : Any> Container.addPageListBody(
+        viewList: ViewList<T, ID, FILT, MID>,
+        init: (ViewList<T, ID, FILT, MID>.() -> Unit)? = null,
     ) {
         with(viewList) {
             pageListBody()
@@ -320,9 +319,9 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
      */
     @Suppress("unused")
     fun <FILT : IApiFilter<MID>, MID : Any> Container.addViewList(
-        viewList: ViewList<out ICommonContainer<*, *, FILT>, *, *, FILT, MID>,
-        masterViewItem: ViewItem<ICommonContainer<out BaseDoc<MID>, MID, *>, out BaseDoc<MID>, MID, *>? = null,
-        init: ((ViewList<out ICommonContainer<*, *, FILT>, *, *, FILT, MID>).() -> Unit)? = null,
+        viewList: ViewList<*, *, FILT, MID>,
+        masterViewItem: ViewItem<out BaseDoc<MID>, MID, *>? = null,
+        init: ((ViewList<*, *, FILT, MID>).() -> Unit)? = null,
     ) {
         viewList.apply { startDisplayPage() }
         masterViewItem?.let {
@@ -552,7 +551,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
             observableState = pageBannerUpdateObservable,
             removeChildren = true
         ) {
-            if (this@View is ViewItem<*, *, *, FILT> && this@View.crudTask == CrudTask.Read) {
+            if (this@View is ViewItem<*, *, FILT> && this@View.crudTask == CrudTask.Read) {
                 nav {
                     dropDown(
                         text = "",
@@ -605,7 +604,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                         link(
                             label = this@View.label,
                             url = navigoUrlWithParams,
-                            icon = if (this@View is ViewItem<*, *, *, FILT>) iconCrud(crudTask) else null,
+                            icon = if (this@View is ViewItem<*, *, FILT>) iconCrud(crudTask) else null,
                         ) {
                             setStyle("text-decoration", "none")
                             apiFilterObservable.subscribe {
@@ -614,8 +613,8 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                                     label = labelBanner(it)
                                 }
                             }
-                            if (this@View is ViewItem<*, *, *, FILT>) {
-                                (this@View as ViewItem<*, *, *, FILT>).itemObservable.subscribe {
+                            if (this@View is ViewItem<*, *, FILT>) {
+                                (this@View as ViewItem<*, *, FILT>).itemObservable.subscribe {
                                     AppScope.launch {
                                         label = labelBanner(apiFilter)
                                     }
@@ -634,7 +633,7 @@ abstract class View<out CC : ICommon<FILT>, FILT : IApiFilter<*>>(
                 }
             }
             nav(rightAlign = true) {
-                if (this@View is ViewItem<*, *, *, FILT>) {
+                if (this@View is ViewItem<*, *, FILT>) {
                     if (actionUpsert) {
                         navButtonBack = button(
                             text = " ",

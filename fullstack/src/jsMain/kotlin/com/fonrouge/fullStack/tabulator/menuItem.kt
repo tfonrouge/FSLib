@@ -22,8 +22,8 @@ import com.fonrouge.fullStack.config.ConfigViewList
  * @return A TabulatorMenuItem constructed with the provided parameters.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> menuItem(
-    configViewItem: ConfigViewItem<CC, T, ID, *, FILT, *>,
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> menuItem(
+    configViewItem: ConfigViewItem<T, ID, *, FILT, *>,
     label: String = configViewItem.label,
     apiItem: ApiItem<T, ID, FILT>,
     icon: String? = null,
@@ -52,8 +52,8 @@ fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiF
  * @return A TabulatorMenuItem configured with the specified options.
  */
 @Suppress("unused")
-fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> menuItem(
-    configViewList: ConfigViewList<CC, T, ID, *, FILT, *, *>,
+fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>> menuItem(
+    configViewList: ConfigViewList<T, ID, *, FILT, *, *>,
     label: String = configViewList.label,
     apiFilter: FILT = configViewList.commonContainer.apiFilterInstance(),
     icon: String? = null,

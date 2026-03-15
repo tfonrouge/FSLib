@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
  * @return An `ItemState` object representing the result of the create operation.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryCreateCall(
+suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> ICommonContainer<T, ID, FILT>.apiItemQueryCreateCall(
     service: AIS,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID? = null,
@@ -45,7 +45,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return The state of the queried item, wrapped in an ItemState instance.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryReadCall(
+suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> ICommonContainer<T, ID, FILT>.apiItemQueryReadCall(
     service: AIS,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
@@ -73,7 +73,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return An `ItemState` representing the result state of the updated item.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryUpdateCall(
+suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> ICommonContainer<T, ID, FILT>.apiItemQueryUpdateCall(
     service: AIS,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
@@ -96,7 +96,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return The resulting state of the item after the delete operation, encapsulated in an ItemState object.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemQueryDeleteCall(
+suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> ICommonContainer<T, ID, FILT>.apiItemQueryDeleteCall(
     service: AIS,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     id: ID,
@@ -124,7 +124,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return An ItemState representing the result of the create operation.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemActionCreateCall(
+suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> ICommonContainer<T, ID, FILT>.apiItemActionCreateCall(
     service: AIS,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
@@ -153,7 +153,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return The resulting state of the item after the update action.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemActionUpdateCall(
+suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> ICommonContainer<T, ID, FILT>.apiItemActionUpdateCall(
     service: AIS,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,
@@ -176,7 +176,7 @@ suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT
  * @return The resulting state of the item after the API call, encapsulated in an [ItemState] instance.
  */
 @Suppress("unused")
-suspend fun <CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> CC.apiItemActionDeleteCall(
+suspend fun <T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, AIS : Any> ICommonContainer<T, ID, FILT>.apiItemActionDeleteCall(
     service: AIS,
     apiItemFun: suspend AIS.(IApiItem<T, ID, FILT>) -> ItemState<T>,
     item: T,

@@ -18,7 +18,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
  */
 abstract class IRoleInGroupColl<GR : IRoleInGroup<T, GOU>, T : Any, GOU : IGroupOfUser<*>, FILT : IApiFilter<*>, UID : Any>(
     commonContainer: ICommonContainer<GR, OId<T>, FILT>,
-) : Coll<ICommonContainer<GR, OId<T>, FILT>, GR, OId<T>, FILT, UID>(
+) : Coll<GR, OId<T>, FILT, UID>(
     commonContainer = commonContainer
 ) {
     override suspend fun CoroutineCollection<GR>.indexes() {

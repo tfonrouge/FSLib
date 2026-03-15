@@ -1,5 +1,6 @@
 package com.example.showcase
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.fullStack.config.configViewItem
 import com.fonrouge.fullStack.help.IHelpModule
 import com.fonrouge.fullStack.layout.formColumn
@@ -18,7 +19,7 @@ import io.kvision.form.number.Spinner
  * Demonstrates FSLib's ViewItem with form panel, field binding,
  * layout helpers (formRow/formColumn), and CRUD lifecycle.
  */
-class ViewItemTask : ViewItem<CommonTask, Task, String, TaskFilter>(
+class ViewItemTask : ViewItem<Task, String, ApiFilter>(
     configView = configViewItem,
 ) {
     override val helpModule: IHelpModule = ShowcaseModule.Tasks

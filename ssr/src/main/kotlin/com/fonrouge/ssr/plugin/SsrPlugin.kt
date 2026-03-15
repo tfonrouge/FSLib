@@ -46,7 +46,7 @@ val FsSsr = createApplicationPlugin("FsSsr", createConfiguration = ::SsrConfig) 
         config.pages.forEach { pageDef ->
             @Suppress("UNCHECKED_CAST")
             installCrudRoutes(
-                pageDef as PageDef<Nothing, Nothing, Nothing, Nothing>,
+                pageDef as PageDef<Nothing, Nothing, Nothing>,
                 config.layout,
                 config.auth,
             )
@@ -64,12 +64,12 @@ class SsrConfig {
     /** The auth strategy for permission checking. */
     var auth: SsrAuth = AllowAllAuth()
 
-    internal val pages = mutableListOf<PageDef<*, *, *, *>>()
+    internal val pages = mutableListOf<PageDef<*, *, *>>()
 
     /**
      * Registers a [PageDef] for CRUD route generation.
      */
-    fun page(pageDef: PageDef<*, *, *, *>) {
+    fun page(pageDef: PageDef<*, *, *>) {
         pages.add(pageDef)
     }
 }

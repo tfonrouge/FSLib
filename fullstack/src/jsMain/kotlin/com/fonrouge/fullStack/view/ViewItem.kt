@@ -54,7 +54,6 @@ import kotlin.reflect.KProperty1
  * This class is designed for creating and managing UI forms that interact with backend
  * services via API calls, allowing CRUD (Create, Read, Update, Delete) actions.
  *
- * @param CC The type of the common container that holds the domain-specific logic and configuration.
  * @param T The type of the domain entity being managed.
  * @param ID The type of the identifier for the domain entity.
  * @param FILT The type of API filter used for querying or filtering data.
@@ -63,11 +62,11 @@ import kotlin.reflect.KProperty1
  * @param debug Enables or disables debugging for the instance.
  */
 @Suppress("unused")
-abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
-    final override val configView: ConfigViewItem<CC, T, ID, out ViewItem<CC, T, ID, FILT>, FILT, *>,
+abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+    final override val configView: ConfigViewItem<T, ID, out ViewItem<T, ID, FILT>, FILT, *>,
     periodicUpdateDataView: Boolean? = null,
     private var debug: Boolean = false,
-) : ViewDataContainer<CC, T, ID, FILT>(
+) : ViewDataContainer<T, ID, FILT>(
     configViewContainer = configView,
 ) {
     companion object {
@@ -279,8 +278,8 @@ abstract class ViewItem<out CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>,
      */
     @Suppress("unused")
     fun Container.addViewList(
-        viewList: ViewList<ICommonContainer<*, *, out IApiFilter<ID>>, *, *, out IApiFilter<ID>, ID>,
-        init: ((ViewList<*, *, *, *, *>).() -> Unit)? = null,
+        viewList: ViewList<*, *, out IApiFilter<ID>, ID>,
+        init: ((ViewList<*, *, *, *>).() -> Unit)? = null,
     ) {
         viewList.apply { startDisplayPage() }
         viewList.masterViewItem = this@ViewItem

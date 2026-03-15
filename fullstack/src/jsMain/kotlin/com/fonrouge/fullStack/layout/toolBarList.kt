@@ -211,7 +211,7 @@ private fun injectToolbarCss() {
  * @return The constructed `Navbar` containing the toolbar with the configured actions.
  */
 fun <T : BaseDoc<ID>, ID : Any> Container.toolBarList(
-    viewList: ViewList<out ICommonContainer<T, ID, out IApiFilter<out Any>>, T, ID, out IApiFilter<out Any>, *>,
+    viewList: ViewList<T, ID, out IApiFilter<out Any>, *>,
     minToolbarSize: Boolean = false,
 ): Navbar {
     injectToolbarCss()

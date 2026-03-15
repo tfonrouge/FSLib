@@ -41,7 +41,6 @@ import kotlin.reflect.full.primaryConstructor
  * permission checks, dependency validation, and change logging — all backed by a
  * relational database instead of MongoDB.
  *
- * @param CC The [ICommonContainer] type providing metadata about the entity.
  * @param T The entity type, must extend [BaseDoc].
  * @param ID The identifier type.
  * @param FILT The filter type, must extend [IApiFilter].
@@ -50,13 +49,13 @@ import kotlin.reflect.full.primaryConstructor
  * @param sqlDatabase The [SqlDatabase] instance providing the database connection.
  * @param tableName The SQL table name. Defaults to the entity class simple name in lowercase.
  */
-abstract class SqlRepository<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
-    override val commonContainer: CC,
+abstract class SqlRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
+    override val commonContainer: ICommonContainer<T, ID, FILT>,
     val sqlDatabase: SqlDatabase,
     tableName: String = commonContainer.itemKClass.simpleName
         ?.replaceFirstChar { if (it.isUpperCase()) it.lowercaseChar() else it }
         ?: error("Cannot determine table name for ${commonContainer.itemKClass}"),
-) : IRepository<CC, T, ID, FILT, UID> {
+) : IRepository<T, ID, FILT, UID> {
 
     /** The raw SQL table name. */
     val tableName: String = tableName

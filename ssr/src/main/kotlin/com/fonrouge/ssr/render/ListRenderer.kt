@@ -15,7 +15,7 @@ import kotlinx.html.*
  * @param lastPage the total number of pages, null if unknown
  */
 fun <T : BaseDoc<*>> FlowContent.renderList(
-    pageDef: PageDef<*, T, *, *>,
+    pageDef: PageDef<T, *, *>,
     items: List<T>,
     currentPage: Int,
     lastPage: Int?,

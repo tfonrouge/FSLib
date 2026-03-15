@@ -62,11 +62,11 @@ import kotlin.reflect.full.superclasses
  * @param readOnlyErrorMsg Error message used when trying to perform write operations in a read-only collection.
  * @param userCollFun Functionality specific to user-collection interactions.
  */
-abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
-    override val commonContainer: CC,
+abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
+    override val commonContainer: ICommonContainer<T, ID, FILT>,
     mongoDbBuilder: MongoDbBuilder? = null,
     private var debug: Boolean = false,
-) : IRepository<CC, T, ID, FILT, UID> {
+) : IRepository<T, ID, FILT, UID> {
     companion object {
         internal var roleInUserColl: IRoleInUserColl<*, *, *, *, *, *>? = null
         var MAX_RECURSIVE_RESULT_FIELD = 1
@@ -95,17 +95,17 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
 
     /**
      * A property representing a function that returns an optional implementation
-     * of `IChangeLogColl<*, *, *, *>`. By default, it is a lambda returning `null`.
+     * of `IChangeLogColl<*, *, *>`. By default, it is a lambda returning `null`.
      *
      * This function is intended to be overridden to provide a specific implementation
      * of `IChangeLogColl` if required. It can be used in scenarios where a
      * change log collection is needed for specific operations or tracking changes
      * in a collection-like structure.
      *
-     * The return type, `IChangeLogColl<*, *, *, *>?`, allows for flexibility with
+     * The return type, `IChangeLogColl<*, *, *>?`, allows for flexibility with
      * various types of change log collections while supporting optional behavior.
      */
-    override val changeLogCollFun: (() -> IChangeLogColl<*, *, *, *>?) = { null }
+    override val changeLogCollFun: (() -> IChangeLogColl<*, *, *>?) = { null }
 
     /**
      * Provides a list of dependencies that reference this collection.
@@ -180,7 +180,7 @@ abstract class Coll<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : An
      * Abstract and must be implemented by subclasses with a specific implementation
      * of the `IUserColl` interface.
      */
-    abstract override val userCollFun: () -> IUserColl<*, *, UID, *>?
+    abstract override val userCollFun: () -> IUserColl<*, UID, *>?
 
     /**
      * Handles the creation action for a given API item and inserts it into the data store.

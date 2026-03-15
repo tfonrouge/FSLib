@@ -16,9 +16,9 @@ import kotlin.reflect.KProperty1
 /**
  * Minimal in-memory [IRepository] for the basic sample.
  */
-class InMemoryRepository<CC : ICommonContainer<T, String, FILT>, T : BaseDoc<String>, FILT : IApiFilter<*>>(
-    container: CC,
-) : IRepository<CC, T, String, FILT, String> {
+class InMemoryRepository<T : BaseDoc<String>, FILT : IApiFilter<*>>(
+    container: ICommonContainer<T, String, FILT>,
+) : IRepository<T, String, FILT, String> {
 
     /** In-memory data store. */
     val store = mutableMapOf<String, T>()

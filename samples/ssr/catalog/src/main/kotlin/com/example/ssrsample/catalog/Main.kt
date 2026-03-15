@@ -50,8 +50,8 @@ fun Application.module() {
  * Populates repositories with sample data for demonstration purposes.
  */
 private fun seedData(
-    productRepo: InMemoryRepository<*, Product, *>,
-    customerRepo: InMemoryRepository<*, Customer, *>,
+    productRepo: InMemoryRepository<Product, *>,
+    customerRepo: InMemoryRepository<Customer, *>,
 ) {
     productRepo.store["p1"] = Product(
         _id = "p1", name = "Wireless Mouse", description = "Ergonomic wireless mouse with USB receiver",

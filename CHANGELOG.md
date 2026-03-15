@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.0] - 2026-03-14
+
+### Changed
+- **Breaking:** `ICommonContainer` now derives `idSerializer` automatically from the item's `_id` field via `GeneratedSerializer.childSerializers()` — the `idSerializer` constructor parameter has been removed
+- **Breaking:** `ICommon` and `ICommonContainer` now derive `apiFilterSerializer` from a required `filterKClass: KClass<FILT>` parameter — the `apiFilterSerializer` constructor parameter has been removed
+- **Breaking:** `ICommonChangeLog` and `ICommonDataMedia` no longer accept an `idSerializer` constructor parameter
+- **Breaking:** Removed redundant `CC` type parameter from all generic chains — `Coll<CC, T, ID, FILT, UID>` → `Coll<T, ID, FILT, UID>`, `ViewList<CC, T, ID, FILT, MID>` → `ViewList<T, ID, FILT, MID>`, etc. The `commonContainer` property is now typed as `ICommonContainer<T, ID, FILT>` directly. Affects: `IRepository`, `Coll`, `InMemoryRepository`, `SqlRepository`, `View`, `ViewDataContainer`, `ViewItem`, `ViewList`, `ConfigView`, `ConfigViewContainer`, `ConfigViewItem`, `ConfigViewList`, `TabulatorViewList`, `PageDef`, and all MongoDB/media interfaces.
+- Samples and tests migrated to use `ApiFilter` directly instead of defining empty custom filter classes (e.g., `TaskFilter`, `ContactFilter`)
+
+### Migration guide
+Replace:
+```kotlin
+data object CommonFoo : ICommonContainer<Foo, StringId<Foo>, FooFilter>(
+    itemKClass = Foo::class,
+    idSerializer = StringId.serializer(Foo.serializer()),
+    apiFilterSerializer = FooFilter.serializer(),
+    labelItem = "Foo",
+)
+```
+With:
+```kotlin
+data object CommonFoo : ICommonContainer<Foo, StringId<Foo>, FooFilter>(
+    itemKClass = Foo::class,
+    filterKClass = FooFilter::class,
+    labelItem = "Foo",
+)
+```
+If the filter class is empty (no custom properties), use `ApiFilter` directly and delete the filter class.
+
+For the CC removal, drop the first `Common...` type argument from all generic references:
+```kotlin
+// Before:
+class MyColl : Coll<CommonFoo, Foo, OId<Foo>, FooFilter, UserId>(...)
+class MyViewList : ViewList<CommonFoo, Foo, OId<Foo>, FooFilter, Unit>(...)
+// After:
+class MyColl : Coll<Foo, OId<Foo>, FooFilter, UserId>(...)
+class MyViewList : ViewList<Foo, OId<Foo>, FooFilter, Unit>(...)
+```
+
 ## [3.0.3] - 2026-03-14
 
 ### Added

@@ -31,7 +31,7 @@ object KVWebManager : CoroutineScope by CoroutineScope(Dispatchers.Default + Sup
      * The default view configuration to display when navigating to the root path.
      * If no view is registered with an empty base URL, this view will be used as fallback.
      */
-    var defaultView: ConfigView<*, *, *>? = null
+    var defaultView: ConfigView<*, *>? = null
 
     /**
      * Map of item view configurations. Delegated to [ViewRegistry].

@@ -20,16 +20,15 @@ import kotlin.reflect.KProperty1
  *
  * Subclasses define columns, fields, and optionally override form layout and lifecycle hooks.
  *
- * @param CC the common container type providing entity metadata
  * @param T the document/model type extending [BaseDoc]
  * @param ID the document identifier type
  * @param FILT the API filter type
  */
-abstract class PageDef<CC : ICommonContainer<T, ID, FILT>, T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
+abstract class PageDef<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
     /** Entity metadata provider (labels, serializers, KClass). */
-    val commonContainer: CC,
+    val commonContainer: ICommonContainer<T, ID, FILT>,
     /** Repository for CRUD operations. */
-    val repository: IRepository<CC, T, ID, FILT, *>,
+    val repository: IRepository<T, ID, FILT, *>,
     /** Display title for the list page. */
     val title: String = commonContainer.labelList,
     /** Display title for single-item pages. */

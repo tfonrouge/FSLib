@@ -24,16 +24,16 @@ import kotlinx.datetime.Instant
  * @param UID The user identifier type.
  * @param FILT The filter type for user queries.
  */
-abstract class IUserColl<CCU : ICommonContainer<U, UID, FILT>, U : IUser<UID>, UID : Any, FILT : IApiFilter<*>>(
-    commonContainer: CCU,
+abstract class IUserColl<U : IUser<UID>, UID : Any, FILT : IApiFilter<*>>(
+    commonContainer: ICommonContainer<U, UID, FILT>,
     debug: Boolean = false
-) : Coll<CCU, U, UID, FILT, UID>(
+) : Coll<U, UID, FILT, UID>(
     commonContainer = commonContainer,
     debug = debug,
 ), IUserRepository<U, UID> {
     private val expireTimeUser = mutableMapOf<UID, Pair<Instant, U?>>()
 
-    final override val userCollFun: () -> IUserColl<CCU, U, UID, FILT> = { this }
+    final override val userCollFun: () -> IUserColl<U, UID, FILT> = { this }
 
     /**
      * Checks the validity of a user's session and takes appropriate action if the session has expired.

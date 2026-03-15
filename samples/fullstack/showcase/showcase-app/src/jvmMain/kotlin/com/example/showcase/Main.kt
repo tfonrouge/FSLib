@@ -1,5 +1,6 @@
 package com.example.showcase
 
+import com.fonrouge.base.api.ApiFilter
 import com.fonrouge.fullStack.memoryDb.InMemoryRepository
 import com.fonrouge.fullStack.services.HelpDocsService
 import com.fonrouge.fullStack.services.RouteContract
@@ -29,7 +30,7 @@ fun Application.main() {
 
     HelpDocsService.setHelpDocsDir("help-docs")
 
-    val repo = InMemoryRepository<_, Task, String, TaskFilter, String>(
+    val repo = InMemoryRepository<Task, String, ApiFilter, String>(
         commonContainer = CommonTask,
     ).seed(seedTasks())
 
