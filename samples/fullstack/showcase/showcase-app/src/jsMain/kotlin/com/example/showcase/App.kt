@@ -1,8 +1,6 @@
 package com.example.showcase
 
-import com.fonrouge.fullStack.config.ConfigViewItem
-import com.fonrouge.fullStack.config.ConfigViewList
-import com.fonrouge.fullStack.config.ViewRegistry
+import com.fonrouge.fullStack.config.registerEntityViews
 import com.fonrouge.fullStack.services.HelpDocsServiceRegistry
 import com.fonrouge.fullStack.view.KVWebManager
 import com.fonrouge.fullStack.view.showView
@@ -28,17 +26,14 @@ class App : Application() {
 
     override fun start(state: Map<String, Any>) {
 
-        // Register the RPC service managers with the ViewRegistry
-        val serviceManager = getServiceManager<ITaskService>()
-        ViewRegistry.itemServiceManager = serviceManager
-        ViewRegistry.listServiceManager = serviceManager
+        // Register all entity views via the DSL
+        val reg = registerEntityViews(getServiceManager<ITaskService>()) {
+            list(ViewListTask::class, CommonTask, ITaskService::apiList, isDefault = true)
+            item(ViewItemTask::class, CommonTask, ITaskService::apiItem)
+        }
 
         // Register the help documentation service
         HelpDocsServiceRegistry.service = getService<IShowcaseHelpDocsService>()
-
-        // Force-reference the companion objects so ConfigView registrations execute
-        ViewListTask.configViewList
-        ViewItemTask.configViewItem
 
         root("kvapp") {
             vPanel {
@@ -52,7 +47,7 @@ class App : Application() {
         KVWebManager.initialize {
             frontEndAppName = "FSLib Showcase"
             frontEndVersion = "1.0.0"
-            defaultView = ViewListTask.configViewList
+            defaultView = reg.defaultView
         }
     }
 }

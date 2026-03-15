@@ -1,7 +1,6 @@
 package com.example.showcase
 
-import com.fonrouge.base.api.ApiFilter
-import com.fonrouge.base.common.ICommonContainer
+import com.fonrouge.base.common.simpleContainer
 import com.fonrouge.base.model.BaseDoc
 import kotlinx.serialization.Serializable
 
@@ -48,9 +47,7 @@ data class Task(
 /**
  * Metadata container for [Task].
  */
-object CommonTask : ICommonContainer<Task, String, ApiFilter>(
-    itemKClass = Task::class,
-    filterKClass = ApiFilter::class,
+val CommonTask = simpleContainer<Task, String>(
     labelItem = "Task",
     labelList = "Tasks",
     labelId = { it?.let { "${it.title} (${it._id})" } ?: "<no-task>" },

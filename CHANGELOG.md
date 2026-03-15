@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [3.1.0] - 2026-03-14
+## [3.1.0] - 2026-03-15
+
+### Added
+- `simpleContainer()` and `simpleContainerWithFilter()` factory functions to create `ICommonContainer` instances with reified generics — eliminates `itemKClass`/`filterKClass` boilerplate
+- `StandardCrudService` abstract class for service implementations that delegate standard `apiList`/`apiItem` to an `IRepository`
+- `registerEntityViews()` DSL for declarative view registration — replaces manual `ViewRegistry` setup and companion object force-references
+- `MIGRATION.md` guide for adopting the new Entity Registration DSL
 
 ### Changed
 - **Breaking:** `ICommonContainer` now derives `idSerializer` automatically from the item's `_id` field via `GeneratedSerializer.childSerializers()` — the `idSerializer` constructor parameter has been removed
