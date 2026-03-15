@@ -11,6 +11,7 @@ FSLib provides a backend-agnostic repository pattern, declarative view configura
 - **Modular Database Engines** — MongoDB (via [KMongo](https://litote.org/kmongo/)) and SQL (via [Exposed](https://github.com/JetBrains/Exposed)) are independent, optional modules. Use one, the other, or both through a single `IRepository` interface with cross-engine dependency checking.
 - **Full-Stack Type Safety** — Shared Kotlin models, serializers, and RPC service definitions between server and browser via [Kilua RPC](https://github.com/rjaros/kilua-rpc).
 - **Declarative View System** — Configure list and item views with `ConfigViewList` / `ConfigViewItem`. The framework handles routing, pagination, forms, and CRUD operations.
+- **Entity Registration DSL** — `simpleContainer()` factories for data entities, `simpleCommon()` for non-data views (landing pages, dashboards), `StandardCrudService` for zero-boilerplate service delegation, and `registerEntityViews()` for declarative view wiring.
 - **[Tabulator](https://tabulator.info/) Integration** — Server-side pagination, filtering, and sorting out of the box with `TabulatorViewList`.
 - **Lifecycle Hooks** — `onQueryCreate`, `onBeforeUpdateAction`, `onAfterDeleteAction`, `onValidate`, and many more hooks on the repository for validation, transformation, and side effects.
 - **Role-Based Access Control** — Built-in permission system with users, groups, roles, and per-CRUD-task permissions. Decoupled from any specific database engine via `IRolePermissionProvider`.
@@ -71,7 +72,7 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "3.0.3"
+fslib = "3.1.0"
 
 [libraries]
 fslib-core = { module = "com.fonrouge.fslib:core", version.ref = "fslib" }
@@ -89,12 +90,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.3")
+                api("com.fonrouge.fslib:fullstack:3.1.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:memorydb:3.0.3")
+                implementation("com.fonrouge.fslib:memorydb:3.1.0")
             }
         }
     }
@@ -107,12 +108,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.3")
+                api("com.fonrouge.fslib:fullstack:3.1.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:3.0.3")
+                implementation("com.fonrouge.fslib:mongodb:3.1.0")
             }
         }
     }
@@ -125,12 +126,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.3")
+                api("com.fonrouge.fslib:fullstack:3.1.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:sql:3.0.3")
+                implementation("com.fonrouge.fslib:sql:3.1.0")
             }
         }
     }
@@ -143,13 +144,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.3")
+                api("com.fonrouge.fslib:fullstack:3.1.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:3.0.3")
-                implementation("com.fonrouge.fslib:sql:3.0.3")
+                implementation("com.fonrouge.fslib:mongodb:3.1.0")
+                implementation("com.fonrouge.fslib:sql:3.1.0")
             }
         }
     }
@@ -184,14 +185,22 @@ data class Customer(
 ### 2. Define a Common Container (commonMain)
 
 ```kotlin
-object CommonCustomer : ICommonContainer<Customer, OId<Customer>, CustomerFilter> {
-    override val itemKClass = Customer::class
-    override val idSerializer = OIdSerializer
-    override val apiFilterSerializer = CustomerFilter.serializer()
-    override val labelItem = "Customer"
-    override val labelList = "Customers"
-    override val labelId: (Customer?) -> String = { it?.name ?: "" }
-}
+object CommonCustomer : ICommonContainer<Customer, OId<Customer>, CustomerFilter>(
+    itemKClass = Customer::class,
+    filterKClass = CustomerFilter::class,
+    labelItem = "Customer",
+    labelList = "Customers",
+    labelId = { it?.name ?: "" },
+)
+```
+
+```kotlin
+// Or use the simpleContainer factory (when using ApiFilter):
+val CommonCustomer = simpleContainer<Customer, OId<Customer>>(
+    labelItem = "Customer",
+    labelList = "Customers",
+    labelId = { it?.name ?: "" },
+)
 ```
 
 ### 3. Define an RPC Service (commonMain)
@@ -207,7 +216,7 @@ interface ICustomerService {
 ### 4. Implement the Repository (jvmMain — MongoDB)
 
 ```kotlin
-class CustomerColl : Coll<CommonCustomer, Customer, OId<Customer>, CustomerFilter, OId<User>>(
+class CustomerColl : Coll<Customer, OId<Customer>, CustomerFilter, OId<User>>(
     commonContainer = CommonCustomer,
     mongoDatabase = MongoDb.database,
 ) {
@@ -223,7 +232,7 @@ class CustomerColl : Coll<CommonCustomer, Customer, OId<Customer>, CustomerFilte
 ### 5. Implement the Repository (jvmMain — SQL Alternative)
 
 ```kotlin
-class CustomerSqlRepo : SqlRepository<CommonCustomer, Customer, OId<Customer>, CustomerFilter, OId<User>>(
+class CustomerSqlRepo : SqlRepository<Customer, OId<Customer>, CustomerFilter, OId<User>>(
     commonContainer = CommonCustomer,
     sqlDatabase = mySqlDatabase,
 ) {
@@ -243,33 +252,36 @@ class CustomerSqlRepo : SqlRepository<CommonCustomer, Customer, OId<Customer>, C
 ### 6. Configure Views (jsMain)
 
 ```kotlin
-// List view configuration
-object ConfigViewListCustomer : ConfigViewList<
-    CommonCustomer, Customer, OId<Customer>,
-    ViewListCustomer, CustomerFilter, Unit, ICustomerService
->(
-    commonContainer = CommonCustomer,
-    viewKClass = ViewListCustomer::class,
-    apiListFun = ICustomerService::apiList,
-    serviceManager = ViewRegistry.listServiceManager,
-)
+// List view configuration (in ViewListCustomer companion)
+companion object {
+    val configViewList = configViewList(
+        viewKClass = ViewListCustomer::class,
+        commonContainer = CommonCustomer,
+        apiListFun = ICustomerService::apiList,
+    )
+}
 
-// Item view configuration
-object ConfigViewItemCustomer : ConfigViewItem<
-    CommonCustomer, Customer, OId<Customer>,
-    ViewItemCustomer, CustomerFilter, ICustomerService
->(
-    commonContainer = CommonCustomer,
-    viewKClass = ViewItemCustomer::class,
-    apiItemFun = ICustomerService::apiItem,
-    serviceManager = ViewRegistry.itemServiceManager,
-)
+// Item view configuration (in ViewItemCustomer companion)
+companion object {
+    val configViewItem = configViewItem(
+        viewKClass = ViewItemCustomer::class,
+        commonContainer = CommonCustomer,
+        apiItemFun = ICustomerService::apiItem,
+    )
+}
+
+// Register views in App.start() using the DSL:
+val reg = registerEntityViews(getServiceManager<ICustomerService>()) {
+    list(ViewListCustomer.configViewList, isDefault = true)
+    item(ViewItemCustomer.configViewItem)
+}
+KVWebManager.initialize { defaultView = reg.defaultView }
 ```
 
 ### 7. Implement Views (jsMain)
 
 ```kotlin
-class ViewListCustomer : ViewList<CommonCustomer, Customer, OId<Customer>, CustomerFilter, Unit>() {
+class ViewListCustomer : ViewList<Customer, OId<Customer>, CustomerFilter, Unit>() {
     override val configView = ConfigViewListCustomer
 
     override fun Container.displayPage() {
@@ -281,7 +293,7 @@ class ViewListCustomer : ViewList<CommonCustomer, Customer, OId<Customer>, Custo
     }
 }
 
-class ViewItemCustomer : ViewItem<CommonCustomer, Customer, OId<Customer>, CustomerFilter>() {
+class ViewItemCustomer : ViewItem<Customer, OId<Customer>, CustomerFilter>() {
     override val configView = ConfigViewItemCustomer
 
     override fun Container.displayPage() {
@@ -446,7 +458,7 @@ This produces routes like `/rpc/ITaskService.apiList` instead of `/rpc/routeTask
 
 ```kotlin
 // Main.kt (jvmMain)
-val contract = RouteContract(version = "3.0.3")
+val contract = RouteContract(version = "3.1.0")
 contract.register(TaskServiceManager, "ITaskService")
 
 routing {
@@ -460,7 +472,7 @@ Third-party clients fetch the contract at startup to discover available services
 
 ```json
 {
-  "version": "3.0.3",
+  "version": "3.1.0",
   "protocol": {
     "format": "json-rpc-2.0",
     "contentType": "application/json",
@@ -527,7 +539,7 @@ A standalone Android client that consumes the showcase API contract is available
 To publish a SNAPSHOT version to your local Maven repository for development and testing:
 
 ```bash
-./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 3.0.3-SNAPSHOT to ~/.m2/
+./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 3.1.0-SNAPSHOT to ~/.m2/
 ./gradlew :core:publishToMavenLocal -PSNAPSHOT  # Single module only
 ```
 
@@ -539,13 +551,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fonrouge.fsLib:fullstack:3.0.3-SNAPSHOT")
+    implementation("com.fonrouge.fsLib:fullstack:3.1.0-SNAPSHOT")
 }
 ```
 
 > **Tip:** Gradle caches SNAPSHOT dependencies. If you republish the same snapshot version, use `--refresh-dependencies` in the consuming project to pick up the latest artifacts.
 
-> **Safety:** Running `publishToMavenLocal` without `-PSNAPSHOT` is blocked by default. Publishing a release version (e.g., `3.0.3`) to `~/.m2/` would silently shadow the official Maven Central artifact for every project on the machine. If you need to override this check, use `-PFORCE_LOCAL`.
+> **Safety:** Running `publishToMavenLocal` without `-PSNAPSHOT` is blocked by default. Publishing a release version (e.g., `3.1.0`) to `~/.m2/` would silently shadow the official Maven Central artifact for every project on the machine. If you need to override this check, use `-PFORCE_LOCAL`.
 
 ### Sample Applications
 

@@ -27,7 +27,12 @@ abstract class ICommon<FILT : IApiFilter<*>>(
      */
     open val apiFilterSerializer: KSerializer<FILT> = filterKClass.serializer()
 
-    val name: String get() = this::class.simpleName?.removePrefix("Common") ?: "?"
+    /**
+     * Logical name for this container, used as a fallback for URL generation.
+     * Defaults to the class simple name with the "Common" prefix stripped.
+     * Subclasses (including anonymous objects from [simpleContainer]) may override.
+     */
+    open val name: String get() = this::class.simpleName?.removePrefix("Common") ?: "?"
 
     /**
      * Creates a default instance of the filter by deserializing an empty JSON object.

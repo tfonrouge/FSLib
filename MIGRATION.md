@@ -49,6 +49,8 @@ val CommonTask = simpleContainer<Task, String>(
   use `simpleContainerWithFilter<T, ID, FILT>()`.
 - The result is a `val` instead of an `object`. All existing call sites that reference
   the container by name continue to work — only the declaration changes.
+- The `ICommon.name` property is overridden to return the entity class name (e.g.,
+  `"Task"`), so URL generation works correctly despite the anonymous object.
 - All parameters (`labelItem`, `labelList`, `labelId`, `labelItemId`) have sensible
   defaults, so you only need to specify what you want to customize.
 
@@ -98,11 +100,20 @@ class TaskService(
 
 - Works with any `IRepository` implementation (`Coll`, `SqlRepository`,
   `InMemoryRepository`).
-- If your service adds custom methods beyond `apiList`/`apiItem`, extend
-  `StandardCrudService` and add them in the body — the base CRUD delegation
-  is still inherited.
+- Both `apiList` and `apiItem` are `open` — override them to add pre/post
+  processing (logging, validation, etc.) without abandoning the base class.
 - The `repository` property is `protected`, so subclasses can access it for
   custom queries.
+- **Permission checks:** By default, `currentCall()` returns `null`, which skips
+  role-based permission checks. Override `currentCall()` in services running
+  inside Ktor to enable permission enforcement:
+
+```kotlin
+class TaskService(repo: Coll<Task, OId<Task>, ApiFilter, UserId>) :
+    StandardCrudService<Task, OId<Task>, ApiFilter>(repo), ITaskService {
+    override fun currentCall(): ApplicationCall? = /* from Ktor scope */
+}
+```
 
 ---
 
@@ -134,7 +145,7 @@ KVWebManager.initialize {
 }
 ```
 
-**After:**
+**After (reference-based — recommended when views have companion configs):**
 
 ```kotlin
 import com.fonrouge.fullStack.config.registerEntityViews
@@ -142,12 +153,21 @@ import dev.kilua.rpc.getServiceManager
 
 // In App.start():
 val reg = registerEntityViews(getServiceManager<ITaskService>()) {
-    list(ViewListTask::class, CommonTask, ITaskService::apiList, isDefault = true)
-    item(ViewItemTask::class, CommonTask, ITaskService::apiItem)
+    list(ViewListTask.configViewList, isDefault = true)
+    item(ViewItemTask.configViewItem)
 }
 
 KVWebManager.initialize {
     defaultView = reg.defaultView
+}
+```
+
+**After (inline creation — when views don't have companion configs):**
+
+```kotlin
+val reg = registerEntityViews(getServiceManager<ITaskService>()) {
+    list(ViewListTask::class, CommonTask, ITaskService::apiList, isDefault = true)
+    item(ViewItemTask::class, CommonTask, ITaskService::apiItem)
 }
 ```
 
@@ -158,28 +178,79 @@ val reg = registerEntityViews(
     itemServiceManager = getServiceManager<IItemService>(),
     listServiceManager = getServiceManager<IListService>(),
 ) {
-    list(ViewListOrder::class, CommonOrder, IListService::apiList, isDefault = true)
-    item(ViewItemOrder::class, CommonOrder, IItemService::apiItem)
+    list(ViewListOrder.configViewList, isDefault = true)
+    item(ViewItemOrder.configViewItem)
 }
 ```
 
 **Notes:**
 
-- The `isDefault = true` parameter on either `list()` or `item()` marks that view
-  as the default. Access it via `reg.defaultView`.
-- Existing companion objects in your `ViewList` / `ViewItem` subclasses can remain
-  for backward compatibility — they won't conflict with the DSL registrations.
-- You can register multiple entities in a single block if they share the same
-  service manager:
+- **Two registration modes:** Pass an existing config instance (reference-based)
+  or pass a KClass + container + function (inline creation). Reference-based is
+  recommended when view classes already have companion-object configs, to avoid
+  double registration.
+- The `isDefault = true` parameter marks that view as the default. Access it via
+  `reg.defaultView`. Setting `isDefault = true` on multiple views logs a warning
+  and uses the last one.
+- Calling `registerEntityViews()` multiple times with different service managers
+  logs a warning — consolidate into a single call when possible.
+- You can register multiple entities in a single block:
 
 ```kotlin
 val reg = registerEntityViews(getServiceManager<IMyService>()) {
-    list(ViewListTask::class, CommonTask, IMyService::apiListTask, isDefault = true)
-    item(ViewItemTask::class, CommonTask, IMyService::apiItemTask)
-    list(ViewListProject::class, CommonProject, IMyService::apiListProject)
-    item(ViewItemProject::class, CommonProject, IMyService::apiItemProject)
+    list(ViewListTask.configViewList, isDefault = true)
+    item(ViewItemTask.configViewItem)
+    list(ViewListProject.configViewList)
+    item(ViewItemProject.configViewItem)
 }
 ```
+
+---
+
+### 4. `simpleCommon()` — non-data views (landing pages, dashboards)
+
+**Package:** `com.fonrouge.base.common`
+**Module:** `:core` (commonMain)
+
+For views that don't manage a data model (no `BaseDoc`, no CRUD), use `simpleCommon()`
+to create a lightweight `ICommon` instance instead of `ICommonContainer`:
+
+```kotlin
+import com.fonrouge.base.common.simpleCommon
+import com.fonrouge.fullStack.config.configView
+import com.fonrouge.fullStack.view.View
+
+// Lightweight metadata — label and filter only, no data model
+val CommonHome = simpleCommon(label = "Home")
+
+// View configuration
+val configViewHome = configView(
+    viewKClass = ViewHome::class,
+    commonContainer = CommonHome,
+    baseUrl = "Home",
+)
+
+// The view extends View<ApiFilter> directly (not ViewDataContainer)
+class ViewHome : View<ApiFilter>(configView = configViewHome) {
+    override fun Container.displayPage() {
+        h1(content = "Welcome")
+    }
+}
+```
+
+Register non-data views in the DSL with `view()`:
+
+```kotlin
+val reg = registerEntityViews(getServiceManager<ITaskService>()) {
+    view(ViewHome.configViewHome, isDefault = true)   // non-data landing page
+    list(ViewListTask.configViewList)                  // data-bound list
+    item(ViewItemTask.configViewItem)                  // data-bound form
+}
+```
+
+For custom filter types (e.g., dashboard state), use `simpleCommonWithFilter<FILT>()`.
+
+See `samples/fullstack/showcase/.../ViewHome.kt` for a complete example.
 
 ---
 
@@ -188,6 +259,7 @@ val reg = registerEntityViews(getServiceManager<IMyService>()) {
 - [ ] Replace `ICommonContainer` object declarations with `simpleContainer()` /
       `simpleContainerWithFilter()` calls
 - [ ] Replace pass-through service classes with `StandardCrudService` inheritance
+- [ ] If using `StandardCrudService` with Ktor auth, override `currentCall()`
 - [ ] Replace manual `ViewRegistry` setup + companion force-references with
       `registerEntityViews()` DSL
 - [ ] Verify build: `./gradlew build`

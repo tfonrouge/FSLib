@@ -60,7 +60,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.0.3")
+                api("com.fonrouge.fslib:fullstack:3.1.0")
             }
         }
         jvmMain {
@@ -87,7 +87,7 @@ To develop and test against a local build of FSLib, publish a SNAPSHOT version t
 ./gradlew publishToMavenLocal -PSNAPSHOT
 ```
 
-The `-PSNAPSHOT` flag automatically appends `-SNAPSHOT` to the version (e.g., `3.0.3` becomes `3.0.3-SNAPSHOT`) without modifying `libs.versions.toml`. Then in your consuming project:
+The `-PSNAPSHOT` flag automatically appends `-SNAPSHOT` to the version (e.g., `3.1.0` becomes `3.1.0-SNAPSHOT`) without modifying `libs.versions.toml`. Then in your consuming project:
 
 ```kotlin
 repositories {
@@ -96,7 +96,7 @@ repositories {
 
 dependencies {
     // Use the SNAPSHOT version matching what you published
-    api("com.fonrouge.fslib:fullstack:3.0.3-SNAPSHOT")
+    api("com.fonrouge.fslib:fullstack:3.1.0-SNAPSHOT")
 }
 ```
 
@@ -127,13 +127,14 @@ fun Application.main() {
 
 ```kotlin
 class App : Application() {
-    override fun start() {
-        // Initialize ViewRegistry with RPC service managers
-        ViewRegistry.itemServiceManager = ItemServiceManager
-        ViewRegistry.listServiceManager = ListServiceManager
+    override fun start(state: Map<String, Any>) {
+        val reg = registerEntityViews(getServiceManager<ICustomerService>()) {
+            list(ViewListCustomer.configViewList, isDefault = true)
+            item(ViewItemCustomer.configViewItem)
+        }
 
-        root("app") {
-            // Your main layout and routing
+        KVWebManager.initialize {
+            defaultView = reg.defaultView
         }
     }
 }
@@ -198,23 +199,34 @@ data class Product(
 A `ICommonContainer` acts as metadata provider for an entity — it describes how to serialize, label, and create API items for the model.
 
 ```kotlin
-object CommonCustomer : ICommonContainer<Customer, OId<Customer>, CustomerFilter> {
-    override val itemKClass = Customer::class
-    override val idSerializer = OIdSerializer
-    override val apiFilterSerializer = CustomerFilter.serializer()
-    override val labelItem = "Customer"
-    override val labelList = "Customers"
-    override val labelId: (Customer?) -> String = { it?.name ?: "" }
-    override val labelItemId: (Customer?) -> String = { "Customer: ${it?.name ?: "New"}" }
-}
+object CommonCustomer : ICommonContainer<Customer, OId<Customer>, CustomerFilter>(
+    itemKClass = Customer::class,
+    filterKClass = CustomerFilter::class,
+    labelItem = "Customer",
+    labelList = "Customers",
+    labelId = { it?.name ?: "" },
+    labelItemId = { "Customer: ${it?.name ?: "New"}" },
+)
+```
+
+For entities using `ApiFilter` (no custom filter), use the `simpleContainer()` factory:
+
+```kotlin
+// For entities using ApiFilter (no custom filter), use the simpleContainer factory:
+val CommonCustomer = simpleContainer<Customer, OId<Customer>>(
+    labelItem = "Customer",
+    labelList = "Customers",
+    labelId = { it?.name ?: "" },
+)
 ```
 
 **Key properties:**
 - `itemKClass` — Kotlin class reference (used for reflection and serialization).
-- `idSerializer` — Serializer for the ID type (`OIdSerializer`, `IntIdSerializer`, `LongIdSerializer`, or `StringIdSerializer`).
-- `apiFilterSerializer` — Serializer for the filter class.
+- `filterKClass` — Kotlin class reference for the filter; the serializer is derived from the KClass automatically.
 - `labelItem` / `labelList` — Display names for the entity (singular/plural).
 - `labelId` — Generates a human-readable label from an item (used in banners, breadcrumbs).
+
+> **Note:** The `idSerializer` property has been removed in v3.1.0 — it is now auto-derived from the `_id` field's serializer. The `apiFilterSerializer` property has been replaced by `filterKClass`; the serializer is derived from the KClass automatically.
 
 ---
 
@@ -280,7 +292,7 @@ interface ICustomerService {
 `Coll` is the MongoDB implementation of `IRepository`. It wraps [KMongo](https://litote.org/kmongo/)'s coroutine driver with CRUD operations, aggregation pipelines, and lifecycle hooks.
 
 ```kotlin
-class CustomerColl : Coll<CommonCustomer, Customer, OId<Customer>, CustomerFilter, OId<User>>(
+class CustomerColl : Coll<Customer, OId<Customer>, CustomerFilter, OId<User>>(
     commonContainer = CommonCustomer,
     mongoDatabase = MongoDb.database,
 ) {
@@ -315,7 +327,7 @@ class CustomerColl : Coll<CommonCustomer, Customer, OId<Customer>, CustomerFilte
 ### MongoDB Lookups (Joins)
 
 ```kotlin
-class OrderColl : Coll<CommonOrder, Order, OId<Order>, OrderFilter, OId<User>>(
+class OrderColl : Coll<Order, OId<Order>, OrderFilter, OId<User>>(
     commonContainer = CommonOrder,
     mongoDatabase = MongoDb.database,
 ) {
@@ -339,7 +351,7 @@ class OrderColl : Coll<CommonOrder, Order, OId<Order>, OrderFilter, OId<User>>(
 `SqlRepository` is the SQL implementation of `IRepository`, using [Exposed](https://github.com/JetBrains/Exposed) for relational database access.
 
 ```kotlin
-class ProductSqlRepo : SqlRepository<CommonProduct, Product, IntId<Product>, ProductFilter, OId<User>>(
+class ProductSqlRepo : SqlRepository<Product, IntId<Product>, ProductFilter, OId<User>>(
     commonContainer = CommonProduct,
     sqlDatabase = mySqlDatabase,
 ) {
@@ -418,7 +430,7 @@ class ProductSqlRepo : SqlRepository<...>(...) {
 `InMemoryRepository` is a lightweight `IRepository` implementation backed by `ConcurrentHashMap`. It requires no database engine, making it ideal for samples, tests, and prototyping.
 
 ```kotlin
-val repo = InMemoryRepository<CommonTask, Task, String, TaskFilter, String>(
+val repo = InMemoryRepository<Task, String, TaskFilter, String>(
     commonContainer = CommonTask,
 ).seed(listOf(
     Task(_id = "1", title = "Setup CI/CD", priority = Priority.HIGH, status = TaskStatus.OPEN),
@@ -438,7 +450,7 @@ val repo = InMemoryRepository<CommonTask, Task, String, TaskFilter, String>(
 
 ```kotlin
 // build.gradle.kts (jvmMain)
-implementation("com.fonrouge.fslib:memorydb:3.0.3")
+implementation("com.fonrouge.fslib:memorydb:3.1.0")
 ```
 
 See `samples/fullstack/showcase/` for a complete example using `InMemoryRepository`.
@@ -447,24 +459,17 @@ See `samples/fullstack/showcase/` for a complete example using `InMemoryReposito
 
 ## 9. Backend Service Implementation
 
-Implement the RPC service interface on the server side:
+Extend `StandardCrudService` to inherit default `apiItem` and `apiList` implementations, then add only your custom methods:
 
 ```kotlin
-actual class CustomerService : ICustomerService {
-    private val coll = CustomerColl()
+class CustomerService(
+    private val coll: CustomerColl = CustomerColl(),
+) : StandardCrudService<Customer, OId<Customer>, CustomerFilter>(coll), ICustomerService {
+    // apiList and apiItem are inherited from StandardCrudService.
+    // Override currentCall() for permission checks in Ktor:
+    // override fun currentCall(): ApplicationCall? = /* from Ktor scope */
 
-    override suspend fun apiItem(
-        iApiItem: IApiItem<Customer, OId<Customer>, CustomerFilter>
-    ): ItemState<Customer> {
-        return coll.apiItemProcess(call = null, iApiItem = iApiItem)
-    }
-
-    override suspend fun apiList(
-        apiList: ApiList<CustomerFilter>
-    ): ListState<Customer> {
-        return coll.apiListProcess(call = null, apiList = apiList)
-    }
-
+    // Add custom methods as needed:
     override suspend fun deactivateCustomer(id: OId<Customer>): SimpleState {
         val item = coll.findById(id) ?: return simpleErrorState("Customer not found")
         coll.updateOne(item.copy(active = false))
@@ -477,67 +482,92 @@ actual class CustomerService : ICustomerService {
 
 ## 10. Frontend View Configuration
 
-Before creating views, initialize the `ViewRegistry` in your [KVision](https://kvision.io/) application:
+Register entity views using the `registerEntityViews()` DSL in your [KVision](https://kvision.io/) application:
 
 ```kotlin
 class App : Application() {
-    override fun start() {
-        ViewRegistry.itemServiceManager = ItemServiceManager
-        ViewRegistry.listServiceManager = ListServiceManager
-        // Views auto-register in their ConfigView init blocks
+    override fun start(state: Map<String, Any>) {
+        val reg = registerEntityViews(getServiceManager<ICustomerService>()) {
+            list(ViewListCustomer.configViewList, isDefault = true)
+            item(ViewItemCustomer.configViewItem)
+        }
+
+        KVWebManager.initialize {
+            defaultView = reg.defaultView
+        }
     }
 }
 ```
 
 ### ConfigViewList
 
-Links a list view class to its RPC endpoint:
+Define the list view configuration in the view's companion object:
 
 ```kotlin
-object ConfigViewListCustomer : ConfigViewList<
-    CommonCustomer,          // Common container
-    Customer,                // Model type
-    OId<Customer>,           // ID type
-    ViewListCustomer,        // View class
-    CustomerFilter,          // Filter type
-    Unit,                    // Master ID type (Unit = no master)
-    ICustomerService,        // RPC service interface
->(
-    commonContainer = CommonCustomer,
-    viewKClass = ViewListCustomer::class,
-    apiListFun = ICustomerService::apiList,
-    serviceManager = ViewRegistry.listServiceManager,
-)
+// In ViewListCustomer companion object:
+companion object {
+    val configViewList = configViewList(
+        viewKClass = ViewListCustomer::class,
+        commonContainer = CommonCustomer,
+        apiListFun = ICustomerService::apiList,
+    )
+}
 ```
 
 ### ConfigViewItem
 
-Links an item view class to its RPC endpoint:
+Define the item view configuration in the view's companion object:
 
 ```kotlin
-object ConfigViewItemCustomer : ConfigViewItem<
-    CommonCustomer,
-    Customer,
-    OId<Customer>,
-    ViewItemCustomer,
-    CustomerFilter,
-    ICustomerService,
->(
-    commonContainer = CommonCustomer,
-    viewKClass = ViewItemCustomer::class,
-    apiItemFun = ICustomerService::apiItem,
-    serviceManager = ViewRegistry.itemServiceManager,
-) {
-    // Optional: context menu items shown on the item view
-    override val contextMenuItems: ((Customer) -> List<TabulatorMenuItem>)? = { item ->
-        listOf(
-            TabulatorMenuItem("Deactivate") {
-                // Custom action
-            }
-        )
+// In ViewItemCustomer companion object:
+companion object {
+    val configViewItem = configViewItem(
+        viewKClass = ViewItemCustomer::class,
+        commonContainer = CommonCustomer,
+        apiItemFun = ICustomerService::apiItem,
+        contextMenuItems = { item ->
+            listOf(
+                TabulatorMenuItem("Deactivate") {
+                    // Custom action
+                }
+            )
+        },
+    )
+}
+```
+
+### Non-Data Views (Landing Pages, Dashboards)
+
+For views that don't manage a data model, use `simpleCommon()` with `configView()` and `View` directly:
+
+```kotlin
+val CommonHome = simpleCommon(label = "Home")
+
+val configViewHome = configView(
+    viewKClass = ViewHome::class,
+    commonContainer = CommonHome,
+    baseUrl = "Home",
+)
+
+class ViewHome : View<ApiFilter>(configView = configViewHome) {
+    override fun Container.displayPage() {
+        h1(content = "Welcome")
+        link(label = "Customers", url = "#/ViewListCustomer")
     }
 }
 ```
+
+Register with the DSL using `view()`:
+
+```kotlin
+val reg = registerEntityViews(getServiceManager<ICustomerService>()) {
+    view(ViewHome.configViewHome, isDefault = true)
+    list(ViewListCustomer.configViewList)
+    item(ViewItemCustomer.configViewItem)
+}
+```
+
+See `samples/fullstack/showcase/.../ViewHome.kt` for a complete example.
 
 ---
 
@@ -547,9 +577,9 @@ A `ViewList` displays a paginated data grid using [Tabulator](https://tabulator.
 
 ```kotlin
 class ViewListCustomer : ViewList<
-    CommonCustomer, Customer, OId<Customer>, CustomerFilter, Unit
+    Customer, OId<Customer>, CustomerFilter, Unit
 >() {
-    override val configView = ConfigViewListCustomer
+    override val configView = configViewList
 
     override fun Container.displayPage() {
         fsTabulator(viewList = this@ViewListCustomer) {
@@ -561,7 +591,7 @@ class ViewListCustomer : ViewList<
 
             // Optional: callback when user double-clicks a row
             onUserChooseItem = { customer ->
-                ConfigViewItemCustomer.openView(/* navigate to item */)
+                ViewItemCustomer.configViewItem.openView(/* navigate to item */)
             }
         }
     }
@@ -570,7 +600,7 @@ class ViewListCustomer : ViewList<
     override fun Container.toolBarListButtons() {
         button("New Customer", icon = "fas fa-plus") {
             onClick {
-                ConfigViewItemCustomer.openView(
+                ViewItemCustomer.configViewItem.openView(
                     apiFilter = configView.commonContainer.apiFilterInstance(),
                     vmode = ConfigViewContainer.VMode.modal
                 )
@@ -596,9 +626,9 @@ A `ViewItem` displays a form for creating or editing a single item:
 
 ```kotlin
 class ViewItemCustomer : ViewItem<
-    CommonCustomer, Customer, OId<Customer>, CustomerFilter
+    Customer, OId<Customer>, CustomerFilter
 >() {
-    override val configView = ConfigViewItemCustomer
+    override val configView = configViewItem
 
     override fun Container.displayPage() {
         formPanel = ViewFormPanel.xcreate(
@@ -651,7 +681,7 @@ Display a parent item with one or more child lists:
 
 ```kotlin
 class ViewItemCustomer : ViewItem<...>() {
-    override val configView = ConfigViewItemCustomer
+    override val configView = configViewItem
 
     override fun Container.displayPage() {
         // Parent form
@@ -1094,7 +1124,7 @@ data class DataMedia(
 ### Backend Collection (jvmMain)
 
 ```kotlin
-class DataMediaColl : IDataMediaColl<CommonDataMedia, DataMedia, User, OId<User>>(
+class DataMediaColl : IDataMediaColl<DataMedia, User, OId<User>>(
     commonContainer = CommonDataMedia,
     mongoDatabase = MongoDb.database,
 )
@@ -1146,16 +1176,16 @@ The refresh interval is controlled by `UserSessionParams.inactivityUiSecsToNoRef
 
 ```kotlin
 // Navigate in current window
-ConfigViewListCustomer.openView()
+ViewListCustomer.configViewList.openView()
 
 // Open in modal dialog
-ConfigViewItemCustomer.openView(
+ViewItemCustomer.configViewItem.openView(
     apiFilter = CommonCustomer.apiFilterInstance(),
     vmode = ConfigViewContainer.VMode.modal,
 )
 
 // Open in new browser tab
-ConfigViewListCustomer.openView(vmode = ConfigViewContainer.VMode._blank)
+ViewListCustomer.configViewList.openView(vmode = ConfigViewContainer.VMode._blank)
 ```
 
 ### URL Parameters
@@ -1208,17 +1238,23 @@ class ViewListCustomer : ViewList<...>() {
 Add right-click menu items to list rows:
 
 ```kotlin
-object ConfigViewItemCustomer : ConfigViewItem<...>(...) {
-    override val contextMenuItems: ((Customer) -> List<TabulatorMenuItem>)? = { customer ->
-        listOf(
-            TabulatorMenuItem("Send Email") { sendEmail(customer.email) },
-            TabulatorMenuItem("View Orders") {
-                ConfigViewListOrder.openView(OrderFilter().apply {
-                    setMasterItemId(customer._id)
-                })
-            },
-        )
-    }
+// In ViewItemCustomer companion object:
+companion object {
+    val configViewItem = configViewItem(
+        viewKClass = ViewItemCustomer::class,
+        commonContainer = CommonCustomer,
+        apiItemFun = ICustomerService::apiItem,
+        contextMenuItems = { customer ->
+            listOf(
+                TabulatorMenuItem("Send Email") { sendEmail(customer.email) },
+                TabulatorMenuItem("View Orders") {
+                    ViewListOrder.configViewList.openView(OrderFilter().apply {
+                        setMasterItemId(customer._id)
+                    })
+                },
+            )
+        },
+    )
 }
 ```
 
@@ -1268,7 +1304,7 @@ fun Application.main() {
     }
 
     // Build and serve the API contract
-    val contract = RouteContract(version = "3.0.3")
+    val contract = RouteContract(version = "3.1.0")
     contract.register(TaskServiceManager, "ITaskService")
 
     routing {

@@ -14,6 +14,7 @@ import io.kvision.state.bind
 
 /**
  * KVision application demonstrating FSLib's full view system:
+ * - ViewHome as a non-data landing page (ICommon, no data model)
  * - ViewList with Tabulator grid (pagination, filtering, sorting)
  * - ViewItem with form panel (create, read, update)
  * - ConfigViewList / ConfigViewItem declarative configuration
@@ -26,10 +27,13 @@ class App : Application() {
 
     override fun start(state: Map<String, Any>) {
 
-        // Register all entity views via the DSL
+        // Register all views via the DSL
         val reg = registerEntityViews(getServiceManager<ITaskService>()) {
-            list(ViewListTask::class, CommonTask, ITaskService::apiList, isDefault = true)
-            item(ViewItemTask::class, CommonTask, ITaskService::apiItem)
+            // Non-data view: landing page using ICommon (no data model)
+            view(ViewHome.configViewHome, isDefault = true)
+            // Data-bound views: uses companion-object configs with ICommonContainer
+            list(ViewListTask.configViewList)
+            item(ViewItemTask.configViewItem)
         }
 
         // Register the help documentation service
