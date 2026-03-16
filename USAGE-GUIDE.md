@@ -60,7 +60,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.0")
+                api("com.fonrouge.fslib:fullstack:3.1.1")
             }
         }
         jvmMain {
@@ -87,7 +87,7 @@ To develop and test against a local build of FSLib, publish a SNAPSHOT version t
 ./gradlew publishToMavenLocal -PSNAPSHOT
 ```
 
-The `-PSNAPSHOT` flag automatically appends `-SNAPSHOT` to the version (e.g., `3.1.0` becomes `3.1.0-SNAPSHOT`) without modifying `libs.versions.toml`. Then in your consuming project:
+The `-PSNAPSHOT` flag automatically appends `-SNAPSHOT` to the version (e.g., `3.1.1` becomes `3.1.1-SNAPSHOT`) without modifying `libs.versions.toml`. Then in your consuming project:
 
 ```kotlin
 repositories {
@@ -96,7 +96,7 @@ repositories {
 
 dependencies {
     // Use the SNAPSHOT version matching what you published
-    api("com.fonrouge.fslib:fullstack:3.1.0-SNAPSHOT")
+    api("com.fonrouge.fslib:fullstack:3.1.1-SNAPSHOT")
 }
 ```
 
@@ -226,7 +226,7 @@ val CommonCustomer = simpleContainer<Customer, OId<Customer>>(
 - `labelItem` / `labelList` — Display names for the entity (singular/plural).
 - `labelId` — Generates a human-readable label from an item (used in banners, breadcrumbs).
 
-> **Note:** The `idSerializer` property has been removed in v3.1.0 — it is now auto-derived from the `_id` field's serializer. The `apiFilterSerializer` property has been replaced by `filterKClass`; the serializer is derived from the KClass automatically.
+> **Note:** The `idSerializer` property has been removed in v3.1.1 — it is now auto-derived from the `_id` field's serializer. The `apiFilterSerializer` property has been replaced by `filterKClass`; the serializer is derived from the KClass automatically.
 
 ---
 
@@ -450,7 +450,7 @@ val repo = InMemoryRepository<Task, String, TaskFilter, String>(
 
 ```kotlin
 // build.gradle.kts (jvmMain)
-implementation("com.fonrouge.fslib:memorydb:3.1.0")
+implementation("com.fonrouge.fslib:memorydb:3.1.1")
 ```
 
 See `samples/fullstack/showcase/` for a complete example using `InMemoryRepository`.
@@ -1304,7 +1304,7 @@ fun Application.main() {
     }
 
     // Build and serve the API contract
-    val contract = RouteContract(version = "3.1.0")
+    val contract = RouteContract(version = "3.1.1")
     contract.register(TaskServiceManager, "ITaskService")
 
     routing {

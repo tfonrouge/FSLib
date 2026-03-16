@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.1] - 2026-03-15
+
+### Added
+- `simpleCommon()` and `simpleCommonWithFilter()` factory functions for non-data views (landing pages, dashboards, settings) — creates lightweight `ICommon` instances without requiring a full `ICommonContainer`
+- `view()` method in `EntityRegistrationBuilder` for registering non-data views that use `ICommon` instead of `ICommonContainer`
+- Reference-based `list()` and `item()` overloads in `EntityRegistrationBuilder` to avoid double-registration of existing configs
+- `StandardCrudService.currentCall()` protected hook — override to supply `ApplicationCall` for role-based permission checks in Ktor services
+- `ViewHome` showcase sample demonstrating the `View` + `ICommon` + `configView()` pattern for non-data views
+
+### Changed
+- `StandardCrudService.apiList` and `apiItem` are now `open`, allowing subclasses to override default behavior
+- `ICommon.name` is now `open`, allowing `simpleContainer` and `simpleCommon` factories to provide meaningful names for anonymous objects
+- Warnings emitted on multiple `isDefault` registrations and service manager overwrites in `registerEntityViews()`
+
 ## [3.1.0] - 2026-03-15
 
 ### Added

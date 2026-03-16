@@ -72,7 +72,7 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "3.1.0"
+fslib = "3.1.1"
 
 [libraries]
 fslib-core = { module = "com.fonrouge.fslib:core", version.ref = "fslib" }
@@ -90,12 +90,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.0")
+                api("com.fonrouge.fslib:fullstack:3.1.1")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:memorydb:3.1.0")
+                implementation("com.fonrouge.fslib:memorydb:3.1.1")
             }
         }
     }
@@ -108,12 +108,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.0")
+                api("com.fonrouge.fslib:fullstack:3.1.1")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:3.1.0")
+                implementation("com.fonrouge.fslib:mongodb:3.1.1")
             }
         }
     }
@@ -126,12 +126,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.0")
+                api("com.fonrouge.fslib:fullstack:3.1.1")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:sql:3.1.0")
+                implementation("com.fonrouge.fslib:sql:3.1.1")
             }
         }
     }
@@ -144,13 +144,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.0")
+                api("com.fonrouge.fslib:fullstack:3.1.1")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:3.1.0")
-                implementation("com.fonrouge.fslib:sql:3.1.0")
+                implementation("com.fonrouge.fslib:mongodb:3.1.1")
+                implementation("com.fonrouge.fslib:sql:3.1.1")
             }
         }
     }
@@ -458,7 +458,7 @@ This produces routes like `/rpc/ITaskService.apiList` instead of `/rpc/routeTask
 
 ```kotlin
 // Main.kt (jvmMain)
-val contract = RouteContract(version = "3.1.0")
+val contract = RouteContract(version = "3.1.1")
 contract.register(TaskServiceManager, "ITaskService")
 
 routing {
@@ -472,7 +472,7 @@ Third-party clients fetch the contract at startup to discover available services
 
 ```json
 {
-  "version": "3.1.0",
+  "version": "3.1.1",
   "protocol": {
     "format": "json-rpc-2.0",
     "contentType": "application/json",
@@ -539,7 +539,7 @@ A standalone Android client that consumes the showcase API contract is available
 To publish a SNAPSHOT version to your local Maven repository for development and testing:
 
 ```bash
-./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 3.1.0-SNAPSHOT to ~/.m2/
+./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 3.1.1-SNAPSHOT to ~/.m2/
 ./gradlew :core:publishToMavenLocal -PSNAPSHOT  # Single module only
 ```
 
@@ -551,13 +551,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fonrouge.fsLib:fullstack:3.1.0-SNAPSHOT")
+    implementation("com.fonrouge.fsLib:fullstack:3.1.1-SNAPSHOT")
 }
 ```
 
 > **Tip:** Gradle caches SNAPSHOT dependencies. If you republish the same snapshot version, use `--refresh-dependencies` in the consuming project to pick up the latest artifacts.
 
-> **Safety:** Running `publishToMavenLocal` without `-PSNAPSHOT` is blocked by default. Publishing a release version (e.g., `3.1.0`) to `~/.m2/` would silently shadow the official Maven Central artifact for every project on the machine. If you need to override this check, use `-PFORCE_LOCAL`.
+> **Safety:** Running `publishToMavenLocal` without `-PSNAPSHOT` is blocked by default. Publishing a release version (e.g., `3.1.1`) to `~/.m2/` would silently shadow the official Maven Central artifact for every project on the machine. If you need to override this check, use `-PFORCE_LOCAL`.
 
 ### Sample Applications
 
