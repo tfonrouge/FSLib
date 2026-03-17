@@ -7,6 +7,7 @@ import com.fonrouge.base.state.ItemState
 import com.fonrouge.base.state.ListState
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.state.State
+import com.fonrouge.fullStack.repository.ConstructorCopier
 import com.fonrouge.fullStack.repository.IChangeLogRepository
 import com.fonrouge.fullStack.repository.IRepository
 import com.fonrouge.fullStack.repository.IUserRepository
@@ -41,6 +42,13 @@ open class InMemoryRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, U
 
     /** In-memory data store keyed by entity ID. */
     protected val store: ConcurrentHashMap<ID, T> = ConcurrentHashMap()
+
+    /**
+     * Creates a copy of the item using only its primary constructor parameters,
+     * stripping any body properties. Delegates to [ConstructorCopier].
+     */
+    private fun T.copyCtorOnly(): T =
+        ConstructorCopier.copyWithConstructorParams(commonContainer.itemKClass, this)
 
     // ── Cross-cutting Concerns (disabled) ────────────────────
 
@@ -131,6 +139,8 @@ open class InMemoryRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, U
             it.item?.let { transformed -> currentItem = transformed }
         }
 
+        currentItem = currentItem.copyCtorOnly()
+
         val finalApiItem = ApiItem.Action.Create(
             item = currentItem,
             apiFilter = apiItem.apiFilter,
@@ -185,6 +195,8 @@ open class InMemoryRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, U
             if (it.hasError) return it
             it.item?.let { transformed -> currentItem = transformed }
         }
+
+        currentItem = currentItem.copyCtorOnly()
 
         val finalApiItem = ApiItem.Action.Update(
             item = currentItem,
@@ -468,6 +480,10 @@ open class InMemoryRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, U
     /**
      * Seeds the store with initial data. Useful for sample apps and tests.
      *
+     * Note: unlike [insertOne]/[updateOne], seed does **not** strip body properties
+     * via constructor copying. This is intentional — seed is for test setup where
+     * forcing constructor copies could break test expectations.
+     *
      * @param items The items to add to the store.
      * @return This repository instance for chaining.
      */
@@ -478,6 +494,9 @@ open class InMemoryRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, U
 
     /**
      * Seeds the store with a list of items.
+     *
+     * Note: unlike [insertOne]/[updateOne], seed does **not** strip body properties
+     * via constructor copying. See [seed] vararg overload for rationale.
      *
      * @param items The list of items to add.
      * @return This repository instance for chaining.

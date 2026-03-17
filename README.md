@@ -19,6 +19,7 @@ FSLib provides a backend-agnostic repository pattern, declarative view configura
 - **File Attachments** — `DataMedia` support (via the `:media` module) for managing file uploads with thumbnails and metadata.
 - **Help Documentation** — Module-scoped contextual help with tutorial and quick-reference HTML pages, auto-discovered per view.
 - **Multiple ID Types** — `OId` (MongoDB ObjectId), `IntId`, `LongId`, `StringId` — all with custom serializers.
+- **Single Collection Inheritance** — Store multiple entity subtypes in one MongoDB collection with a shared interface, discriminator field, abstract `Coll`, and subtype-specific repositories. Shared lookups, hooks, and indexes are defined once in the abstract base.
 - **In-Memory Repository** — The `:memorydb` module provides an `InMemoryRepository` for samples, tests, and prototyping without any database engine.
 - **Named Routes & API Contract** — Use Kilua RPC's `@RpcBindingRoute` annotation for human-readable route paths (`/rpc/ITaskService.apiList`). The `RouteContract` class exposes a `/apiContract` endpoint for third-party client (Android, etc.) route discovery.
 - **Server-Side Rendering** — The `:ssr` module provides SSR support using [Ktor](https://ktor.io/) HTML builder.
@@ -72,7 +73,7 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "3.1.1"
+fslib = "3.1.2"
 
 [libraries]
 fslib-core = { module = "com.fonrouge.fslib:core", version.ref = "fslib" }
@@ -90,12 +91,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.1")
+                api("com.fonrouge.fslib:fullstack:3.1.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:memorydb:3.1.1")
+                implementation("com.fonrouge.fslib:memorydb:3.1.2")
             }
         }
     }
@@ -108,12 +109,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.1")
+                api("com.fonrouge.fslib:fullstack:3.1.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:3.1.1")
+                implementation("com.fonrouge.fslib:mongodb:3.1.2")
             }
         }
     }
@@ -126,12 +127,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.1")
+                api("com.fonrouge.fslib:fullstack:3.1.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:sql:3.1.1")
+                implementation("com.fonrouge.fslib:sql:3.1.2")
             }
         }
     }
@@ -144,13 +145,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.1")
+                api("com.fonrouge.fslib:fullstack:3.1.2")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:3.1.1")
-                implementation("com.fonrouge.fslib:sql:3.1.1")
+                implementation("com.fonrouge.fslib:mongodb:3.1.2")
+                implementation("com.fonrouge.fslib:sql:3.1.2")
             }
         }
     }
@@ -347,17 +348,37 @@ class CustomerColl : Coll<...>(...) {
 
 ---
 
-## SQL Annotations
+## Annotations
 
 Located in `com.fonrouge.base.annotations`:
 
 | Annotation | Target | Purpose |
 |-----------|--------|---------|
 | `@Collection(name)` | Class | Maps class to MongoDB collection or SQL table name |
+| `@Computed` | Property | Marks a body property as intentionally non-persisted (see [Constructor-Only Persistence](#constructor-only-persistence)) |
 | `@SqlField(name, compound)` | Property | Maps property to a specific SQL column name or marks it as a compound (nested) field |
 | `@SqlIgnoreField` | Property | Excludes property from SQL INSERT/UPDATE statements |
 | `@SqlOneToOne` | Property | Marks a one-to-one relationship for SQL mapping |
 | `@PreLookupField` | Property | Indicates a pre-lookup field for initial filtering |
+
+### Constructor-Only Persistence
+
+FSLib enforces a convention: **only primary constructor parameters** of `BaseDoc` subclasses are persisted to the database. Properties declared in the class body are automatically stripped before writes. This is handled by `ConstructorCopier`, a shared utility used by all repository engines (MongoDB, SQL, InMemory).
+
+```kotlin
+@Serializable
+data class Product(
+    override val _id: String,   // persisted (constructor parameter)
+    val name: String = "",      // persisted
+    val price: Double = 0.0,    // persisted
+) : BaseDoc<String> {
+    @Computed
+    val displayPrice: String    // NOT persisted (body property)
+        get() = "$$price"
+}
+```
+
+Use the `@Computed` annotation on body properties to make the non-persisted intent explicit and self-documenting.
 
 ---
 
@@ -458,7 +479,7 @@ This produces routes like `/rpc/ITaskService.apiList` instead of `/rpc/routeTask
 
 ```kotlin
 // Main.kt (jvmMain)
-val contract = RouteContract(version = "3.1.1")
+val contract = RouteContract(version = "3.1.2")
 contract.register(TaskServiceManager, "ITaskService")
 
 routing {
@@ -472,7 +493,7 @@ Third-party clients fetch the contract at startup to discover available services
 
 ```json
 {
-  "version": "3.1.1",
+  "version": "3.1.2",
   "protocol": {
     "format": "json-rpc-2.0",
     "contentType": "application/json",
@@ -539,7 +560,7 @@ A standalone Android client that consumes the showcase API contract is available
 To publish a SNAPSHOT version to your local Maven repository for development and testing:
 
 ```bash
-./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 3.1.1-SNAPSHOT to ~/.m2/
+./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 3.1.2-SNAPSHOT to ~/.m2/
 ./gradlew :core:publishToMavenLocal -PSNAPSHOT  # Single module only
 ```
 
@@ -551,13 +572,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fonrouge.fsLib:fullstack:3.1.1-SNAPSHOT")
+    implementation("com.fonrouge.fsLib:fullstack:3.1.2-SNAPSHOT")
 }
 ```
 
 > **Tip:** Gradle caches SNAPSHOT dependencies. If you republish the same snapshot version, use `--refresh-dependencies` in the consuming project to pick up the latest artifacts.
 
-> **Safety:** Running `publishToMavenLocal` without `-PSNAPSHOT` is blocked by default. Publishing a release version (e.g., `3.1.1`) to `~/.m2/` would silently shadow the official Maven Central artifact for every project on the machine. If you need to override this check, use `-PFORCE_LOCAL`.
+> **Safety:** Running `publishToMavenLocal` without `-PSNAPSHOT` is blocked by default. Publishing a release version (e.g., `3.1.2`) to `~/.m2/` would silently shadow the official Maven Central artifact for every project on the machine. If you need to override this check, use `-PFORCE_LOCAL`.
 
 ### Sample Applications
 

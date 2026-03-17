@@ -26,13 +26,14 @@ This guide walks through building a full-stack CRUD application with FSLib, from
 18. [Change Logging](#18-change-logging)
 19. [Role-Based Access Control](#19-role-based-access-control)
 20. [State Management](#20-state-management)
-21. [SQL Annotations](#21-sql-annotations)
+21. [Annotations](#21-annotations)
 22. [Custom Serializers](#22-custom-serializers)
 23. [Help Documentation](#23-help-documentation)
 24. [File Attachments (DataMedia)](#24-file-attachments-datamedia)
 25. [Periodic Data Updates](#25-periodic-data-updates)
 26. [View Navigation and Routing](#26-view-navigation-and-routing)
 27. [Named Routes & API Contract](#27-named-routes--api-contract)
+28. [Single Collection Inheritance](#28-single-collection-inheritance)
 
 ---
 
@@ -60,7 +61,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:3.1.1")
+                api("com.fonrouge.fslib:fullstack:3.1.2")
             }
         }
         jvmMain {
@@ -87,7 +88,7 @@ To develop and test against a local build of FSLib, publish a SNAPSHOT version t
 ./gradlew publishToMavenLocal -PSNAPSHOT
 ```
 
-The `-PSNAPSHOT` flag automatically appends `-SNAPSHOT` to the version (e.g., `3.1.1` becomes `3.1.1-SNAPSHOT`) without modifying `libs.versions.toml`. Then in your consuming project:
+The `-PSNAPSHOT` flag automatically appends `-SNAPSHOT` to the version (e.g., `3.1.2` becomes `3.1.2-SNAPSHOT`) without modifying `libs.versions.toml`. Then in your consuming project:
 
 ```kotlin
 repositories {
@@ -96,7 +97,7 @@ repositories {
 
 dependencies {
     // Use the SNAPSHOT version matching what you published
-    api("com.fonrouge.fslib:fullstack:3.1.1-SNAPSHOT")
+    api("com.fonrouge.fslib:fullstack:3.1.2-SNAPSHOT")
 }
 ```
 
@@ -191,6 +192,19 @@ data class Product(
 - Use `@Serializable` on all models (kotlinx-serialization).
 - Use `@Collection("name")` to specify the MongoDB collection or SQL table name.
 - The `_id` property is the primary key; use the appropriate ID type for your backend.
+- **Only primary constructor parameters are persisted.** Properties declared in the class body are automatically stripped before database writes by `ConstructorCopier`. Use the `@Computed` annotation on body properties to make this intent explicit:
+
+```kotlin
+@Serializable
+data class Invoice(
+    override val _id: String,
+    val total: Double = 0.0,       // persisted (constructor parameter)
+) : BaseDoc<String> {
+    @Computed
+    val formattedTotal: String     // NOT persisted (body property)
+        get() = "$$total"
+}
+```
 
 ---
 
@@ -226,7 +240,7 @@ val CommonCustomer = simpleContainer<Customer, OId<Customer>>(
 - `labelItem` / `labelList` — Display names for the entity (singular/plural).
 - `labelId` — Generates a human-readable label from an item (used in banners, breadcrumbs).
 
-> **Note:** The `idSerializer` property has been removed in v3.1.1 — it is now auto-derived from the `_id` field's serializer. The `apiFilterSerializer` property has been replaced by `filterKClass`; the serializer is derived from the KClass automatically.
+> **Note:** The `idSerializer` property has been removed in v3.1.2 — it is now auto-derived from the `_id` field's serializer. The `apiFilterSerializer` property has been replaced by `filterKClass`; the serializer is derived from the KClass automatically.
 
 ---
 
@@ -450,7 +464,7 @@ val repo = InMemoryRepository<Task, String, TaskFilter, String>(
 
 ```kotlin
 // build.gradle.kts (jvmMain)
-implementation("com.fonrouge.fslib:memorydb:3.1.1")
+implementation("com.fonrouge.fslib:memorydb:3.1.2")
 ```
 
 See `samples/fullstack/showcase/` for a complete example using `InMemoryRepository`.
@@ -994,7 +1008,24 @@ All state types implement `ISimpleState` with:
 
 ---
 
-## 21. SQL Annotations
+## 21. Annotations
+
+### @Computed
+
+Mark body properties as intentionally non-persisted. This annotation is documentation-only — the constructor-only persistence stripping happens automatically regardless. But `@Computed` makes the intent explicit:
+
+```kotlin
+@Serializable
+data class Product(
+    override val _id: IntId<Product> = IntId(0),
+    val price: Double = 0.0,
+    val taxRate: Double = 0.0,
+) : BaseDoc<IntId<Product>> {
+    @Computed
+    val priceWithTax: Double
+        get() = price * (1 + taxRate)
+}
+```
 
 ### @SqlField
 
@@ -1304,7 +1335,7 @@ fun Application.main() {
     }
 
     // Build and serve the API contract
-    val contract = RouteContract(version = "3.1.1")
+    val contract = RouteContract(version = "3.1.2")
     contract.register(TaskServiceManager, "ITaskService")
 
     routing {
@@ -1371,3 +1402,248 @@ The API contract response includes protocol documentation so third-party clients
 > **Note:** When using a shared contract library with `@RpcBindingRoute` named routes, the `/apiContract` endpoint is optional. The client can construct routes directly using the `"/rpc/InterfaceName.methodName"` pattern, gaining compile-time type safety without runtime discovery.
 
 See `samples/fullstack/showcase/` for the complete server-side example, and [showcase-android](https://github.com/tfonrouge/fslib-android/tree/main/samples/showcase-android) for a working Android client.
+
+---
+
+## 28. Single Collection Inheritance
+
+When multiple entity subtypes share one MongoDB collection — differentiated by a discriminator field — use the **Single Collection Inheritance** pattern. This is common in warehouse/inventory systems, financial transactions, or any domain where several document types share a base structure but carry subtype-specific fields.
+
+### Architecture
+
+```
+┌──────────────────────────────────┐
+│  IWarehouseEntry<ID> (interface) │  ← shared field contract
+│  extends BaseDoc<ID>             │
+├──────────────────────────────────┤
+│  dateTime, userId, docNumber     │  ← common fields
+│  state, entryType, sign          │  ← discriminator + classification
+│  warehouseId, itemCount          │
+│  @Computed var user: User?       │  ← lookup-populated (body property)
+│  @Computed var warehouse: Wh?    │
+└──────┬───────┬───────┬───────────┘
+       │       │       │
+  ReceiptEntry  ShipmentEntry  TransferEntry   ← concrete subtypes
+  (extra fields per subtype, each with fixed entryType/sign)
+```
+
+All subtypes are stored in the same MongoDB collection (e.g., `@Collection("warehouseEntries")`), queried and filtered by the discriminator field (`entryType`).
+
+### Step 1: Define the shared interface (commonMain)
+
+```kotlin
+@Collection(name = "warehouseEntries")
+interface IWarehouseEntry<ID : Any> : BaseDoc<ID> {
+    @Serializable(with = FSOffsetDateTimeSerializer::class)
+    val dateTime: OffsetDateTime
+    val userId: StringId<User>
+    val docNumber: Int
+    val state: State
+    val entryType: EntryType       // discriminator
+    val sign: Sign                 // +1 or -1
+    val warehouseId: StringId<Warehouse>
+    val itemCount: Int
+
+    // Lookup-populated fields (not persisted)
+    var user: User?
+    var warehouse: Warehouse?
+
+    @Serializable
+    enum class EntryType(val label: String) {
+        Receipt("Receipt"),
+        Shipment("Shipment"),
+        Transfer("Transfer"),
+    }
+
+    @Serializable
+    enum class Sign(val multiplier: Int) {
+        In(1),
+        Out(-1),
+    }
+
+    @Serializable
+    enum class State { New, Processing, Closed }
+}
+```
+
+### Step 2: Implement concrete subtypes (commonMain)
+
+Each subtype fixes the discriminator values and may add subtype-specific fields:
+
+```kotlin
+@Serializable
+data class ReceiptEntry(
+    override val _id: OId<ReceiptEntry> = OId(),
+    override val dateTime: OffsetDateTime = offsetDateTimeNow(),
+    override val userId: StringId<User>,
+    override val docNumber: Int,
+    override val state: IWarehouseEntry.State = IWarehouseEntry.State.New,
+    override val warehouseId: StringId<Warehouse>,
+    override val itemCount: Int = 0,
+    // discriminator values as constructor params with fixed defaults
+    override val entryType: IWarehouseEntry.EntryType = IWarehouseEntry.EntryType.Receipt,
+    override val sign: IWarehouseEntry.Sign = IWarehouseEntry.Sign.In,
+    // subtype-specific fields
+    val supplierId: StringId<Supplier>,
+    val purchaseOrderRef: String? = null,
+) : IWarehouseEntry<OId<ReceiptEntry>> {
+    @Computed override var user: User? = null
+    @Computed override var warehouse: Warehouse? = null
+}
+
+@Serializable
+data class TransferEntry(
+    override val _id: OId<TransferEntry> = OId(),
+    override val dateTime: OffsetDateTime = offsetDateTimeNow(),
+    override val userId: StringId<User>,
+    override val docNumber: Int,
+    override val state: IWarehouseEntry.State = IWarehouseEntry.State.New,
+    override val warehouseId: StringId<Warehouse>,
+    override val itemCount: Int = 0,
+    override val entryType: IWarehouseEntry.EntryType = IWarehouseEntry.EntryType.Transfer,
+    override val sign: IWarehouseEntry.Sign = IWarehouseEntry.Sign.Out,
+    // subtype-specific field
+    val destinationWarehouseId: StringId<Warehouse>,
+) : IWarehouseEntry<OId<TransferEntry>> {
+    @Computed override var user: User? = null
+    @Computed override var warehouse: Warehouse? = null
+    @Computed var destinationWarehouse: Warehouse? = null
+}
+```
+
+**Key decisions:**
+- **Discriminator fields (`entryType`, `sign`) are constructor parameters** with fixed defaults — this ensures they are persisted and queryable from raw data.
+- **Lookup-populated fields are body properties** with `@Computed` — stripped by `ConstructorCopier` before writes, populated by the aggregation pipeline on reads.
+- **`itemCount`** should be a body property with `@Computed` if it is always computed by the aggregation pipeline and never stored. Keep it as a constructor parameter only if you need the persisted value.
+
+### Step 3: Common containers per subtype (commonMain)
+
+Each subtype needs its own `ICommonContainer`:
+
+```kotlin
+val CommonReceiptEntry = simpleContainer<ReceiptEntry, OId<ReceiptEntry>>(
+    labelItem = "Receipt",
+    labelList = "Receipts",
+    labelId = { it?.let { "Receipt #${it.docNumber}" } ?: "" },
+)
+
+val CommonTransferEntry = simpleContainer<TransferEntry, OId<TransferEntry>>(
+    labelItem = "Transfer",
+    labelList = "Transfers",
+    labelId = { it?.let { "Transfer #${it.docNumber}" } ?: "" },
+)
+```
+
+### Step 4: Abstract repository with shared logic (jvmMain)
+
+```kotlin
+abstract class IWarehouseEntryColl<
+    T : IWarehouseEntry<ID>,
+    ID : OId<out T>,
+    FILT : IApiFilter<*>,
+>(
+    commonContainer: ICommonContainer<T, ID, FILT>,
+    mongoDatabase: MongoDatabase,
+) : Coll<T, ID, FILT, StringId<User>>(
+    commonContainer = commonContainer,
+    mongoDatabase = mongoDatabase,
+) {
+    // Shared: prevent editing closed entries
+    override suspend fun onQueryUpdate(
+        apiItem: ApiItem.Query.Update<T, ID, FILT>,
+        orig: T,
+    ): SimpleState {
+        if (orig.state == IWarehouseEntry.State.Closed) {
+            return SimpleState(isOk = false, msgError = "${commonContainer.labelItem} is closed")
+        }
+        return super.onQueryUpdate(apiItem, orig)
+    }
+
+    // Shared: lookups for user and warehouse
+    override val lookupFun: (FILT) -> List<LookupPipelineBuilder<T, *, *>> = {
+        listOf(
+            lookupField(
+                coll = UserColl,
+                localField = IWarehouseEntry<*>::userId,
+                foreignField = User::_id,
+                resultField = IWarehouseEntry<*>::user,
+            ),
+            lookupField(
+                coll = WarehouseColl,
+                localField = IWarehouseEntry<*>::warehouseId,
+                foreignField = Warehouse::_id,
+                resultField = IWarehouseEntry<*>::warehouse,
+            ),
+        )
+    }
+
+    // Shared: auto-increment document number per entry type
+    abstract val entryType: IWarehouseEntry.EntryType
+
+    suspend fun getNextDocNumber(): Int {
+        val pipeline = mutableListOf(
+            match(IWarehouseEntry<*>::entryType eq entryType),
+            sort(descending(IWarehouseEntry<*>::docNumber)),
+            limit(1),
+        )
+        return aggregateLookupPublisher(
+            pipeline = pipeline,
+            resultUnit = ResultUnit.Single,
+        ).awaitFirstOrNull()?.docNumber?.plus(1) ?: 1
+    }
+}
+```
+
+### Step 5: Concrete repositories per subtype (jvmMain)
+
+```kotlin
+class ReceiptEntryColl : IWarehouseEntryColl<
+    ReceiptEntry, OId<ReceiptEntry>, ApiFilter,
+>(
+    commonContainer = CommonReceiptEntry,
+    mongoDatabase = MongoDb.database,
+) {
+    override val entryType = IWarehouseEntry.EntryType.Receipt
+    override val userCollFun = { UserColl() }
+
+    // Match stage filters by discriminator automatically
+    override fun findItemFilter(apiFilter: ApiFilter): Bson? =
+        IWarehouseEntry<*>::entryType eq entryType
+}
+
+class TransferEntryColl : IWarehouseEntryColl<
+    TransferEntry, OId<TransferEntry>, ApiFilter,
+>(
+    commonContainer = CommonTransferEntry,
+    mongoDatabase = MongoDb.database,
+) {
+    override val entryType = IWarehouseEntry.EntryType.Transfer
+    override val userCollFun = { UserColl() }
+
+    override fun findItemFilter(apiFilter: ApiFilter): Bson? =
+        IWarehouseEntry<*>::entryType eq entryType
+
+    // Subtype-specific: additional lookup for destination warehouse
+    override val lookupFun: (ApiFilter) -> List<LookupPipelineBuilder<TransferEntry, *, *>> = {
+        super.lookupFun(it) + lookupField(
+            coll = WarehouseColl,
+            localField = TransferEntry::destinationWarehouseId,
+            foreignField = Warehouse::_id,
+            resultField = TransferEntry::destinationWarehouse,
+        )
+    }
+}
+```
+
+### When to use this pattern
+
+- Multiple document types sharing **most fields** but with a few **subtype-specific properties**
+- All subtypes stored in the **same MongoDB collection** for unified querying and indexing
+- Shared **lifecycle hooks**, **lookups**, and **business rules** across subtypes
+- A **discriminator field** (`entryType`, `tipoRegistro`, `kind`, etc.) that partitions the collection
+
+### When NOT to use this pattern
+
+- Subtypes have **vastly different fields** — use separate collections instead
+- You need **different indexes per subtype** that would conflict in one collection
+- The collection would grow too large with mixed document shapes — consider sharding or splitting

@@ -31,7 +31,6 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
 
 /**
  * SQL-backed implementation of [IRepository] using Exposed for database access
@@ -97,22 +96,24 @@ abstract class SqlRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UI
             .also { if (it.hasError) return it.asItemState() }
         onQueryCreate(apiItem.asQuery as ApiItem.Query.Create)
             .also { if (it.hasError) return it.asItemState() }
-        var currentItem = item.copyWithPrimaryConstructor()
-        var currentApiItem = apiItem.copy(item = currentItem)
+        var currentItem = item
+        var currentApiItem = apiItem
         onBeforeUpsertAction(currentApiItem, orig = null).also {
             if (it.hasError) return it
             it.item?.let { modified ->
-                currentItem = modified.copyWithPrimaryConstructor(); currentApiItem =
+                currentItem = modified; currentApiItem =
                 currentApiItem.copy(item = currentItem)
             }
         }
         onBeforeCreateAction(currentApiItem).also {
             if (it.hasError) return it
             it.item?.let { modified ->
-                currentItem = modified.copyWithPrimaryConstructor(); currentApiItem =
+                currentItem = modified; currentApiItem =
                 currentApiItem.copy(item = currentItem)
             }
         }
+        currentItem = currentItem.copyCtorOnly()
+        currentApiItem = currentApiItem.copy(item = currentItem)
         onValidate(currentApiItem, currentItem).also { if (it.hasError) return it.asItemState() }
         var result = false
         return try {
@@ -175,30 +176,32 @@ abstract class SqlRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UI
         call: ApplicationCall?,
     ): ItemState<T> {
         if (readOnly) return ItemState(isOk = false, msgError = readOnlyErrorMsg)
-        val orig = findById(item._id, apiFilter)?.copyWithPrimaryConstructor()
+        val orig = findById(item._id, apiFilter)?.copyCtorOnly()
             ?: return ItemState(isOk = false, msgError = "Original item not found")
         val apiItem =
-            ApiItem.Action.Update(item = item.copyWithPrimaryConstructor(), apiFilter = apiFilter, call = call)
+            ApiItem.Action.Update(item = item, apiFilter = apiFilter, call = call)
         onQueryUpsert(apiItem.asQuery as ApiItem.Query.Update, orig)
             .also { if (it.hasError) return it.asItemState() }
         onQueryUpdate(apiItem.asQuery as ApiItem.Query.Update, orig)
             .also { if (it.hasError) return it.asItemState() }
-        var currentItem = item.copyWithPrimaryConstructor()
-        var currentApiItem = apiItem.copy(item = currentItem)
+        var currentItem = item
+        var currentApiItem = apiItem
         onBeforeUpdateAction(currentApiItem, orig).also {
             if (it.hasError) return it
             it.item?.let { modified ->
-                currentItem = modified.copyWithPrimaryConstructor(); currentApiItem =
+                currentItem = modified; currentApiItem =
                 currentApiItem.copy(item = currentItem)
             }
         }
         onBeforeUpsertAction(currentApiItem, orig).also {
             if (it.hasError) return it
             it.item?.let { modified ->
-                currentItem = modified.copyWithPrimaryConstructor(); currentApiItem =
+                currentItem = modified; currentApiItem =
                 currentApiItem.copy(item = currentItem)
             }
         }
+        currentItem = currentItem.copyCtorOnly()
+        currentApiItem = currentApiItem.copy(item = currentItem)
         onValidate(currentApiItem, currentItem).also { if (it.hasError) return it.asItemState() }
         val origJson = Json.encodeToJsonElement(commonContainer.itemSerializer, orig) as JsonObject
         val newJson = Json.encodeToJsonElement(commonContainer.itemSerializer, currentItem) as JsonObject
@@ -298,7 +301,7 @@ abstract class SqlRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UI
 
                     is ApiItem.Query.Update -> {
                         val itemState = findItemStateById(id = apiItem.id, apiFilter = apiItem.apiFilter)
-                        val orig = itemState.item?.copyWithPrimaryConstructor()
+                        val orig = itemState.item?.copyCtorOnly()
                         if (itemState.hasError || orig == null) return itemState
                         onQueryUpsert(apiItem, orig).also { if (it.hasError) return it.asItemState() }
                         onQueryUpdate(apiItem, orig).also { if (it.hasError) return it.asItemState() }
@@ -558,17 +561,11 @@ abstract class SqlRepository<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UI
     }
 
     /**
-     * Creates a copy of the item using its primary constructor parameters.
-     * Mirrors [com.fonrouge.fullStack.mongoDb.Coll.copyItemWithPrimaryConstructorParameters].
+     * Creates a copy of the item using only its primary constructor parameters,
+     * stripping any body properties. Delegates to [ConstructorCopier].
      */
-    private fun T.copyWithPrimaryConstructor(): T {
-        val kClass = commonContainer.itemKClass
-        val mp = kClass.memberProperties.associateBy { it.name }
-        val cp = kClass.primaryConstructor?.parameters?.mapNotNull { it.name } ?: emptyList()
-        val values = cp.map { mp[it]?.get(this) }
-        return kClass.primaryConstructor?.call(*values.toTypedArray())
-            ?: error("Cannot copy item: ${kClass.simpleName} has no primary constructor")
-    }
+    private fun T.copyCtorOnly(): T =
+        ConstructorCopier.copyWithConstructorParams(commonContainer.itemKClass, this)
 
     /**
      * Resolves the SQL column name for the _id field.

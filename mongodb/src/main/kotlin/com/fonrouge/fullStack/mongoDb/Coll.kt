@@ -9,6 +9,7 @@ import com.fonrouge.base.state.ListState
 import com.fonrouge.base.state.SimpleState
 import com.fonrouge.base.state.State
 import com.fonrouge.fullStack.FieldPath
+import com.fonrouge.fullStack.repository.ConstructorCopier
 import com.fonrouge.fullStack.repository.IRepository
 import com.fonrouge.fullStack.repository.IRepository.Dependency
 import com.fonrouge.fullStack.repository.PermissionRegistry
@@ -38,9 +39,6 @@ import java.util.*
 import kotlin.jvm.internal.PropertyReference1Impl
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.superclasses
 
 /**
@@ -543,23 +541,21 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
      *                          If not provided, defaults to an empty list, and the current values of the item's properties are used.
      * @return A new instance of the item, created using its primary constructor with the specified or current values.
      */
+    /**
+     * Creates a copy of the current item by invoking its primary constructor with the specified field assignments
+     * or the current values of the item's member properties. Delegates to [ConstructorCopier] for cached,
+     * shared reflection logic.
+     *
+     * @param fieldAssignments A list of field assignments providing specific values to set for fields during copying.
+     *                          If not provided, defaults to an empty array, and the current values of the item's properties are used.
+     * @return A new instance of the item, created using its primary constructor with the specified or current values.
+     */
     @Suppress("MemberVisibilityCanBePrivate")
     fun T.copyItemWithPrimaryConstructorParameters(
         vararg fieldAssignments: AssignTo<T, *> = emptyArray(),
     ): T {
-        val mp: Map<String, KProperty1<T, *>> = commonContainer.itemKClass.memberProperties.associateBy { it.name }
-        val cp: List<String> = commonContainer.itemKClass.primaryConstructor?.parameters?.mapNotNull { it.name }
-            ?: emptyList()
-        val o: Map<String, Any?> = fieldAssignments.associate { it.kField.name to it.value }
-        val values: List<Any?> = cp.map {
-            if (o.containsKey(it)) {
-                o[it]
-            } else {
-                mp[it]?.get(this)
-            }
-        }
-        return commonContainer.itemKClass.primaryConstructor?.call(*values.toTypedArray())
-            ?: commonContainer.itemKClass.createInstance() //throw Exception("Unable to copy item")
+        val overrides = fieldAssignments.associate { it.kField.name to it.value }
+        return ConstructorCopier.copyWithConstructorParams(commonContainer.itemKClass, this, overrides)
     }
 
     /**
@@ -981,14 +977,14 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
             orig = null
         ).also { if (it.hasError) return it.asItemState() }
         onQueryCreate(apiItem.asQuery as ApiItem.Query.Create).also { if (it.hasError) return it.asItemState() }
-        var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
+        var apiItem1 = apiItem.copy(item = apiItem.item)
         onBeforeUpsertAction(apiItem = apiItem1, orig = null).also { it ->
             if (it.hasError) return it
-            it.item?.let { apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters()) }
+            it.item?.let { apiItem1 = apiItem1.copy(item = it) }
         }
         onBeforeCreateAction(apiItem1).also { it ->
             if (it.hasError) return it
-            it.item?.let { apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters()) }
+            it.item?.let { apiItem1 = apiItem1.copy(item = it) }
         }
         var result: Boolean? = null
         return try {
@@ -1381,13 +1377,13 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
         onBeforeUpdateAction(apiItem = apiItem, orig = orig).also { it ->
             if (it.hasError) return it
             it.item?.let {
-                apiItem = apiItem.copy(item = it.copyItemWithPrimaryConstructorParameters())
+                apiItem = apiItem.copy(item = it)
             }
         }
         onBeforeUpsertAction(apiItem = apiItem, orig = orig).also { it ->
             if (it.hasError) return it
             it.item?.let {
-                apiItem = apiItem.copy(item = it.copyItemWithPrimaryConstructorParameters())
+                apiItem = apiItem.copy(item = it)
             }
         }
         val result: UpdateResult = try {
@@ -1509,19 +1505,19 @@ abstract class Coll<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>, UID : Any>(
                 orig = orig
             ).also { if (it.hasError) return it.asItemState() }
         }
-        var apiItem1 = apiItem.copy(item = apiItem.item.copyItemWithPrimaryConstructorParameters())
+        var apiItem1 = apiItem.copy(item = apiItem.item)
         orig?.let {
             onBeforeUpdateAction(apiItem = apiItem1, orig = orig).also { it ->
                 if (it.hasError) return it
                 it.item?.let {
-                    apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters())
+                    apiItem1 = apiItem1.copy(item = it)
                 }
             }
         }
         onBeforeUpsertAction(apiItem = apiItem1, orig = orig).also { it ->
             if (it.hasError) return it
             it.item?.let {
-                apiItem1 = apiItem1.copy(item = it.copyItemWithPrimaryConstructorParameters())
+                apiItem1 = apiItem1.copy(item = it)
             }
         }
         val filter1 = and(BaseDoc<ID>::_id eq apiItem1.item._id, filter ?: EMPTY_BSON)

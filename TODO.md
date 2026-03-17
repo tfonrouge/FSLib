@@ -31,6 +31,6 @@ The `_id` convention is MongoDB-specific. SQL entities typically use `id`. The `
 
 #### D. Coll is large (~1700 lines) with mixed abstraction levels
 It handles CRUD, aggregation pipelines, lookups, pagination, permission checks, change logging, error formatting, and reflection-based copying — all in one class. Analysis shows:
-- **Extractable:** Pipeline building (~230 lines) into `AggregationPipelineBuilder`, item copying (~60 lines) into a utility, error formatting (~20 lines).
+- **Extractable:** Pipeline building (~230 lines) into `AggregationPipelineBuilder`, ~~item copying (~60 lines) into a utility~~ (done — extracted to `ConstructorCopier`), error formatting (~20 lines).
 - **Not easily extractable:** Lifecycle hooks (must remain `open` for subclass overrides), CRUD orchestration (tightly coupled to hooks + permissions + changelog), IRepository bridge methods (interface contract).
 - **Verdict:** Extracting the pipeline builder is the highest-value refactor (~230 lines, cohesive responsibility, reusable). Beyond that, returns diminish because remaining methods are tightly coupled to the lifecycle orchestration.
