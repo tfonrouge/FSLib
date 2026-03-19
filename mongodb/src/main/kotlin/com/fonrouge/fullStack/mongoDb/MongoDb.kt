@@ -113,6 +113,9 @@ data class MongoDbBuilder(
             registerSerializer(FSOffsetDateTimeSerializer)
             registerSerializer(FSLocalDateSerializer)
             registerSerializer(FSLocalDateTimeSerializer)
+            // TODO: evaluate registering via registerModule(serializersModule) instead of individual registerSerializer calls,
+            //  or implementing a custom BsonCodec at the MongoDB driver level for robust numeric type coercion
+            registerSerializer(FSNumberDoubleSerializer)
         }
     }
 }
