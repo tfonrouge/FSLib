@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2026-03-25
+
+### Removed
+- **`ViewFormPanel`** class deleted. `ViewItem.pageItemBody()` now returns KVision's `FormPanel<T>` directly. Consumer code that used `viewFormPanel { }` DSL continues to work — the function now lives on `ViewItem` and returns `FormPanel<T>`.
+- `CustomMapValue`, `customBindings`, `bindCustomValue()`, `getCustomValue()`, `setCustomValue()`, `getControlValue()` removed from the form panel API.
+- `addToSerializedValueMap()` removed from the form panel. Replaced by `ViewItem.addSerializedValue()`.
+
+### Changed
+- `ViewItem.formPanel` property type changed from `ViewFormPanel<T>?` to `FormPanel<T>?`.
+- Serialized value map lifecycle (server-provided Create defaults) moved from the form panel into `ViewItem`.
+- Tabulator data overlay and remaining serialized values now injected via KVision's `dataOverlayProvider` (set up automatically by `ViewItem.viewFormPanel {}`).
+- `bindCustom(key = Model::field)` calls resolve to KVision's built-in `FormPanel.bindCustom()` — no wrapper needed.
+
+### Dependencies
+- Requires KVision 9.4.0-SNAPSHOT (with `FormFieldConverter` and `dataOverlayProvider` support).
+
+### Migration Guide
+- Change `pageItemBody()` return type from `ViewFormPanel<T>` to `FormPanel<T>`.
+- Replace `import com.fonrouge.fullStack.view.ViewFormPanel` with `import io.kvision.form.FormPanel`.
+- Replace `addToSerializedValueMap(prop, value)` with `this@YourViewItem.addSerializedValue(prop, value)`.
+- `viewFormPanel { }` DSL, `bindCustom()`, `bind()`, `add()`, `getData()`, `setData()` — no changes needed.
+
 ## [3.1.2] - 2026-03-18
 
 ### Added

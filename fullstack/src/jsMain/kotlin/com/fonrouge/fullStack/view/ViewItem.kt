@@ -18,6 +18,7 @@ import com.fonrouge.fullStack.getItemState
 import com.fonrouge.fullStack.layout.centeredMessage
 import com.fonrouge.fullStack.tabulator.TabulatorMenuItem
 import io.kvision.core.*
+import io.kvision.form.FormPanel
 import io.kvision.html.Button
 import io.kvision.html.ButtonSize
 import io.kvision.html.ButtonStyle
@@ -73,7 +74,8 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
         private const val TOAST_DURATION = 10000
     }
 
-    private var _serializedValueMap: Map<String, String?>? = null
+    @PublishedApi
+    internal var _serializedValueMap: MutableMap<String, String?> = mutableMapOf()
     var buttonBack: Button? = null
     var buttonCancel: Button? = null
     var buttonAccept: Button? = null
@@ -90,7 +92,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
      * @property formPanel A dynamically typed FormPanel that supports interaction
      * with forms.
      */
-    var formPanel: ViewFormPanel<T>? = null
+    var formPanel: FormPanel<T>? = null
 
     /**
      * Observable that holds the [ItemState] for the [ViewItem]
@@ -485,8 +487,8 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
             CrudTask.Create -> {
                 item?.let {
                     formPanel?.setData(it)
-                } ?: if (formPanel?.serializedValueMap?.isNotEmpty() == true) {
-                    formPanel?.formSetDataWithValueMap()
+                } ?: if (_serializedValueMap.isNotEmpty()) {
+                    applySerializedValueMap()
                 } else Unit
             }
 
@@ -616,7 +618,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                                         handleCreateToUpdateTransition(itemResponse, itemResponseItem)
                                     }
                                 } ?: itemResponse.serializedValueMap?.let {
-                                    _serializedValueMap = it
+                                    _serializedValueMap = it.toMutableMap()
                                 }
                             }
                             var alreadyBack = false
@@ -723,7 +725,7 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
      *
      * @return A FormPanel of type T, which serves as the main container for the page item body.
      */
-    abstract fun Container.pageItemBody(): ViewFormPanel<T>
+    abstract fun Container.pageItemBody(): FormPanel<T>
 
     /**
      * Transforms the given input data and returns the transformed result.
@@ -733,14 +735,63 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
      */
     open fun transformData(item: T): T = item
 
-    fun Container.viewFormPanel(init: (ViewFormPanel<T>).() -> Unit): ViewFormPanel<T> {
-        val viewFormPanel = ViewFormPanel(
+    /**
+     * Creates a [FormPanel] for this ViewItem, sets up the [dataOverlayProvider][io.kvision.form.Form.dataOverlayProvider]
+     * for tabulator data and remaining serializedValueMap entries.
+     *
+     * @param init Configuration block for the form panel.
+     * @return The configured FormPanel.
+     */
+    fun Container.viewFormPanel(init: (FormPanel<T>).() -> Unit): FormPanel<T> {
+        val panel = FormPanel(
             serializer = configView.commonContainer.itemSerializer,
-            viewItem = this@ViewItem,
-            serializedValueMap = _serializedValueMap
         )
-        init.invoke(viewFormPanel)
-        this.add(viewFormPanel)
-        return viewFormPanel
+        init.invoke(panel)
+        this.add(panel)
+        // Set up data overlay for tabulators and remaining serializedValueMap entries
+        panel.dataOverlayProvider = {
+            buildMap {
+                _serializedValueMap.forEach { (key, value) ->
+                    if (panel.form.fields[key] == null) {
+                        value?.let { put(key, JSON.parse<Any?>(it)) }
+                    }
+                }
+                tabulators.forEach { (key, tabulatorItem) ->
+                    put(key, tabulatorItem.toPlainObj())
+                }
+            }
+        }
+        return panel
+    }
+
+    /**
+     * Adds a serialized value to the overlay map.
+     * Values added here will be included in [FormPanel.getData] output via the
+     * [dataOverlayProvider][io.kvision.form.Form.dataOverlayProvider], allowing hidden fields
+     * (e.g., parent IDs) to be submitted with the form without a visible control.
+     *
+     * @param property The property whose name will be used as the key.
+     * @param value The value to serialize and include in the form submission.
+     */
+    inline fun <reified V> addSerializedValue(property: KProperty1<T, V?>, value: V) {
+        _serializedValueMap[property.name] = Json.encodeToString<V>(value = value)
+    }
+
+    /**
+     * Applies serialized values from the server to form controls during Create operations.
+     * Values that match a form control are applied and removed from the map.
+     * Remaining values are included in getData() via the dataOverlayProvider.
+     */
+    private fun applySerializedValueMap() {
+        val panel = formPanel ?: return
+        val assignedValues = mutableSetOf<String>()
+        _serializedValueMap.forEach { (key, value) ->
+            val formControl = panel.form.fields[key] ?: return@forEach
+            assignedValues += key
+            value?.let { v -> JSON.parse<Any>(v) }?.let { parsed ->
+                formControl.setValue(parsed)
+            } ?: formControl.setValue(null)
+        }
+        _serializedValueMap -= assignedValues
     }
 }

@@ -636,7 +636,7 @@ class ViewListCustomer : ViewList<
 
 ## 12. Item Views (Forms)
 
-A `ViewItem` displays a form for creating or editing a single item:
+A `ViewItem` displays a form for creating or editing a single item. The `viewFormPanel { }` DSL creates a KVision `FormPanel<T>` with automatic data overlay support for tabulators and serialized values:
 
 ```kotlin
 class ViewItemCustomer : ViewItem<
@@ -644,34 +644,21 @@ class ViewItemCustomer : ViewItem<
 >() {
     override val configView = configViewItem
 
-    override fun Container.displayPage() {
-        formPanel = ViewFormPanel.xcreate(
-            viewItem = this@ViewItemCustomer,
-            serializer = Customer.serializer(),
-        ) {
-            formRow {
-                formColumn(6) {
-                    text(label = "Name") {
-                        bind(Customer::name)
-                    }
-                }
-                formColumn(6) {
-                    text(label = "Email") {
-                        bind(Customer::email)
-                    }
-                }
+    override fun Container.pageItemBody(): FormPanel<Customer> = viewFormPanel {
+        formRow {
+            formColumn(6) {
+                add(Customer::name, Text(label = "Name"))
             }
-            formRow {
-                formColumn(6) {
-                    text(label = "Phone") {
-                        bind(Customer::phone)
-                    }
-                }
-                formColumn(6) {
-                    checkBox(label = "Active") {
-                        bind(Customer::active)
-                    }
-                }
+            formColumn(6) {
+                add(Customer::email, Text(label = "Email"))
+            }
+        }
+        formRow {
+            formColumn(6) {
+                add(Customer::phone, Text(label = "Phone"))
+            }
+            formColumn(6) {
+                add(Customer::active, CheckBox(label = "Active"))
             }
         }
     }
@@ -697,14 +684,10 @@ Display a parent item with one or more child lists:
 class ViewItemCustomer : ViewItem<...>() {
     override val configView = configViewItem
 
-    override fun Container.displayPage() {
-        // Parent form
-        formPanel = ViewFormPanel.xcreate(viewItem = this@ViewItemCustomer) {
-            formRow {
-                text(label = "Name") { bind(Customer::name) }
-            }
+    override fun Container.pageItemBody(): FormPanel<Customer> = viewFormPanel {
+        formRow {
+            add(Customer::name, Text(label = "Name"))
         }
-
         // Child list: orders for this customer
         addViewList(
             viewList = ViewListOrder(),

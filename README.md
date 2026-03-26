@@ -297,12 +297,10 @@ class ViewListCustomer : ViewList<Customer, OId<Customer>, CustomerFilter, Unit>
 class ViewItemCustomer : ViewItem<Customer, OId<Customer>, CustomerFilter>() {
     override val configView = ConfigViewItemCustomer
 
-    override fun Container.displayPage() {
-        formPanel = ViewFormPanel.xcreate(viewItem = this@ViewItemCustomer) {
-            formRow {
-                text(label = "Name", value = Customer::name)
-                text(label = "Email", value = Customer::email)
-            }
+    override fun Container.pageItemBody(): FormPanel<Customer> = viewFormPanel {
+        formRow {
+            add(Customer::name, Text(label = "Name"))
+            add(Customer::email, Text(label = "Email"))
         }
     }
 }

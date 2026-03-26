@@ -10,6 +10,7 @@ version = libs.versions.fsLib.get()
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 kotlin {

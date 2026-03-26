@@ -5,10 +5,9 @@ import com.fonrouge.fullStack.config.configViewItem
 import com.fonrouge.fullStack.help.IHelpModule
 import com.fonrouge.fullStack.layout.formColumn
 import com.fonrouge.fullStack.layout.formRow
-import com.fonrouge.fullStack.view.ViewFormPanel
 import com.fonrouge.fullStack.view.ViewItem
-import com.fonrouge.fullStack.view.viewFormPanel
 import io.kvision.core.Container
+import io.kvision.form.FormPanel
 import io.kvision.form.select.TomSelect
 import io.kvision.form.text.Text
 import io.kvision.form.text.TextArea
@@ -33,8 +32,8 @@ class ViewItemTask : ViewItem<Task, String, ApiFilter>(
         )
     }
 
-    override fun Container.pageItemBody(): ViewFormPanel<Task> {
-        return viewFormPanel(viewItem = this@ViewItemTask) {
+    override fun Container.pageItemBody(): FormPanel<Task> {
+        return viewFormPanel {
             formRow {
                 formColumn(6) {
                     add(
