@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [3.2.0] - 2026-03-25
+## [3.2.0] - 2026-03-28
 
 ### Removed
 - **`ViewFormPanel`** class deleted. `ViewItem.pageItemBody()` now returns KVision's `FormPanel<T>` directly. Consumer code that used `viewFormPanel { }` DSL continues to work — the function now lives on `ViewItem` and returns `FormPanel<T>`.
@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 - `bindCustom(key = Model::field)` calls resolve to KVision's built-in `FormPanel.bindCustom()` — no wrapper needed.
 
 ### Dependencies
-- Requires KVision 9.4.0-SNAPSHOT (with `FormFieldConverter` and `dataOverlayProvider` support).
+- Kotlin 2.3.20, KVision 9.5.0, Kilua RPC 0.0.43.
 
 ### Migration Guide
 - Change `pageItemBody()` return type from `ViewFormPanel<T>` to `FormPanel<T>`.
