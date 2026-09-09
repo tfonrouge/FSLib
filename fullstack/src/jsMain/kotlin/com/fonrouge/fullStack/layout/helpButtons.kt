@@ -4,6 +4,8 @@ import com.fonrouge.base.enums.HelpTheme
 import com.fonrouge.base.enums.HelpType
 import com.fonrouge.fullStack.services.HelpDocsServiceRegistry
 import io.kvision.core.*
+import io.kvision.i18n.I18n
+import io.kvision.i18n.I18n.gettext
 import io.kvision.dropdown.Direction
 import io.kvision.dropdown.Separator
 import io.kvision.dropdown.ddLink
@@ -268,12 +270,12 @@ private fun showManualModal(title: String, rawHtml: String) {
             marginBottom = 8.px
             paddingBottom = 8.px
             borderBottom = Border(1.px, BorderStyle.SOLID, Color("#dee2e6"))
-            span("Navega el manual aqu\u00ed o \u00e1brelo en una ventana separada.") {
+            span(I18n.tr("Browse the manual here or open it in a separate window.")) {
                 color = Color("#6c757d")
                 fontSize = 0.85.rem
             }
             val themeDd = dropDown(
-                text = "${HelpDocsServiceRegistry.theme.icon} ${HelpDocsServiceRegistry.theme.label}",
+                text = "${HelpDocsServiceRegistry.theme.icon} ${gettext(HelpDocsServiceRegistry.theme.label)}",
                 style = ButtonStyle.OUTLINESECONDARY,
                 arrowVisible = false,
             ) {
@@ -281,24 +283,24 @@ private fun showManualModal(title: String, rawHtml: String) {
             }
             HelpTheme.entries.forEach { theme ->
                 val checkMark = if (theme == HelpDocsServiceRegistry.theme) "\u2713 " else "   "
-                themeDd.ddLink(label = "$checkMark${theme.icon} ${theme.label}") {
+                themeDd.ddLink(label = "$checkMark${theme.icon} ${gettext(theme.label)}") {
                     onClick {
                         HelpDocsServiceRegistry.theme = theme
                         HelpDocsServiceRegistry.persistThemeFromToggle(theme)
-                        themeDd.text = "${theme.icon} ${theme.label}"
+                        themeDd.text = "${theme.icon} ${gettext(theme.label)}"
                         currentBlobUrl = createBlobUrl(injectThemeAttribute(rawHtml, theme.cssValue))
                         iframeUrl.value = currentBlobUrl
                         // Rebuild menu checkmarks
                         themeDd.getChildren().filterIsInstance<io.kvision.html.Link>().forEachIndexed { idx, link ->
                             val entry = HelpTheme.entries[idx]
                             val mark = if (entry == theme) "\u2713 " else "   "
-                            link.label = "$mark${entry.icon} ${entry.label}"
+                            link.label = "$mark${entry.icon} ${gettext(entry.label)}"
                         }
                     }
                 }
             }
             button(
-                text = "Ventana separada",
+                text = I18n.tr("Separate window"),
                 icon = "fas fa-external-link-alt",
                 style = ButtonStyle.OUTLINEPRIMARY,
             ) {
@@ -348,11 +350,11 @@ private fun detachToWindow(title: String, htmlContent: String) {
     val theme = currentThemeCss()
     popup?.document?.write(
         """<!DOCTYPE html>
-<html lang="es">
+<html lang="${I18n.language}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>$title</title>
+<title></title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 body { margin: 0; padding: 0; background: #fdfdfe; }
@@ -371,26 +373,32 @@ body { margin: 0; padding: 0; background: #fdfdfe; }
 </style>
 </head>
 <body data-help-theme="$theme">
-<div class="detached-help-bar"><i class="fas fa-external-link-alt"></i> $title</div>
+<div class="detached-help-bar"><i class="fas fa-external-link-alt"></i> <span class="detached-help-bar-title"></span></div>
 <div class="detached-help-content">$htmlContent</div>
 </body>
 </html>"""
     )
     popup?.document?.close()
+    // The title is inserted as TEXT, never through document.write: since the View wiring it
+    // carries the live item label (CONTRACT I-5) — database content that must not be
+    // interpreted as HTML in a same-origin window. htmlContent stays HTML by design (help docs).
+    popup?.document?.title = title
+    popup?.document?.querySelector(".detached-help-bar-title")?.textContent = title
 }
 
 /**
  * Renders help HTML content inside a wrapper with a detach-to-window button.
  *
- * @param helpTypeLabel The label of the help type (e.g., "Tutorial").
- * @param viewLabel The label of the view for the popup window title.
+ * @param helpTypeLabel The (already translated) label of the help type (e.g., "Tutorial").
+ * @param viewLabelProvider Supplies the view label for the popup window title \u2014 evaluated when
+ *                          the user detaches, never captured at construction (CONTRACT I-5).
  * @param htmlContent The processed HTML content to render.
  * @param rawContent The raw HTML content used when detaching to a popup window.
  * @param onDetach Callback invoked when the user clicks the detach button (typically hides the offcanvas).
  */
 private fun Container.helpContentWithDetach(
     helpTypeLabel: String,
-    viewLabel: String,
+    viewLabelProvider: () -> String,
     htmlContent: String,
     rawContent: String,
     onDetach: () -> Unit,
@@ -402,10 +410,10 @@ private fun Container.helpContentWithDetach(
             icon = "fas fa-external-link-alt",
             className = "help-detach-icon"
         ) {
-            title = "Open in separate window"
+            title = gettext("Open in separate window")
             onClick {
                 onDetach()
-                detachToWindow("$helpTypeLabel \u2014 $viewLabel", rawContent)
+                detachToWindow("$helpTypeLabel \u2014 ${viewLabelProvider()}", rawContent)
             }
         }
         div(content = htmlContent, rich = true)
@@ -413,12 +421,23 @@ private fun Container.helpContentWithDetach(
 }
 
 /**
+ * Builds the help offcanvas caption for [viewLabel]. Callers evaluate this at open time with the
+ * label provider's current value, never at FAB construction (CONTRACT I-5, OC-03); the prefix
+ * resolves through i18n (CONTRACT I-4).
+ */
+internal fun helpCaption(viewLabel: String): String = "${gettext("Help")} \u2014 $viewLabel"
+
+/**
  * Adds a subtle "?" help button (fixed, bottom-right) that uses a KVision [DropDown]
  * triggered on hover. The dropdown menu shows available help options:
  *
- * - **Manual del Módulo** (if available): opens a modal with the full manual in an iframe.
- * - **Ayuda de esta Vista** (if tutorial/context available): opens an offcanvas panel with
+ * - **Module Manual** (if available): opens a modal with the full manual in an iframe.
+ * - **View Help** (if tutorial/context available): opens an offcanvas panel with
  *   tabbed tutorial and context help content.
+ *
+ * This overload takes a fixed label and delegates to the provider overload; use the provider
+ * overload directly when the label is not final at construction time (e.g. a read-mode item
+ * view whose item loads after the FAB is built).
  *
  * @param viewClassName The simple class name of the view, used to look up help documents.
  * @param viewLabel The display label of the view, shown in the offcanvas header.
@@ -429,14 +448,28 @@ private fun Container.helpContentWithDetach(
  *                     detail views where step-by-step guidance does not apply.
  */
 fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: String? = null, showTutorial: Boolean = true) {
+    helpButtons(viewClassName, { viewLabel }, moduleSlug, showTutorial)
+}
+
+/**
+ * Adds the "?" help button with a **late-bound view label**: [viewLabelProvider] is evaluated
+ * every time a help surface opens (offcanvas, manual modal, detached window), so a label that
+ * becomes available after construction \u2014 an item view whose record loads asynchronously \u2014 is
+ * always shown current, never captured stale at FAB creation (CONTRACT I-5, OC-03).
+ *
+ * @param viewClassName The simple class name of the view, used to look up help documents.
+ * @param viewLabelProvider Supplies the display label of the view at open time.
+ * @param moduleSlug Optional module slug for module-scoped help file lookup.
+ * @param showTutorial Whether to show the tutorial tab (see the fixed-label overload).
+ */
+fun Container.helpButtons(viewClassName: String, viewLabelProvider: () -> String, moduleSlug: String? = null, showTutorial: Boolean = true) {
     injectHelpButtonsCss()
     val service = HelpDocsServiceRegistry.service ?: return
     val rawHtmlCache = mutableMapOf<HelpType, String>()
-    val caption = "Ayuda \u2014 $viewLabel"
 
-    // Offcanvas for tutorial/context help
+    // Offcanvas for tutorial/context help \u2014 its caption is assigned at each open, not here.
     val oc = offcanvas(
-        caption = caption,
+        caption = null,
         placement = OffPlacement.END,
         scrollableBody = true,
         closeButton = true,
@@ -454,7 +487,7 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
         }
         // Update header dropdown button label
         oc.getElement()?.querySelector(".help-theme-dropdown-btn")?.let { btn ->
-            btn.innerHTML = "${theme.icon} ${theme.label} <span class='theme-chevron'>&#9660;</span>"
+            btn.innerHTML = "${theme.icon} ${gettext(theme.label)} <span class='theme-chevron'>&#9660;</span>"
         }
         // Update header dropdown menu checkmarks
         oc.getElement()?.querySelectorAll(".help-theme-menu-item")?.asList()
@@ -486,7 +519,7 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
 
         fun updateBtnLabel() {
             val t = currentTheme()
-            btn.innerHTML = "${t.icon} ${t.label} <span class='theme-chevron'>&#9660;</span>"
+            btn.innerHTML = "${t.icon} ${gettext(t.label)} <span class='theme-chevron'>&#9660;</span>"
         }
 
         fun buildMenu() {
@@ -495,7 +528,7 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                 val item = document.createElement("button")
                 item.className = "help-theme-menu-item" + if (theme == currentTheme()) " active" else ""
                 val check = if (theme == currentTheme()) "&#10003;" else ""
-                item.innerHTML = "<span class='theme-check'>$check</span>${theme.icon} ${theme.label}"
+                item.innerHTML = "<span class='theme-check'>$check</span>${theme.icon} ${gettext(theme.label)}"
                 item.addEventListener("click", { e ->
                     e.stopPropagation()
                     HelpDocsServiceRegistry.theme = theme
@@ -624,7 +657,7 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                 oc.bind(html) { content ->
                     if (content.isNotEmpty()) {
                         helpContentWithDetach(
-                            helpType.label, viewLabel, content,
+                            gettext(helpType.label), viewLabelProvider, content,
                             rawHtmlCache[helpType] ?: content
                         ) { oc.hide() }
                     }
@@ -642,11 +675,12 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                 }
 
                 dd.ddLink(
-                    label = helpType.label,
+                    label = I18n.tr(helpType.label),
                     icon = helpTypeIcon(helpType),
                 ) {
                     onClick {
                         dd.toggle()
+                        oc.caption = helpCaption(viewLabelProvider())
                         lazyLoadSingle()
                         oc.show()
                         syncContentTheme()
@@ -659,11 +693,11 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                 oc.add(tabPanel {
                     panelTypes.forEach { helpType ->
                         val html = htmlMap[helpType]!!
-                        tab(label = helpType.label, icon = helpTypeIcon(helpType)) {
+                        tab(label = I18n.tr(helpType.label), icon = helpTypeIcon(helpType)) {
                             bind(html) { content ->
                                 if (content.isNotEmpty()) {
                                     helpContentWithDetach(
-                                        helpType.label, viewLabel, content,
+                                        gettext(helpType.label), viewLabelProvider, content,
                                         rawHtmlCache[helpType] ?: content
                                     ) { oc.hide() }
                                 }
@@ -688,11 +722,12 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                 }
 
                 dd.ddLink(
-                    label = "Ayuda de esta Vista",
+                    label = I18n.tr("View Help"),
                     icon = "fas fa-lightbulb",
                 ) {
                     onClick {
                         dd.toggle()
+                        oc.caption = helpCaption(viewLabelProvider())
                         lazyLoadTabs()
                         oc.show()
                         syncContentTheme()
@@ -709,7 +744,7 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
         // Manual option — opens modal directly
         if (hasManual) {
             dd.ddLink(
-                label = "Manual del M\u00f3dulo",
+                label = I18n.tr(HelpType.MANUAL.label),
                 icon = "fas fa-book-open",
             ) {
                 onClick {
@@ -720,7 +755,7 @@ fun Container.helpButtons(viewClassName: String, viewLabel: String, moduleSlug: 
                                 .also { if (it.isNotEmpty()) rawHtmlCache[HelpType.MANUAL] = it }
                         if (rawHtml.isNotEmpty()) {
                             showManualModal(
-                                "${HelpType.MANUAL.label} \u2014 $viewLabel",
+                                "${gettext(HelpType.MANUAL.label)} \u2014 ${viewLabelProvider()}",
                                 rawHtml
                             )
                         }

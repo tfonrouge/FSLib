@@ -478,9 +478,12 @@ abstract class View<FILT : IApiFilter<*>>(
             this@startDisplayPage.displayPage()
             val viewClassName = this@View::class.simpleName ?: ""
             if (helpEnabled && viewClassName.isNotEmpty()) {
+                // Live provider, not `viewLabel = label`: `label` is computed from the current
+                // item, which on a read-mode view loads after this FAB is built — a captured
+                // String would freeze the pre-load caption (CONTRACT I-5, ACS-04 2026-09-09).
                 this@startDisplayPage.helpButtons(
                     viewClassName = viewClassName,
-                    viewLabel = label,
+                    viewLabelProvider = { this@View.label },
                     moduleSlug = helpModule?.slug,
                     showTutorial = crudTask == null || actionUpsert
                 )

@@ -468,9 +468,12 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
                         // handle: `Confirm` is a `Modal`, its buttons only call `hide()`, and a
                         // hidden modal stays in KVision's registry forever. Without an instance to
                         // dispose, every cancelled edit would retain one.
+                        val texts = confirmCancelTexts()
                         val confirm = Confirm(
-                            caption = "Please Confirm",
-                            text = "Cancel and forget current changes?",
+                            caption = texts.caption,
+                            text = texts.text,
+                            yesTitle = texts.yes,
+                            noTitle = texts.no,
                             yesCallback = { proceedClose() },
                         )
                         confirm.show()
@@ -1123,3 +1126,31 @@ abstract class ViewItem<T : BaseDoc<ID>, ID : Any, FILT : IApiFilter<*>>(
         }
     }
 }
+
+/**
+ * The four user-facing strings of the unsaved-changes cancel confirmation shown by
+ * [ViewItem.backCloseAction].
+ *
+ * @property caption The dialog caption.
+ * @property text The dialog body question.
+ * @property yes The affirmative button title.
+ * @property no The negative button title.
+ */
+internal data class ConfirmCancelTexts(
+    val caption: String,
+    val text: String,
+    val yes: String,
+    val no: String,
+)
+
+/**
+ * Resolves the cancel-confirmation strings through KVision i18n at dialog-open time, so a
+ * consumer catalog translates all four — including Yes/No, whose KVision `Confirm` defaults are
+ * raw English literals (blueprints/view-consumer-gaps CONTRACT I-4, OC-02). English source keys.
+ */
+internal fun confirmCancelTexts(): ConfirmCancelTexts = ConfirmCancelTexts(
+    caption = gettext("Please Confirm"),
+    text = gettext("Cancel and forget current changes?"),
+    yes = gettext("Yes"),
+    no = gettext("No"),
+)

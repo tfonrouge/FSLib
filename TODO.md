@@ -41,6 +41,8 @@ It handles CRUD, aggregation pipelines, lookups, pagination, permission checks, 
 
 Cinco huecos de fsLib/KVision medidos en mppArel durante el recorrido A→E de `EjecucionTallerMoldes` (mppArel LEDGER L-104/L-106, G-022). Decisión del owner (opción a): quedan aquí como tareas; ninguna se abre ahora. Cada una trae el síntoma, dónde vive y qué se sugiere, para que el que la tome no vuelva a medir.
 
+**Estado 2026-09-08 — abiertas por instrucción del owner en el blueprint [`blueprints/view-consumer-gaps/`](blueprints/view-consumer-gaps/BRIEF.md):** T-3 (`FsTomSelectRemote*` con guarda en vuelo, condición de retiro al estilo FsTabPanel), T-1 (diálogo de cancelar vía `gettext`) y T-4 (overload con `viewLabelProvider` + i18n de helpButtons) **construidos y con pruebas verdes** — pendiente release y la medición 1-RPC en mppArel (PLAN P1.9, rollup OC-01); la migración del consumidor está en su `CONTRACT.md`. T-2 y T-5 quedan como **decisiones de diseño registradas** (LEDGER L-006/L-007) pendientes de decisión del owner — no reabrir análisis: las opciones ya están ahí.
+
 | # | Tarea | Síntoma medido | Dónde | Sugerencia |
 |---|-------|----------------|-------|------------|
 | T-1 | **Confirm de cancelar en español** | Al cancelar una ficha con cambios: «Please Confirm / Cancel and forget current changes? / No / Yes». | `fullstack/.../view/ViewItem.kt` `backCloseAction` (el `Confirm` de KVision que reemplazó al `confirm()` nativo). | Pasar caption/texto/botones por `I18n` (mppArel ya instala `messagesEs`) o por parámetros del `ViewItem`. |
