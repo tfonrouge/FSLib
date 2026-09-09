@@ -21,8 +21,9 @@ API_SURFACE duty per LEDGER L-002). KDoc on the symbols references this contract
   (`ViewItem` cancel dialog; `helpButtons.kt`) resolves through KVision i18n — **`I18n.tr` lazy
   markers only where a component's whole text is exactly the key; immediate `gettext` for every
   interpolated or raw-DOM string** (a mid-string marker either swallows the suffix into the
-  lookup key or leaks raw — L-008/ACS-05). English source keys for new strings; Spanish
-  `HelpType`/`HelpTheme` enum labels wrapped at point of use (L-005).
+  lookup key or leaks raw — L-008/ACS-05). English source keys for new strings; enum labels wrapped at
+  point of use — `HelpType`'s are Spanish, `HelpTheme`'s are English (L-005; the "both Spanish"
+  wording was corrected in L-010).
 - **I-5 (late-bound help titles).** The help offcanvas caption, manual modal caption, and
   detached-window title are computed when the user opens them, never captured at FAB
   construction; the `String` overload of `helpButtons` delegates to the provider overload, and
@@ -45,10 +46,16 @@ API_SURFACE duty per LEDGER L-002). KDoc on the symbols references this contract
 ## Consumer migration notes (for the release's CHANGELOG/MIGRATION entry)
 
 - Swap `tomSelectRemote(...)` → `fsTomSelectRemote(...)` (and the `Input` variant) to get I-1/I-2.
-- New translatable keys (add to i18n catalogs, e.g. mppArel `messagesEs`): `Please Confirm`,
+  **Qualified (L-010/ACS-03)**: inferred-type DSL call sites change import + builder name only; a
+  variable, parameter, or receiver explicitly typed as KVision's `TomSelectRemote` needs adapting —
+  `FsTomSelectRemote` is a sibling class, not a subclass.
+- **Runtime-visible for existing consumers even without the swap**: previously hardcoded help-UI
+  strings become English i18n keys; without catalog entries the help UI shows English. Exact
+  15-key checklist (shipped in MIGRATION.md 6.2.4 → 6.3.0): `Please Confirm`,
   `Cancel and forget current changes?`, `Yes`, `No`, `Help`, `View Help`,
-  `Open in separate window`, `Separate window`, `Browse the manual here or open it in a separate window.`
-  — plus point-of-use enum labels (`Tutorial`, `Ayuda Contextual`, `Manual del Módulo`, theme names).
+  `Open in separate window`, `Separate window`,
+  `Browse the manual here or open it in a separate window.`, `Tutorial`, `Ayuda Contextual`,
+  `Manual del Módulo`, `Auto (OS)`, `Dark`, `Light`.
 - `helpButtons`: fsLib's standard views are already fixed (`View.startDisplayPage` passes a live
   provider). A consumer calling `helpButtons` directly with a label that loads after construction
   should use the provider overload; the `String` overload necessarily keeps a fixed label

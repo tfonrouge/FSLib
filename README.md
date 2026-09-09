@@ -77,7 +77,7 @@ Add the dependency to your module's `build.gradle.kts`:
 ```kotlin
 // Version catalog (gradle/libs.versions.toml)
 [versions]
-fslib = "6.2.2"
+fslib = "6.3.0"
 
 [libraries]
 fslib-core = { module = "com.fonrouge.fslib:core", version.ref = "fslib" }
@@ -95,12 +95,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:6.2.2")
+                api("com.fonrouge.fslib:fullstack:6.3.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:memorydb:6.2.2")
+                implementation("com.fonrouge.fslib:memorydb:6.3.0")
             }
         }
     }
@@ -113,12 +113,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:6.2.2")
+                api("com.fonrouge.fslib:fullstack:6.3.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:6.2.2")
+                implementation("com.fonrouge.fslib:mongodb:6.3.0")
             }
         }
     }
@@ -131,12 +131,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:6.2.2")
+                api("com.fonrouge.fslib:fullstack:6.3.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:sql:6.2.2")
+                implementation("com.fonrouge.fslib:sql:6.3.0")
             }
         }
     }
@@ -149,13 +149,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("com.fonrouge.fslib:fullstack:6.2.2")
+                api("com.fonrouge.fslib:fullstack:6.3.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("com.fonrouge.fslib:mongodb:6.2.2")
-                implementation("com.fonrouge.fslib:sql:6.2.2")
+                implementation("com.fonrouge.fslib:mongodb:6.3.0")
+                implementation("com.fonrouge.fslib:sql:6.3.0")
             }
         }
     }
@@ -168,7 +168,7 @@ kotlin {
 ./gradlew publishToMavenLocal -PSNAPSHOT
 ```
 
-This publishes `:core`, `:fullstack`, `:mongodb`, `:sql`, `:memorydb`, `:media`, and `:ssr` to your local Maven repository (`~/.m2/repository`) as `6.0.0-SNAPSHOT`.
+This publishes `:core`, `:fullstack`, `:mongodb`, `:sql`, `:memorydb`, `:media`, and `:ssr` to your local Maven repository (`~/.m2/repository`) as `6.3.0-SNAPSHOT`.
 
 The `-PSNAPSHOT` flag is **required**: publishing a release version to `~/.m2/` would silently shadow the official Maven Central artifact for every project on the machine, so a bare `publishToMavenLocal` is blocked and fails at configuration time. Use `-PFORCE_LOCAL` only if you genuinely need to override that. See [Local Development with SNAPSHOT](#local-development-with-snapshot).
 
@@ -613,7 +613,7 @@ A standalone Android client that consumes the showcase API contract is available
 To publish a SNAPSHOT version to your local Maven repository for development and testing:
 
 ```bash
-./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 6.0.0-SNAPSHOT to ~/.m2/
+./gradlew publishToMavenLocal -PSNAPSHOT   # Publishes as 6.3.0-SNAPSHOT to ~/.m2/
 ./gradlew :core:publishToMavenLocal -PSNAPSHOT  # Single module only
 ```
 
@@ -625,7 +625,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fonrouge.fslib:fullstack:6.2.2-SNAPSHOT")
+    implementation("com.fonrouge.fslib:fullstack:6.3.0-SNAPSHOT")
 }
 ```
 

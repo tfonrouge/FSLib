@@ -4,6 +4,68 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [6.3.0] - 2026-09-09
+
+First wave of the consumer-measured view-layer gaps parked in `TODO.md` (T-3, T-1, T-4 —
+measured in a real consumer's E2E walkthrough). Design artifacts: `blueprints/view-consumer-gaps/`.
+Two ACS advisory rounds ran pre-commit and one pre-release; all findings were Owner-disposed and
+applied.
+
+### Added
+- **`FsTomSelectRemote` / `FsTomSelectRemoteInput`** and the `fsTomSelectRemote` /
+  `fsTomSelectRemoteInput` DSL builders (`com.fonrouge.fullStack.form`) — variants of KVision's
+  remote tom-select whose `refreshState()` no longer re-fires the options RPC while a load for
+  the same value is in flight. KVision's guard is `options[value] == null`, which stays true for
+  the whole in-flight window, so every `refreshState()` during form population fires another
+  identical request — measured at **7–9 RPCs per selector on every form open**, with duplicated
+  options accumulating in the native `<select>`. The fsLib guard tracks the *set* of in-flight
+  values (rapid A→B→A value changes cannot re-fire an outstanding load), guards the parent
+  constructor's preset-value load too (the guard is `lateinit`-created during that dispatch and
+  survives subclass initialization), prepares all request parameters *before* marking (a throwing
+  `stateFunction` cannot wedge a marker), and settles on failure so the next refresh retries.
+  `FsTomSelectRemote` is a **sibling** of `TomSelectRemote`, not a subclass — KVision hard-wires
+  its input as `final override val` — so call sites explicitly typed as KVision's
+  `TomSelectRemote` need adapting; inferred-type DSL call sites only change import + builder name.
+  This is a workaround with an explicit retirement condition (the `FsTabPanel` precedent): when a
+  KVision release guards `refreshState` upstream, these classes are deleted.
+- **`helpButtons(viewClassName, viewLabelProvider: () -> String, ...)`** overload: the help
+  offcanvas caption, manual-modal caption and detached-window title are computed **each time they
+  open**, from the provider's current value. The `String` overload remains and delegates with a
+  fixed label.
+
+### Changed
+- The unsaved-changes cancel dialog (`ViewItem.backCloseAction`) resolves its four strings —
+  `Please Confirm`, `Cancel and forget current changes?`, `Yes`, `No` — through KVision i18n
+  (immediate `gettext`). `Yes`/`No` were KVision `Confirm`'s raw defaults, invisible to catalogs.
+- Every user-facing string in `helpButtons.kt` routes through KVision i18n, with **English source
+  keys** where strings were previously hardcoded (some in Spanish). **Runtime-visible for existing
+  consumers**: without the catalog entries listed in the Migration Guide, the help UI shows the
+  English keys. `I18n.tr` lazy markers are used only where a component's whole text is the key;
+  every interpolated or raw-DOM string uses immediate `gettext` (a mid-string marker either
+  swallows the suffix into the lookup key or leaks raw).
+- `View.startDisplayPage` passes the **live** label to `helpButtons`, so a read-mode item view
+  whose record loads after the FAB is built shows the current caption instead of the empty/stale
+  one captured at construction (the defect that motivated T-4).
+
+### Fixed
+- The detached help window's title is inserted as **text** (`document.title` / `textContent`),
+  never interpolated into `document.write` — item-label content (now live, per the change above)
+  can no longer be interpreted as HTML in that same-origin popup.
+
+### Added (tests)
+- `InFlightValueGuardTest` — the guard state machine, including the A→B→A regression (an
+  outstanding load stays tracked when another value starts; settling one value never unblocks
+  another). `ConfirmCancelTextsTest` — all four dialog strings observed resolving through a
+  stubbed `I18nManager`. `HelpCaptionTest` — the caption routes through i18n and reflects the
+  provider's value at evaluation time. A component-level fixture with a real failing RPC was
+  built, run, and **withdrawn**: the deliberate upstream-parity rethrow surfaces as an uncaught
+  error that Karma attributes to unrelated tests (evidence and standing oracles recorded in the
+  blueprint's LEDGER L-009).
+
+### Migration Guide (6.2.4 → 6.3.0)
+Compiles clean with no changes; the visible differences are language and captions at runtime.
+See `MIGRATION.md` for the exact 15-key catalog checklist and the selector swap guidance.
+
 ## [6.2.4] - 2026-09-04
 
 ### Fixed

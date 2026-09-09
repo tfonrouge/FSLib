@@ -17,9 +17,56 @@ list and the rationale.
 | 6.2.1 → 6.2.2 | Nothing — completes the 6.2.1 counter fix (metadata-only changes now repaint). Skip 6.2.1 and go straight here. |
 | [6.2.2 → 6.2.3](#622--623--el-refresco-periódico-se-registra-por-token) | **Removes four public members of `ViewDataContainer`**, changes what `periodicUpdateDataView = false` does, makes `inactivityUiSecsToNoRefresh` actually take effect, y **reemplaza `tabPanel` por `fsTabPanel`**. |
 | 6.2.3 → 6.2.4 | Nothing — internal fix: `FsTabPanel.dispose()` no longer cascades full-root re-renders. Behaviour unchanged, teardown cost only. |
+| [6.2.4 → 6.3.0](#624--630--help-ui-strings-become-i18n-keys) | **Add 15 keys to your i18n catalog** or the help UI and the cancel dialog show English at runtime (compiles fine either way). Recommended: swap `tomSelectRemote` → `fsTomSelectRemote` to stop the 7–9× RPC storm per form open. |
 
 Skipping releases? Apply **every** section between your version and your target — a migration is not
 optional just because you skipped the release that introduced it.
+
+---
+
+## 6.2.4 → 6.3.0 — help UI strings become i18n keys
+
+**Symptom if you skip this.** Everything compiles. At runtime the floating "?" help menu, the help
+panel headers, the manual modal, and the unsaved-changes cancel dialog appear in **English** (the
+i18n source keys) instead of your app's language — the strings were previously hardcoded (several
+in Spanish) and are now resolved through your gettext catalog.
+
+**What to change.** Add these 15 keys to your catalog (e.g. `messagesEs`):
+
+```
+Please Confirm
+Cancel and forget current changes?
+Yes
+No
+Help
+View Help
+Open in separate window
+Separate window
+Browse the manual here or open it in a separate window.
+Tutorial
+Ayuda Contextual
+Manual del Módulo
+Auto (OS)
+Dark
+Light
+```
+
+The last six are point-of-use enum labels — `HelpType` (`Tutorial`, `Ayuda Contextual`,
+`Manual del Módulo` — Spanish source keys, kept for compatibility) and `HelpTheme` (`Auto (OS)`,
+`Dark`, `Light` — English). A key with no catalog entry displays as-is.
+
+**Recommended — stops the RPC storm (T-3).** Swap `tomSelectRemote(...)` →
+`fsTomSelectRemote(...)` and `tomSelectRemoteInput(...)` → `fsTomSelectRemoteInput(...)`
+(import from `com.fonrouge.fullStack.form`). Inferred-type DSL call sites need only the import and
+builder-name change; a variable, parameter, or receiver **explicitly typed** as KVision's
+`TomSelectRemote` needs adapting — `FsTomSelectRemote` is a sibling class, not a subclass. Verify
+with `performance.getEntriesByType('resource')`: the target is **1 options RPC per selector** per
+form open (previously 7–9).
+
+**Also visible.** Help captions now reflect the loaded item: on read-mode item views the offcanvas
+header, modal caption and detached-window title show the record's label instead of the empty/stale
+label captured when the button was created. If you call `helpButtons` directly with a label that
+loads after construction, use the new `viewLabelProvider` overload.
 
 ---
 

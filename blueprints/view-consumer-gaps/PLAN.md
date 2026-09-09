@@ -1,7 +1,10 @@
 # PLAN — view-consumer-gaps
 
-All items SAFE (additive API, no behavior change for untouched call sites). Order follows the
-adopted value ranking T-3 → T-1 → T-4.
+All items additive in API. **Behavior IS consumer-visible without any call-site change**
+(corrected in L-010 — the original "no behavior change for untouched call sites" was an
+overclaim): help-UI strings become English i18n keys until the consumer catalogs them, and help
+captions go live via the `View.startDisplayPage` wiring. Order follows the adopted value ranking
+T-3 → T-1 → T-4.
 
 ## Phase 1 — first wave · construction
 
@@ -17,7 +20,7 @@ adopted value ranking T-3 → T-1 → T-4.
 | **P1.8** | Full build + jsBrowserTest green; TODO.md updated (T-1/T-3/T-4 point here; T-2/T-5 point to L-006/L-007). | OC-01..04 | `TODO.md` | ✅ done (full build + fullstack jsBrowserTest green 2026-09-08, 92 tests/0 failed; TODO.md annotated) |
 | **P1.10** | ACS pre-commit advisory ACS-01..06 adopted and applied (guard rework, `View.startDisplayPage` provider wiring, offcanvas theme labels via `gettext`, records reconciled, `InFlightValueGuard` internal) — see LEDGER L-008. | OC-01..03 | `FsTomSelectRemote.kt`, `View.kt`, `helpButtons.kt`, blueprint records | ✅ done (2026-09-09) |
 | **P1.11** | Second ACS round (L-009): detached-window title inserted as text (`document.title`/`textContent`, never through `document.write` — ACS-01); component-fixture attempt run and withdrawn per the pre-authorized fallback (uncaught RPC-failure errors poison unrelated Karma tests; standing oracles recorded in L-009 — ACS-02); PLAN mechanism wording swept (ACS-03). | OC-01..03 | `helpButtons.kt` (`detachToWindow`), `LEDGER.md` L-009 | ✅ done (2026-09-09) |
-| **P1.9** | *(at next release)* CHANGELOG/MIGRATION entry per CONTRACT §Consumer migration notes; version per Owner (SemVer reading: minor). | OC-01..03 | `CHANGELOG.md`, `MIGRATION.md` | ☐ deferred to release |
+| **P1.9** | CHANGELOG/MIGRATION entry per CONTRACT §Consumer migration notes; version per Owner (SemVer reading: minor). | OC-01..03 | `CHANGELOG.md`, `MIGRATION.md` | ✅ done (2026-09-09, release commit for **6.3.0**: version bump, CHANGELOG entry, MIGRATION section with the exact 15-key catalog checklist, repo-wide `.md` coordinate sweep — README/USAGE-GUIDE were at 6.2.2/6.0.0-SNAPSHOT) |
 
 ## Deferred (no implementation this wave — OC-04)
 
