@@ -32,3 +32,12 @@ jobs:
         # repository write/lifecycle conformance suite — including the Mongo/Testcontainers leg
         # (blueprints/repository-write-lifecycle, LEDGER D11) — an explicit, non-silent CI gate.
         run: ./gradlew :core:allTests :ssr:test :conformance:test
+
+      - name: Run browser tests
+        # The only jsTest source set lives in :fullstack (guard/i18n/caption suites among them —
+        # blueprints/view-consumer-gaps, LEDGER L-010/ACS-07). The Build step excludes
+        # jsBrowserTest, so without this step those tests were local-only evidence. Karma runs
+        # ChromeHeadless; ubuntu runners ship Chrome at /usr/bin/google-chrome.
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: ./gradlew :fullstack:jsBrowserTest

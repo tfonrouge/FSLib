@@ -22,6 +22,13 @@ T-3 → T-1 → T-4.
 | **P1.11** | Second ACS round (L-009): detached-window title inserted as text (`document.title`/`textContent`, never through `document.write` — ACS-01); component-fixture attempt run and withdrawn per the pre-authorized fallback (uncaught RPC-failure errors poison unrelated Karma tests; standing oracles recorded in L-009 — ACS-02); PLAN mechanism wording swept (ACS-03). | OC-01..03 | `helpButtons.kt` (`detachToWindow`), `LEDGER.md` L-009 | ✅ done (2026-09-09) |
 | **P1.9** | CHANGELOG/MIGRATION entry per CONTRACT §Consumer migration notes; version per Owner (SemVer reading: minor). | OC-01..03 | `CHANGELOG.md`, `MIGRATION.md` | ✅ done (2026-09-09, release commit for **6.3.0**: version bump, CHANGELOG entry, MIGRATION section with the exact 15-key catalog checklist, repo-wide `.md` coordinate sweep — README/USAGE-GUIDE were at 6.2.2/6.0.0-SNAPSHOT) |
 
+## Phase 2 — post-release hardening (Owner-adopted ACS-06/07, LEDGER L-010; outside the OC set — release/CI infrastructure)
+
+| ID | Step | Maps to | File anchors | Status |
+|----|------|---------|--------------|--------|
+| **P2.1** | `verifyStagingDeploy` preflight (ACS-06): standalone task, depended on by `publishToCentralPortal` — staged version must equal the catalog version and the staged artifact set must equal the publication inventory derived from the modules applying `fslib-publishing` (13 today; `:conformance` never appears). Replaces the accepts-any-single-version gap. | L-010 | `build.gradle.kts` | ✅ done (2026-09-09 — positive + missing-module + mixed-version paths exercised against the real 6.3.0 staging) |
+| **P2.2** | CI browser-test step (ACS-07): `:fullstack:jsBrowserTest` on the JDK-25 workflow (ChromeHeadless; the only jsTest source set). Turns the wave's 92-test local evidence into continuous verification. | L-010 | `.github/workflows/build.yml` | ✅ done (2026-09-09 — first CI run is the runner-environment proof) |
+
 ## Deferred (no implementation this wave — OC-04)
 
 | Task | Ledger | Reopens as |
