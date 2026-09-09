@@ -21,7 +21,7 @@
 | ID | Step | Discharges | Status |
 |----|------|-----------|--------|
 | **G1** | This blueprint set (BRIEF, CONTRACT, LEDGER, PLAN). | D7, root-cause (write it down) | ✅ done |
-| **G2** | *(optional)* Add a `## Premise: cathedral` config block to `CLAUDE.md` to institutionalize governance project-wide. | D7 | ⏸ deferred (user call) |
+| **G2** | *(optional)* Add a `## Premise: cathedral` config block to `CLAUDE.md` to institutionalize governance project-wide. | D7 | ✅ done (2026-09-08 — Owner-directed: premise config block + `OWNER_ROAR_PROTOCOL` v9 block added to `CLAUDE.md`; Owner adopted ACS-05 reconciling this record) |
 
 ## Phase 1 — SAFE batch · construction (ship as one minor release)
 
@@ -74,5 +74,5 @@ Assume-skips; in CI a missing Docker daemon fails loudly (D11). D12 closed the `
 leak the suite surfaced. Phase 2 is complete in code (P2.1/P2.2/P2.3). **Released as `4.0.0`**
 (2026-06-10): version bump in `gradle/libs.versions.toml`, CHANGELOG entry with migration guide,
 README coordinates refreshed. The blueprint's in-scope work is **complete**; only the optional
-Phase 3 items (P3.1, P3.2) and G2 remain open. (Repo infra: the explicit `:conformance:test` CI
+Phase 3 items (P3.1, P3.2) remain open (G2 done 2026-09-08 — cathedral config in `CLAUDE.md`). (Repo infra: the explicit `:conformance:test` CI
 step is pushed and green — commit `e330456f`, run 27307306966.)
